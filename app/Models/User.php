@@ -29,6 +29,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'sports_school_id',
+        'role',
+        'is_active',
     ];
 
     /**
@@ -53,6 +56,15 @@ class User extends Authenticatable
     ];
 
     /**
+     * The relationships that should always be loaded.
+     *
+     * @var array<int, string>
+     */
+    protected $with = [
+        'sportsSchool',
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -62,6 +74,63 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Relación con escuela deportiva
+     */
+    public function sportsSchool()
+    {
+        return $this->belongsTo(SportsSchool::class);
+    }
+
+    /**
+     * Verificar si el usuario es master
+     */
+    public function isMaster(): bool
+    {
+        return $this->role === 'master';
+    }
+
+    /**
+     * Verificar si el usuario es administrador de escuela
+     */
+    public function isSchoolAdmin(): bool
+    {
+        return $this->role === 'school_admin';
+    }
+
+    /**
+     * Verificar si el usuario es entrenador
+     */
+    public function isCoach(): bool
+    {
+        return $this->role === 'coach';
+    }
+
+    /**
+     * Verificar si el usuario es estudiante
+     */
+    public function isStudent(): bool
+    {
+        return $this->role === 'student';
+    }
+
+    /**
+     * Scope para filtrar por rol
+     */
+    public function scopeByRole($query, $role)
+    {
+        return $query->where('role', $role);
+    }
+
+    /**
+     * Scope para usuarios activos
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
     }
 }
