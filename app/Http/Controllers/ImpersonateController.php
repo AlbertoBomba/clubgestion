@@ -6,12 +6,13 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 
 class ImpersonateController extends Controller
 {
-    public function impersonate(User $user)
+    public function impersonate(Request $request, User $user)
     {
-        $originalUser = auth()->user();
+        $originalUser = Auth::user();
         
         // Solo el master puede suplantar
         if (!$originalUser || !$originalUser->isMaster()) {
@@ -23,32 +24,25 @@ class ImpersonateController extends Controller
             return back()->with('error', 'No puedes suplantarte a ti mismo.');
         }
 
-        // Guardar el ID del usuario master original en la sesión
-        session()->put('impersonator_id', $originalUser->id);
+        // Guardar el ID del master original
+        $request->session()->put('impersonator_id', $originalUser->id);
         
-        // Forzar login del usuario suplantado manualmente
-        session()->put('password_hash_sanctum', $user->getAuthPassword());
-        session()->migrate(true);
-        Auth::guard('web')->setUser($user);
+        // Guardar el ID del usuario a suplantar
+        $request->session()->put('impersonated_user_id', $user->id);
 
-        return redirect()->route('dashboard')->with('message', "Ahora estás operando como {$user->name}");
+        return redirect()->route('dashboard');
     }
 
-    public function leaveImpersonation()
+    public function leaveImpersonation(Request $request)
     {
-        if (!session()->has('impersonator_id')) {
+        if (!$request->session()->has('impersonator_id')) {
             return redirect()->route('dashboard');
         }
 
-        // Recuperar el usuario master original
-        $impersonatorId = session()->pull('impersonator_id');
-        $impersonator = User::findOrFail($impersonatorId);
+        // Eliminar la suplantación
+        $request->session()->forget('impersonator_id');
+        $request->session()->forget('impersonated_user_id');
 
-        // Forzar login del master manualmente
-        session()->put('password_hash_sanctum', $impersonator->getAuthPassword());
-        session()->migrate(true);
-        Auth::guard('web')->setUser($impersonator);
-
-        return redirect()->route('school-users.index')->with('message', 'Has dejado de suplantar la identidad del usuario.');
+        return redirect()->route('dashboard');
     }
 }

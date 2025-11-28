@@ -18,9 +18,11 @@ class Edit extends Component
     public $description;
     public $address;
     public $city;
+    public $province;
     public $postal_code;
     public $phone;
     public $email;
+    public $contact_person;
     public $is_active;
     public $logo;
     public $currentLogo;
@@ -30,9 +32,11 @@ class Edit extends Component
         'description' => 'nullable|string',
         'address' => 'nullable|string|max:255',
         'city' => 'nullable|string|max:100',
+        'province' => 'nullable|string|max:100',
         'postal_code' => 'nullable|string|max:10',
         'phone' => 'nullable|string|max:20',
         'email' => 'nullable|email|max:255',
+        'contact_person' => 'nullable|string|max:255',
         'is_active' => 'boolean',
         'logo' => 'nullable|image|max:2048', // Max 2MB
     ];
@@ -44,9 +48,11 @@ class Edit extends Component
         $this->description = $school->description;
         $this->address = $school->address;
         $this->city = $school->city;
+        $this->province = $school->province;
         $this->postal_code = $school->postal_code;
         $this->phone = $school->phone;
         $this->email = $school->email;
+        $this->contact_person = $school->contact_person;
         $this->is_active = $school->is_active;
         $this->currentLogo = $school->logo;
     }
@@ -71,9 +77,11 @@ class Edit extends Component
             'description' => $this->description,
             'address' => $this->address,
             'city' => $this->city,
+            'province' => $this->province,
             'postal_code' => $this->postal_code,
             'phone' => $this->phone,
             'email' => $this->email,
+            'contact_person' => $this->contact_person,
             'is_active' => $this->is_active,
         ];
 

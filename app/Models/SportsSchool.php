@@ -17,9 +17,11 @@ class SportsSchool extends Model
         'description',
         'address',
         'city',
+        'province',
         'postal_code',
         'phone',
         'email',
+        'contact_person',
         'logo',
         'is_active',
     ];

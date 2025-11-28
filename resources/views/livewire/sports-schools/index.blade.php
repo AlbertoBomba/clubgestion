@@ -1,16 +1,16 @@
 <div>
     @if (session()->has('message'))
-        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)" class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-lg animate-slideUp">
+        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)" class="mb-6 p-4 bg-neon-green/10 border-l-4 border-neon-green rounded-lg animate-slideUp">
             <div class="flex items-center">
-                <svg class="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <svg class="w-5 h-5 text-neon-green mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                 </svg>
-                <p class="text-sm text-green-700 font-medium">{{ session('message') }}</p>
+                <p class="text-sm text-neon-green font-medium">{{ session('message') }}</p>
             </div>
         </div>
     @endif
 
-    <div class="card-modern bg-white rounded-2xl shadow-xl border border-purple-100 overflow-hidden">
+    <div class="card-modern bg-white-pure rounded-2xl shadow-xl border border-primary/10 overflow-hidden">
         <!-- Search Bar -->
         <div class="p-6 border-b border-gray-100">
             <div class="relative">
@@ -20,35 +20,35 @@
                     </svg>
                 </div>
                 <input wire:model.live="search" type="text" placeholder="Buscar escuelas por nombre, ciudad o email..." 
-                    class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 placeholder-gray-400">
+                    class="block w-full pl-10 pr-3 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep placeholder-gray-400">
             </div>
         </div>
 
         <!-- Table -->
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gradient-to-r from-purple-50 to-blue-50">
+            <table class="min-w-full divide-y divide-silver/30">
+                <thead class="bg-gradient-to-r from-gray-50 to-primary/5">
                     <tr>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Escuela</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Ciudad</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Contacto</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Usuarios</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Estado</th>
-                        <th class="px-6 py-4 text-right text-xs font-semibold text-purple-700 uppercase tracking-wider">Acciones</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Escuela</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Ciudad</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Contacto</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Usuarios</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Estado</th>
+                        <th class="px-6 py-4 text-right text-xs font-semibold text-primary uppercase tracking-wider">Acciones</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="bg-white-pure divide-y divide-silver/30">
                     @forelse ($schools as $school)
-                        <tr class="hover:bg-purple-50 transition-colors duration-150">
+                        <tr class="hover:bg-primary/5 transition-colors duration-150">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     @if($school->logo)
                                         <div class="flex-shrink-0 h-10 w-10 rounded-lg overflow-hidden border border-gray-200 bg-white flex items-center justify-center p-1">
-                                            <img src="{{ Storage::url($school->logo) }}" alt="{{ $school->name }}" class="h-full w-full object-contain">
+                                            <img src="{{ asset('storage/' . $school->logo) }}" alt="{{ $school->name }}" class="h-full w-full object-contain" onerror="this.parentElement.innerHTML='<span class=\'text-red-500 text-xs\'>X</span>'">
                                         </div>
                                     @else
-                                        <div class="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
-                                            <span class="text-white font-bold text-sm">{{ substr($school->name, 0, 2) }}</span>
+                                        <div class="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-primary to-night-blue rounded-lg flex items-center justify-center">
+                                            <span class="text-white-pure font-bold text-sm">{{ substr($school->name, 0, 2) }}</span>
                                         </div>
                                     @endif
                                     <div class="ml-4">
@@ -67,7 +67,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <a href="{{ route('school-users.index', ['filterSchool' => $school->id]) }}" 
-                                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors cursor-pointer">
+                                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors cursor-pointer">
                                     <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
                                     </svg>
@@ -76,7 +76,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <button wire:click="toggleActive({{ $school->id }})" 
-                                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors duration-200 {{ $school->is_active ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-gray-100 text-gray-800 hover:bg-gray-200' }}">
+                                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors duration-200 {{ $school->is_active ? 'bg-neon-green/20 text-neon-green hover:bg-neon-green/30' : 'bg-gray-100 text-gray-800 hover:bg-gray-200' }}">
                                     @if($school->is_active)
                                         <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
@@ -93,7 +93,7 @@
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <div class="flex items-center justify-end space-x-2">
                                     <a href="{{ route('sports-schools.edit', $school) }}" 
-                                        class="text-purple-600 hover:text-purple-900 transition p-2 rounded-lg hover:bg-purple-50">
+                                        class="text-primary hover:text-night-blue transition p-2 rounded-lg hover:bg-primary/5">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                         </svg>
@@ -124,7 +124,7 @@
 
         <!-- Pagination -->
         @if($schools->hasPages())
-            <div class="px-6 py-4 border-t border-gray-100">
+            <div class="px-6 py-4 border-t border-silver/30">
                 {{ $schools->links() }}
             </div>
         @endif
@@ -175,7 +175,7 @@
                     <button wire:click="deleteSchool" type="button" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors">
                         Eliminar
                     </button>
-                    <button @click="show = false" type="button" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:mt-0 sm:w-auto sm:text-sm transition-colors">
+                    <button @click="show = false" type="button" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:w-auto sm:text-sm transition-colors">
                         Cancelar
                     </button>
                 </div>

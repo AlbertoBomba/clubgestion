@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'Laravel') }} - Login</title>
+    <title>{{ config('app.name', 'Trevion APP') }} - Login</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -85,20 +85,20 @@
             <!-- Logo/Brand -->
             <div class="text-center mb-8 login-card">
                 <div class="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-2xl shadow-xl mb-4">
-                    <svg class="w-10 h-10 sm:w-12 sm:h-12 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-10 h-10 sm:w-12 sm:h-12 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                     </svg>
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-bold text-white mb-2">Bienvenido</h1>
-                <p class="text-purple-100 text-sm sm:text-base">Inicia sesión en tu cuenta</p>
+                <p class="text-primary/10 text-sm sm:text-base">Inicia sesión en tu cuenta</p>
             </div>
 
             <!-- Login Card -->
             <div class="login-card bg-white rounded-2xl shadow-2xl p-6 sm:p-8 lg:p-10">
                 <!-- Status Message -->
                 @session('status')
-                    <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-lg">
-                        <p class="text-sm text-green-700">{{ $value }}</p>
+                    <div class="mb-6 p-4 bg-neon-green/10 border-l-4 border-neon-green rounded-lg">
+                        <p class="text-sm text-neon-green">{{ $value }}</p>
                     </div>
                 @endsession
 
@@ -144,7 +144,7 @@
                                 required 
                                 autofocus 
                                 autocomplete="username"
-                                class="input-field block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 placeholder-gray-400 text-sm sm:text-base"
+                                class="input-field block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 placeholder-gray-400 text-sm sm:text-base"
                                 placeholder="tu@email.com"
                             >
                         </div>
@@ -167,7 +167,7 @@
                                 name="password" 
                                 required 
                                 autocomplete="current-password"
-                                class="input-field block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 placeholder-gray-400 text-sm sm:text-base"
+                                class="input-field block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 placeholder-gray-400 text-sm sm:text-base"
                                 placeholder="••••••••"
                             >
                         </div>
@@ -180,7 +180,7 @@
                                 id="remember_me" 
                                 type="checkbox" 
                                 name="remember"
-                                class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 focus:ring-2 cursor-pointer"
+                                class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary focus:ring-2 cursor-pointer"
                             >
                             <span class="ml-2 text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
                                 Recordarme
@@ -188,7 +188,7 @@
                         </label>
 
                         @if (Route::has('password.request'))
-                            <a href="{{ route('password.request') }}" class="text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors">
+                            <a href="{{ route('password.request') }}" class="text-sm font-medium text-primary hover:text-night-blue transition-colors">
                                 ¿Olvidaste tu contraseña?
                             </a>
                         @endif
@@ -197,7 +197,7 @@
                     <!-- Submit Button -->
                     <button 
                         type="submit" 
-                        class="btn-primary w-full py-3 px-4 rounded-xl text-white font-semibold text-sm sm:text-base shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                        class="btn-primary w-full py-3 px-4 rounded-xl text-white font-semibold text-sm sm:text-base shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     >
                         <span class="flex items-center justify-center">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -213,7 +213,7 @@
                     <div class="mt-6 text-center">
                         <p class="text-sm text-gray-600">
                             ¿No tienes una cuenta? 
-                            <a href="{{ route('register') }}" class="font-semibold text-purple-600 hover:text-purple-700 transition-colors">
+                            <a href="{{ route('register') }}" class="font-semibold text-primary hover:text-night-blue transition-colors">
                                 Regístrate aquí
                             </a>
                         </p>
@@ -223,8 +223,8 @@
 
             <!-- Footer -->
             <div class="text-center mt-8">
-                <p class="text-purple-100 text-xs sm:text-sm">
-                    © {{ date('Y') }} {{ config('app.name', 'Laravel') }}. Todos los derechos reservados.
+                <p class="text-primary/10 text-xs sm:text-sm">
+                    © {{ date('Y') }} {{ config('app.name', 'Trevion APP') }}. Todos los derechos reservados.
                 </p>
             </div>
         </div>

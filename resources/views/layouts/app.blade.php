@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <title>{{ config('app.name', 'Trevion APP') }}</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -23,7 +23,7 @@
             }
             
             .gradient-bg {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #005DFF 0%, #001C40 100%);
             }
             
             .glass-effect {
@@ -37,7 +37,7 @@
             
             .card-modern:hover {
                 transform: translateY(-4px);
-                box-shadow: 0 20px 40px rgba(102, 126, 234, 0.15);
+                box-shadow: 0 20px 40px rgba(0, 93, 255, 0.15);
             }
             
             .sidebar-link {
@@ -45,13 +45,13 @@
             }
             
             .sidebar-link:hover {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #005DFF 0%, #001C40 100%);
                 color: white;
                 transform: translateX(4px);
             }
             
             .sidebar-link.active {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #005DFF 0%, #001C40 100%);
                 color: white;
             }
         </style>
@@ -61,7 +61,7 @@
 
         <!-- Impersonation Banner -->
         @if(session()->has('impersonator_id'))
-            <div class="bg-gradient-to-r from-orange-500 to-red-600 shadow-lg sticky top-0 z-50">
+            <div class="bg-gradient-to-r from-neon-green to-primary shadow-lg sticky top-0 z-50">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3">
@@ -70,12 +70,12 @@
                             </svg>
                             <div class="text-white">
                                 <p class="font-bold text-sm">Modo Suplantación Activo</p>
-                                <p class="text-xs text-orange-100">Estás operando como: <span class="font-semibold">{{ auth()->user()->name }}</span> ({{ auth()->user()->email }})</p>
+                                <p class="text-xs text-neon-green/10">Estás operando como: <span class="font-semibold">{{ auth()->user()->name }}</span> ({{ auth()->user()->email }})</p>
                             </div>
                         </div>
                         <form action="{{ route('leave-impersonation') }}" method="POST">
                             @csrf
-                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-white text-orange-600 rounded-lg font-semibold hover:bg-orange-50 transition-all duration-200 shadow-md hover:shadow-lg">
+                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-white text-neon-green rounded-lg font-semibold hover:bg-neon-green/5 transition-all duration-200 shadow-md hover:shadow-lg">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                                 </svg>
@@ -87,20 +87,18 @@
             </div>
         @endif
 
-        <div class="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+        <div class="min-h-screen bg-gradient-to-br from-gray-50 via-white-pure to-gray-100 ">
             @livewire('navigation-menu')
-
             <!-- Page Heading -->
             @if (isset($header))
-                <header class="glass-effect shadow-lg border-b border-purple-100">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                <header class="glass-effect shadow-lg border-b border-primary/10">
+                    <div class="w-full px-4 sm:px-6 lg:px-8 py-6">
                         {{ $header }}
                     </div>
                 </header>
             @endif
-
             <!-- Page Content -->
-            <main class="py-8">
+            <main class="py-8 ">
                 {{ $slot }}
             </main>
         </div>

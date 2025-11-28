@@ -16,6 +16,18 @@ export default {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            colors: {
+                // Paleta Principal
+                'primary': '#005DFF',        // Azul Eléctrico - tecnología, confianza, energía
+                'black-deep': '#0D0D0D',     // Negro Profundo - fuerza, premium, elegancia
+                'white-pure': '#FFFFFF',      // Blanco Puro - limpieza, claridad, profesional
+                'neon-green': '#00E685',     // Verde Neón Energético - velocidad, juventud, acción
+                
+                // Paleta Secundaria
+                'titanium': '#2A2A2A',       // Gris Titanio
+                'silver': '#CCCCCC',         // Gris Plata
+                'night-blue': '#001C40',     // Azul Noche
+            },
         },
     },
 

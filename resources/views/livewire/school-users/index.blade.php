@@ -1,18 +1,18 @@
 <div>
     @if (session()->has('message'))
-        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)" class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-lg animate-slideUp">
+        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)" class="mb-6 p-4 bg-neon-green/10 border-l-4 border-neon-green rounded-lg animate-slideUp">
             <div class="flex items-center">
-                <svg class="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <svg class="w-5 h-5 text-neon-green mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                 </svg>
-                <p class="text-sm text-green-700 font-medium">{{ session('message') }}</p>
+                <p class="text-sm text-neon-green font-medium">{{ session('message') }}</p>
             </div>
         </div>
     @endif
 
-    <div class="card-modern bg-white rounded-2xl shadow-xl border border-purple-100 overflow-hidden">
+    <div class="card-modern bg-white rounded-2xl shadow-xl border border-primary/10 overflow-hidden">
         <!-- Filters -->
-        <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-blue-50">
+        <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-primary/5 to-blue-50">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <!-- Search -->
                 <div class="relative">
@@ -22,12 +22,12 @@
                         </svg>
                     </div>
                     <input wire:model.live="search" type="text" placeholder="Buscar usuarios..." 
-                        class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 placeholder-gray-400">
+                        class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 placeholder-gray-400">
                 </div>
 
                 <!-- Role Filter -->
                 <div>
-                    <select wire:model.live="roleFilter" class="block w-full py-3 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900">
+                    <select wire:model.live="roleFilter" class="block w-full py-3 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
                         <option value="">Todos los roles</option>
                         <option value="school_admin">Administrador</option>
                         <option value="coach">Entrenador</option>
@@ -37,7 +37,7 @@
 
                 <!-- School Filter -->
                 <div>
-                    <select wire:model.live="schoolFilter" class="block w-full py-3 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900">
+                    <select wire:model.live="schoolFilter" class="block w-full py-3 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
                         <option value="">Todas las escuelas</option>
                         @foreach($schools as $school)
                             <option value="{{ $school->id }}">{{ $school->name }}</option>
@@ -50,21 +50,21 @@
         <!-- Table -->
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gradient-to-r from-purple-50 to-blue-50">
+                <thead class="bg-gradient-to-r from-primary/5 to-blue-50">
                     <tr>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Usuario</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Escuela</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Rol</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Estado</th>
-                        <th class="px-6 py-4 text-right text-xs font-semibold text-purple-700 uppercase tracking-wider">Acciones</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-night-blue uppercase tracking-wider">Usuario</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-night-blue uppercase tracking-wider">Escuela</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-night-blue uppercase tracking-wider">Rol</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-night-blue uppercase tracking-wider">Estado</th>
+                        <th class="px-6 py-4 text-right text-xs font-semibold text-night-blue uppercase tracking-wider">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse ($users as $user)
-                        <tr class="hover:bg-purple-50 transition-colors duration-150">
+                        <tr class="hover:bg-primary/5 transition-colors duration-150">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
+                                    <div class="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-primary to-primary rounded-full flex items-center justify-center">
                                         <span class="text-white font-bold text-sm">{{ substr($user->name, 0, 2) }}</span>
                                     </div>
                                     <div class="ml-4">
@@ -80,8 +80,8 @@
                                 @php
                                     $roleBadges = [
                                         'school_admin' => ['text' => 'Administrador', 'class' => 'bg-blue-100 text-blue-800'],
-                                        'coach' => ['text' => 'Entrenador', 'class' => 'bg-green-100 text-green-800'],
-                                        'student' => ['text' => 'Estudiante', 'class' => 'bg-purple-100 text-purple-800'],
+                                        'coach' => ['text' => 'Entrenador', 'class' => 'bg-neon-green/20 text-neon-green'],
+                                        'student' => ['text' => 'Estudiante', 'class' => 'bg-primary/10 text-night-blue'],
                                     ];
                                     $badge = $roleBadges[$user->role] ?? ['text' => $user->role, 'class' => 'bg-gray-100 text-gray-800'];
                                 @endphp
@@ -91,37 +91,36 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <button wire:click="toggleActive({{ $user->id }})" 
-                                    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 {{ $user->is_active ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-gray-300' }}">
+                                    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 {{ $user->is_active ? 'bg-gradient-to-r from-neon-green to-neon-green-600' : 'bg-gray-300' }}">
                                     <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 {{ $user->is_active ? 'translate-x-6' : 'translate-x-1' }}"></span>
                                 </button>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                <a href="{{ auth()->user()->isMaster() || session()->has('impersonator_id') ? route('school-users.edit', $user->id) : route('my-school-users.edit', $user->id) }}" 
-                                    class="inline-flex items-center px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                    </svg>
-                                    Editar
-                                </a>
-                                @if($user->role !== 'master' && auth()->user()->isMaster() && !session()->has('impersonator_id'))
-                                    <form action="{{ route('impersonate', $user->id) }}" method="POST" class="inline">
-                                        @csrf
-                                        <button type="submit" 
-                                            class="inline-flex items-center px-3 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg">
-                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-                                            </svg>
-                                            Suplantar
-                                        </button>
-                                    </form>
-                                    <button wire:click="confirmDelete({{ $user->id }})" 
-                                        class="inline-flex items-center px-3 py-2 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-lg hover:from-red-700 hover:to-pink-700 transition-all duration-200 shadow-md hover:shadow-lg">
-                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div class="flex items-center justify-end space-x-2">
+                                    <a href="{{ auth()->user()->isMaster() || session()->has('impersonator_id') ? route('school-users.edit', $user->id) : route('my-school-users.edit', $user->id) }}" 
+                                        class="text-primary hover:text-night-blue transition p-2 rounded-lg hover:bg-primary/5">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                         </svg>
-                                        Eliminar
-                                    </button>
-                                @endif
+                                    </a>
+                                    @if($user->role !== 'master' && auth()->user()->isMaster() && !session()->has('impersonator_id'))
+                                        <form action="{{ route('impersonate', $user->id) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" 
+                                                class="text-neon-green hover:text-neon-green/80 transition p-2 rounded-lg hover:bg-neon-green/5">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                        <button wire:click="confirmDelete({{ $user->id }})" 
+                                            class="text-red-600 hover:text-red-900 transition p-2 rounded-lg hover:bg-red-50">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                            </svg>
+                                        </button>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -197,7 +196,7 @@
                     <button wire:click="deleteUser" type="button" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors">
                         Eliminar
                     </button>
-                    <button @click="show = false" type="button" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:mt-0 sm:w-auto sm:text-sm transition-colors">
+                    <button @click="show = false" type="button" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:w-auto sm:text-sm transition-colors">
                         Cancelar
                     </button>
                 </div>

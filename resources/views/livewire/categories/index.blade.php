@@ -1,19 +1,19 @@
 <div>
     @if (session()->has('message'))
-        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)" class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-lg">
-            <p class="text-sm text-green-700 font-medium">{{ session('message') }}</p>
+        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)" class="mb-6 p-4 bg-neon-green/10 border-l-4 border-neon-green rounded-lg">
+            <p class="text-sm text-neon-green font-medium">{{ session('message') }}</p>
         </div>
     @endif
 
-    <div class="card-modern bg-white rounded-2xl shadow-xl border border-purple-100 overflow-hidden">
-        <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-blue-50">
+    <div class="card-modern bg-white rounded-2xl shadow-xl border border-primary/10 overflow-hidden">
+        <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-primary/5 to-blue-50">
             <input wire:model.live="search" type="text" placeholder="Buscar categorías..." 
-                class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500">
+                class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary">
         </div>
 
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gradient-to-r from-purple-50 to-blue-50">
+                <thead class="bg-gradient-to-r from-primary/5 to-blue-50">
                     <tr>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase">Categoría</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase">Descripción</th>
@@ -24,7 +24,7 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($categories as $category)
-                        <tr class="hover:bg-purple-50">
+                        <tr class="hover:bg-primary/5">
                             <td class="px-6 py-4"><div class="text-sm font-semibold">{{ $category->category }}</div></td>
                             <td class="px-6 py-4"><div class="text-sm text-gray-600">{{ $category->description ?? '-' }}</div></td>
                             <td class="px-6 py-4">

@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
-            <h2 class="font-bold text-3xl text-gray-800 leading-tight bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <h2 class="font-bold text-3xl text-gray-800 leading-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
                 {{ __('Categorías') }}
             </h2>
             <a href="{{ route('categories.create') }}" class="btn-primary px-6 py-3 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 inline-flex items-center">
