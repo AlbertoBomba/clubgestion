@@ -2,11 +2,11 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">
-                @if(auth()->user()->sportsSchool && auth()->user()->sportsSchool->logo)
+                {{-- @if(auth()->user()->sportsSchool && auth()->user()->sportsSchool->logo)
                     <div class="w-12 h-12 bg-white-pure rounded-xl flex items-center justify-center shadow-lg border border-primary/20 p-2">
                         <img src="{{ asset('storage/' . auth()->user()->sportsSchool->logo) }}" alt="{{ auth()->user()->sportsSchool->name }}" class="w-full h-full object-contain">
                     </div>
-                @endif
+                @endif --}}
                 <h2 class="font-bold text-2xl text-titanium leading-tight">
                     {{ __('Dashboard') }}
                 </h2>

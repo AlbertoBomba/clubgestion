@@ -18,7 +18,7 @@
         }
         
         .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #005DFF 0%, #001C40 100%);
             position: relative;
             overflow: hidden;
         }
@@ -61,17 +61,17 @@
         
         .input-field:focus {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+            box-shadow: 0 8px 20px rgba(0, 93, 255, 0.2);
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #005DFF 0%, #001C40 100%);
             transition: all 0.3s ease;
         }
         
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 10px 25px rgba(0, 93, 255, 0.4);
         }
         
         .btn-primary:active {
@@ -90,7 +90,7 @@
                     </svg>
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-bold text-white mb-2">Bienvenido</h1>
-                <p class="text-primary/10 text-sm sm:text-base">Inicia sesión en tu cuenta</p>
+                <p class="text-white-pure/90 text-sm sm:text-base">Inicia sesión en tu cuenta</p>
             </div>
 
             <!-- Login Card -->
@@ -127,7 +127,7 @@
 
                     <!-- Email Field -->
                     <div>
-                        <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
+                        <label for="email" class="block text-sm font-semibold text-titanium mb-2">
                             Correo electrónico
                         </label>
                         <div class="relative">
@@ -144,7 +144,7 @@
                                 required 
                                 autofocus 
                                 autocomplete="username"
-                                class="input-field block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 placeholder-gray-400 text-sm sm:text-base"
+                                class="input-field block w-full pl-10 pr-3 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep placeholder-gray-400 text-sm sm:text-base"
                                 placeholder="tu@email.com"
                             >
                         </div>
@@ -152,7 +152,7 @@
 
                     <!-- Password Field -->
                     <div>
-                        <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
+                        <label for="password" class="block text-sm font-semibold text-titanium mb-2">
                             Contraseña
                         </label>
                         <div class="relative">
@@ -167,7 +167,7 @@
                                 name="password" 
                                 required 
                                 autocomplete="current-password"
-                                class="input-field block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 placeholder-gray-400 text-sm sm:text-base"
+                                class="input-field block w-full pl-10 pr-3 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep placeholder-gray-400 text-sm sm:text-base"
                                 placeholder="••••••••"
                             >
                         </div>
@@ -223,7 +223,7 @@
 
             <!-- Footer -->
             <div class="text-center mt-8">
-                <p class="text-primary/10 text-xs sm:text-sm">
+                <p class="text-white-pure/80 text-xs sm:text-sm">
                     © {{ date('Y') }} {{ config('app.name', 'Trevion APP') }}. Todos los derechos reservados.
                 </p>
             </div>

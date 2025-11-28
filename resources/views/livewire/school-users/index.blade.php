@@ -10,9 +10,9 @@
         </div>
     @endif
 
-    <div class="card-modern bg-white rounded-2xl shadow-xl border border-primary/10 overflow-hidden">
+    <div class="card-modern bg-white-pure rounded-2xl shadow-xl border border-primary/10 overflow-hidden">
         <!-- Filters -->
-        <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-primary/5 to-blue-50">
+        <div class="p-6 border-b border-gray-100">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <!-- Search -->
                 <div class="relative">
@@ -22,12 +22,12 @@
                         </svg>
                     </div>
                     <input wire:model.live="search" type="text" placeholder="Buscar usuarios..." 
-                        class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 placeholder-gray-400">
+                        class="block w-full pl-10 pr-3 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep placeholder-gray-400">
                 </div>
 
                 <!-- Role Filter -->
                 <div>
-                    <select wire:model.live="roleFilter" class="block w-full py-3 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
+                    <select wire:model.live="roleFilter" class="block w-full py-3 px-4 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep">
                         <option value="">Todos los roles</option>
                         <option value="school_admin">Administrador</option>
                         <option value="coach">Entrenador</option>
@@ -37,7 +37,7 @@
 
                 <!-- School Filter -->
                 <div>
-                    <select wire:model.live="schoolFilter" class="block w-full py-3 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
+                    <select wire:model.live="schoolFilter" class="block w-full py-3 px-4 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep">
                         <option value="">Todas las escuelas</option>
                         @foreach($schools as $school)
                             <option value="{{ $school->id }}">{{ $school->name }}</option>
@@ -49,17 +49,17 @@
 
         <!-- Table -->
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gradient-to-r from-primary/5 to-blue-50">
+            <table class="min-w-full divide-y divide-silver/30">
+                <thead class="bg-gradient-to-r from-gray-50 to-primary/5">
                     <tr>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-night-blue uppercase tracking-wider">Usuario</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-night-blue uppercase tracking-wider">Escuela</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-night-blue uppercase tracking-wider">Rol</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-night-blue uppercase tracking-wider">Estado</th>
-                        <th class="px-6 py-4 text-right text-xs font-semibold text-night-blue uppercase tracking-wider">Acciones</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Usuario</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Escuela</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Rol</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Estado</th>
+                        <th class="px-6 py-4 text-right text-xs font-semibold text-primary uppercase tracking-wider">Acciones</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="bg-white-pure divide-y divide-silver/30">
                     @forelse ($users as $user)
                         <tr class="hover:bg-primary/5 transition-colors duration-150">
                             <td class="px-6 py-4 whitespace-nowrap">
@@ -141,9 +141,11 @@
         </div>
 
         <!-- Pagination -->
-        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
-            {{ $users->links() }}
-        </div>
+        @if($users->hasPages())
+            <div class="px-6 py-4 border-t border-silver/30">
+                {{ $users->links() }}
+            </div>
+        @endif
     </div>
 
     <!-- Delete Confirmation Modal -->
