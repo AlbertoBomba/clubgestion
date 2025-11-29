@@ -42,4 +42,14 @@ class Season extends Model
             ->withTimestamps()
             ->withPivot('created_user', 'updated_user', 'deleted_at');
     }
+
+    /**
+     * Get the sections associated with the season.
+     */
+    public function sections()
+    {
+        return $this->belongsToMany(Section::class, 'season_section')
+            ->withTimestamps()
+            ->withPivot('price', 'created_user', 'updated_user', 'deleted_at');
+    }
 }

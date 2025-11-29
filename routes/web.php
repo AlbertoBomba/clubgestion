@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Category;
 use App\Models\Season;
 use App\Models\Player;
+use App\Models\Section;
 
 Route::get('/', function () {
     return view('welcome');
@@ -50,6 +51,19 @@ Route::middleware([
         Route::get('/school-users/{user}/edit', function (User $user) {
             return view('school-users.edit', compact('user'));
         })->name('school-users.edit');
+
+        // Gestión de Secciones
+        Route::get('/sections', function () {
+            return view('sections.index');
+        })->name('sections.index');
+
+        Route::get('/sections/create', function () {
+            return view('sections.create');
+        })->name('sections.create');
+
+        Route::get('/sections/{section}/edit', function (Section $section) {
+            return view('sections.edit', compact('section'));
+        })->name('sections.edit');
 
         // Suplantación de identidad
         Route::post('/impersonate/{user}', [ImpersonateController::class, 'impersonate'])->name('impersonate');

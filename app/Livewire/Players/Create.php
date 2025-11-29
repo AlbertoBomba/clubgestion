@@ -48,6 +48,7 @@ class Create extends Component
     // Otros
     public $observations = '';
     public $player_photo;
+    public $selectedSections = [];
 
     protected $rules = [
         'name' => 'required|string|max:255',
@@ -71,6 +72,8 @@ class Create extends Component
         'cod_matricula' => 'nullable|string|max:50',
         'observations' => 'nullable|string',
         'player_photo' => 'nullable|image|max:2048',
+        'selectedSections' => 'nullable|array',
+        'selectedSections.*' => 'exists:sections,id',
     ];
 
     public function save()
@@ -114,7 +117,16 @@ class Create extends Component
             $data['player_photo'] = $photoPath;
         }
 
-        Player::create($data);
+        $player = Player::create($data);
+
+        // Sync sections
+        if (!empty($this->selectedSections)) {
+            $player->sections()->attach($this->selectedSections, [
+                'created_user' => auth()->id(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
 
         session()->flash('message', 'Jugador creado correctamente.');
         
@@ -123,6 +135,17 @@ class Create extends Component
 
     public function render()
     {
-        return view('livewire.players.create');
+        // Obtener las secciones asociadas a la temporada seleccionada del jugador
+        $sections = collect();
+        if ($this->season_id) {
+            $season = \App\Models\Season::find($this->season_id);
+            if ($season) {
+                $sections = $season->sections()->where('active', true)->orderBy('name')->get();
+            }
+        }
+            
+        return view('livewire.players.create', [
+            'sections' => $sections
+        ]);
     }
 }

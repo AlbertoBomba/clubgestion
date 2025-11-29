@@ -238,6 +238,20 @@
                             class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm resize-none"></textarea>
                         @error('observations') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                     </div>
+
+                    <div class="form-group">
+                        <label class="block text-sm font-semibold text-titanium mb-3">Secciones</label>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            @foreach($sections as $section)
+                                <label class="flex items-center p-3 border border-silver rounded-xl hover:bg-primary/5 cursor-pointer transition-colors">
+                                    <input type="checkbox" wire:model="selectedSections" value="{{ $section->id }}"
+                                        class="w-4 h-4 text-primary border-silver rounded focus:ring-primary">
+                                    <span class="ml-2 text-sm text-titanium">{{ $section->name }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('selectedSections') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                    </div>
                 </div>
             </div>
 

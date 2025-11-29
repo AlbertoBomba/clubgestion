@@ -97,10 +97,17 @@
                 </div>
             </div>
 
-            <!-- Main Content Card -->
-            <div class="card-modern bg-white-pure rounded-2xl shadow-xl overflow-hidden border border-primary/10">
-                <x-welcome />
+            <!-- Players Per Season Chart (Only for school_admin) -->
+            @if(auth()->user()->hasRole('school_admin') && auth()->user()->sports_school_id)
+            <div class="mb-8">
+                <livewire:dashboard.players-per-season-chart />
             </div>
+            @endif
+
+            <!-- Main Content Card -->
+            {{-- <div class="card-modern bg-white-pure rounded-2xl shadow-xl overflow-hidden border border-primary/10">
+                <x-welcome />
+            </div> --}}
         </div>
     </div>
 </x-app-layout>

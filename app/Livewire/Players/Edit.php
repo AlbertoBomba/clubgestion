@@ -51,6 +51,7 @@ class Edit extends Component
     public $observations = '';
     public $player_photo;
     public $currentPhoto;
+    public $selectedSections = [];
 
     protected $rules = [
         'name' => 'required|string|max:255',
@@ -74,6 +75,8 @@ class Edit extends Component
         'cod_matricula' => 'nullable|string|max:50',
         'observations' => 'nullable|string',
         'player_photo' => 'nullable|image|max:2048',
+        'selectedSections' => 'nullable|array',
+        'selectedSections.*' => 'exists:sections,id',
     ];
 
     public function mount(Player $player)
@@ -111,6 +114,7 @@ class Edit extends Component
         $this->file = $player->file;
         $this->observations = $player->observations;
         $this->currentPhoto = $player->player_photo;
+        $this->selectedSections = $player->sections->pluck('id')->toArray();
     }
 
     public function deletePhoto()
@@ -172,6 +176,16 @@ class Edit extends Component
 
         $this->playerModel->update($data);
 
+        // Sync sections
+        $this->playerModel->sections()->sync(
+            collect($this->selectedSections)->mapWithKeys(function ($sectionId) {
+                return [$sectionId => [
+                    'updated_user' => auth()->id(),
+                    'updated_at' => now(),
+                ]];
+            })->toArray()
+        );
+
         session()->flash('message', 'Jugador actualizado correctamente.');
         
         return redirect()->route('players.index');
@@ -179,6 +193,17 @@ class Edit extends Component
 
     public function render()
     {
-        return view('livewire.players.edit');
+        // Obtener las secciones asociadas a la temporada del jugador
+        $sections = collect();
+        if ($this->season_id) {
+            $season = \App\Models\Season::find($this->season_id);
+            if ($season) {
+                $sections = $season->sections()->where('active', true)->orderBy('name')->get();
+            }
+        }
+            
+        return view('livewire.players.edit', [
+            'sections' => $sections
+        ]);
     }
 }

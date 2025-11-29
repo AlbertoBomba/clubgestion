@@ -74,6 +74,16 @@ class Player extends Model
     }
 
     /**
+     * Get the sections associated with the player.
+     */
+    public function sections()
+    {
+        return $this->belongsToMany(Section::class, 'player_section')
+            ->withTimestamps()
+            ->withPivot('created_user', 'updated_user', 'deleted_at');
+    }
+
+    /**
      * Get the player's full name.
      */
     public function getFullNameAttribute(): string
