@@ -32,6 +32,7 @@ class Create extends Component
     public $email = '';
     
     // Datos deportivos
+    public $selectedSeasons = [];
     public $dorsal = '';
     public $position = '';
     public $sizes = '';
@@ -51,6 +52,8 @@ class Create extends Component
     public $selectedSections = [];
 
     protected $rules = [
+        'selectedSeasons' => 'required|array|min:1',
+        'selectedSeasons.*' => 'exists:seasons,id',
         'name' => 'required|string|max:255',
         'surname' => 'required|string|max:255',
         'dni' => 'nullable|string|max:20',
@@ -119,10 +122,21 @@ class Create extends Component
 
         $player = Player::create($data);
 
+        // Sync seasons
+        if (!empty($this->selectedSeasons)) {
+            $player->seasons()->attach($this->selectedSeasons, [
+                'created_user' => auth()->id(),
+                'updated_user' => auth()->id(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
         // Sync sections
         if (!empty($this->selectedSections)) {
             $player->sections()->attach($this->selectedSections, [
                 'created_user' => auth()->id(),
+                'updated_user' => auth()->id(),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -135,16 +149,22 @@ class Create extends Component
 
     public function render()
     {
-        // Obtener las secciones asociadas a la temporada seleccionada del jugador
+        // Obtener temporadas de la escuela
+        $seasons = \App\Models\Season::where('sports_school_id', auth()->user()->sports_school_id)
+            ->orderBy('from_year', 'desc')
+            ->get();
+
+        // Obtener las secciones de todas las temporadas seleccionadas
         $sections = collect();
-        if ($this->season_id) {
-            $season = \App\Models\Season::find($this->season_id);
-            if ($season) {
-                $sections = $season->sections()->where('active', true)->orderBy('name')->get();
-            }
+        if (!empty($this->selectedSeasons)) {
+            $sections = \App\Models\Section::whereHas('seasons', function($query) {
+                $query->whereIn('seasons.id', $this->selectedSeasons)
+                      ->where('active', true);
+            })->distinct()->orderBy('name')->get();
         }
             
         return view('livewire.players.create', [
+            'seasons' => $seasons,
             'sections' => $sections
         ]);
     }

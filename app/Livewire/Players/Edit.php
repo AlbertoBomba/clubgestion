@@ -51,9 +51,12 @@ class Edit extends Component
     public $observations = '';
     public $player_photo;
     public $currentPhoto;
+    public $selectedSeasons = [];
     public $selectedSections = [];
 
     protected $rules = [
+        'selectedSeasons' => 'required|array|min:1',
+        'selectedSeasons.*' => 'exists:seasons,id',
         'name' => 'required|string|max:255',
         'surname' => 'required|string|max:255',
         'dni' => 'nullable|string|max:20',
@@ -114,6 +117,7 @@ class Edit extends Component
         $this->file = $player->file;
         $this->observations = $player->observations;
         $this->currentPhoto = $player->player_photo;
+        $this->selectedSeasons = $player->seasons->pluck('id')->toArray();
         $this->selectedSections = $player->sections->pluck('id')->toArray();
     }
 
@@ -176,6 +180,16 @@ class Edit extends Component
 
         $this->playerModel->update($data);
 
+        // Sync seasons
+        $this->playerModel->seasons()->sync(
+            collect($this->selectedSeasons)->mapWithKeys(function ($seasonId) {
+                return [$seasonId => [
+                    'updated_user' => auth()->id(),
+                    'updated_at' => now(),
+                ]];
+            })->toArray()
+        );
+
         // Sync sections
         $this->playerModel->sections()->sync(
             collect($this->selectedSections)->mapWithKeys(function ($sectionId) {
@@ -193,16 +207,22 @@ class Edit extends Component
 
     public function render()
     {
-        // Obtener las secciones asociadas a la temporada del jugador
+        // Obtener temporadas de la escuela
+        $seasons = \App\Models\Season::where('sports_school_id', auth()->user()->sports_school_id)
+            ->orderBy('from_year', 'desc')
+            ->get();
+
+        // Obtener las secciones de todas las temporadas seleccionadas
         $sections = collect();
-        if ($this->season_id) {
-            $season = \App\Models\Season::find($this->season_id);
-            if ($season) {
-                $sections = $season->sections()->where('active', true)->orderBy('name')->get();
-            }
+        if (!empty($this->selectedSeasons)) {
+            $sections = \App\Models\Section::whereHas('seasons', function($query) {
+                $query->whereIn('seasons.id', $this->selectedSeasons)
+                      ->where('active', true);
+            })->distinct()->orderBy('name')->get();
         }
-            
+
         return view('livewire.players.edit', [
+            'seasons' => $seasons,
             'sections' => $sections
         ]);
     }
