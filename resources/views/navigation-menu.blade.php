@@ -39,7 +39,7 @@
                 </div>
 
                 <!-- Navigation Links (Solo para Back1 - Master sin suplantar O suplantando a otro Master) -->
-                @if(auth()->user()->isMaster() && !auth()->user()->sportsSchool)
+                @if(auth()->user()->hasRole('master') && !auth()->user()->sportsSchool)
                     <div class="hidden space-x-2 sm:-my-px sm:ms-10 sm:flex">
                         <a href="{{ route('dashboard') }}" class="sidebar-link inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('dashboard') ? 'active text-white-pure' : 'text-titanium' }}">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -217,7 +217,7 @@
                 </div>
             </a>
 
-            @if(auth()->user()->isMaster() || session()->has('impersonator_id'))
+            @if(auth()->user()->hasRole('master') || session()->has('impersonator_id'))
                 {{-- Menú del Master móvil (Back 1) - también visible cuando suplanta --}}
                 <a href="{{ route('sports-schools.index') }}" class="sidebar-link block pl-3 pr-4 py-2 text-base font-medium {{ request()->routeIs('sports-schools.*') ? 'active text-white-pure' : 'text-titanium' }}">
                     <div class="flex items-center">
@@ -238,6 +238,7 @@
                 </a>
             @elseif(auth()->user()->sportsSchool && !session()->has('impersonator_id'))
                 {{-- Menú de usuarios de escuela móvil (Back 2) --}}
+                @if(auth()->user()->hasAnyRole(['school_admin', 'coach']))
                 <a href="{{ route('my-school-users.index', ['filterSchool' => auth()->user()->sports_school_id]) }}" class="sidebar-link block pl-3 pr-4 py-2 text-base font-medium {{ request()->routeIs('my-school-users.*') ? 'active text-white-pure' : 'text-titanium' }}">
                     <div class="flex items-center">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -246,7 +247,9 @@
                         Usuarios
                     </div>
                 </a>
+                @endif
 
+                @if(auth()->user()->hasAnyRole(['school_admin', 'coach']))
                 <a href="{{ route('categories.index') }}" class="sidebar-link block pl-3 pr-4 py-2 text-base font-medium {{ request()->routeIs('categories.*') ? 'active text-white-pure' : 'text-titanium' }}">
                     <div class="flex items-center">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -255,6 +258,29 @@
                         Categorías
                     </div>
                 </a>
+                @endif
+
+                @if(auth()->user()->hasAnyRole(['school_admin', 'coach']))
+                <a href="{{ route('seasons.index') }}" class="sidebar-link block pl-3 pr-4 py-2 text-base font-medium {{ request()->routeIs('seasons.*') ? 'active text-white-pure' : 'text-titanium' }}">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        Temporadas
+                    </div>
+                </a>
+                @endif
+
+                @if(auth()->user()->hasAnyRole(['school_admin', 'coach']))
+                <a href="{{ route('players.index') }}" class="sidebar-link block pl-3 pr-4 py-2 text-base font-medium {{ request()->routeIs('players.*') ? 'active text-white-pure' : 'text-titanium' }}">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        Jugadores
+                    </div>
+                </a>
+                @endif
             @endif
         </div>
 
@@ -396,6 +422,7 @@
                     Dashboard
                 </a>
 
+                @if(auth()->user()->hasAnyRole(['school_admin', 'coach']))
                 <a href="{{ route('my-school-users.index', ['filterSchool' => auth()->user()->sports_school_id]) }}" 
                    @click="sidebarOpen = false"
                    class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('my-school-users.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
@@ -404,7 +431,9 @@
                     </svg>
                     Usuarios
                 </a>
+                @endif
 
+                @if(auth()->user()->hasAnyRole(['school_admin', 'coach']))
                 <a href="{{ route('categories.index') }}" 
                    @click="sidebarOpen = false"
                    class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('categories.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
@@ -413,6 +442,27 @@
                     </svg>
                     Categorías
                 </a>
+                @endif
+
+                @if(auth()->user()->hasAnyRole(['school_admin', 'coach']))
+                <a href="{{ route('seasons.index') }}" 
+                   @click="sidebarOpen = false"
+                   class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('seasons.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    Temporadas
+                </a>
+
+                <a href="{{ route('players.index') }}" 
+                   @click="sidebarOpen = false"
+                   class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('players.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    Jugadores
+                </a>
+                @endif
             </nav>
         </div>
     @endif

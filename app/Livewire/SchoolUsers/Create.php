@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Models\User;
 use App\Models\SportsSchool;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class Create extends Component
 {
@@ -22,7 +23,7 @@ class Create extends Component
         'email' => 'required|email|unique:users,email|max:255',
         'password' => 'required|string|min:8|confirmed',
         'sports_school_id' => 'required|exists:sports_schools,id',
-        'role' => 'required|in:school_admin,coach,student',
+        'role' => 'required|exists:roles,name',
         'is_active' => 'boolean',
     ];
 
@@ -30,7 +31,7 @@ class Create extends Component
     {
         $this->validate();
 
-        User::create([
+        $user = User::create([
             'name' => $this->name,
             'email' => $this->email,
             'password' => Hash::make($this->password),
@@ -39,6 +40,9 @@ class Create extends Component
             'is_active' => $this->is_active,
             'email_verified_at' => now(),
         ]);
+
+        // Asignar rol usando Spatie
+        $user->assignRole($this->role);
 
         session()->flash('message', 'Usuario creado correctamente.');
         
@@ -53,9 +57,11 @@ class Create extends Component
     public function render()
     {
         $schools = SportsSchool::where('is_active', true)->orderBy('name')->get();
+        $roles = Role::where('name', '!=', 'master')->get();
         
         return view('livewire.school-users.create', [
-            'schools' => $schools
+            'schools' => $schools,
+            'roles' => $roles
         ]);
     }
 }

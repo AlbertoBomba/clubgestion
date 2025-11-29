@@ -25,6 +25,9 @@ class MasterUserSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
+        // Asignar rol master usando Spatie
+        $master->assignRole('master');
+
         $this->command->info('✓ Usuario Master creado: master@clubsportal.com / password');
 
         // Crear escuelas deportivas de ejemplo
@@ -55,7 +58,7 @@ class MasterUserSeeder extends Seeder
         $this->command->info('✓ Escuelas deportivas de ejemplo creadas');
 
         // Crear usuarios para la primera escuela
-        User::create([
+        $admin1 = User::create([
             'name' => 'Juan Pérez',
             'email' => 'admin@cdmadrid.com',
             'password' => Hash::make('password'),
@@ -64,8 +67,9 @@ class MasterUserSeeder extends Seeder
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
+        $admin1->assignRole('school_admin');
 
-        User::create([
+        $coach1 = User::create([
             'name' => 'María García',
             'email' => 'coach@cdmadrid.com',
             'password' => Hash::make('password'),
@@ -74,9 +78,10 @@ class MasterUserSeeder extends Seeder
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
+        $coach1->assignRole('coach');
 
         // Crear usuarios para la segunda escuela
-        User::create([
+        $admin2 = User::create([
             'name' => 'Carlos López',
             'email' => 'admin@edbarcelona.com',
             'password' => Hash::make('password'),
@@ -85,6 +90,7 @@ class MasterUserSeeder extends Seeder
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
+        $admin2->assignRole('school_admin');
 
         $this->command->info('✓ Usuarios de ejemplo creados para las escuelas');
         $this->command->info('');

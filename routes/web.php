@@ -7,6 +7,8 @@ use App\Http\Controllers\ImpersonateController;
 use App\Models\SportsSchool;
 use App\Models\User;
 use App\Models\Category;
+use App\Models\Season;
+use App\Models\Player;
 
 Route::get('/', function () {
     return view('welcome');
@@ -83,5 +85,31 @@ Route::middleware([
         Route::get('/categories/{category}/edit', function (Category $category) {
             return view('categories.edit', compact('category'));
         })->name('categories.edit');
+
+        // Gestión de Temporadas
+        Route::get('/seasons', function () {
+            return view('seasons.index');
+        })->name('seasons.index');
+
+        Route::get('/seasons/create', function () {
+            return view('seasons.create');
+        })->name('seasons.create');
+
+        Route::get('/seasons/{season}/edit', function (Season $season) {
+            return view('seasons.edit', compact('season'));
+        })->name('seasons.edit');
+
+        // Gestión de Jugadores
+        Route::get('/players', function () {
+            return view('players.index');
+        })->name('players.index');
+
+        Route::get('/players/create', function () {
+            return view('players.create');
+        })->name('players.create');
+
+        Route::get('/players/{player}/edit', function (Player $player) {
+            return view('players.edit', compact('player'));
+        })->name('players.edit');
     });
 });

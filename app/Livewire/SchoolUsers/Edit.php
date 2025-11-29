@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Models\User;
 use App\Models\SportsSchool;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class Edit extends Component
 {
@@ -26,7 +27,7 @@ class Edit extends Component
             'email' => 'required|email|max:255|unique:users,email,' . $this->user->id,
             'password' => 'nullable|string|min:8|confirmed',
             'sports_school_id' => 'required|exists:sports_schools,id',
-            'role' => 'required|in:school_admin,coach,student',
+            'role' => 'required|exists:roles,name',
             'is_active' => 'boolean',
         ];
     }
@@ -63,6 +64,9 @@ class Edit extends Component
 
         $this->user->update($data);
 
+        // Sincronizar rol usando Spatie
+        $this->user->syncRoles([$this->role]);
+
         session()->flash('message', 'Usuario actualizado correctamente.');
         
         // Redirigir a la ruta correcta según el contexto
@@ -76,9 +80,11 @@ class Edit extends Component
     public function render()
     {
         $schools = SportsSchool::where('is_active', true)->orderBy('name')->get();
+        $roles = Role::where('name', '!=', 'master')->get();
         
         return view('livewire.school-users.edit', [
-            'schools' => $schools
+            'schools' => $schools,
+            'roles' => $roles
         ]);
     }
 }
