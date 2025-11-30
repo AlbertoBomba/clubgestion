@@ -10,6 +10,7 @@ use App\Models\Category;
 use App\Models\Season;
 use App\Models\Player;
 use App\Models\Section;
+use App\Models\Team;
 
 Route::get('/', function () {
     return view('welcome');
@@ -125,5 +126,24 @@ Route::middleware([
         Route::get('/players/{player}/edit', function (Player $player) {
             return view('players.edit', compact('player'));
         })->name('players.edit');
+
+        // Gestión de Equipos
+        Route::get('/teams', function () {
+            return view('teams.index');
+        })->name('teams.index');
+
+        Route::get('/teams/{team}/edit', function (Team $team) {
+            return view('teams.edit', compact('team'));
+        })->name('teams.edit');
+
+        // Gestión de Campos de Entrenamiento
+        Route::get('/training-fields', function () {
+            return view('training-fields.index');
+        })->name('training-fields.index');
+
+        // Gestión de Horarios de Entrenamiento
+        Route::get('/training-schedule', function () {
+            return view('training-schedule.index');
+        })->name('training-schedule.index');
     });
 });

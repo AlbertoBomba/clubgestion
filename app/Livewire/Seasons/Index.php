@@ -43,6 +43,7 @@ class Index extends Component
     public function render()
     {
         $seasons = Season::where('sports_school_id', auth()->user()->sports_school_id)
+            ->withCount(['players', 'sections'])
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('season', 'like', '%' . $this->search . '%')

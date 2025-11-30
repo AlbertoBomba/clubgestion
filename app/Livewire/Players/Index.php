@@ -20,6 +20,22 @@ class Index extends Component
 
     protected $queryString = ['search', 'seasonFilter', 'sortField', 'sortDirection'];
 
+    public function mount()
+    {
+        // Set default season filter to active season
+        if (empty($this->seasonFilter)) {
+            $activeSeason = Season::where('sports_school_id', auth()->user()->sports_school_id)
+                ->where('start_date', '<=', now())
+                ->where('end_date', '>=', now())
+                ->orderBy('created_at', 'desc')
+                ->first();
+            
+            if ($activeSeason) {
+                $this->seasonFilter = $activeSeason->id;
+            }
+        }
+    }
+
     public function updatingSearch()
     {
         $this->resetPage();
@@ -90,9 +106,16 @@ class Index extends Component
             ->orderBy('season')
             ->get();
 
+        $activeSeason = Season::where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->orderBy('created_at', 'desc')
+            ->first();
+
         return view('livewire.players.index', [
             'players' => $players,
-            'seasons' => $seasons
+            'seasons' => $seasons,
+            'activeSeason' => $activeSeason,
         ]);
     }
 }

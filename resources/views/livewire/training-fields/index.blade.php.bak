@@ -1,0 +1,232 @@
+<div>
+    <!-- Flash Messages -->
+    @if (session()->has('message'))
+        <div class="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded relative" role="alert">
+            <span class="block sm:inline">{{ session('message') }}</span>
+        </div>
+    @endif
+
+    <!-- Header con contador y botón -->
+    <div class="mb-6 flex justify-between items-center">
+        <div>
+            <span class="text-gray-600 text-sm">
+                Total de campos: <span class="font-semibold text-gray-900">{{ $fields->total() }}</span>
+            </span>
+        </div>
+        <button wire:click="openCreateModal" type="button" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring focus:ring-blue-300 disabled:opacity-25 transition">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Nuevo Campo
+        </button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Búsqueda -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+            <input type="text" wire:model.live="search" placeholder="Nombre o descripción..." class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+        </div>
+
+        <!-- Tipo de campo -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Campo</label>
+            <select wire:model.live="fieldTypeFilter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <option value="">Todos</option>
+                <option value="futbol_11">Fútbol 11</option>
+                <option value="futbol_7">Fútbol 7</option>
+                <option value="futsal">Fútbol Sala</option>
+                <option value="polideportivo">Polideportivo</option>
+            </select>
+        </div>
+
+        <!-- Estado -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+            <select wire:model.live="activeFilter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <option value="">Todos</option>
+                <option value="1">Activos</option>
+                <option value="0">Inactivos</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Tabla de campos -->
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campo</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Superficie</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Capacidad</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @forelse($fields as $field)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 rounded-full mr-3" style="background-color: {{ $field->color }}"></div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">{{ $field->name }}</div>
+                                    @if($field->description)
+                                        <div class="text-xs text-gray-500">{{ Str::limit($field->description, 40) }}</div>
+                                    @endif
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ $field->field_type_name }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ $field->surface_type_name }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ $field->capacity ?? '-' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            @if($field->active)
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Activo</span>
+                            @else
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactivo</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button wire:click="openEditModal({{ $field->id }})" class="text-blue-600 hover:text-blue-900 mr-3">Editar</button>
+                            <button wire:click="delete({{ $field->id }})" 
+                                    onclick="return confirm('¿Estás seguro de que deseas eliminar este campo?')" 
+                                    class="text-red-600 hover:text-red-900">
+                                Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                            No se encontraron campos de entrenamiento.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Paginación -->
+    <div class="mt-4">
+        {{ $fields->links() }}
+    </div>
+
+    <!-- Modal Crear/Editar Campo -->
+    @if($showModal)
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                <div class="p-6">
+                    <!-- Header -->
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">
+                            {{ $fieldId ? 'Editar Campo' : 'Crear Campo' }}
+                        </h3>
+                        <button wire:click="closeModal" class="text-gray-400 hover:text-gray-500">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Form -->
+                    <form wire:submit.prevent="save">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Nombre -->
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del Campo *</label>
+                                <input type="text" wire:model="name" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                @error('name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- Tipo de Campo -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Campo *</label>
+                                <select wire:model="field_type" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <option value="futbol_11">Fútbol 11</option>
+                                    <option value="futbol_7">Fútbol 7</option>
+                                    <option value="futsal">Fútbol Sala</option>
+                                    <option value="polideportivo">Polideportivo</option>
+                                </select>
+                                @error('field_type') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- Tipo de Superficie -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Superficie *</label>
+                                <select wire:model="surface_type" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <option value="cesped_natural">Césped Natural</option>
+                                    <option value="cesped_artificial">Césped Artificial</option>
+                                    <option value="tierra">Tierra</option>
+                                    <option value="parquet">Parquet</option>
+                                </select>
+                                @error('surface_type') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- Capacidad -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Capacidad (jugadores)</label>
+                                <input type="number" wire:model="capacity" min="1" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                @error('capacity') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- Color -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Color (para visualización)</label>
+                                <input type="color" wire:model="color" class="w-full h-10 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                @error('color') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- Horario Disponible Desde -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Disponible Desde</label>
+                                <input type="time" wire:model="available_from" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                @error('available_from') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- Horario Disponible Hasta -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Disponible Hasta</label>
+                                <input type="time" wire:model="available_to" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                @error('available_to') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- Descripción -->
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                                <textarea wire:model="description" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                                @error('description') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- Activo -->
+                            <div class="md:col-span-2">
+                                <label class="flex items-center">
+                                    <input type="checkbox" wire:model="active" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                    <span class="ml-2 text-sm text-gray-700">Campo activo</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="mt-6 flex justify-end space-x-3">
+                            <button type="button" wire:click="closeModal" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                                {{ $fieldId ? 'Actualizar' : 'Crear' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
+</div>

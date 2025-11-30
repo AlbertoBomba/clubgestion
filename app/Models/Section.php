@@ -41,4 +41,13 @@ class Section extends Model
             ->withTimestamps()
             ->withPivot('created_user', 'updated_user', 'deleted_at');
     }
+
+    /**
+     * Get the training fields associated with the section.
+     */
+    public function trainingFields(): BelongsToMany
+    {
+        return $this->belongsToMany(TrainingField::class, 'section_training_field')
+            ->withTimestamps();
+    }
 }

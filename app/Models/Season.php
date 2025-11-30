@@ -16,6 +16,8 @@ class Season extends Model
         'sports_school_id',
         'from_year',
         'to_year',
+        'start_date',
+        'end_date',
         'created_user',
         'updated_user',
     ];
@@ -23,6 +25,8 @@ class Season extends Model
     protected $casts = [
         'from_year' => 'integer',
         'to_year' => 'integer',
+        'start_date' => 'date',
+        'end_date' => 'date',
     ];
 
     /**

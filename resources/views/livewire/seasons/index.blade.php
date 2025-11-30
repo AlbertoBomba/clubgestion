@@ -26,14 +26,33 @@
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Descripción</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Año Desde</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Año Hasta</th>
+                        <th class="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider">Players</th>
+                        <th class="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider">Secciones</th>
                         <th class="px-6 py-4 text-right text-xs font-semibold text-primary uppercase tracking-wider">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white-pure divide-y divide-silver/30">
                     @forelse($seasons as $season)
-                        <tr class="hover:bg-primary/5">
+                        @php
+                            $isActive = $season->start_date && $season->end_date && 
+                                        $season->start_date <= now() && 
+                                        $season->end_date >= now();
+                        @endphp
+                        <tr class="{{ $isActive ? 'bg-green-50 hover:bg-green-100 border-l-4 border-green-600' : 'hover:bg-primary/5' }}">
                             <td class="px-6 py-4">
-                                <div class="text-sm font-semibold text-titanium">{{ $season->season }}</div>
+                                <div class="flex items-center gap-2">
+                                    <div class="text-sm font-semibold {{ $isActive ? 'text-green-700' : 'text-titanium' }}">
+                                        {{ $season->season }}
+                                    </div>
+                                    @if($isActive)
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-green-600 text-white shadow-sm">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                            </svg>
+                                            En Curso
+                                        </span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="text-sm text-gray-600">{{ $season->description ?? '-' }}</div>
@@ -43,6 +62,22 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="text-sm text-black-deep">{{ $season->to_year }}</div>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                                    </svg>
+                                    {{ $season->players_count }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-neon-green/10 text-neon-green">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/>
+                                    </svg>
+                                    {{ $season->sections_count }}
+                                </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <div class="flex items-center justify-end space-x-2">
@@ -63,7 +98,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-12 text-center text-gray-400">
+                            <td colspan="7" class="px-6 py-12 text-center text-gray-400">
                                 No se encontraron temporadas
                             </td>
                         </tr>

@@ -14,6 +14,7 @@ class Edit extends Component
     public $description = '';
     public $from_year = '';
     public $to_year = '';
+    public $end_date = '';
     public $sectionPrices = []; // Array: section_id => price
 
     protected function rules()
@@ -23,6 +24,7 @@ class Edit extends Component
             'description' => 'nullable|string',
             'from_year' => 'required|integer|min:1900|max:2100',
             'to_year' => 'required|integer|min:1900|max:2100',
+            'end_date' => 'nullable|date',
         ];
     }
 
@@ -44,6 +46,7 @@ class Edit extends Component
         $this->description = $season->description;
         $this->from_year = $season->from_year;
         $this->to_year = $season->to_year;
+        $this->end_date = $season->end_date ? $season->end_date->format('Y-m-d') : '';
         
         // Load existing section prices
         foreach ($season->sections as $section) {
@@ -60,6 +63,7 @@ class Edit extends Component
             'description' => $this->description,
             'from_year' => $this->from_year,
             'to_year' => $this->to_year,
+            'end_date' => $this->end_date,
             'updated_user' => auth()->id(),
         ]);
 
