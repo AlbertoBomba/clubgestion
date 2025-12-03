@@ -145,11 +145,11 @@ class Index extends Component
 
     public function render()
     {
-        $teams = Team::with(['category', 'season'])
+        $teams = Team::with(['category', 'season', 'section'])
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('team', 'like', '%' . $this->search . '%')
-                      ->orWhere('description', 'like', '%' . $this->search . '%')
+                      ->orWhere('description', 'like', '%' . $this->description . '%')
                       ->orWhereHas('category', function ($query) {
                           $query->where('category', 'like', '%' . $this->search . '%');
                       })

@@ -232,8 +232,7 @@
                                                                 {{ \Carbon\Carbon::parse($currentSchedule->start_time)->format('H:i') }}-{{ \Carbon\Carbon::parse($currentSchedule->end_time)->format('H:i') }}
                                                             </div>
                                                         </div>
-                                                        <button wire:click="deleteSchedule({{ $currentSchedule->id }})"
-                                                                onclick="return confirm('¿Eliminar este horario?')"
+                                                        <button wire:click="confirmDelete({{ $currentSchedule->id }})"
                                                                 class="absolute top-1 right-1 text-white hover:text-red-300 bg-black bg-opacity-30 hover:bg-opacity-50 rounded-full p-0.5 transition-all">
                                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -470,4 +469,14 @@
             @endif
         </div>
     </div>
+
+    <!-- Modal de confirmación de eliminación -->
+    <x-dialog-modal wire:model="confirmingDeletion">
+        <x-slot name="title">Eliminar Horario de Entrenamiento</x-slot>
+        <x-slot name="content">¿Estás seguro de que deseas eliminar este horario? Esta acción no se puede deshacer.</x-slot>
+        <x-slot name="footer">
+            <x-secondary-button wire:click="$set('confirmingDeletion', false)">Cancelar</x-secondary-button>
+            <x-danger-button class="ml-3" wire:click="deleteSchedule">Eliminar</x-danger-button>
+        </x-slot>
+    </x-dialog-modal>
 </div>

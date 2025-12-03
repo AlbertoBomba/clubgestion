@@ -131,7 +131,8 @@
                                 @if($field->sections->count() > 0)
                                     <div class="flex flex-wrap gap-1">
                                         @foreach($field->sections->take(2) as $section)
-                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-white shadow-sm" 
+                                                  style="background-color: {{ $section->color ?? '#8B5CF6' }}">
                                                 {{ Str::limit($section->name, 15) }}
                                             </span>
                                         @endforeach

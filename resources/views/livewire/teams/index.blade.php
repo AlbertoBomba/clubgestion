@@ -77,6 +77,7 @@
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Descripción</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Categoría</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Temporada</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Sección</th>
                         <th class="px-6 py-4 text-right text-xs font-semibold text-primary uppercase tracking-wider">Acciones</th>
                     </tr>
                 </thead>
@@ -87,6 +88,16 @@
                             <td class="px-6 py-4"><div class="text-sm text-gray-600">{{ $team->description ?? '-' }}</div></td>
                             <td class="px-6 py-4"><div class="text-sm text-gray-900">{{ $team->category->category ?? '-' }}</div></td>
                             <td class="px-6 py-4"><div class="text-sm text-gray-900">{{ $team->season->season ?? '-' }}</div></td>
+                            <td class="px-6 py-4">
+                                @if($team->section)
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-white shadow-sm" 
+                                          style="background-color: {{ $team->section->color ?? '#8B5CF6' }}">
+                                        {{ $team->section->name }}
+                                    </span>
+                                @else
+                                    <span class="text-sm text-gray-400">-</span>
+                                @endif
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <div class="flex items-center justify-end space-x-2">
                                     <button wire:click="openEditModal({{ $team->id }})" 

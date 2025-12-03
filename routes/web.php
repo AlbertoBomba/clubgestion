@@ -145,5 +145,10 @@ Route::middleware([
         Route::get('/training-schedule', function () {
             return view('training-schedule.index');
         })->name('training-schedule.index');
+
+        // Vista visual de Horarios de Entrenamiento
+        Route::get('/training-schedule/view', function () {
+            return view('training-schedule.view');
+        })->name('training-schedule.view');
     });
 });

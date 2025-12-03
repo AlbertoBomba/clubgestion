@@ -13,6 +13,7 @@ class Section extends Model
     protected $fillable = [
         'name',
         'description',
+        'color',
         'active',
         'created_user',
         'updated_user',

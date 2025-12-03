@@ -24,6 +24,10 @@ class Calendar extends Component
     public $end_time = '';
     public $notes = '';
 
+    // Modal para confirmar eliminación
+    public $confirmingDeletion = false;
+    public $scheduleToDelete = null;
+
     public $days = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
     public $timeSlots = [];
 
@@ -105,6 +109,9 @@ class Calendar extends Component
         $this->end_time = Carbon::createFromFormat('H:i', $time)->addMinutes(60)->format('H:i');
         
         $this->showModal = true;
+        
+        // Resetear team_id para forzar nueva selección con el filtro aplicado
+        $this->team_id = '';
     }
 
     public function saveSchedule()
@@ -155,12 +162,21 @@ class Calendar extends Component
         $this->closeModal();
     }
 
-    public function deleteSchedule($scheduleId)
+    public function confirmDelete($scheduleId)
     {
-        $schedule = TrainingSchedule::findOrFail($scheduleId);
+        $this->scheduleToDelete = $scheduleId;
+        $this->confirmingDeletion = true;
+    }
+
+    public function deleteSchedule()
+    {
+        $schedule = TrainingSchedule::findOrFail($this->scheduleToDelete);
         $schedule->delete();
 
         session()->flash('message', 'Horario eliminado correctamente.');
+        
+        $this->confirmingDeletion = false;
+        $this->scheduleToDelete = null;
     }
 
     public function closeModal()
@@ -177,6 +193,7 @@ class Calendar extends Component
 
         $fields = TrainingField::where('sports_school_id', $user->sports_school_id)
             ->where('active', true)
+            ->with('sections')
             ->orderBy('name')
             ->get();
 
@@ -207,6 +224,22 @@ class Calendar extends Component
             ->with('category')
             ->orderBy('team')
             ->get();
+
+        // Si hay un campo seleccionado en el modal, filtrar equipos por sección
+        if ($this->selectedField) {
+            $field = $fields->find($this->selectedField);
+            if ($field) {
+                // Obtener IDs de las secciones del campo
+                $sectionIds = $field->sections->pluck('id')->toArray();
+                
+                // Filtrar equipos que tengan alguna de estas secciones
+                $teams = Team::where('season_id', $activeSeason?->id)
+                    ->whereIn('section_id', $sectionIds)
+                    ->with('category')
+                    ->orderBy('team')
+                    ->get();
+            }
+        }
 
         // Para el filtro, mostrar solo equipos de la temporada activa (en curso)
         $teamsForFilter = Team::where('season_id', $activeSeason?->id)
