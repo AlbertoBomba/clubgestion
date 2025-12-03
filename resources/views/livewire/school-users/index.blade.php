@@ -55,6 +55,7 @@
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Usuario</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Escuela</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Rol</th>
+                        <th class="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider">Archivos</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Estado</th>
                         <th class="px-6 py-4 text-right text-xs font-semibold text-primary uppercase tracking-wider">Acciones</th>
                     </tr>
@@ -64,8 +65,16 @@
                         <tr class="hover:bg-primary/5 transition-colors duration-150">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-primary to-primary rounded-full flex items-center justify-center">
-                                        <span class="text-white font-bold text-sm">{{ substr($user->name, 0, 2) }}</span>
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        @if($user->profile_photo_path)
+                                            <img src="{{ asset('storage/' . $user->profile_photo_path) }}" 
+                                                alt="{{ $user->name }}" 
+                                                class="h-10 w-10 rounded-full object-cover border-2 border-primary/20">
+                                        @else
+                                            <div class="bg-gradient-to-br from-primary to-primary rounded-full flex items-center justify-center h-10 w-10">
+                                                <span class="text-white font-bold text-sm">{{ substr($user->name, 0, 2) }}</span>
+                                            </div>
+                                        @endif
                                     </div>
                                     <div class="ml-4">
                                         <div class="text-sm font-semibold text-gray-900">{{ $user->name }}</div>
@@ -88,6 +97,28 @@
                                 <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $badge['class'] }}">
                                     {{ $badge['text'] }}
                                 </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center justify-center space-x-3">
+                                    @if($user->profile_photo_path)
+                                        <div class="flex items-center text-green-600" title="Tiene foto de perfil">
+                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+                                            </svg>
+                                        </div>
+                                    @endif
+                                    @if($user->documents && count($user->documents) > 0)
+                                        <div class="flex items-center text-blue-600" title="{{ count($user->documents) }} documento(s)">
+                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
+                                            </svg>
+                                            <span class="ml-1 text-xs font-semibold">{{ count($user->documents) }}</span>
+                                        </div>
+                                    @endif
+                                    @if(!$user->profile_photo_path && (!$user->documents || count($user->documents) == 0))
+                                        <span class="text-gray-400 text-xs">-</span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <button wire:click="toggleActive({{ $user->id }})" 

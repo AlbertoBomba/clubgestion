@@ -78,9 +78,15 @@ class Index extends Component
 
     public function render()
     {
+        $currentUser = auth()->user();
+        
         $users = User::query()
             ->where('role', '!=', 'master')
             ->with('sportsSchool')
+            // Si es school_admin, solo mostrar usuarios de su escuela
+            ->when($currentUser->hasRole('school_admin'), function($query) use ($currentUser) {
+                $query->where('sports_school_id', $currentUser->sports_school_id);
+            })
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('name', 'like', '%' . $this->search . '%')
@@ -96,7 +102,10 @@ class Index extends Component
             ->latest()
             ->paginate(10);
 
-        $schools = SportsSchool::orderBy('name')->get();
+        // Si es school_admin, solo mostrar su escuela en el filtro
+        $schools = $currentUser->hasRole('school_admin') 
+            ? SportsSchool::where('id', $currentUser->sports_school_id)->orderBy('name')->get()
+            : SportsSchool::orderBy('name')->get();
 
         return view('livewire.school-users.index', [
             'users' => $users,

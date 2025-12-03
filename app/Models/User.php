@@ -34,6 +34,8 @@ class User extends Authenticatable
         'sports_school_id',
         'role',
         'is_active',
+        'profile_photo_path',
+        'documents',
     ];
 
     /**
@@ -77,6 +79,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'documents' => 'array',
         ];
     }
 
