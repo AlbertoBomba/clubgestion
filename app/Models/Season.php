@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Traits\BelongsToSportsSchool;
 
 class Season extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, BelongsToSportsSchool;
 
     protected $fillable = [
         'season',
@@ -44,7 +45,8 @@ class Season extends Model
     {
         return $this->belongsToMany(Player::class, 'seasons_players')
             ->withTimestamps()
-            ->withPivot('created_user', 'updated_user', 'deleted_at');
+            ->withPivot('created_user', 'updated_user', 'deleted_at')
+            ->wherePivot('deleted_at', null);
     }
 
     /**
@@ -54,6 +56,7 @@ class Season extends Model
     {
         return $this->belongsToMany(Section::class, 'season_section')
             ->withTimestamps()
-            ->withPivot('price', 'created_user', 'updated_user', 'deleted_at');
+            ->withPivot('price', 'created_user', 'updated_user', 'deleted_at')
+            ->wherePivot('deleted_at', null);
     }
 }

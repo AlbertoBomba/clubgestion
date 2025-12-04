@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Traits\BelongsToSportsSchool;
 
 class Category extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, BelongsToSportsSchool;
 
     protected $fillable = [
         'sports_school_id',

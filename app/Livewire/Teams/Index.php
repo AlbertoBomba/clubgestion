@@ -164,7 +164,15 @@ class Index extends Component
 
     public function render()
     {
+        $userSchoolId = auth()->user()->sports_school_id;
+        
         $teams = Team::with(['category', 'season', 'section', 'coaches'])
+            ->withCount(['players' => function ($query) {
+                $query->whereNull('teams_players.deleted_at');
+            }])
+            ->whereHas('season', function ($query) use ($userSchoolId) {
+                $query->where('sports_school_id', $userSchoolId);
+            })
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('team', 'like', '%' . $this->search . '%')

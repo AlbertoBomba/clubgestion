@@ -35,7 +35,7 @@
                     <select wire:model.live="teamFilter" class="w-full rounded-lg border-silver shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm">
                         <option value="">Todos los equipos</option>
                         @foreach($teams as $team)
-                            <option value="{{ $team->id }}">{{ $team->team }} - {{ $team->category->category }}</option>
+                            <option value="{{ $team->id }}">{{ $team->team }}</option>
                         @endforeach
                     </select>
                 </div>

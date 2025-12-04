@@ -25,6 +25,14 @@ class Edit extends Component
     public $selectedCoaches = [];
     public $teamImage;
     public $gender = 'mixto';
+    
+    // Gestión de jugadores
+    public $showMovePlayerModal = false;
+    public $playerToMove = null;
+    public $playerToMoveName = '';
+    public $targetTeamId = null;
+    public $confirmingPlayerRemoval = false;
+    public $playerToRemove = null;
 
     protected function rules()
     {
@@ -94,6 +102,86 @@ class Edit extends Component
         return redirect()->route('teams.index');
     }
 
+    public function confirmRemovePlayer($playerId)
+    {
+        $this->playerToRemove = $playerId;
+        $this->confirmingPlayerRemoval = true;
+    }
+
+    public function removePlayer()
+    {
+        if ($this->playerToRemove) {
+            // Eliminar la relación (soft delete en la tabla pivote)
+            $this->team->players()->updateExistingPivot($this->playerToRemove, [
+                'deleted_at' => now(),
+                'updated_user' => auth()->id()
+            ]);
+            
+            session()->flash('message', 'Jugador eliminado del equipo correctamente.');
+        }
+        
+        $this->confirmingPlayerRemoval = false;
+        $this->playerToRemove = null;
+    }
+
+    public function openMovePlayerModal($playerId)
+    {
+        $this->playerToMove = $playerId;
+        $player = \App\Models\Player::find($playerId);
+        $this->playerToMoveName = $player ? $player->name . ' ' . $player->surname : '';
+        $this->targetTeamId = null;
+        $this->showMovePlayerModal = true;
+    }
+
+    public function movePlayer()
+    {
+        if (!$this->playerToMove || !$this->targetTeamId) {
+            session()->flash('error', 'Debe seleccionar un equipo de destino.');
+            return;
+        }
+
+        if ($this->targetTeamId == $this->team->id) {
+            session()->flash('error', 'No puede mover el jugador al mismo equipo.');
+            return;
+        }
+
+        // Eliminar del equipo actual (soft delete)
+        $this->team->players()->updateExistingPivot($this->playerToMove, [
+            'deleted_at' => now(),
+            'updated_user' => auth()->id()
+        ]);
+
+        // Agregar al nuevo equipo
+        $targetTeam = Team::find($this->targetTeamId);
+        $targetTeam->players()->attach($this->playerToMove, [
+            'created_user' => auth()->id(),
+            'updated_user' => auth()->id(),
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+
+        session()->flash('message', 'Jugador movido al nuevo equipo correctamente.');
+        
+        $this->showMovePlayerModal = false;
+        $this->playerToMove = null;
+        $this->playerToMoveName = '';
+        $this->targetTeamId = null;
+    }
+
+    public function cancelMovePlayer()
+    {
+        $this->showMovePlayerModal = false;
+        $this->playerToMove = null;
+        $this->playerToMoveName = '';
+        $this->targetTeamId = null;
+    }
+
+    public function cancelRemovePlayer()
+    {
+        $this->confirmingPlayerRemoval = false;
+        $this->playerToRemove = null;
+    }
+
     public function render()
     {
         $categories = Category::orderBy('category')->get();
@@ -139,6 +227,12 @@ class Edit extends Component
             'seasons' => $seasons,
             'sections' => $sections,
             'availableCoaches' => $availableCoaches,
+            'teamPlayers' => $this->team->players()->orderBy('name')->orderBy('surname')->get(),
+            'availableTeams' => Team::where('season_id', $this->team->season_id)
+                ->where('section_id', $this->team->section_id)
+                ->where('id', '!=', $this->team->id)
+                ->orderBy('team')
+                ->get(),
         ]);
     }
 }

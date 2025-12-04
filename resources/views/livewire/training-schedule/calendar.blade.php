@@ -34,7 +34,7 @@
                 <select wire:model.live="teamFilter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                     <option value="">Todos los equipos</option>
                     @foreach($teamsForFilter as $team)
-                        <option value="{{ $team->id }}">{{ $team->team }} - {{ $team->category->category }}</option>
+                        <option value="{{ $team->id }}">{{ $team->team }}{{ $team->category ? ' - ' . $team->category->category : '' }}</option>
                     @endforeach
                 </select>
             </div>
@@ -302,7 +302,7 @@
                                 <select wire:model="team_id" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                     <option value="">Selecciona un equipo</option>
                                     @foreach($teams as $team)
-                                        <option value="{{ $team->id }}">{{ $team->team }} - {{ $team->category->category }}</option>
+                                        <option value="{{ $team->id }}">{{ $team->team }}</option>
                                     @endforeach
                                 </select>
                                 @error('team_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
@@ -432,7 +432,9 @@
                             <!-- Nombre del equipo con color -->
                             <div class="px-3 py-2 font-semibold text-sm" style="background-color: {{ $bgColor }}; color: {{ $textColor }};">
                                 {{ $team->team }}
-                                <span class="text-xs opacity-90 ml-1">({{ $team->category->category }})</span>
+                                @if($team->category)
+                                    <span class="text-xs opacity-90 ml-1">({{ $team->category->category }})</span>
+                                @endif
                             </div>
                             
                             <!-- Lista de entrenamientos -->

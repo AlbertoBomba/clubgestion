@@ -67,6 +67,17 @@ class Team extends Model
      */
     public function coaches()
     {
-        return $this->belongsToMany(User::class, 'teams_users')->withTimestamps();
+        return $this->belongsToMany(User::class, 'teams_coaches')->withTimestamps();
+    }
+
+    /**
+     * Jugadores del equipo
+     */
+    public function players()
+    {
+        return $this->belongsToMany(Player::class, 'teams_players')
+            ->withTimestamps()
+            ->withPivot('created_user', 'updated_user', 'deleted_at')
+            ->wherePivot('deleted_at', null);
     }
 }

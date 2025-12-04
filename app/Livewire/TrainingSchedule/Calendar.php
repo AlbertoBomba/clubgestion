@@ -221,7 +221,6 @@ class Calendar extends Component
 
         // Solo mostrar equipos de la temporada activa en el modal
         $teams = Team::where('season_id', $activeSeason?->id)
-            ->with('category')
             ->orderBy('team')
             ->get();
 
@@ -235,7 +234,6 @@ class Calendar extends Component
                 // Filtrar equipos que tengan alguna de estas secciones
                 $teams = Team::where('season_id', $activeSeason?->id)
                     ->whereIn('section_id', $sectionIds)
-                    ->with('category')
                     ->orderBy('team')
                     ->get();
             }
@@ -243,7 +241,6 @@ class Calendar extends Component
 
         // Para el filtro, mostrar solo equipos de la temporada activa (en curso)
         $teamsForFilter = Team::where('season_id', $activeSeason?->id)
-            ->with('category')
             ->orderBy('team')
             ->get();
 

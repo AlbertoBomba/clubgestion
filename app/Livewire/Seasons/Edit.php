@@ -17,6 +17,7 @@ class Edit extends Component
     public $end_date = '';
     public $sectionPrices = []; // Array: section_id => price
     public $selectedSections = []; // Array de section_ids seleccionadas
+    public $isActive = false; // Si la temporada está activa
 
     protected function rules()
     {
@@ -49,6 +50,10 @@ class Edit extends Component
         $this->to_year = $season->to_year;
         $this->end_date = $season->end_date ? $season->end_date->format('Y-m-d') : '';
         
+        // Verificar si la temporada está activa (entre start_date y end_date)
+        $this->isActive = $season->start_date && $season->end_date &&
+                          now()->between($season->start_date, $season->end_date);
+        
         // Load existing section prices
         foreach ($season->sections as $section) {
             $this->sectionPrices[$section->id] = $section->pivot->price;
@@ -58,6 +63,12 @@ class Edit extends Component
 
     public function save()
     {
+        // Verificar que la temporada esté activa
+        if (!$this->isActive) {
+            session()->flash('error', 'No se puede modificar una temporada que no está activa.');
+            return;
+        }
+        
         $this->validate();
 
         $this->seasonModel->update([

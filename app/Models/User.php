@@ -144,6 +144,6 @@ class User extends Authenticatable
      */
     public function teams()
     {
-        return $this->belongsToMany(Team::class, 'teams_users')->withTimestamps();
+        return $this->belongsToMany(Team::class, 'teams_coaches')->withTimestamps();
     }
 }

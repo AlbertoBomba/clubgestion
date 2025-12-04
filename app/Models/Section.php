@@ -30,7 +30,8 @@ class Section extends Model
     {
         return $this->belongsToMany(Season::class, 'season_section')
             ->withTimestamps()
-            ->withPivot('price', 'created_user', 'updated_user', 'deleted_at');
+            ->withPivot('price', 'created_user', 'updated_user', 'deleted_at')
+            ->wherePivot('deleted_at', null);
     }
 
     /**
@@ -40,7 +41,8 @@ class Section extends Model
     {
         return $this->belongsToMany(Player::class, 'player_section')
             ->withTimestamps()
-            ->withPivot('created_user', 'updated_user', 'deleted_at');
+            ->withPivot('created_user', 'updated_user', 'deleted_at')
+            ->wherePivot('deleted_at', null);
     }
 
     /**

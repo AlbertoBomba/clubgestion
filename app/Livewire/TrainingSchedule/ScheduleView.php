@@ -63,7 +63,6 @@ class ScheduleView extends Component
             ->first();
 
         $teams = Team::where('season_id', $activeSeason?->id)
-            ->with('category')
             ->orderBy('team')
             ->get();
 
