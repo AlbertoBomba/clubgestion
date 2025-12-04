@@ -16,6 +16,7 @@ class Edit extends Component
     public $to_year = '';
     public $end_date = '';
     public $sectionPrices = []; // Array: section_id => price
+    public $selectedSections = []; // Array de section_ids seleccionadas
 
     protected function rules()
     {
@@ -51,6 +52,7 @@ class Edit extends Component
         // Load existing section prices
         foreach ($season->sections as $section) {
             $this->sectionPrices[$section->id] = $section->pivot->price;
+            $this->selectedSections[] = $section->id;
         }
     }
 
@@ -69,9 +71,9 @@ class Edit extends Component
 
         // Sync sections with prices
         $syncData = [];
-        foreach ($this->sectionPrices as $sectionId => $price) {
+        foreach ($this->selectedSections as $sectionId) {
+            $price = $this->sectionPrices[$sectionId] ?? 0;
             // Agregar si el precio es numérico y >= 0 (permite 0)
-            // Usamos is_numeric() primero para validar, luego verificamos que sea >= 0
             if (is_numeric($price) && floatval($price) >= 0) {
                 $syncData[$sectionId] = [
                     'price' => floatval($price),

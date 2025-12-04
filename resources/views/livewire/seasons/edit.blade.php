@@ -75,16 +75,14 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         @foreach($sections as $section)
                             @php
-                                $isSelected = isset($sectionPrices[$section->id]) && $sectionPrices[$section->id] !== null && $sectionPrices[$section->id] !== '';
+                                $isSelected = in_array($section->id, $selectedSections);
                             @endphp
-                            <div class="rounded-xl p-4 border-2 transition-all duration-200 cursor-pointer {{ $isSelected ? 'border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-md hover:shadow-lg hover:scale-[1.02]' : 'bg-white-pure border-silver hover:border-primary/50 hover:shadow-md hover:scale-[1.02]' }}"
-                                 onclick="document.getElementById('section_{{ $section->id }}').click()">
+                            <div class="rounded-xl p-4 border-2 transition-all duration-200 {{ $isSelected ? 'border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-md' : 'bg-white-pure border-silver hover:border-primary/50' }}">
                                 <div class="flex items-center mb-3">
                                     <input type="checkbox" 
                                            id="section_{{ $section->id }}"
-                                           {{ $isSelected ? 'checked' : '' }}
-                                           wire:click="$set('sectionPrices.{{ $section->id }}', $event.target.checked ? 0 : null)"
-                                           onclick="event.stopPropagation()"
+                                           value="{{ $section->id }}"
+                                           wire:model.live="selectedSections"
                                            class="w-5 h-5 text-primary border-silver rounded focus:ring-primary cursor-pointer">
                                     <label for="section_{{ $section->id }}" class="ml-3 text-sm font-bold cursor-pointer {{ $isSelected ? 'text-primary' : 'text-titanium' }}">
                                         {{ $section->name }}
@@ -105,6 +103,7 @@
                                            min="0"
                                            placeholder="0.00"
                                            {{ !$isSelected ? 'disabled' : '' }}
+                                           onfocus="this.select()"
                                            class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary text-black-deep text-sm font-semibold
                                                   {{ $isSelected ? 'border-primary bg-white' : 'border-silver bg-gray-100 cursor-not-allowed' }}">
                                     @error('sectionPrices.' . $section->id) 
