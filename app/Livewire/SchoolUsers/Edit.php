@@ -298,9 +298,19 @@ class Edit extends Component
             
         $roles = Role::where('name', '!=', 'master')->get();
         
+        // Obtener equipos si el usuario es entrenador
+        $coachTeams = collect();
+        if ($this->user->hasRole('coach')) {
+            $coachTeams = $this->user->teams()
+                ->with(['category', 'season', 'section'])
+                ->orderBy('team')
+                ->get();
+        }
+        
         return view('livewire.school-users.edit', [
             'schools' => $schools,
-            'roles' => $roles
+            'roles' => $roles,
+            'coachTeams' => $coachTeams,
         ]);
     }
 }

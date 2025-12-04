@@ -3,13 +3,18 @@
 namespace App\Livewire\Teams;
 
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use App\Models\Team;
 use App\Models\Category;
 use App\Models\Season;
 use App\Models\Section;
+use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 
 class Edit extends Component
 {
+    use WithFileUploads;
+    
     public Team $team;
     
     public $teamName = '';
@@ -17,6 +22,9 @@ class Edit extends Component
     public $category_id = '';
     public $season_id = '';
     public $section_id = '';
+    public $selectedCoaches = [];
+    public $teamImage;
+    public $gender = 'mixto';
 
     protected function rules()
     {
@@ -44,20 +52,42 @@ class Edit extends Component
         $this->category_id = $team->category_id;
         $this->season_id = $team->season_id;
         $this->section_id = $team->section_id;
+        $this->gender = $team->gender;
+        
+        // Cargar entrenadores actuales del equipo
+        $this->selectedCoaches = $team->coaches->pluck('id')->toArray();
     }
 
     public function save()
     {
         $this->validate();
 
-        $this->team->update([
+        $dataToUpdate = [
             'team' => $this->teamName,
             'description' => $this->description,
+            'gender' => $this->gender,
             'category_id' => $this->category_id,
             'season_id' => $this->season_id,
             'section_id' => $this->section_id,
             'updated_user' => auth()->id(),
-        ]);
+        ];
+
+        // Manejar la subida de la imagen si hay una nueva
+        if ($this->teamImage) {
+            // Eliminar la imagen anterior si existe
+            if ($this->team->team_image) {
+                Storage::disk('public')->delete($this->team->team_image);
+            }
+            
+            // Guardar la nueva imagen
+            $path = $this->teamImage->store('team-images', 'public');
+            $dataToUpdate['team_image'] = $path;
+        }
+
+        $this->team->update($dataToUpdate);
+
+        // Sincronizar entrenadores
+        $this->team->coaches()->sync($this->selectedCoaches);
 
         session()->flash('message', 'Equipo actualizado correctamente.');
         
@@ -77,10 +107,38 @@ class Edit extends Component
             })->orderBy('name')->get();
         }
 
+        // Obtener la escuela del equipo a través de la temporada
+        $sportsSchoolId = null;
+        if ($this->season_id) {
+            $season = Season::find($this->season_id);
+            if ($season) {
+                $sportsSchoolId = $season->sports_school_id;
+            }
+        }
+        
+
+        // Obtener entrenadores disponibles de la misma escuela
+        $availableCoaches = collect();
+        if ($sportsSchoolId) {
+            $availableCoaches = User::where('is_active', true)
+                ->where('sports_school_id', $sportsSchoolId)
+                ->role('coach')
+                ->orderBy('name')
+                ->get();
+            
+            // Ordenar: primero los seleccionados, luego los demás
+            $availableCoaches = $availableCoaches->sortBy(function($coach) {
+                return in_array($coach->id, $this->selectedCoaches) ? 0 : 1;
+            })->values();
+        }
+
+       
+
         return view('livewire.teams.edit', [
             'categories' => $categories,
             'seasons' => $seasons,
             'sections' => $sections,
+            'availableCoaches' => $availableCoaches,
         ]);
     }
 }

@@ -74,6 +74,13 @@
             </div>
 
             <div class="hidden sm:flex sm:items-center sm:ms-6">
+                <!-- Mensaje de Comisión por Ventas -->
+                <div class="mr-4 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
+                    <span class="text-sm font-medium text-green-800">
+                        Solicitar cobro de <span class="font-bold">0,00€</span> de la comisión por ventas
+                    </span>
+                </div>
+
                 <!-- Teams Dropdown -->
                 @if (Laravel\Jetstream\Jetstream::hasTeamFeatures())
                     <div class="ms-3 relative">
@@ -214,6 +221,13 @@
 
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden bg-white-pure/95 backdrop-blur-lg border-t border-primary/10">
+        <!-- Mensaje de Comisión por Ventas (Mobile) -->
+        <div class="px-4 py-3 bg-green-50 border-b border-green-200">
+            <span class="text-sm font-medium text-green-800">
+                Solicitar cobro de <span class="font-bold">0,00€</span> de la comisión por ventas
+            </span>
+        </div>
+
         <div class="pt-2 pb-3 space-y-1">
             <a href="{{ route('dashboard') }}" class="sidebar-link block pl-3 pr-4 py-2 text-base font-medium {{ request()->routeIs('dashboard') ? 'active text-white-pure' : 'text-titanium' }}">
                 <div class="flex items-center">

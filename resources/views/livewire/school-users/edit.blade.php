@@ -374,6 +374,69 @@
                 </button>
             </div>
         </form>
+
+        <!-- Equipos del Entrenador -->
+        @if($coachTeams->isNotEmpty())
+        <div class="card-modern bg-white-pure rounded-2xl shadow-xl border border-primary/10 overflow-hidden p-6 sm:p-8 mt-6">
+            <h3 class="text-xl font-bold text-titanium mb-6 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                Equipos que Entrena
+            </h3>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-silver/30">
+                    <thead class="bg-gradient-to-r from-gray-50 to-primary/5">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Equipo</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Categoría</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Edades</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Temporada</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Sección</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white-pure divide-y divide-silver/30">
+                        @foreach($coachTeams as $team)
+                            <tr class="hover:bg-primary/5">
+                                <td class="px-6 py-4">
+                                    <div class="text-sm font-semibold text-black-deep">{{ $team->team }}</div>
+                                    @if($team->description)
+                                        <div class="text-xs text-gray-500">{{ $team->description }}</div>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">{{ $team->category->category ?? '-' }}</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    @if($team->category)
+                                        <div class="text-sm font-medium text-primary">
+                                            {{ $team->category->from_age }} - {{ $team->category->to_age }} años
+                                        </div>
+                                    @else
+                                        <span class="text-sm text-gray-400">-</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">{{ $team->season->season ?? '-' }}</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    @if($team->section)
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-white shadow-sm" 
+                                              style="background-color: {{ $team->section->color ?? '#8B5CF6' }}">
+                                            {{ $team->section->name }}
+                                        </span>
+                                    @else
+                                        <span class="text-sm text-gray-400">-</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        @endif
         
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>

@@ -138,4 +138,12 @@ class User extends Authenticatable
     {
         return $query->where('is_active', true);
     }
+
+    /**
+     * Equipos donde es entrenador
+     */
+    public function teams()
+    {
+        return $this->belongsToMany(Team::class, 'teams_users')->withTimestamps();
+    }
 }

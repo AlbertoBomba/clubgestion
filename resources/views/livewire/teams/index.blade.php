@@ -76,8 +76,10 @@
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Equipo</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Descripción</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Categoría</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Género</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Temporada</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Sección</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Entrenadores</th>
                         <th class="px-6 py-4 text-right text-xs font-semibold text-primary uppercase tracking-wider">Acciones</th>
                     </tr>
                 </thead>
@@ -87,6 +89,24 @@
                             <td class="px-6 py-4"><div class="text-sm font-semibold text-black-deep">{{ $team->team }}</div></td>
                             <td class="px-6 py-4"><div class="text-sm text-gray-600">{{ $team->description ?? '-' }}</div></td>
                             <td class="px-6 py-4"><div class="text-sm text-gray-900">{{ $team->category->category ?? '-' }}</div></td>
+                            <td class="px-6 py-4">
+                                @php
+                                    $genderColors = [
+                                        'masculino' => 'bg-blue-100 text-blue-800',
+                                        'femenino' => 'bg-pink-100 text-pink-800',
+                                        'mixto' => 'bg-purple-100 text-purple-800'
+                                    ];
+                                    $genderIcons = [
+                                        'masculino' => '♂',
+                                        'femenino' => '♀',
+                                        'mixto' => '⚥'
+                                    ];
+                                @endphp
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ $genderColors[$team->gender] ?? 'bg-gray-100 text-gray-800' }}">
+                                    <span class="mr-1">{{ $genderIcons[$team->gender] ?? '' }}</span>
+                                    {{ ucfirst($team->gender) }}
+                                </span>
+                            </td>
                             <td class="px-6 py-4"><div class="text-sm text-gray-900">{{ $team->season->season ?? '-' }}</div></td>
                             <td class="px-6 py-4">
                                 @if($team->section)
@@ -96,6 +116,23 @@
                                     </span>
                                 @else
                                     <span class="text-sm text-gray-400">-</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4">
+                                @if($team->coaches->isNotEmpty())
+                                    <div class="flex flex-wrap gap-1">
+                                        @foreach($team->coaches as $coach)
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800" title="{{ $coach->email }}">
+                                                @if($coach->profile_photo_path)
+                                                    <img src="{{ asset('storage/' . $coach->profile_photo_path) }}" 
+                                                        class="w-4 h-4 rounded-full object-cover mr-1 border border-blue-200">
+                                                @endif
+                                                {{ $coach->name }}
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <span class="text-sm text-gray-400">Sin asignar</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -162,6 +199,17 @@
                 </div>
 
                 <div>
+                    <label class="block text-sm font-semibold text-titanium mb-2">Género *</label>
+                    <select wire:model="gender" 
+                        class="w-full px-3 py-2 border border-silver rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                        <option value="masculino">Masculino</option>
+                        <option value="femenino">Femenino</option>
+                        <option value="mixto">Mixto</option>
+                    </select>
+                    @error('gender') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
                     <label class="block text-sm font-semibold text-titanium mb-2">Temporada *</label>
                     <input type="text" value="{{ $activeSeason ? $activeSeason->season : '' }}" disabled
                         class="w-full px-3 py-2 border border-silver rounded-xl bg-gray-100 text-gray-600 text-sm cursor-not-allowed">
@@ -184,6 +232,49 @@
                         <p class="text-amber-600 text-xs mt-1">No hay secciones disponibles para esta temporada.</p>
                     @endif
                 </div>
+
+                <!-- Entrenadores del equipo -->
+                @if($season_id && count($availableCoaches) > 0)
+                <div class="pt-4 border-t border-silver/30">
+                    <label class="block text-sm font-semibold text-titanium mb-3">
+                        <svg class="w-5 h-5 inline mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        Entrenadores del Equipo
+                    </label>
+                    
+                    <div class="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
+                        @foreach($availableCoaches as $coach)
+                            <label class="flex items-center p-2 border border-silver rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                                <input type="checkbox" wire:model="selectedCoaches" value="{{ $coach->id }}"
+                                    class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary focus:ring-2">
+                                <div class="ml-3 flex-1">
+                                    <div class="flex items-center">
+                                        @if($coach->profile_photo_path)
+                                            <img src="{{ asset('storage/' . $coach->profile_photo_path) }}" 
+                                                class="w-6 h-6 rounded-full object-cover mr-2 border border-silver">
+                                        @else
+                                            <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mr-2">
+                                                <span class="text-primary text-xs font-semibold">{{ substr($coach->name, 0, 1) }}</span>
+                                            </div>
+                                        @endif
+                                        <p class="text-sm font-medium text-titanium">{{ $coach->name }}</p>
+                                    </div>
+                                </div>
+                            </label>
+                        @endforeach
+                    </div>
+                    
+                    @if(count($selectedCoaches) > 0)
+                        <p class="text-xs text-gray-600 mt-2">
+                            <svg class="w-4 h-4 inline text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            {{ count($selectedCoaches) }} entrenador(es) seleccionado(s)
+                        </p>
+                    @endif
+                </div>
+                @endif
             </div>
         </x-slot>
 

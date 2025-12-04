@@ -13,6 +13,8 @@ class Team extends Model
     protected $fillable = [
         'team',
         'description',
+        'team_image',
+        'gender',
         'category_id',
         'season_id',
         'section_id',
@@ -60,9 +62,11 @@ class Team extends Model
         return $this->hasMany(TrainingSchedule::class);
     }
 
-    // Future relationship for coaches (to be added later)
-    // public function coaches()
-    // {
-    //     return $this->belongsToMany(User::class, 'team_coach');
-    // }
+    /**
+     * Entrenadores del equipo
+     */
+    public function coaches()
+    {
+        return $this->belongsToMany(User::class, 'teams_users')->withTimestamps();
+    }
 }

@@ -4,14 +4,16 @@ namespace App\Livewire\Teams;
 
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 use App\Models\Team;
 use App\Models\Category;
 use App\Models\Season;
 use App\Models\Section;
+use App\Models\User;
 
 class Index extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     public $search = '';
     public $categoryFilter = '';
@@ -24,6 +26,9 @@ class Index extends Component
     public $category_id = '';
     public $season_id = '';
     public $section_id = '';
+    public $selectedCoaches = [];
+    public $teamImage;
+    public $gender = 'mixto';
     
     // Delete confirmation
     public $confirmingDeletion = false;
@@ -98,14 +103,28 @@ class Index extends Component
     {
         $this->validate();
 
-        Team::create([
+        $dataToCreate = [
             'team' => $this->team,
             'description' => $this->description,
+            'gender' => $this->gender,
             'category_id' => $this->category_id,
             'season_id' => $this->season_id,
             'section_id' => $this->section_id,
             'created_user' => auth()->id(),
-        ]);
+        ];
+
+        // Manejar la subida de la imagen si hay una
+        if ($this->teamImage) {
+            $path = $this->teamImage->store('team-images', 'public');
+            $dataToCreate['team_image'] = $path;
+        }
+
+        $team = Team::create($dataToCreate);
+        
+        // Asociar entrenadores al equipo
+        if (!empty($this->selectedCoaches)) {
+            $team->coaches()->sync($this->selectedCoaches);
+        }
         
         session()->flash('message', 'Equipo creado correctamente.');
 
@@ -139,13 +158,13 @@ class Index extends Component
 
     private function resetForm()
     {
-        $this->reset(['team', 'description', 'category_id', 'season_id', 'section_id']);
+        $this->reset(['team', 'description', 'category_id', 'season_id', 'section_id', 'selectedCoaches', 'teamImage', 'gender']);
         $this->resetErrorBag();
     }
 
     public function render()
     {
-        $teams = Team::with(['category', 'season', 'section'])
+        $teams = Team::with(['category', 'season', 'section', 'coaches'])
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('team', 'like', '%' . $this->search . '%')
@@ -183,12 +202,26 @@ class Index extends Component
             })->orderBy('name')->get();
         }
 
+        // Obtener entrenadores disponibles filtrados por escuela deportiva de la temporada
+        $availableCoaches = collect();
+        if ($this->season_id) {
+            $season = Season::find($this->season_id);
+            if ($season && $season->sports_school_id) {
+                $availableCoaches = User::where('is_active', true)
+                    ->where('sports_school_id', $season->sports_school_id)
+                    ->role('coach')
+                    ->orderBy('name')
+                    ->get();
+            }
+        }
+
         return view('livewire.teams.index', [
             'teams' => $teams,
             'categories' => $categories,
             'seasons' => $seasons,
             'activeSeason' => $activeSeason,
             'sections' => $sections,
+            'availableCoaches' => $availableCoaches,
         ]);
     }
 }
