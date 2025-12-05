@@ -43,6 +43,7 @@ class Index extends Component
     public function render()
     {
         $categories = Category::bySchool(auth()->user()->sports_school_id)
+            ->withCount('teams')
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('category', 'like', '%' . $this->search . '%')

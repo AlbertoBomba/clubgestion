@@ -5,11 +5,20 @@
         </div>
     @endif
 
-    <div class="card-modern bg-white-pure rounded-2xl shadow-xl border border-primary/10 overflow-hidden">
-        <div class="flex items-center justify-between p-6 border-b border-gray-100">
-            <h2 class="font-bold text-2xl text-titanium leading-tight">
-                {{ __('Jugadores') }}
-            </h2>
+    <div class="sticky top-16 z-10 bg-white-pure flex items-center justify-between p-6 border-b border-gray-100 rounded-t-2xl shadow-xl border border-primary/10 mb-6">
+        <h2 class="font-bold text-2xl text-titanium leading-tight">
+            {{ __('Jugadores') }}
+        </h2>
+        <div class="flex gap-3">
+            @if(count($selectedPlayers) > 0)
+                <button wire:click="confirmDeactivation" 
+                    class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-all duration-300 hover:-translate-y-1 bg-orange-600 hover:bg-orange-700">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                    </svg>
+                    Desactivar ({{ count($selectedPlayers) }})
+                </button>
+            @endif
             <a href="{{ route('players.create') }}" class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 hover:-translate-y-1 bg-blue-600 hover:bg-blue-700">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -17,7 +26,10 @@
                 Nuevo Jugador
             </a>
         </div>
-        <div class="p-6 border-b border-gray-100 bg-gray-50">
+    </div>
+
+    <div class="card-modern bg-white-pure rounded-2xl shadow-xl border border-primary/10 overflow-hidden">
+        <div class="p-6 border-b border-gray-100 ">
             <div class="flex items-center justify-between mb-4">
                 <div class="text-sm text-gray-600">
                     <span class="font-semibold text-primary text-lg">{{ $players->total() }}</span> 
@@ -32,7 +44,7 @@
                     </span>
                 @endif
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,6 +63,21 @@
                         @endforeach
                     </select>
                 </div>
+                <div>
+                    <select wire:model.live="teamFilter" 
+                        class="block w-full px-3 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                        <option value="">Todos los equipos</option>
+                        @foreach($teams as $team)
+                            <option value="{{ $team->id }}">{{ $team->team }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="flex items-center">
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="checkbox" wire:model.live="withoutTeam" class="w-4 h-4 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
+                        <span class="ml-2 text-sm font-semibold text-titanium">Solo sin equipo</span>
+                    </label>
+                </div>
             </div>
         </div>
 
@@ -58,6 +85,12 @@
             <table class="min-w-full divide-y divide-silver/30">
                 <thead class="bg-gradient-to-r from-gray-50 to-primary/5">
                     <tr>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                            <input type="checkbox" 
+                                @change="$event.target.checked ? $wire.set('selectedPlayers', {{ $players->pluck('id')->toJson() }}) : $wire.set('selectedPlayers', [])"
+                                :checked="{{ count($selectedPlayers) === $players->count() && $players->count() > 0 ? 'true' : 'false' }}"
+                                class="w-4 h-4 text-primary border-silver rounded focus:ring-2 focus:ring-primary cursor-pointer">
+                        </th>
                         <th wire:click="sortBy('id')" class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider cursor-pointer hover:bg-primary/10 transition">
                             <div class="flex items-center">
                                 ID
@@ -87,39 +120,12 @@
                                 @endif
                             </div>
                         </th>
-                        <th wire:click="sortBy('dni')" class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider cursor-pointer hover:bg-primary/10 transition">
-                            <div class="flex items-center">
-                                DNI
-                                @if($sortField === 'dni')
-                                    <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                                        @if($sortDirection === 'asc')
-                                            <path d="M5 10l5-5 5 5H5z"/>
-                                        @else
-                                            <path d="M5 10l5 5 5-5H5z"/>
-                                        @endif
-                                    </svg>
-                                @endif
-                            </div>
-                        </th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Temporada</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Equipo</th>
                         <th wire:click="sortBy('dorsal')" class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider cursor-pointer hover:bg-primary/10 transition">
                             <div class="flex items-center">
                                 Dorsal
                                 @if($sortField === 'dorsal')
-                                    <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                                        @if($sortDirection === 'asc')
-                                            <path d="M5 10l5-5 5 5H5z"/>
-                                        @else
-                                            <path d="M5 10l5 5 5-5H5z"/>
-                                        @endif
-                                    </svg>
-                                @endif
-                            </div>
-                        </th>
-                        <th wire:click="sortBy('position')" class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider cursor-pointer hover:bg-primary/10 transition">
-                            <div class="flex items-center">
-                                Posición
-                                @if($sortField === 'position')
                                     <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
                                         @if($sortDirection === 'asc')
                                             <path d="M5 10l5-5 5 5H5z"/>
@@ -159,12 +165,18 @@
                                 @endif
                             </div>
                         </th>
-                        <th class="px-6 py-4 text-right text-xs font-semibold text-primary uppercase tracking-wider">Acciones</th>
+                        <th class="px-6 py-4 text-right text-xs font-semibold text-primary uppercase tracking-wider"></th>
                     </tr>
                 </thead>
                 <tbody class="bg-white-pure divide-y divide-silver/30">
                     @forelse($players as $player)
-                        <tr class="hover:bg-primary/5">
+                        <tr class="{{ !$player->active ? 'bg-gray-200 hover:bg-gray-300' : ($player->teams->count() === 0 ? 'bg-red-900/10 hover:bg-red-900/20' : 'hover:bg-primary/5') }}">
+                            <td class="px-6 py-4">
+                                <input type="checkbox" 
+                                    wire:model.live="selectedPlayers" 
+                                    value="{{ $player->id }}"
+                                    class="w-4 h-4 text-primary border-silver rounded focus:ring-2 focus:ring-primary cursor-pointer">
+                            </td>
                             <td class="px-6 py-4">
                                 <div class="text-sm font-semibold text-gray-600">{{ $player->id }}</div>
                             </td>
@@ -183,7 +195,6 @@
                                     <div class="text-xs text-gray-500">{{ $player->email }}</div>
                                 @endif
                             </td>
-                            <td class="px-6 py-4"><div class="text-sm">{{ $player->dni ?? '-' }}</div></td>
                             <td class="px-6 py-4">
                                 @if($player->seasons->count() > 0)
                                     @foreach($player->seasons as $season)
@@ -194,13 +205,31 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4">
+                                @if($player->teams->count() > 0)
+                                    @foreach($player->teams as $team)
+                                        <span class="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded-lg text-xs font-semibold mb-1 mr-1">
+                                            <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                            </svg>
+                                            {{ $team->team }}
+                                        </span>
+                                    @endforeach
+                                @else
+                                    <span class="inline-flex items-center px-2 py-1 bg-red-100 text-red-800 rounded-lg text-xs font-semibold">
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                        </svg>
+                                        Sin equipo
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4">
                                 @if($player->dorsal)
                                     <span class="px-2 py-1 bg-primary/10 text-primary rounded-lg font-bold text-sm">{{ $player->dorsal }}</span>
                                 @else
                                     <span class="text-gray-400">-</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4"><div class="text-sm">{{ $player->position ?? '-' }}</div></td>
                             <td class="px-6 py-4">
                                 <div class="text-sm">
                                     @if($player->phone1)
@@ -255,20 +284,26 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="8" class="px-6 py-12 text-center text-gray-400">No se encontraron jugadores</td></tr>
+                        <tr><td colspan="10" class="px-6 py-12 text-center text-gray-400">No se encontraron jugadores</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
 
         @if($players->hasPages())
-            <div class="px-6 py-4 border-t border-silver/30">{{ $players->links() }}</div>
+            <div class="px-6 py-4 border-t border-silver/30 text-gray-600">{{ $players->links() }}</div>
         @endif>
     </div>
 
     <x-dialog-modal wire:model="confirmingDeletion">
         <x-slot name="title">Eliminar Jugador</x-slot>
-        <x-slot name="content">¿Estás seguro de que deseas eliminar este jugador? Esta acción también eliminará su foto.</x-slot>
+        <x-slot name="content">
+            @if($playerToDeleteModel)
+                ¿Estás seguro de que deseas eliminar al jugador <strong>{{ $playerToDeleteModel->full_name }}</strong>? Esta acción también eliminará su foto.
+            @else
+                ¿Estás seguro de que deseas eliminar este jugador? Esta acción también eliminará su foto.
+            @endif
+        </x-slot>
         <x-slot name="footer">
             <x-secondary-button wire:click="$set('confirmingDeletion', false)">Cancelar</x-secondary-button>
             <x-danger-button class="ml-3" wire:click="deletePlayer" wire:loading.attr="disabled" wire:target="deletePlayer">
@@ -281,6 +316,63 @@
                     Eliminando...
                 </span>
             </x-danger-button>
+        </x-slot>
+    </x-dialog-modal>
+
+    <x-dialog-modal wire:model="confirmingDeactivation">
+        <x-slot name="title">Desactivar Jugadores</x-slot>
+        <x-slot name="content">
+            <p class="mb-4">¿Estás seguro de que deseas desactivar los siguientes jugadores?</p>
+            <div class="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto">
+                <ul class="space-y-2">
+                    @foreach($selectedPlayersModels as $player)
+                        <li class="flex items-center gap-3 p-2 bg-white rounded-lg border border-gray-200">
+                            @if($player->player_photo)
+                                <img src="{{ asset('storage/' . $player->player_photo) }}" alt="{{ $player->full_name }}" class="w-10 h-10 rounded-full object-cover border-2 border-primary/20">
+                            @else
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-night-blue flex items-center justify-center flex-shrink-0">
+                                    <span class="text-white font-bold text-xs">{{ substr($player->name, 0, 1) }}{{ substr($player->surname, 0, 1) }}</span>
+                                </div>
+                            @endif
+                            <div class="flex-1">
+                                <div class="font-semibold text-sm text-gray-900">{{ $player->full_name }}</div>
+                                <div class="text-xs text-gray-500">DNI: {{ $player->dni ?? 'N/A' }}</div>
+                            </div>
+                            @if($player->active)
+                                <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">Activo</span>
+                            @else
+                                <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">Inactivo</span>
+                            @endif
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+            <p class="mt-4 text-sm text-gray-600">Total: <strong>{{ count($selectedPlayers) }}</strong> jugador(es)</p>
+        </x-slot>
+        <x-slot name="footer">
+            <x-secondary-button wire:click="$set('confirmingDeactivation', false)">Cancelar</x-secondary-button>
+            <button wire:click="activatePlayers" wire:loading.attr="disabled" wire:target="activatePlayers"
+                class="ml-3 inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 transition ease-in-out duration-150">
+                <span wire:loading.remove wire:target="activatePlayers">Activar</span>
+                <span wire:loading wire:target="activatePlayers" class="inline-flex items-center">
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Activando...
+                </span>
+            </button>
+            <button wire:click="deactivatePlayers" wire:loading.attr="disabled" wire:target="deactivatePlayers"
+                class="ml-3 inline-flex items-center px-4 py-2 bg-orange-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-orange-700 focus:bg-orange-700 active:bg-orange-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 transition ease-in-out duration-150">
+                <span wire:loading.remove wire:target="deactivatePlayers">Desactivar</span>
+                <span wire:loading wire:target="deactivatePlayers" class="inline-flex items-center">
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Desactivando...
+                </span>
+            </button>
         </x-slot>
     </x-dialog-modal>
 </div>

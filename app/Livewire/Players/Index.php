@@ -13,12 +13,16 @@ class Index extends Component
 
     public $search = '';
     public $seasonFilter = '';
+    public $teamFilter = '';
+    public $withoutTeam = false;
     public $sortField = 'surname';
     public $sortDirection = 'asc';
     public $confirmingDeletion = false;
     public $playerToDelete = null;
+    public $selectedPlayers = [];
+    public $confirmingDeactivation = false;
 
-    protected $queryString = ['search', 'seasonFilter', 'sortField', 'sortDirection'];
+    protected $queryString = ['search', 'seasonFilter', 'teamFilter', 'withoutTeam', 'sortField', 'sortDirection'];
 
     public function mount()
     {
@@ -46,6 +50,16 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function updatingTeamFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingWithoutTeam()
+    {
+        $this->resetPage();
+    }
+
     public function sortBy($field)
     {
         if ($this->sortField === $field) {
@@ -59,8 +73,11 @@ class Index extends Component
 
     public function confirmDelete($playerId)
     {
-        $this->playerToDelete = $playerId;
-        $this->confirmingDeletion = true;
+        $player = Player::find($playerId);
+        if ($player && $player->sports_school_id === auth()->user()->sports_school_id) {
+            $this->playerToDelete = $playerId;
+            $this->confirmingDeletion = true;
+        }
     }
 
     public function deletePlayer()
@@ -81,10 +98,55 @@ class Index extends Component
         $this->playerToDelete = null;
     }
 
+    public function confirmDeactivation()
+    {
+        if (count($this->selectedPlayers) > 0) {
+            $this->confirmingDeactivation = true;
+        }
+    }
+
+    public function deactivatePlayers()
+    {
+        $deactivated = 0;
+        
+        foreach ($this->selectedPlayers as $playerId) {
+            $player = Player::find($playerId);
+            
+            if ($player && $player->sports_school_id === auth()->user()->sports_school_id) {
+                $player->update(['active' => false]);
+                $deactivated++;
+            }
+        }
+        
+        session()->flash('message', "Se desactivaron {$deactivated} jugador(es) correctamente.");
+        
+        $this->confirmingDeactivation = false;
+        $this->selectedPlayers = [];
+    }
+
+    public function activatePlayers()
+    {
+        $activated = 0;
+        
+        foreach ($this->selectedPlayers as $playerId) {
+            $player = Player::find($playerId);
+            
+            if ($player && $player->sports_school_id === auth()->user()->sports_school_id) {
+                $player->update(['active' => true]);
+                $activated++;
+            }
+        }
+        
+        session()->flash('message', "Se activaron {$activated} jugador(es) correctamente.");
+        
+        $this->confirmingDeactivation = false;
+        $this->selectedPlayers = [];
+    }
+
     public function render()
     {
         $players = Player::where('sports_school_id', auth()->user()->sports_school_id)
-            ->with('seasons')
+            ->with(['seasons', 'teams'])
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('name', 'like', '%' . $this->search . '%')
@@ -99,6 +161,14 @@ class Index extends Component
                     $q->where('seasons.id', $this->seasonFilter);
                 });
             })
+            ->when($this->teamFilter, function ($query) {
+                $query->whereHas('teams', function ($q) {
+                    $q->where('teams.id', $this->teamFilter);
+                });
+            })
+            ->when($this->withoutTeam, function ($query) {
+                $query->doesntHave('teams');
+            })
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate(15);
 
@@ -112,10 +182,23 @@ class Index extends Component
             ->orderBy('created_at', 'desc')
             ->first();
 
+        // Obtener equipos de la temporada activa
+        $teams = \App\Models\Team::whereHas('season', function ($query) {
+                $query->where('sports_school_id', auth()->user()->sports_school_id);
+            })
+            ->when($activeSeason, function ($query) use ($activeSeason) {
+                $query->where('season_id', $activeSeason->id);
+            })
+            ->orderBy('team')
+            ->get();
+
         return view('livewire.players.index', [
             'players' => $players,
             'seasons' => $seasons,
             'activeSeason' => $activeSeason,
+            'teams' => $teams,
+            'playerToDeleteModel' => $this->playerToDelete ? Player::find($this->playerToDelete) : null,
+            'selectedPlayersModels' => Player::whereIn('id', $this->selectedPlayers)->get(),
         ]);
     }
 }

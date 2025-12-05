@@ -11,7 +11,7 @@
     @endif
 
     <!-- Header con contador y botón -->
-    <div class="mb-6 flex justify-between items-center">
+    <div class="sticky top-16 z-10 bg-white-pure mb-6 flex justify-between items-center p-6 border-b border-gray-100 rounded-t-2xl shadow-xl border border-primary/10">
         <div>
             <h3 class="text-lg font-semibold text-primary">
                 {{ $fields->total() }} campos encontrados

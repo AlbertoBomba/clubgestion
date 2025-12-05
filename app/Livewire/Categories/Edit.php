@@ -88,8 +88,6 @@ class Edit extends Component
         $this->originalToAge = $this->to_age;
         $this->originalModality = $this->modality ?? '';
         $this->hasChanges = false;
-            'updated_user' => auth()->id(),
-        ]);
 
         session()->flash('message', 'Categoría actualizada correctamente.');
         

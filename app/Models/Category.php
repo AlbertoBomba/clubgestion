@@ -51,6 +51,14 @@ class Category extends Model
     }
 
     /**
+     * Relación con equipos (teams)
+     */
+    public function teams()
+    {
+        return $this->hasMany(Team::class);
+    }
+
+    /**
      * Scope para filtrar por escuela
      */
     public function scopeBySchool($query, $schoolId)

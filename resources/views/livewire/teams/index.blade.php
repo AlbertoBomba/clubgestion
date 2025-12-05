@@ -11,7 +11,7 @@
         </div>
     @endif
 
-    <div class="mb-4 flex items-center justify-between">
+    <div class="sticky top-16 z-10 bg-white-pure mb-4 flex items-center justify-between p-6 border-b border-gray-100 rounded-t-2xl shadow-xl border border-primary/10">
         <div class="flex items-center gap-4">
             <div class="text-sm text-gray-600">
                 <span class="font-semibold text-primary text-lg">{{ $teams->total() }}</span> 
