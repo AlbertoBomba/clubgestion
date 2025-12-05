@@ -91,6 +91,22 @@ class Edit extends Component
         $this->checkForChanges();
     }
 
+    public function getIsAdultProperty()
+    {
+        if (empty($this->dbirth)) {
+            return false;
+        }
+
+        try {
+            $birthDate = new \DateTime($this->dbirth);
+            $today = new \DateTime();
+            $age = $today->diff($birthDate)->y;
+            return $age >= 18;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
     private function checkForChanges()
     {
         $this->hasChanges = 

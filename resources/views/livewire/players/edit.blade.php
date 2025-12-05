@@ -35,9 +35,9 @@
         <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg animate-pulse">
             <div class="flex">
                 <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                    {{-- <svg class="h-5 w-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                    </svg>
+                    </svg> --}}
                 </div>
                 <div class="ml-3">
                     <p class="text-sm font-semibold text-yellow-800">
@@ -51,248 +51,288 @@
     <form wire:submit="save" id="player-form">
         <div class="space-y-8">
             
-            <!-- Datos Personales -->
-            <div>
-                <h3 class="text-lg font-bold text-titanium mb-4 pb-2 border-b border-silver">Datos Personales</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="form-group">
-                        <label class="block text-sm font-semibold text-titanium mb-2">Nombre *</label>
-                        <input wire:model.live="name" type="text" 
-                            class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                        @error('name') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label class="block text-sm font-semibold text-titanium mb-2">Apellidos *</label>
-                        <input wire:model.live="surname" type="text" 
-                            class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                        @error('surname') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label class="block text-sm font-semibold text-titanium mb-2">DNI</label>
-                        <input wire:model.live="dni" type="text" 
-                            class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                        @error('dni') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label class="block text-sm font-semibold text-titanium mb-2">Fecha Nacimiento</label>
-                        <input wire:model.live="dbirth" type="date" 
-                            class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                        @error('dbirth') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label class="block text-sm font-semibold text-titanium mb-2">Año Nacimiento</label>
-                        <input wire:model.live="dbanio" type="number" 
-                            class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                        @error('dbanio') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label class="block text-sm font-semibold text-titanium mb-2">Tallas</label>
-                        <input wire:model.live="sizes" type="text" placeholder="Ej: M, 42, etc."
-                            class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                        @error('sizes') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
-                </div>
-            </div>
-
-            <!-- Datos del Tutor -->
-            <div class="mb-8">
-                <h3 class="text-lg font-bold text-titanium mb-4 pb-2 border-b border-silver">Datos del Tutor</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="form-group">
-                        <label class="block text-sm font-semibold text-titanium mb-2">Nombre Tutor</label>
-                        <input wire:model.live="nametutor" type="text" 
-                            class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                        @error('nametutor') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label class="block text-sm font-semibold text-titanium mb-2">Apellidos Tutor</label>
-                        <input wire:model.live="surnametutor" type="text" 
-                            class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                        @error('surnametutor') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label class="block text-sm font-semibold text-titanium mb-2">DNI Tutor</label>
-                        <input wire:model.live="dnitutor" type="text" 
-                            class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                        @error('dnitutor') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
-                </div>
-            </div>
-
-            <!-- Datos de Contacto -->
-            <div class="mb-8">
-                <h3 class="text-lg font-bold text-titanium mb-4 pb-2 border-b border-silver">Datos de Contacto</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="form-group lg:col-span-2">
-                        <label class="block text-sm font-semibold text-titanium mb-2">Dirección</label>
-                        <input wire:model.live="address" type="text" 
-                            class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                        @error('address') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label class="block text-sm font-semibold text-titanium mb-2">Población</label>
-                        <input wire:model.live="town" type="text" 
-                            class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                        @error('town') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label class="block text-sm font-semibold text-titanium mb-2">Provincia</label>
-                        <input wire:model.live="province" type="text" 
-                            class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                        @error('province') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label class="block text-sm font-semibold text-titanium mb-2">Código Postal</label>
-                        <input wire:model.live="zip" type="text" 
-                            class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                        @error('zip') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label class="block text-sm font-semibold text-titanium mb-2">Teléfono 1</label>
-                        <input wire:model.live="phone1" type="text" 
-                            class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                        @error('phone1') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label class="block text-sm font-semibold text-titanium mb-2">Teléfono 2</label>
-                        <input wire:model.live="phone2" type="text" 
-                            class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                        @error('phone2') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group lg:col-span-2">
-                        <label class="block text-sm font-semibold text-titanium mb-2">Email</label>
-                        <input wire:model.live="email" type="email" 
-                            class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                        @error('email') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
-                </div>
-            </div>
-
-            <!-- Datos Deportivos -->
-            <div class="mb-8">
-                <h3 class="text-lg font-bold text-titanium mb-4 pb-2 border-b border-silver">Datos Deportivos</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="form-group">
-                        <label class="block text-sm font-semibold text-titanium mb-2">Dorsal</label>
-                        <input wire:model.live="dorsal" type="number" 
-                            class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                        @error('dorsal') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label class="block text-sm font-semibold text-titanium mb-2">Posición</label>
-                        <input wire:model.live="position" type="text" placeholder="Ej: Delantero, Defensa, etc."
-                            class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                        @error('position') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group lg:col-span-2">
-                        <label class="block text-sm font-semibold text-titanium mb-2">Código Matrícula</label>
-                        <input wire:model.live="cod_matricula" type="text" 
-                            class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                        @error('cod_matricula') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
-                </div>
-            </div>
-
-            <!-- Opciones y Estado -->
-            <div class="mb-8">
-                <h3 class="text-lg font-bold text-titanium mb-4 pb-2 border-b border-silver">Opciones y Estado</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
-                        <input wire:model.live="active" type="checkbox" id="active"
-                            class="w-5 h-5 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
-                        <label for="active" class="text-sm font-semibold text-titanium cursor-pointer">Activo</label>
-                    </div>
-
-                    <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
-                        <input wire:model.live="soccer" type="checkbox" id="soccer"
-                            class="w-5 h-5 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
-                        <label for="soccer" class="text-sm font-semibold text-titanium cursor-pointer">Fútbol</label>
-                    </div>
-
-                    <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
-                        <input wire:model.live="passport" type="checkbox" id="passport"
-                            class="w-5 h-5 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
-                        <label for="passport" class="text-sm font-semibold text-titanium cursor-pointer">Pasaporte</label>
-                    </div>
-
-                    <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
-                        <input wire:model.live="paddle" type="checkbox" id="paddle"
-                            class="w-5 h-5 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
-                        <label for="paddle" class="text-sm font-semibold text-titanium cursor-pointer">Pádel</label>
-                    </div>
-
-                    <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
-                        <input wire:model.live="goalie" type="checkbox" id="goalie"
-                            class="w-5 h-5 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
-                        <label for="goalie" class="text-sm font-semibold text-titanium cursor-pointer">Portero</label>
-                    </div>
-
-                    <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
-                        <input wire:model.live="file" type="checkbox" id="file"
-                            class="w-5 h-5 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
-                        <label for="file" class="text-sm font-semibold text-titanium cursor-pointer">Ficha Completa</label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Foto y Observaciones -->
-            <div class="mb-8">
-                <h3 class="text-lg font-bold text-titanium mb-4 pb-2 border-b border-silver">Foto y Observaciones</h3>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="form-group">
-                        <label class="block text-sm font-semibold text-titanium mb-2">Foto del Jugador</label>
-                        
-                        @if($currentPhoto)
-                            <div class="mb-4 flex items-center space-x-4">
-                                <img src="{{ asset('storage/' . $currentPhoto) }}" alt="Foto actual" class="w-32 h-32 rounded-full object-cover border-4 border-primary/20">
-                                <button type="button" wire:click="deletePhoto" wire:confirm="¿Estás seguro de eliminar la foto actual?"
-                                    class="px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition text-sm font-semibold">
-                                    Eliminar Foto
-                                </button>
+            <!-- Datos Personales, Datos del Tutor y Foto y Observaciones -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Datos Personales -->
+                <div>
+                    <h3 class="text-lg font-semibold text-titanium flex items-center border-b border-silver/30 pb-3 mb-4">
+                        <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                        Datos Personales
+                    </h3>
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="form-group">
+                                <label class="block text-sm font-semibold text-titanium mb-2">Nombre *</label>
+                                <input wire:model.live="name" type="text" 
+                                    class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                                @error('name') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                             </div>
-                        @endif
 
-                        <div class="mt-2">
-                            <input wire:model.live="player_photo" type="file" accept="image/*" id="player_photo"
-                                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-night-blue cursor-pointer">
-                            @error('player_photo') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                            <div class="form-group">
+                                <label class="block text-sm font-semibold text-titanium mb-2">Apellidos *</label>
+                                <input wire:model.live="surname" type="text" 
+                                    class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                                @error('surname') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="form-group">
+                                <label class="block text-sm font-semibold text-titanium mb-2">DNI</label>
+                                <input wire:model.live="dni" type="text" 
+                                    class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                                @error('dni') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                            </div>
+
+                            <x-date-input 
+                                label="Fecha Nacimiento" 
+                                model="dbirth" 
+                                error="dbirth" 
+                            />
                         </div>
 
-                        @if ($player_photo)
-                            <div class="mt-4">
-                                <p class="text-xs text-gray-500 mb-2">Vista previa de nueva foto:</p>
-                                <img src="{{ $player_photo->temporaryUrl() }}" alt="Preview" class="w-32 h-32 rounded-full object-cover border-4 border-neon-green/40">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-group">
+                                <label class="block text-sm font-semibold text-titanium mb-2">Año Nacimiento</label>
+                                <input wire:model.live="dbanio" type="number" 
+                                    class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                                @error('dbanio') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                             </div>
-                        @endif
+
+                            <div class="form-group">
+                                <label class="block text-sm font-semibold text-titanium mb-2">Tallas</label>
+                                <input wire:model.live="sizes" type="text" placeholder="Ej: M, 42, etc."
+                                    class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                                @error('sizes') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="block text-sm font-semibold text-titanium mb-2">Observaciones</label>
-                        <textarea wire:model.live="observations" rows="5" 
-                            class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm resize-none"></textarea>
-                        @error('observations') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                    <!-- Datos Deportivos -->
+                    <div class="mt-8 ">
+                        <h3 class="text-lg font-semibold text-titanium flex items-center border-b border-silver/30 pb-3 mb-4">
+                            <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                            </svg>
+                            Datos Deportivos
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <div class="form-group md:col-span-2">
+                                <label class="block text-sm font-semibold text-titanium mb-2">Dorsal</label>
+                                <input wire:model.live="dorsal" type="number" 
+                                    class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                                @error('dorsal') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="form-group md:col-span-5">
+                                <label class="block text-sm font-semibold text-titanium mb-2">Posición</label>
+                                <input wire:model.live="position" type="text" placeholder="Ej: Delantero, Defensa, etc."
+                                    class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                                @error('position') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="form-group md:col-span-5">
+                                <label class="block text-sm font-semibold text-titanium mb-2">Código Matrícula</label>
+                                <input wire:model.live="cod_matricula" type="text" disabled
+                                    class="w-full px-3 py-2 border border-silver rounded-xl bg-gray-100 text-gray-500 text-sm cursor-not-allowed">
+                                @error('cod_matricula') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+                            <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+                                <input wire:model.live="active" type="checkbox" id="active"
+                                    class="w-5 h-5 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
+                                <label for="active" class="text-sm font-semibold text-titanium cursor-pointer">Activo</label>
+                            </div>
+
+                            <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+                                <input wire:model.live="goalie" type="checkbox" id="goalie"
+                                    class="w-5 h-5 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
+                                <label for="goalie" class="text-sm font-semibold text-titanium cursor-pointer">Portero</label>
+                            </div>
+
+                            <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+                                <input wire:model.live="file" type="checkbox" id="file"
+                                    class="w-5 h-5 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
+                                <label for="file" class="text-sm font-semibold text-titanium cursor-pointer">Ficha Completa</label>
+                            </div>
+                        </div>
+                       
+                    </div>
+                    
+                </div>
+
+                <!-- Datos del Tutor -->
+                @if(!$this->isAdult)
+                <div>
+                    <h3 class="text-lg font-semibold text-titanium flex items-center border-b border-silver/30 pb-3 mb-4">
+                        <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        Datos del Tutor
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="form-group">
+                            <label class="block text-sm font-semibold text-titanium mb-2">Nombre Tutor</label>
+                            <input wire:model.live="nametutor" type="text" 
+                                class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                            @error('nametutor') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label class="block text-sm font-semibold text-titanium mb-2">Apellidos Tutor</label>
+                            <input wire:model.live="surnametutor" type="text" 
+                                class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                            @error('surnametutor') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label class="block text-sm font-semibold text-titanium mb-2">DNI Tutor</label>
+                            <input wire:model.live="dnitutor" type="text" 
+                                class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                            @error('dnitutor') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                    
+                    <!-- Datos de Contacto -->
+                    <div class="mt-8">
+                        <h3 class="text-lg font-semibold text-titanium flex items-center border-b border-silver/30 pb-3 mb-4">
+                            <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                            </svg>
+                            Datos de Contacto
+                        </h3>
+                        <div class="space-y-6">
+                            <div class="form-group">
+                                <label class="block text-sm font-semibold text-titanium mb-2">Dirección</label>
+                                <input wire:model.live="address" type="text" 
+                                    class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                                @error('address') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                <div class="form-group md:col-span-5">
+                                    <label class="block text-sm font-semibold text-titanium mb-2">Población</label>
+                                    <input wire:model.live="town" type="text" 
+                                        class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                                    @error('town') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div class="form-group md:col-span-2">
+                                    <label class="block text-sm font-semibold text-titanium mb-2">C.P.</label>
+                                    <input wire:model.live="zip" type="text" maxlength="5"
+                                        class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                                    @error('zip') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div class="form-group md:col-span-5">
+                                    <label class="block text-sm font-semibold text-titanium mb-2">Provincia</label>
+                                    <input wire:model.live="province" type="text" 
+                                        class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                                    @error('province') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                <div class="form-group md:col-span-3">
+                                    <label class="block text-sm font-semibold text-titanium mb-2">Teléfono 1</label>
+                                    <input wire:model.live="phone1" type="text" 
+                                        class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                                    @error('phone1') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div class="form-group md:col-span-3">
+                                    <label class="block text-sm font-semibold text-titanium mb-2">Teléfono 2</label>
+                                    <input wire:model.live="phone2" type="text" 
+                                        class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                                    @error('phone2') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div class="form-group md:col-span-6">
+                                    <label class="block text-sm font-semibold text-titanium mb-2">Email</label>
+                                    <input wire:model.live="email" type="email" 
+                                        class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                                    @error('email') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
+                <!-- Foto y Observaciones -->
+                <div>
+                    <h3 class="text-lg font-semibold text-titanium flex items-center border-b border-silver/30 pb-3 mb-4">
+                        <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        Foto del Jugador
+                    </h3>
+                    <div class="space-y-6">
+                        <div class="form-group">
+                            <div class="flex gap-4 items-start">
+                                <div class="flex-shrink-0">
+                                    @if ($player_photo)
+                                        <div>
+                                            <p class="text-sm text-titanium mb-2 text-center">Vista previa:</p>
+                                            <img src="{{ $player_photo->temporaryUrl() }}" class="h-32 w-32 object-cover rounded-xl border-2 border-primary shadow-md">
+                                        </div>
+                                    @elseif($currentPhoto)
+                                        <div>
+                                            <div class="relative inline-block">
+                                                <img src="{{ asset('storage/' . $currentPhoto) }}" 
+                                                    class="h-32 w-32 object-cover rounded-xl border-2 border-silver shadow-md">
+                                                <button type="button" wire:click="deletePhoto" wire:confirm="¿Estás seguro de eliminar la foto actual?"
+                                                    class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors shadow-lg">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div class="h-32 w-32 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center">
+                                            <div class="text-center">
+                                                <svg class="w-8 h-8 mx-auto text-gray-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                                </svg>
+                                                <p class="text-xs text-gray-500">Sin imagen</p>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                                
+                                <div class="flex-1">
+                                    <label class="block text-sm font-semibold text-titanium mb-2">{{ $currentPhoto ? 'Cambiar foto del jugador' : 'Subir foto del jugador' }}</label>
+                                    
+                                    <input wire:model.live="player_photo" type="file" accept="image/*" id="player_photo"
+                                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                                    
+                                    <div wire:loading wire:target="player_photo" class="text-sm text-primary mt-1">
+                                        <svg class="animate-spin h-4 w-4 inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Subiendo foto...
+                                    </div>
+                                    @error('player_photo') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                    <p class="text-xs text-gray-500 mt-1">Máximo 2MB. Formatos: JPG, PNG</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+
 
             <!-- Secciones -->
             <div class="mb-8">
-                <h3 class="text-lg font-bold text-titanium mb-4 pb-2 border-b border-silver">Secciones del Jugador</h3>
+                <h3 class="text-lg font-semibold text-titanium flex items-center border-b border-silver/30 pb-3 mb-4">
+                    <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                    </svg>
+                    Secciones del Jugador
+                </h3>
                 <p class="text-sm text-gray-600 mb-4">Seleccione las secciones en las que participa el jugador</p>
                 
                 @error('selectedSections') <span class="text-red-500 text-sm block mb-3">{{ $message }}</span> @enderror
@@ -317,6 +357,14 @@
                             <p class="text-sm text-gray-500 text-center py-4">No hay secciones disponibles para esta temporada</p>
                         </div>
                     @endforelse
+                </div>
+            </div>
+            <div class="mb-8">
+                <div class="form-group">
+                    <label class="block text-sm font-semibold text-titanium mb-2">Observaciones</label>
+                    <textarea wire:model.live="observations" rows="3" 
+                        class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm resize-none"></textarea>
+                    @error('observations') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                 </div>
             </div>
         </div>

@@ -34,11 +34,11 @@
                             @error('to_year') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-semibold text-titanium mb-2">Fecha Fin</label>
-                            <input wire:model.live="end_date" type="date" class="w-full px-3 py-2 border border-silver rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                            @error('end_date') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
-                        </div>
+                        <x-date-input 
+                            label="Fecha Fin" 
+                            model="end_date" 
+                            error="end_date" 
+                        />
                     </div>
 
                     <!-- Botones -->

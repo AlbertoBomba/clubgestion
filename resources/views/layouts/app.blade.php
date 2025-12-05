@@ -91,7 +91,7 @@
             </div>
         @endif
 
-        <div class="min-h-screen bg-gradient-to-br from-gray-200 via-gray-50 to-gray-100">
+        <div class="min-h-screen bg-gradient-to-br from-gray-400 via-gray-300 to-gray-500">
             @livewire('navigation-menu')
             <!-- Page Heading -->
             @if (isset($header))

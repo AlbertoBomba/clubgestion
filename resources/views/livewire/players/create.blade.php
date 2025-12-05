@@ -59,12 +59,11 @@
                         @error('dni') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                     </div>
 
-                    <div class="form-group">
-                        <label class="block text-sm font-semibold text-titanium mb-2">Fecha Nacimiento</label>
-                        <input wire:model.live="dbirth" type="date" 
-                            class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                        @error('dbirth') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
+                    <x-date-input 
+                        label="Fecha Nacimiento" 
+                        model="dbirth" 
+                        error="dbirth" 
+                    />
 
                     <div class="form-group">
                         <label class="block text-sm font-semibold text-titanium mb-2">Año Nacimiento</label>
