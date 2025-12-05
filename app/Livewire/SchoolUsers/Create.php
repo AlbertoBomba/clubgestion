@@ -117,14 +117,14 @@ class Create extends Component
         // Asignar rol usando Spatie
         $user->assignRole($this->role);
 
-        session()->flash('message', 'Usuario creado correctamente.');
+        session()->flash('message', 'Usuario creado correctamente. Ahora puedes agregar su foto de perfil y documentos.');
         
-        // Redirigir a la ruta correcta según el contexto
+        // Redirigir al editar del usuario creado según el contexto
         $route = (auth()->user()->isMaster() || session()->has('impersonator_id')) 
-            ? 'school-users.index' 
-            : 'my-school-users.index';
+            ? 'school-users.edit' 
+            : 'my-school-users.edit';
             
-        return redirect()->route($route);
+        return redirect()->route($route, $user->id);
     }
 
     public function render()

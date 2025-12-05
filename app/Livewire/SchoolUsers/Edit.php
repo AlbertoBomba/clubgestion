@@ -30,6 +30,8 @@ class Edit extends Component
     public $documentType = '';
     public $captureMode = false;
     public $existingDocuments = [];
+    public $hasChanges = false;
+    public $originalValues = [];
 
     protected function rules()
     {
@@ -56,6 +58,34 @@ class Edit extends Component
         $this->is_active = $user->is_active;
         $this->current_profile_photo = $user->profile_photo_path;
         $this->existingDocuments = $user->documents ?? [];
+        
+        // Guardar valores originales
+        $this->originalValues = [
+            'name' => $this->name,
+            'email' => $this->email,
+            'sports_school_id' => $this->sports_school_id,
+            'role' => $this->role,
+            'is_active' => $this->is_active,
+        ];
+    }
+    
+    public function updated($propertyName)
+    {
+        // Solo verificar cambios en propiedades específicas
+        if (in_array($propertyName, ['name', 'email', 'sports_school_id', 'role', 'is_active'])) {
+            $this->checkForChanges();
+        }
+    }
+    
+    protected function checkForChanges()
+    {
+        $this->hasChanges = 
+            $this->name !== $this->originalValues['name'] ||
+            $this->email !== $this->originalValues['email'] ||
+            $this->sports_school_id != $this->originalValues['sports_school_id'] ||
+            $this->role !== $this->originalValues['role'] ||
+            $this->is_active != $this->originalValues['is_active'] ||
+            !empty($this->password);
     }
 
     public function deleteDocument($index)
@@ -285,6 +315,47 @@ class Edit extends Component
             : 'my-school-users.index';
             
         return redirect()->route($route);
+    }
+    
+    public $confirmingDeletion = false;
+
+    public function confirmDelete()
+    {
+        $this->confirmingDeletion = true;
+    }
+
+    public function deleteUser()
+    {
+        // Solo master puede eliminar usuarios
+        if (!auth()->user()->isMaster() || session()->has('impersonator_id')) {
+            abort(403, 'No tienes permisos para eliminar usuarios.');
+        }
+
+        // No permitir eliminar usuario master
+        if ($this->user->hasRole('master')) {
+            session()->flash('error', 'No se puede eliminar el usuario master.');
+            return;
+        }
+
+        // Eliminar foto de perfil si existe
+        if ($this->user->profile_photo_path) {
+            Storage::disk('public')->delete($this->user->profile_photo_path);
+        }
+
+        // Eliminar documentos si existen
+        if ($this->user->documents) {
+            foreach ($this->user->documents as $doc) {
+                if (isset($doc['path']) && Storage::disk('public')->exists($doc['path'])) {
+                    Storage::disk('public')->delete($doc['path']);
+                }
+            }
+        }
+
+        $this->user->delete();
+
+        session()->flash('message', 'Usuario eliminado correctamente.');
+        
+        return redirect()->route('school-users.index');
     }
 
     public function render()

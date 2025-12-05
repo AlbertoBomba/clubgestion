@@ -15,11 +15,16 @@
             <h2 class="font-bold text-2xl text-titanium leading-tight">
                 {{ __('Usuarios de Escuela') }}
             </h2>
-            <a href="{{ route('school-users.create') }}" class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 hover:-translate-y-1 bg-blue-600 hover:bg-blue-700">
+            @php
+                $createRoute = (auth()->user()->isMaster() || session()->has('impersonator_id')) 
+                    ? 'school-users.create' 
+                    : 'my-school-users.create';
+            @endphp
+            <a href="{{ route($createRoute) }}" class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 hover:-translate-y-1 bg-blue-600 hover:bg-blue-700">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
-                Invitar Usuario
+                Nuevo Usuario
             </a>
         </div>
         <!-- Filters -->
@@ -68,7 +73,7 @@
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Rol</th>
                         <th class="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider">Archivos</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Estado</th>
-                        <th class="px-6 py-4 text-right text-xs font-semibold text-primary uppercase tracking-wider">Acciones</th>
+                        <th class="px-6 py-4 text-right text-xs font-semibold text-primary uppercase tracking-wider"></th>
                     </tr>
                 </thead>
                 <tbody class="bg-white-pure divide-y divide-silver/30">
@@ -100,7 +105,7 @@
                                 @php
                                     $roleBadges = [
                                         'school_admin' => ['text' => 'Administrador', 'class' => 'bg-blue-100 text-blue-800'],
-                                        'coach' => ['text' => 'Entrenador', 'class' => 'bg-neon-green/20 text-neon-green'],
+                                        'coach' => ['text' => 'Entrenador', 'class' => 'bg-green-100 text-green-700'],
                                         'student' => ['text' => 'Estudiante', 'class' => 'bg-primary/10 text-night-blue'],
                                     ];
                                     $badge = $roleBadges[$user->role] ?? ['text' => $user->role, 'class' => 'bg-gray-100 text-gray-800'];
@@ -140,10 +145,11 @@
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <div class="flex items-center justify-end space-x-2">
                                     <a href="{{ auth()->user()->isMaster() || session()->has('impersonator_id') ? route('school-users.edit', $user->id) : route('my-school-users.edit', $user->id) }}" 
-                                        class="text-primary hover:text-night-blue transition p-2 rounded-lg hover:bg-primary/5">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        class="inline-flex items-center px-3 py-2 bg-primary text-white rounded-lg hover:bg-night-blue transition-colors duration-200 text-xs font-semibold">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                         </svg>
+                                        Editar
                                     </a>
                                     @if($user->role !== 'master' && auth()->user()->isMaster() && !session()->has('impersonator_id'))
                                         <form action="{{ route('impersonate', $user->id) }}" method="POST" class="inline">
