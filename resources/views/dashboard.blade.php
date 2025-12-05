@@ -23,6 +23,7 @@
     <div class="py-6 sm:py-8 lg:py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Welcome Stats Grid -->
+            @if(!auth()->user()->hasRole('school_admin'))
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
                 <!-- Stat Card 1 -->
                 <div class="card-modern bg-white-pure rounded-2xl shadow-lg p-6 border border-primary/10">
@@ -96,11 +97,80 @@
                     </div>
                 </div>
             </div>
+            @endif
 
-            <!-- Players Per Season Chart (Only for school_admin) -->
+            <!-- Charts Grid (Only for school_admin) -->
             @if(auth()->user()->hasRole('school_admin') && auth()->user()->sports_school_id)
-            <div class="mb-8">
-                <livewire:dashboard.players-per-season-chart />
+            
+            <!-- Quick Access Links -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <a href="{{ route('seasons.index') }}" class="group card-modern bg-white-pure rounded-xl shadow-lg p-4 border border-primary/10 hover:border-primary hover:shadow-xl transition-all">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-primary to-night-blue rounded-lg flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                            <svg class="w-5 h-5 text-white-pure" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-titanium text-sm">Temporadas</p>
+                            <p class="text-xs text-gray-500">Ver todas</p>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="{{ route('teams.index') }}" class="group card-modern bg-white-pure rounded-xl shadow-lg p-4 border border-primary/10 hover:border-primary hover:shadow-xl transition-all">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-neon-green to-green-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                            <svg class="w-5 h-5 text-white-pure" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-titanium text-sm">Equipos</p>
+                            <p class="text-xs text-gray-500">Ver todos</p>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="{{ route('players.index') }}" class="group card-modern bg-white-pure rounded-xl shadow-lg p-4 border border-primary/10 hover:border-primary hover:shadow-xl transition-all">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-night-blue to-purple-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                            <svg class="w-5 h-5 text-white-pure" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-titanium text-sm">Jugadores</p>
+                            <p class="text-xs text-gray-500">Ver todos</p>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="{{ route('training-schedule.index') }}" class="group card-modern bg-white-pure rounded-xl shadow-lg p-4 border border-primary/10 hover:border-primary hover:shadow-xl transition-all">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                            <svg class="w-5 h-5 text-white-pure" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-titanium text-sm">Horarios</p>
+                            <p class="text-xs text-gray-500">Planificar</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- Players Per Season Chart -->
+                <div class="h-full">
+                    <livewire:dashboard.players-per-season-chart />
+                </div>
+                
+                <!-- Teams Per Season Chart -->
+                <div class="h-full">
+                    <livewire:dashboard.teams-per-season-chart />
+                </div>
             </div>
             @endif
 

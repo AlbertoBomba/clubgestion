@@ -26,7 +26,7 @@
                 </span>
             @endif
         </div>
-        <button wire:click="openCreateModal" class="btn-primary inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-300 hover:-translate-y-1">
+        <button wire:click="openCreateModal" class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 hover:-translate-y-1 bg-blue-600 hover:bg-blue-700">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
@@ -147,16 +147,24 @@
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <div class="flex items-center justify-end space-x-2">
                                     <button wire:click="openEditModal({{ $team->id }})" 
-                                        class="text-primary hover:text-night-blue transition p-2 rounded-lg hover:bg-primary/5">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        class="inline-flex items-center px-3 py-2 bg-primary text-white rounded-lg hover:bg-night-blue transition-colors duration-200 text-xs font-semibold">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                         </svg>
+                                        Editar
                                     </button>
                                     <button wire:click="confirmDelete({{ $team->id }})" 
-                                        class="text-red-600 hover:text-red-900 transition p-2 rounded-lg hover:bg-red-50">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        wire:loading.attr="disabled"
+                                        wire:target="confirmDelete"
+                                        class="inline-flex items-center px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <svg wire:loading.remove wire:target="confirmDelete" class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                         </svg>
+                                        <svg wire:loading wire:target="confirmDelete" class="animate-spin h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Eliminar
                                     </button>
                                 </div>
                             </td>
@@ -289,8 +297,13 @@
 
         <x-slot name="footer">
             <x-secondary-button wire:click="closeModal">Cancelar</x-secondary-button>
-            <button wire:click="save" class="ml-3 btn-primary inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm">
-                Crear
+            <button wire:click="save" wire:loading.attr="disabled" wire:target="save" class="ml-3 btn-primary inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm disabled:opacity-70 disabled:cursor-not-allowed">
+                <svg wire:loading wire:target="save" class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span wire:loading.remove wire:target="save">Crear</span>
+                <span wire:loading wire:target="save">Guardando...</span>
             </button>
         </x-slot>
     </x-dialog-modal>
@@ -301,7 +314,16 @@
         <x-slot name="content">¿Estás seguro de que deseas eliminar este equipo?</x-slot>
         <x-slot name="footer">
             <x-secondary-button wire:click="$set('confirmingDeletion', false)">Cancelar</x-secondary-button>
-            <x-danger-button class="ml-3" wire:click="deleteTeam">Eliminar</x-danger-button>
+            <x-danger-button class="ml-3" wire:click="deleteTeam" wire:loading.attr="disabled" wire:target="deleteTeam">
+                <span wire:loading.remove wire:target="deleteTeam">Eliminar</span>
+                <span wire:loading wire:target="deleteTeam" class="inline-flex items-center">
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Eliminando...
+                </span>
+            </x-danger-button>
         </x-slot>
     </x-dialog-modal>
 </div>

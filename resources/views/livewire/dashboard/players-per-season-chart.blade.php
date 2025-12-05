@@ -1,9 +1,9 @@
-<div class="card-modern bg-white-pure rounded-2xl shadow-xl p-6 border border-primary/10">
-    <div class="mb-4">
+<div class="card-modern bg-white-pure rounded-2xl shadow-xl border border-primary/10 h-full flex flex-col">
+    <div class="p-6 pb-2">
         <h3 class="text-lg font-bold text-black-deep mb-1">Jugadores por Temporada</h3>
         <p class="text-sm text-titanium">Distribución de jugadores inscritos en cada temporada</p>
     </div>
-    <div class="relative" style="height: 300px;">
+    <div class="relative flex-1 px-6 pb-6" style="min-height: 300px;">
         <canvas id="playersPerSeasonChart"></canvas>
     </div>
 </div>

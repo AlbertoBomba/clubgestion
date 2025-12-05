@@ -334,8 +334,13 @@
                             <button type="button" wire:click="closeModal" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
                                 Cancelar
                             </button>
-                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                                Asignar
+                            <button type="submit" wire:loading.attr="disabled" wire:target="saveSchedule" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-70 disabled:cursor-not-allowed inline-flex items-center">
+                                <svg wire:loading wire:target="saveSchedule" class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span wire:loading.remove wire:target="saveSchedule">Asignar</span>
+                                <span wire:loading wire:target="saveSchedule">Asignando...</span>
                             </button>
                         </div>
                     </form>
@@ -478,7 +483,16 @@
         <x-slot name="content">¿Estás seguro de que deseas eliminar este horario? Esta acción no se puede deshacer.</x-slot>
         <x-slot name="footer">
             <x-secondary-button wire:click="$set('confirmingDeletion', false)">Cancelar</x-secondary-button>
-            <x-danger-button class="ml-3" wire:click="deleteSchedule">Eliminar</x-danger-button>
+            <x-danger-button class="ml-3" wire:click="deleteSchedule" wire:loading.attr="disabled" wire:target="deleteSchedule">
+                <span wire:loading.remove wire:target="deleteSchedule">Eliminar</span>
+                <span wire:loading wire:target="deleteSchedule" class="inline-flex items-center">
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Eliminando...
+                </span>
+            </x-danger-button>
         </x-slot>
     </x-dialog-modal>
 </div>

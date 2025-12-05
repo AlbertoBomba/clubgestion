@@ -11,6 +11,25 @@ class Edit extends Component
     public $name = '';
     public $description = '';
     public $active = true;
+    public $hasChanges = false;
+    
+    // Valores originales para comparar
+    private $originalName;
+    private $originalDescription;
+    private $originalActive;
+
+    public function updated($propertyName)
+    {
+        $this->checkForChanges();
+    }
+
+    private function checkForChanges()
+    {
+        $this->hasChanges = 
+            $this->name !== $this->originalName ||
+            ($this->description ?? '') !== ($this->originalDescription ?? '') ||
+            $this->active !== $this->originalActive;
+    }
 
     protected $rules = [
         'name' => 'required|string|max:255',
@@ -24,6 +43,11 @@ class Edit extends Component
         $this->name = $section->name;
         $this->description = $section->description;
         $this->active = $section->active;
+        
+        // Guardar valores originales para detectar cambios
+        $this->originalName = $this->name;
+        $this->originalDescription = $this->description ?? '';
+        $this->originalActive = $this->active;
     }
 
     public function save()
@@ -36,6 +60,12 @@ class Edit extends Component
             'active' => $this->active,
             'updated_user' => auth()->id(),
         ]);
+        
+        // Actualizar valores originales después de guardar
+        $this->originalName = $this->name;
+        $this->originalDescription = $this->description ?? '';
+        $this->originalActive = $this->active;
+        $this->hasChanges = false;
 
         session()->flash('message', 'Sección actualizada correctamente.');
         

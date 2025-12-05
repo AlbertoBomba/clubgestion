@@ -22,6 +22,10 @@
                 font-family: 'Inter', sans-serif;
             }
             
+            [x-cloak] {
+                display: none !important;
+            }
+            
             .gradient-bg {
                 background: linear-gradient(135deg, #005DFF 0%, #001C40 100%);
             }
@@ -87,18 +91,18 @@
             </div>
         @endif
 
-        <div class="min-h-screen bg-gradient-to-br from-gray-50 via-white-pure to-gray-100 ">
+        <div class="min-h-screen bg-gradient-to-br from-gray-200 via-gray-50 to-gray-100">
             @livewire('navigation-menu')
             <!-- Page Heading -->
             @if (isset($header))
-                <header class="glass-effect shadow-lg border-b border-primary/10">
+                {{-- <header class="glass-effect shadow-lg border-b border-primary/10">
                     <div class="w-full px-4 sm:px-6 lg:px-8 py-6">
                         {{ $header }}
                     </div>
-                </header>
+                </header> --}}
             @endif
             <!-- Page Content -->
-            <main class="py-8 ">
+            <main class="py-1 ">
                 {{ $slot }}
             </main>
         </div>

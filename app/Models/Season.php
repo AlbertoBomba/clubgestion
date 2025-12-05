@@ -59,4 +59,12 @@ class Season extends Model
             ->withPivot('price', 'created_user', 'updated_user', 'deleted_at')
             ->wherePivot('deleted_at', null);
     }
+
+    /**
+     * Get the teams associated with the season.
+     */
+    public function teams()
+    {
+        return $this->hasMany(Team::class);
+    }
 }

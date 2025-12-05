@@ -16,14 +16,14 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label for="name" class="block text-sm font-semibold text-titanium mb-2">Nombre completo *</label>
-                                <input wire:model="name" type="text" id="name" 
+                                <input wire:model.live="name" type="text" id="name" 
                                     class="block w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm @error('name') border-red-500 @enderror">
                                 @error('name') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                             </div>
 
                             <div>
                                 <label for="email" class="block text-sm font-semibold text-titanium mb-2">Email *</label>
-                                <input wire:model="email" type="email" id="email" 
+                                <input wire:model.live="email" type="email" id="email" 
                                     class="block w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm @error('email') border-red-500 @enderror">
                                 @error('email') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                             </div>
@@ -42,14 +42,14 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label for="password" class="block text-sm font-semibold text-titanium mb-2">Contraseña *</label>
-                                <input wire:model="password" type="password" id="password" 
+                                <input wire:model.live="password" type="password" id="password" 
                                     class="block w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm @error('password') border-red-500 @enderror">
                                 @error('password') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                             </div>
 
                             <div>
                                 <label for="password_confirmation" class="block text-sm font-semibold text-titanium mb-2">Confirmar contraseña *</label>
-                                <input wire:model="password_confirmation" type="password" id="password_confirmation" 
+                                <input wire:model.live="password_confirmation" type="password" id="password_confirmation" 
                                     class="block w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
                             </div>
                         </div>
@@ -68,7 +68,7 @@
                             @if(auth()->user()->isMaster() || session()->has('impersonator_id'))
                                 <div>
                                     <label for="sports_school_id" class="block text-sm font-semibold text-titanium mb-2">Escuela deportiva *</label>
-                                    <select wire:model="sports_school_id" id="sports_school_id" 
+                                    <select wire:model.live="sports_school_id" id="sports_school_id" 
                                         class="block w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm @error('sports_school_id') border-red-500 @enderror">
                                         <option value="">Selecciona una escuela</option>
                                         @foreach($schools as $school)
@@ -89,7 +89,7 @@
 
                             <div>
                                 <label for="role" class="block text-sm font-semibold text-titanium mb-2">Rol *</label>
-                                <select wire:model="role" id="role" 
+                                <select wire:model.live="role" id="role" 
                                     class="block w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm @error('role') border-red-500 @enderror">
                                     <option value="">Selecciona un rol</option>
                                     @foreach($roles as $role)
@@ -112,7 +112,7 @@
 
                         <div>
                             <label class="block text-sm font-semibold text-titanium mb-2">Imagen de perfil</label>
-                            <input wire:model="profile_photo" type="file" accept="image/*" 
+                            <input wire:model.live="profile_photo" type="file" accept="image/*" 
                                 class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
                             <div wire:loading wire:target="profile_photo" class="text-sm text-primary mt-1">
                                 <svg class="animate-spin h-4 w-4 inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -176,7 +176,7 @@
                                         <label class="block text-sm font-semibold text-titanium mb-2">
                                             Descripción del documento
                                         </label>
-                                        <input type="text" wire:model="documentLabel" 
+                                        <input type="text" wire:model.live="documentLabel" 
                                             placeholder="Ej: Certificado médico, Autorización..." 
                                             class="block w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-black-deep text-sm @error('documentLabel') border-red-500 @enderror">
                                         @error('documentLabel') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
@@ -245,11 +245,11 @@
                                         </div>
                                         
                                         <!-- Input oculto para Livewire -->
-                                        <input type="file" wire:model="document" id="dni-livewire-input" accept="image/*" class="hidden">
+                                        <input type="file" wire:model.live="document" id="dni-livewire-input" accept="image/*" class="hidden">
                                     </div>
                                 @else
                                     <!-- Subida normal de archivos para otros documentos -->
-                                    <input type="file" wire:model="document" 
+                                    <input type="file" wire:model.live="document" 
                                         accept=".pdf,.jpg,.jpeg,.png" 
                                         class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
                                 @endif
@@ -291,9 +291,14 @@
                     class="inline-flex justify-center items-center px-4 py-2 bg-silver/30 text-titanium rounded-xl font-semibold text-sm hover:bg-silver/50 transition-colors">
                     Cancelar
                 </a>
-                <button type="submit" 
-                    class="btn-primary inline-flex justify-center items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl transition-all">
-                    Crear Usuario
+                <button type="submit" wire:loading.attr="disabled" wire:target="save"
+                    class="btn-primary inline-flex justify-center items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl transition-all disabled:opacity-70 disabled:cursor-not-allowed">
+                    <svg wire:loading wire:target="save" class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span wire:loading.remove wire:target="save">Crear Usuario</span>
+                    <span wire:loading wire:target="save">Creando...</span>
                 </button>
             </div>
         </form>
@@ -484,3 +489,4 @@
             });
         </script>
 </div>
+

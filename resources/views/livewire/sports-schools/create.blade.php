@@ -13,14 +13,14 @@
                     <label for="name" class="block text-sm font-semibold text-gray-700 mb-1">
                         Nombre de la Escuela <span class="text-red-500">*</span>
                     </label>
-                    <input wire:model="name" type="text" id="name" required
+                    <input wire:model.live="name" type="text" id="name" required
                         class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
                     @error('name') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                 </div>
 
                 <div>
                     <label for="description" class="block text-sm font-semibold text-gray-700 mb-1">Descripción</label>
-                    <textarea wire:model="description" id="description" rows="2"
+                    <textarea wire:model.live="description" id="description" rows="2"
                         class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"></textarea>
                 </div>
 
@@ -54,7 +54,7 @@
                                 <p class="mb-1 text-xs text-gray-500"><span class="font-semibold">Click para subir</span></p>
                                 <p class="text-[10px] text-gray-400">PNG, JPG hasta 2MB</p>
                             </div>
-                            <input id="logo-upload" type="file" wire:model="logo" class="hidden" accept="image/*">
+                            <input id="logo-upload" type="file" wire:model.live="logo" class="hidden" accept="image/*">
                         </label>
                     </div>
                     @error('logo') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
@@ -80,26 +80,26 @@
 
                 <div>
                     <label for="address" class="block text-sm font-semibold text-gray-700 mb-1">Dirección</label>
-                    <input wire:model="address" type="text" id="address"
+                    <input wire:model.live="address" type="text" id="address"
                         class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label for="city" class="block text-sm font-semibold text-gray-700 mb-1">Ciudad</label>
-                        <input wire:model="city" type="text" id="city"
+                        <input wire:model.live="city" type="text" id="city"
                             class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
                     </div>
                     <div>
                         <label for="province" class="block text-sm font-semibold text-gray-700 mb-1">Provincia</label>
-                        <input wire:model="province" type="text" id="province"
+                        <input wire:model.live="province" type="text" id="province"
                             class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
                     </div>
                 </div>
 
                 <div>
                     <label for="postal_code" class="block text-sm font-semibold text-gray-700 mb-1">Código Postal</label>
-                    <input wire:model="postal_code" type="text" id="postal_code"
+                    <input wire:model.live="postal_code" type="text" id="postal_code"
                         class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
                 </div>
             </div>
@@ -115,19 +115,19 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label for="contact_person" class="block text-sm font-semibold text-gray-700 mb-1">Persona de Contacto</label>
-                        <input wire:model="contact_person" type="text" id="contact_person"
+                        <input wire:model.live="contact_person" type="text" id="contact_person"
                             class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
                     </div>
 
                     <div>
                         <label for="phone" class="block text-sm font-semibold text-gray-700 mb-1">Teléfono</label>
-                        <input wire:model="phone" type="text" id="phone"
+                        <input wire:model.live="phone" type="text" id="phone"
                             class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
                     </div>
 
                     <div>
                         <label for="email" class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-                        <input wire:model="email" type="email" id="email"
+                        <input wire:model.live="email" type="email" id="email"
                             class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
                     </div>
                 </div>
@@ -135,7 +135,7 @@
 
             <div class="lg:col-span-2 flex items-center justify-between pt-4 border-t border-gray-200">
                 <label for="is_active" class="flex items-center cursor-pointer group">
-                    <input wire:model="is_active" type="checkbox" id="is_active"
+                    <input wire:model.live="is_active" type="checkbox" id="is_active"
                         class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer">
                     <span class="ml-2 text-sm font-semibold text-gray-700 group-hover:text-gray-900">Escuela Activa</span>
                 </label>
@@ -145,12 +145,18 @@
                         class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 font-semibold hover:bg-gray-50 transition-colors">
                         Cancelar
                     </a>
-                    <button type="submit" 
-                        class="btn-primary px-4 py-2 rounded-lg text-sm text-white font-semibold shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all">
-                        Crear Escuela
+                    <button type="submit" wire:loading.attr="disabled" wire:target="save"
+                        class="btn-primary px-4 py-2 rounded-lg text-sm text-white font-semibold shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all disabled:opacity-70 disabled:cursor-not-allowed">
+                        <svg wire:loading wire:target="save" class="animate-spin -ml-1 mr-2 h-4 w-4 inline" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span wire:loading.remove wire:target="save">Crear Escuela</span>
+                        <span wire:loading wire:target="save">Creando...</span>
                     </button>
                 </div>
             </div>
         </form>
     </div>
 </div>
+

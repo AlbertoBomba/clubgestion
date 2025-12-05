@@ -14,6 +14,29 @@ class Edit extends Component
     public $from_age = '';
     public $to_age = '';
     public $modality = '';
+    public $hasChanges = false;
+    
+    // Valores originales para comparar
+    private $originalCategory;
+    private $originalDescription;
+    private $originalFromAge;
+    private $originalToAge;
+    private $originalModality;
+
+    public function updated($propertyName)
+    {
+        $this->checkForChanges();
+    }
+
+    private function checkForChanges()
+    {
+        $this->hasChanges = 
+            $this->category !== $this->originalCategory ||
+            ($this->description ?? '') !== ($this->originalDescription ?? '') ||
+            (string)$this->from_age !== (string)$this->originalFromAge ||
+            (string)$this->to_age !== (string)$this->originalToAge ||
+            ($this->modality ?? '') !== ($this->originalModality ?? '');
+    }
 
     protected $rules = [
         'category' => 'required|string|max:255',
@@ -36,6 +59,13 @@ class Edit extends Component
         $this->from_age = $category->from_age;
         $this->to_age = $category->to_age;
         $this->modality = $category->modality;
+        
+        // Guardar valores originales para detectar cambios
+        $this->originalCategory = $this->category;
+        $this->originalDescription = $this->description ?? '';
+        $this->originalFromAge = $this->from_age;
+        $this->originalToAge = $this->to_age;
+        $this->originalModality = $this->modality ?? '';
     }
 
     public function save()
@@ -48,6 +78,16 @@ class Edit extends Component
             'from_age' => $this->from_age ?: null,
             'to_age' => $this->to_age ?: null,
             'modality' => $this->modality,
+            'updated_user' => auth()->id(),
+        ]);
+        
+        // Actualizar valores originales después de guardar
+        $this->originalCategory = $this->category;
+        $this->originalDescription = $this->description ?? '';
+        $this->originalFromAge = $this->from_age;
+        $this->originalToAge = $this->to_age;
+        $this->originalModality = $this->modality ?? '';
+        $this->hasChanges = false;
             'updated_user' => auth()->id(),
         ]);
 

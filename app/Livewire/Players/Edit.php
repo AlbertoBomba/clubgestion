@@ -53,6 +53,78 @@ class Edit extends Component
     public $currentPhoto;
     public $selectedSeasons = [];
     public $selectedSections = [];
+    public $hasChanges = false;
+    
+    // Valores originales para detectar cambios
+    private $originalName;
+    private $originalSurname;
+    private $originalDni;
+    private $originalDbirth;
+    private $originalDbanio;
+    private $originalNametutor;
+    private $originalSurnametutor;
+    private $originalDnitutor;
+    private $originalAddress;
+    private $originalTown;
+    private $originalProvince;
+    private $originalZip;
+    private $originalPhone1;
+    private $originalPhone2;
+    private $originalEmail;
+    private $originalDorsal;
+    private $originalPosition;
+    private $originalSizes;
+    private $originalCodMatricula;
+    private $originalActive;
+    private $originalSoccer;
+    private $originalPassport;
+    private $originalPaddle;
+    private $originalGoalie;
+    private $originalFile;
+    private $originalObservations;
+    private $originalSelectedSeasons = [];
+    private $originalSelectedSections = [];
+
+    public function updated($propertyName)
+    {
+        // Detectar cambios en cualquier propiedad
+        $this->checkForChanges();
+    }
+
+    private function checkForChanges()
+    {
+        $this->hasChanges = 
+            $this->name !== $this->originalName ||
+            $this->surname !== $this->originalSurname ||
+            $this->dni !== $this->originalDni ||
+            $this->dbirth !== $this->originalDbirth ||
+            $this->dbanio !== $this->originalDbanio ||
+            $this->nametutor !== $this->originalNametutor ||
+            $this->surnametutor !== $this->originalSurnametutor ||
+            $this->dnitutor !== $this->originalDnitutor ||
+            $this->address !== $this->originalAddress ||
+            $this->town !== $this->originalTown ||
+            $this->province !== $this->originalProvince ||
+            $this->zip !== $this->originalZip ||
+            $this->phone1 !== $this->originalPhone1 ||
+            $this->phone2 !== $this->originalPhone2 ||
+            $this->email !== $this->originalEmail ||
+            $this->dorsal !== $this->originalDorsal ||
+            $this->position !== $this->originalPosition ||
+            $this->sizes !== $this->originalSizes ||
+            $this->cod_matricula !== $this->originalCodMatricula ||
+            $this->active !== $this->originalActive ||
+            $this->soccer !== $this->originalSoccer ||
+            $this->passport !== $this->originalPassport ||
+            $this->paddle !== $this->originalPaddle ||
+            $this->goalie !== $this->originalGoalie ||
+            $this->file !== $this->originalFile ||
+            $this->observations !== $this->originalObservations ||
+            count(array_diff($this->selectedSeasons, $this->originalSelectedSeasons)) > 0 ||
+            count(array_diff($this->originalSelectedSeasons, $this->selectedSeasons)) > 0 ||
+            count(array_diff($this->selectedSections, $this->originalSelectedSections)) > 0 ||
+            count(array_diff($this->originalSelectedSections, $this->selectedSections)) > 0;
+    }
 
     protected $rules = [
         'selectedSeasons' => 'required|array|min:1',
@@ -119,6 +191,36 @@ class Edit extends Component
         $this->currentPhoto = $player->player_photo;
         $this->selectedSeasons = $player->seasons->pluck('id')->toArray();
         $this->selectedSections = $player->sections->pluck('id')->toArray();
+        
+        // Guardar valores originales para detectar cambios
+        $this->originalName = $this->name;
+        $this->originalSurname = $this->surname;
+        $this->originalDni = $this->dni ?? '';
+        $this->originalDbirth = $this->dbirth ?? '';
+        $this->originalDbanio = $this->dbanio ?? '';
+        $this->originalNametutor = $this->nametutor ?? '';
+        $this->originalSurnametutor = $this->surnametutor ?? '';
+        $this->originalDnitutor = $this->dnitutor ?? '';
+        $this->originalAddress = $this->address ?? '';
+        $this->originalTown = $this->town ?? '';
+        $this->originalProvince = $this->province ?? '';
+        $this->originalZip = $this->zip ?? '';
+        $this->originalPhone1 = $this->phone1 ?? '';
+        $this->originalPhone2 = $this->phone2 ?? '';
+        $this->originalEmail = $this->email ?? '';
+        $this->originalDorsal = $this->dorsal ?? '';
+        $this->originalPosition = $this->position ?? '';
+        $this->originalSizes = $this->sizes ?? '';
+        $this->originalCodMatricula = $this->cod_matricula ?? '';
+        $this->originalActive = $this->active;
+        $this->originalSoccer = $this->soccer;
+        $this->originalPassport = $this->passport;
+        $this->originalPaddle = $this->paddle;
+        $this->originalGoalie = $this->goalie;
+        $this->originalFile = $this->file;
+        $this->originalObservations = $this->observations ?? '';
+        $this->originalSelectedSeasons = $this->selectedSeasons;
+        $this->originalSelectedSections = $this->selectedSections;
     }
 
     public function deletePhoto()
@@ -199,6 +301,9 @@ class Edit extends Component
                 ]];
             })->toArray()
         );
+
+        // Resetear indicador de cambios
+        $this->hasChanges = false;
 
         session()->flash('message', 'Jugador actualizado correctamente.');
         

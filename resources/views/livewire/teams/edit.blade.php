@@ -18,14 +18,14 @@
 
                     <div>
                         <label class="block text-sm font-semibold text-titanium mb-2">Nombre del Equipo *</label>
-                        <input wire:model="teamName" type="text" 
+                        <input wire:model.live="teamName" type="text" 
                             class="w-full px-3 py-2 border border-silver rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
                         @error('teamName') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
                     <div>
                         <label class="block text-sm font-semibold text-titanium mb-2">Descripción</label>
-                        <textarea wire:model="description" rows="3"
+                        <textarea wire:model.live="description" rows="3"
                             class="w-full px-3 py-2 border border-silver rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm resize-none"></textarea>
                         @error('description') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                     </div>
@@ -49,7 +49,7 @@
                             
                             <!-- Upload input -->
                             <div class="flex-1">
-                                <input type="file" wire:model="teamImage" accept="image/*" 
+                                <input type="file" wire:model.live="teamImage" accept="image/*" 
                                     class="w-full px-3 py-2 border border-silver rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
                                 @error('teamImage') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                                 <p class="text-xs text-gray-500 mt-1">Imagen rectangular del equipo completo (ej: 1200x800px)</p>
@@ -68,7 +68,7 @@
 
                     <div>
                         <label class="block text-sm font-semibold text-titanium mb-2">Categoría *</label>
-                        <select wire:model="category_id" 
+                        <select wire:model.live="category_id" 
                             class="w-full px-3 py-2 border border-silver rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
                             <option value="">Seleccione una categoría</option>
                             @foreach($categories as $category)
@@ -80,7 +80,7 @@
 
                     <div>
                         <label class="block text-sm font-semibold text-titanium mb-2">Género *</label>
-                        <select wire:model="gender" 
+                        <select wire:model.live="gender" 
                             class="w-full px-3 py-2 border border-silver rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
                             <option value="masculino">Masculino</option>
                             <option value="femenino">Femenino</option>
@@ -103,7 +103,7 @@
 
                     <div>
                         <label class="block text-sm font-semibold text-titanium mb-2">Sección *</label>
-                        <select wire:model="section_id" 
+                        <select wire:model.live="section_id" 
                             class="w-full px-3 py-2 border border-silver rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
                             {{ !$season_id ? 'disabled' : '' }}>
                             <option value="">{{ $season_id ? 'Seleccione una sección' : 'Primero seleccione una temporada' }}</option>
@@ -146,7 +146,7 @@
                                 @foreach($availableCoaches as $coach)
                                     <label class="flex items-center p-3 border rounded-xl cursor-pointer transition-all
                                         {{ in_array($coach->id, $selectedCoaches) ? 'border-primary bg-primary/10 shadow-md' : 'border-silver hover:bg-gray-50' }}">
-                                        <input type="checkbox" wire:model="selectedCoaches" value="{{ $coach->id }}"
+                                        <input type="checkbox" wire:model.live="selectedCoaches" value="{{ $coach->id }}"
                                             class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary focus:ring-2 flex-shrink-0">
                                         <div class="ml-3 flex-1 min-w-0">
                                             <div class="flex items-center">
@@ -177,8 +177,13 @@
                 <a href="{{ route('teams.index') }}" class="inline-flex justify-center items-center px-4 py-2 bg-silver/30 text-titanium rounded-xl font-semibold text-sm hover:bg-silver/50 transition-colors">
                     Cancelar
                 </a>
-                <button type="submit" class="btn-primary inline-flex justify-center items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl transition-all">
-                    Guardar Cambios
+                <button type="submit" wire:loading.attr="disabled" wire:target="save" class="btn-primary inline-flex justify-center items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl transition-all disabled:opacity-70 disabled:cursor-not-allowed">
+                    <svg wire:loading wire:target="save" class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span wire:loading.remove wire:target="save">Guardar Cambios</span>
+                    <span wire:loading wire:target="save">Guardando...</span>
                 </button>
             </div>
         </div>
@@ -315,7 +320,7 @@
     </div>
 
     <!-- Modal: Confirmar eliminación de jugador -->
-    <x-confirmation-modal wire:model="confirmingPlayerRemoval">
+    <x-confirmation-modal wire:model.live="confirmingPlayerRemoval">
         <x-slot name="title">
             Quitar Jugador del Equipo
         </x-slot>
@@ -329,14 +334,23 @@
                 Cancelar
             </x-secondary-button>
 
-            <x-danger-button class="ms-3" wire:click="removePlayer">
+            <x-danger-button class="ms-3" wire:click="removePlayer" wire:loading.attr="disabled" wire:target="removePlayer">
+                <span wire:loading.remove wire:target="removePlayer">Quitar del Equipo</span>
+                <span wire:loading wire:target="removePlayer" class="inline-flex items-center">
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Quitando...
+                </span>
+            </x-danger-button>
                 Quitar del Equipo
             </x-danger-button>
         </x-slot>
     </x-confirmation-modal>
 
     <!-- Modal: Mover jugador a otro equipo -->
-    <x-dialog-modal wire:model="showMovePlayerModal">
+    <x-dialog-modal wire:model.live="showMovePlayerModal">
         <x-slot name="title">
             Mover Jugador a Otro Equipo
         </x-slot>
@@ -364,7 +378,7 @@
                     </p>
                 </div>
             @else
-                <select wire:model="targetTeamId" 
+                <select wire:model.live="targetTeamId" 
                     class="w-full px-3 py-2 border border-silver rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep">
                     <option value="">Seleccione un equipo...</option>
                     @foreach($availableTeams as $availableTeam)
@@ -387,9 +401,19 @@
                 Cancelar
             </x-secondary-button>
 
-            <x-button class="ms-3" wire:click="movePlayer" :disabled="$availableTeams->isEmpty() || !$targetTeamId">
+            <x-button class="ms-3" wire:click="movePlayer" wire:loading.attr="disabled" wire:target="movePlayer" :disabled="$availableTeams->isEmpty() || !$targetTeamId">
+                <span wire:loading.remove wire:target="movePlayer">Mover Jugador</span>
+                <span wire:loading wire:target="movePlayer" class="inline-flex items-center">
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Moviendo...
+                </span>
+            </x-button>
                 Mover Jugador
             </x-button>
         </x-slot>
     </x-dialog-modal>
 </div>
+
