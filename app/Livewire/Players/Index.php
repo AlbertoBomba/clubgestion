@@ -21,6 +21,8 @@ class Index extends Component
     public $playerToDelete = null;
     public $selectedPlayers = [];
     public $confirmingDeactivation = false;
+    public $confirmingTeamChange = false;
+    public $newTeamId = '';
 
     protected $queryString = ['search', 'seasonFilter', 'teamFilter', 'withoutTeam', 'sortField', 'sortDirection'];
 
@@ -141,6 +143,42 @@ class Index extends Component
         
         $this->confirmingDeactivation = false;
         $this->selectedPlayers = [];
+    }
+
+    public function confirmTeamChange()
+    {
+        if (count($this->selectedPlayers) > 0) {
+            $this->newTeamId = '';
+            $this->confirmingTeamChange = true;
+        }
+    }
+
+    public function changeTeam()
+    {
+        $this->validate([
+            'newTeamId' => 'required|exists:teams,id',
+        ], [
+            'newTeamId.required' => 'Debes seleccionar un equipo.',
+            'newTeamId.exists' => 'El equipo seleccionado no es válido.',
+        ]);
+
+        $changed = 0;
+        
+        foreach ($this->selectedPlayers as $playerId) {
+            $player = Player::find($playerId);
+            
+            if ($player && $player->sports_school_id === auth()->user()->sports_school_id) {
+                // Sync the player with the new team (replace existing teams)
+                $player->teams()->sync([$this->newTeamId]);
+                $changed++;
+            }
+        }
+        
+        session()->flash('message', "Se cambiaron {$changed} jugador(es) de equipo correctamente.");
+        
+        $this->confirmingTeamChange = false;
+        $this->selectedPlayers = [];
+        $this->newTeamId = '';
     }
 
     public function render()

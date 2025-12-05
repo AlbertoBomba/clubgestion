@@ -11,12 +11,19 @@
         </h2>
         <div class="flex gap-3">
             @if(count($selectedPlayers) > 0)
+                <button wire:click="confirmTeamChange" 
+                    class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-300 hover:-translate-y-1 bg-green-600 hover:bg-green-700">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                    </svg>
+                    Cambiar de  Equipo ({{ count($selectedPlayers) }} jugadores)
+                </button>
                 <button wire:click="confirmDeactivation" 
                     class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-all duration-300 hover:-translate-y-1 bg-orange-600 hover:bg-orange-700">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
                     </svg>
-                    Desactivar ({{ count($selectedPlayers) }})
+                    Cambiar estado ({{ count($selectedPlayers) }} jugadores)
                 </button>
             @endif
             <a href="{{ route('players.create') }}" class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 hover:-translate-y-1 bg-blue-600 hover:bg-blue-700">
@@ -371,6 +378,64 @@
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                     Desactivando...
+                </span>
+            </button>
+        </x-slot>
+    </x-dialog-modal>
+
+    <x-dialog-modal wire:model="confirmingTeamChange">
+        <x-slot name="title">Cambiar Equipo</x-slot>
+        <x-slot name="content">
+            <p class="mb-4">Selecciona el equipo al que deseas traspasar los siguientes jugadores:</p>
+            <div class="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto mb-4">
+                <ul class="space-y-2">
+                    @foreach($selectedPlayersModels as $player)
+                        <li class="flex items-center gap-3 p-2 bg-white rounded-lg border border-gray-200">
+                            @if($player->player_photo)
+                                <img src="{{ asset('storage/' . $player->player_photo) }}" alt="{{ $player->full_name }}" class="w-10 h-10 rounded-full object-cover border-2 border-primary/20">
+                            @else
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-night-blue flex items-center justify-center flex-shrink-0">
+                                    <span class="text-white font-bold text-xs">{{ substr($player->name, 0, 1) }}{{ substr($player->surname, 0, 1) }}</span>
+                                </div>
+                            @endif
+                            <div class="flex-1">
+                                <div class="font-semibold text-sm text-gray-900">{{ $player->full_name }}</div>
+                                @if($player->teams->count() > 0)
+                                    <div class="text-xs text-gray-500">Equipo actual: {{ $player->teams->first()->team }}</div>
+                                @else
+                                    <div class="text-xs text-red-500">Sin equipo</div>
+                                @endif
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+            <div class="mt-4">
+                <label for="newTeam" class="block text-sm font-semibold text-gray-700 mb-2">Equipo destino</label>
+                <select wire:model="newTeamId" id="newTeam" 
+                    class="block w-full px-3 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                    <option value="">Selecciona un equipo</option>
+                    @foreach($teams as $team)
+                        <option value="{{ $team->id }}">{{ $team->team }}</option>
+                    @endforeach
+                </select>
+                @error('newTeamId')
+                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+            <p class="mt-4 text-sm text-gray-600">Total: <strong>{{ count($selectedPlayers) }}</strong> jugador(es)</p>
+        </x-slot>
+        <x-slot name="footer">
+            <x-secondary-button wire:click="$set('confirmingTeamChange', false)">Cancelar</x-secondary-button>
+            <button wire:click="changeTeam" wire:loading.attr="disabled" wire:target="changeTeam"
+                class="ml-3 inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 transition ease-in-out duration-150">
+                <span wire:loading.remove wire:target="changeTeam">Cambiar Equipo</span>
+                <span wire:loading wire:target="changeTeam" class="inline-flex items-center">
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Cambiando...
                 </span>
             </button>
         </x-slot>
