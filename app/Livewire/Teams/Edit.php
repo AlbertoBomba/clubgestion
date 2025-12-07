@@ -45,6 +45,9 @@ class Edit extends Component
     public $selectedPlayersToAdd = [];
     public $filterByCategory = true;
     
+    // Eliminar equipo
+    public $confirmingDeletion = false;
+    
     // Valores originales para detectar cambios
     private $originalTeamName;
     private $originalDescription;
@@ -106,6 +109,58 @@ class Edit extends Component
     public function updated($propertyName)
     {
         // Detectar cambios en cualquier propiedad
+        $this->checkForChanges();
+    }
+    
+    public function updatedPrice($value)
+    {
+        // Handle different decimal separator formats
+        if ($value) {
+            // Remove spaces
+            $cleanValue = str_replace(' ', '', $value);
+            
+            // Detect format: if there's both dot and comma, determine which is decimal separator
+            if (strpos($cleanValue, '.') !== false && strpos($cleanValue, ',') !== false) {
+                // If comma comes after dot, comma is decimal separator (1.502,65)
+                if (strrpos($cleanValue, ',') > strrpos($cleanValue, '.')) {
+                    $cleanValue = str_replace('.', '', $cleanValue); // Remove thousands separator
+                    $cleanValue = str_replace(',', '.', $cleanValue); // Convert comma to dot
+                } else {
+                    // If dot comes after comma, dot is decimal separator (1,502.65)
+                    $cleanValue = str_replace(',', '', $cleanValue); // Remove thousands separator
+                }
+            } elseif (strpos($cleanValue, ',') !== false) {
+                // Only comma present
+                $parts = explode(',', $cleanValue);
+                // If exactly 3 digits after comma, it's a thousands separator (1,500 = 1500)
+                if (count($parts) == 2 && strlen($parts[1]) == 3 && ctype_digit($parts[1])) {
+                    $cleanValue = str_replace(',', '', $cleanValue);
+                } else {
+                    // Otherwise it's a decimal separator (156,9)
+                    $cleanValue = str_replace(',', '.', $cleanValue);
+                }
+            } elseif (strpos($cleanValue, '.') !== false) {
+                // Only dot present
+                $parts = explode('.', $cleanValue);
+                // If exactly 3 digits after dot, it's a thousands separator (1.500 = 1500)
+                if (count($parts) == 2 && strlen($parts[1]) == 3 && ctype_digit($parts[1])) {
+                    $cleanValue = str_replace('.', '', $cleanValue);
+                }
+                // Otherwise it's already in correct format (156.9)
+            }
+            
+            // Clean any remaining non-numeric characters except dot
+            $cleanValue = preg_replace('/[^0-9.]/', '', $cleanValue);
+            
+            // Ensure only one decimal point remains
+            $parts = explode('.', $cleanValue);
+            if (count($parts) > 2) {
+                $cleanValue = $parts[0] . '.' . implode('', array_slice($parts, 1));
+            }
+            
+            $this->price = $cleanValue;
+        }
+        
         $this->checkForChanges();
     }
     
@@ -317,6 +372,39 @@ class Edit extends Component
         $this->confirmingPlayerRemoval = false;
         $this->playerToRemove = null;
     }
+    
+    public function confirmDelete()
+    {
+        // Verificar si el equipo tiene pagos generados o jugadores
+        $team = Team::withCount(['payments', 'players'])->find($this->team->id);
+        
+        if ($team && $team->payments_count > 0) {
+            session()->flash('error', 'No se puede eliminar este equipo porque tiene pagos generados. Debe eliminar los pagos primero desde la sección de Generar Pagos.');
+            return;
+        }
+        
+        if ($team && $team->players_count > 0) {
+            session()->flash('error', 'No se puede eliminar este equipo porque tiene jugadores asignados. Debe reasignar o eliminar los jugadores primero.');
+            return;
+        }
+        
+        $this->confirmingDeletion = true;
+    }
+    
+    public function deleteTeam()
+    {
+        // Eliminar imagen del equipo si existe
+        if ($this->team->team_image) {
+            Storage::disk('public')->delete($this->team->team_image);
+        }
+        
+        // Eliminar el equipo
+        $this->team->delete();
+        
+        session()->flash('message', 'Equipo eliminado correctamente.');
+        
+        return redirect()->route('teams.index');
+    }
 
     protected function getAvailablePlayersForModal()
     {
@@ -390,6 +478,9 @@ class Edit extends Component
     {
         $categories = Category::orderBy('category')->get();
         $seasons = Season::orderBy('from_year', 'desc')->get();
+        
+        // Cargar el equipo con contadores de pagos y jugadores para la vista
+        $this->team->loadCount(['payments', 'players']);
         
         // Obtener secciones de la temporada seleccionada
         $sections = collect();

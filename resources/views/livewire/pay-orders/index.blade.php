@@ -1,0 +1,22 @@
+<div class="bg-white-pure overflow-hidden shadow-xl sm:rounded-lg">
+    <div class="p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-black-deep">Cartas de Pago</h2>
+            <button class="inline-flex items-center px-4 py-2 bg-primary border border-transparent rounded-lg font-semibold text-sm text-white uppercase tracking-widest hover:bg-night-blue active:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition ease-in-out duration-150">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Nueva Carta de Pago
+            </button>
+        </div>
+
+        <!-- Contenido placeholder -->
+        <div class="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">Componente en desarrollo</h3>
+            <p class="mt-1 text-sm text-gray-500">Las cartas de pago se mostrarán aquí próximamente.</p>
+        </div>
+    </div>
+</div>

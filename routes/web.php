@@ -141,6 +141,11 @@ Route::middleware([
             return view('payments-teams.index');
         })->name('payments-teams.index');
 
+        // Cartas de pago
+        Route::get('/pay-orders', function () {
+            return view('pay-orders.index');
+        })->name('pay-orders.index');
+
         // Gestión de Campos de Entrenamiento
         Route::get('/training-fields', function () {
             return view('training-fields.index');

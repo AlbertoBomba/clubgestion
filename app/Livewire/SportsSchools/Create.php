@@ -6,6 +6,7 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\SportsSchool;
 use App\Models\Category;
+use App\Models\PaymentCodeSequentials;
 use Illuminate\Support\Str;
 
 class Create extends Component
@@ -92,8 +93,14 @@ class Create extends Component
                 'created_user' => auth()->id(),
             ]);
         }
-    }
-
+        
+        // Crear registro de secuencial de códigos de pago para la escuela
+        PaymentCodeSequentials::create([
+            'sports_school_id' => $school->id,
+            'sequential' => 1000,
+        ]);
+    }    
+    
     public function render()
     {
         return view('livewire.sports-schools.create');

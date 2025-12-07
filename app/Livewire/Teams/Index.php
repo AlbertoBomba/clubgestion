@@ -262,6 +262,19 @@ class Index extends Component
 
     public function confirmDelete($teamId)
     {
+        // Verificar si el equipo tiene pagos generados o jugadores
+        $team = Team::withCount(['payments', 'players'])->find($teamId);
+        
+        if ($team && $team->payments_count > 0) {
+            session()->flash('error', 'No se puede eliminar este equipo porque tiene pagos generados. Debe eliminar los pagos primero desde la sección de Generar Pagos.');
+            return;
+        }
+        
+        if ($team && $team->players_count > 0) {
+            session()->flash('error', 'No se puede eliminar este equipo porque tiene jugadores asignados. Debe reasignar o eliminar los jugadores primero.');
+            return;
+        }
+        
         $this->teamToDelete = $teamId;
         $this->confirmingDeletion = true;
     }
@@ -301,6 +314,7 @@ class Index extends Component
             ->withCount(['players' => function ($query) {
                 $query->whereNull('teams_players.deleted_at');
             }])
+            ->withCount('payments')
             ->whereHas('season', function ($query) use ($userSchoolId) {
                 $query->where('sports_school_id', $userSchoolId);
             })

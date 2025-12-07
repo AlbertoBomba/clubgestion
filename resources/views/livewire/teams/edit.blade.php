@@ -26,6 +26,47 @@
                 </svg>
                 <span class="hidden sm:inline">Volver</span>
             </a>
+            
+            @if($team->payments_count > 0 || $team->players->count() > 0)
+                <!-- Botón eliminar deshabilitado con tooltip -->
+                <div class="relative group">
+                    <button 
+                        disabled
+                        class="inline-flex items-center px-3 py-2 sm:px-4 bg-gray-400 text-white rounded-xl cursor-not-allowed opacity-60 text-xs sm:text-sm font-semibold whitespace-nowrap">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                        <span class="hidden sm:inline">Eliminar</span>
+                    </button>
+                    <div class="absolute hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-10 shadow-lg">
+                        @if($team->payments_count > 0 && $team->players->count() > 0)
+                            Este equipo tiene {{ $team->players->count() }} {{ $team->players->count() == 1 ? 'jugador' : 'jugadores' }} y {{ $team->payments_count }} {{ $team->payments_count == 1 ? 'pago generado' : 'pagos generados' }}
+                        @elseif($team->payments_count > 0)
+                            Este equipo tiene {{ $team->payments_count }} {{ $team->payments_count == 1 ? 'pago generado' : 'pagos generados' }}
+                        @else
+                            Este equipo tiene {{ $team->players->count() }} {{ $team->players->count() == 1 ? 'jugador' : 'jugadores' }}
+                        @endif
+                        <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                    </div>
+                </div>
+            @else
+                <!-- Botón eliminar activo -->
+                <button 
+                    wire:click="confirmDelete" 
+                    wire:loading.attr="disabled"
+                    wire:target="confirmDelete"
+                    class="inline-flex items-center px-3 py-2 sm:px-4 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors duration-200 text-xs sm:text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
+                    <svg wire:loading.remove wire:target="confirmDelete" class="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    <svg wire:loading wire:target="confirmDelete" class="animate-spin h-4 w-4 sm:h-5 sm:w-5 sm:mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="hidden sm:inline">Eliminar</span>
+                </button>
+            @endif
+            
             <button type="submit" form="team-form" wire:loading.attr="disabled" wire:target="save" class="inline-flex items-center px-3 py-2 sm:px-4 rounded-xl text-white font-semibold text-xs sm:text-sm shadow-lg hover:shadow-xl transition-all bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed whitespace-nowrap">
                 <svg wire:loading.remove wire:target="save" class="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -101,17 +142,37 @@
                             </div>
                             <div class="mt-4">
                                 <label class="block text-sm font-semibold text-titanium mb-2">Precio Matrícula (€)</label>
-                                <input wire:model.live="price" type="number" step="0.01" min="0"
-                                    class="w-full px-3 py-2 border rounded-xl focus:ring-2 text-black-deep text-sm @if(empty($price) || $price == 0) border-amber-400 bg-amber-50 focus:ring-amber-500 focus:border-amber-500 @else border-silver focus:ring-primary focus:border-transparent @endif"
-                                    placeholder="0.00">
-                                @error('price') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
-                                @if(empty($price) || $price == 0)
-                                    <div class="mt-2 p-2 bg-amber-50 border border-amber-300 rounded-lg flex items-start gap-2">
-                                        <svg class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                        </svg>
-                                        <span class="text-xs text-amber-800 font-medium">No se generará la orden de pago a estos jugadores, si el precio de la matrícula es 0</span>
+                                @if($team->payments_count > 0)
+                                    <!-- Campo bloqueado si tiene pagos generados -->
+                                    <div class="relative">
+                                        <input type="text" value="{{ $price }}" disabled
+                                            class="w-32 px-3 py-2 border border-gray-300 rounded-xl bg-gray-100 text-gray-600 text-sm font-semibold cursor-not-allowed">
+                                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                            </svg>
+                                        </div>
                                     </div>
+                                    <div class="mt-2 p-2 bg-blue-50 border border-blue-300 rounded-lg flex items-start gap-2">
+                                        <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        <span class="text-xs text-blue-800 font-medium">Este equipo tiene {{ $team->payments_count }} {{ $team->payments_count == 1 ? 'pago generado' : 'pagos generados' }}. El precio no se puede modificar para mantener la consistencia de datos.</span>
+                                    </div>
+                                @else
+                                    <!-- Campo editable si no tiene pagos -->
+                                    <input wire:model.live="price" type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" maxlength="10"
+                                        class="w-32 px-3 py-2 border rounded-xl focus:ring-2 text-black-deep text-sm font-semibold @if(empty($price) || $price == 0) border-amber-400 bg-amber-50 focus:ring-amber-500 focus:border-amber-500 @else border-silver focus:ring-primary focus:border-transparent @endif"
+                                        placeholder="0.00">
+                                    @error('price') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                                    @if(empty($price) || $price == 0)
+                                        <div class="mt-2 p-2 bg-amber-50 border border-amber-300 rounded-lg flex items-start gap-2">
+                                            <svg class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                            </svg>
+                                            <span class="text-xs text-amber-800 font-medium">No se generará la orden de pago a estos jugadores, si el precio de la matrícula es 0</span>
+                                        </div>
+                                    @endif
                                 @endif
                             </div>
                         </div>
@@ -636,6 +697,37 @@
                     Agregando...
                 </span>
             </x-button>
+        </x-slot>
+    </x-dialog-modal>
+
+    <!-- Delete Confirmation Modal -->
+    <x-dialog-modal wire:model="confirmingDeletion">
+        <x-slot name="title">Eliminar Equipo</x-slot>
+        <x-slot name="content">
+            <div class="space-y-4">
+                <p class="text-sm text-gray-700">¿Estás seguro de que deseas eliminar el equipo <span class="font-bold text-primary">{{ $teamName }}</span>?</p>
+                <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <p class="ml-3 text-sm text-red-800 font-medium">Esta acción no se puede deshacer. Se eliminarán permanentemente todos los datos del equipo.</p>
+                    </div>
+                </div>
+            </div>
+        </x-slot>
+        <x-slot name="footer">
+            <x-secondary-button wire:click="$set('confirmingDeletion', false)">Cancelar</x-secondary-button>
+            <x-danger-button class="ml-3" wire:click="deleteTeam" wire:loading.attr="disabled" wire:target="deleteTeam">
+                <span wire:loading.remove wire:target="deleteTeam">Eliminar</span>
+                <span wire:loading wire:target="deleteTeam" class="inline-flex items-center">
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Eliminando...
+                </span>
+            </x-danger-button>
         </x-slot>
     </x-dialog-modal>
 </div>
