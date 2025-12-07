@@ -10,6 +10,13 @@ class PaymentCodeSequentials extends Model
 {
     use HasFactory;
 
+    protected $table = 'payments_codes_sequentials';
+
+    protected $fillable = [
+        'sports_school_id',
+        'sequential',
+    ];
+
     /**
      * Get  code payment
      *

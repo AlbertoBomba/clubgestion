@@ -100,6 +100,14 @@ class Player extends Model
     }
 
     /**
+     * Get the payment players (órdenes de pago) associated with the player.
+     */
+    public function paymentPlayers()
+    {
+        return $this->hasMany(PaymentPlayer::class, 'player_id');
+    }
+
+    /**
      * Get the player's full name.
      */
     public function getFullNameAttribute(): string
