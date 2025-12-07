@@ -15,6 +15,7 @@ class Index extends Component
     public $seasonFilter = '';
     public $teamFilter = '';
     public $withoutTeam = false;
+    public $highlightPlayer = null;
     public $sortField = 'surname';
     public $sortDirection = 'asc';
     public $confirmingDeletion = false;
@@ -28,16 +29,35 @@ class Index extends Component
 
     public function mount()
     {
-        // Set default season filter to active season
-        if (empty($this->seasonFilter)) {
-            $activeSeason = Season::where('sports_school_id', auth()->user()->sports_school_id)
-                ->where('start_date', '<=', now())
-                ->where('end_date', '>=', now())
-                ->orderBy('created_at', 'desc')
-                ->first();
+        // Check if there's a player to highlight from session
+        if (session()->has('highlightPlayer')) {
+            $this->highlightPlayer = session('highlightPlayer');
+        }
+        
+        // Restore filters from session if available
+        if (session()->has('players_filters')) {
+            $filters = session('players_filters');
+            $this->search = $filters['search'] ?? '';
+            $this->seasonFilter = $filters['seasonFilter'] ?? '';
+            $this->teamFilter = $filters['teamFilter'] ?? '';
+            $this->withoutTeam = $filters['withoutTeam'] ?? false;
+            $this->sortField = $filters['sortField'] ?? 'surname';
+            $this->sortDirection = $filters['sortDirection'] ?? 'asc';
             
-            if ($activeSeason) {
-                $this->seasonFilter = $activeSeason->id;
+            // Clear the session after restoring
+            session()->forget('players_filters');
+        } else {
+            // Set default season filter to active season only if no saved filters
+            if (empty($this->seasonFilter)) {
+                $activeSeason = Season::where('sports_school_id', auth()->user()->sports_school_id)
+                    ->where('start_date', '<=', now())
+                    ->where('end_date', '>=', now())
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+                
+                if ($activeSeason) {
+                    $this->seasonFilter = $activeSeason->id;
+                }
             }
         }
     }
@@ -60,6 +80,19 @@ class Index extends Component
     public function updatingWithoutTeam()
     {
         $this->resetPage();
+    }
+
+    public function saveFilters()
+    {
+        // Save current filters to session
+        session()->put('players_filters', [
+            'search' => $this->search,
+            'seasonFilter' => $this->seasonFilter,
+            'teamFilter' => $this->teamFilter,
+            'withoutTeam' => $this->withoutTeam,
+            'sortField' => $this->sortField,
+            'sortDirection' => $this->sortDirection,
+        ]);
     }
 
     public function sortBy($field)

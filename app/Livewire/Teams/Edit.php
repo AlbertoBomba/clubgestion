@@ -25,20 +25,44 @@ class Edit extends Component
     public $selectedCoaches = [];
     public $teamImage;
     public $gender = 'mixto';
+    public $price = null;
+    public $federate = false;
+    public $hasChanges = false;
     
     // Gestión de jugadores
+    public $searchPlayer = '';
+    public $searchCoach = '';
     public $showMovePlayerModal = false;
     public $playerToMove = null;
     public $playerToMoveName = '';
     public $targetTeamId = null;
     public $confirmingPlayerRemoval = false;
     public $playerToRemove = null;
+    
+    // Agregar jugadores
+    public $showAddPlayerModal = false;
+    public $searchAvailablePlayer = '';
+    public $selectedPlayersToAdd = [];
+    public $filterByCategory = true;
+    
+    // Valores originales para detectar cambios
+    private $originalTeamName;
+    private $originalDescription;
+    private $originalGender;
+    private $originalPrice;
+    private $originalFederate;
+    private $originalCategoryId;
+    private $originalSeasonId;
+    private $originalSectionId;
+    private $originalSelectedCoaches = [];
 
     protected function rules()
     {
         return [
             'teamName' => 'required|string|max:255',
             'description' => 'nullable|string|max:255',
+            'price' => 'nullable|numeric|min:0',
+            'federate' => 'boolean',
             'category_id' => 'required|exists:categories,id',
             'season_id' => 'required|exists:seasons,id',
             'section_id' => 'required|exists:sections,id',
@@ -61,9 +85,42 @@ class Edit extends Component
         $this->season_id = $team->season_id;
         $this->section_id = $team->section_id;
         $this->gender = $team->gender;
+        $this->price = $team->price;
+        $this->federate = $team->federate;
         
         // Cargar entrenadores actuales del equipo
         $this->selectedCoaches = $team->coaches->pluck('id')->toArray();
+        
+        // Guardar valores originales para detectar cambios
+        $this->originalTeamName = $this->teamName;
+        $this->originalDescription = $this->description ?? '';
+        $this->originalGender = $this->gender;
+        $this->originalPrice = $this->price;
+        $this->originalFederate = $this->federate;
+        $this->originalCategoryId = $this->category_id;
+        $this->originalSeasonId = $this->season_id;
+        $this->originalSectionId = $this->section_id;
+        $this->originalSelectedCoaches = $this->selectedCoaches;
+    }
+    
+    public function updated($propertyName)
+    {
+        // Detectar cambios en cualquier propiedad
+        $this->checkForChanges();
+    }
+    
+    private function checkForChanges()
+    {
+        $this->hasChanges = 
+            $this->teamName !== $this->originalTeamName ||
+            ($this->description ?? '') !== $this->originalDescription ||
+            $this->gender !== $this->originalGender ||
+            $this->price !== $this->originalPrice ||
+            $this->federate !== $this->originalFederate ||
+            $this->category_id !== $this->originalCategoryId ||
+            $this->season_id !== $this->originalSeasonId ||
+            $this->section_id !== $this->originalSectionId ||
+            $this->selectedCoaches !== $this->originalSelectedCoaches;
     }
 
     public function save()
@@ -74,6 +131,8 @@ class Edit extends Component
             'team' => $this->teamName,
             'description' => $this->description,
             'gender' => $this->gender,
+            'price' => $this->price,
+            'federate' => $this->federate,
             'category_id' => $this->category_id,
             'season_id' => $this->season_id,
             'section_id' => $this->section_id,
@@ -97,7 +156,11 @@ class Edit extends Component
         // Sincronizar entrenadores
         $this->team->coaches()->sync($this->selectedCoaches);
 
+        // Resetear flag de cambios
+        $this->hasChanges = false;
+
         session()->flash('message', 'Equipo actualizado correctamente.');
+        session()->flash('highlightTeam', $this->team->id);
         
         return redirect()->route('teams.index');
     }
@@ -175,11 +238,152 @@ class Edit extends Component
         $this->playerToMoveName = '';
         $this->targetTeamId = null;
     }
+    
+    public function openAddPlayerModal()
+    {
+        $this->showAddPlayerModal = true;
+        $this->searchAvailablePlayer = '';
+        $this->selectedPlayersToAdd = [];
+    }
+    
+    public function toggleSelectAllPlayers()
+    {
+        $availablePlayers = $this->getAvailablePlayersForModal();
+        
+        if (count($this->selectedPlayersToAdd) === $availablePlayers->count()) {
+            // Si todos están seleccionados, deseleccionar todos
+            $this->selectedPlayersToAdd = [];
+        } else {
+            // Si no todos están seleccionados, seleccionar todos
+            $this->selectedPlayersToAdd = $availablePlayers->pluck('id')->toArray();
+        }
+    }
+    
+    public function addPlayersToTeam()
+    {
+        if (empty($this->selectedPlayersToAdd)) {
+            session()->flash('error', 'Debe seleccionar al menos un jugador.');
+            return;
+        }
+        
+        foreach ($this->selectedPlayersToAdd as $playerId) {
+            // Verificar si existe un registro eliminado (soft deleted)
+            $deletedRecord = \DB::table('teams_players')
+                ->where('team_id', $this->team->id)
+                ->where('player_id', $playerId)
+                ->whereNotNull('deleted_at')
+                ->first();
+            
+            if ($deletedRecord) {
+                // Restaurar el registro eliminado
+                \DB::table('teams_players')
+                    ->where('id', $deletedRecord->id)
+                    ->update([
+                        'deleted_at' => null,
+                        'updated_user' => auth()->id(),
+                        'updated_at' => now()
+                    ]);
+            } else {
+                // Verificar si el jugador ya está en el equipo (no eliminado)
+                $existsInTeam = $this->team->players()->where('player_id', $playerId)->exists();
+                
+                if (!$existsInTeam) {
+                    $this->team->players()->attach($playerId, [
+                        'created_user' => auth()->id(),
+                        'updated_user' => auth()->id(),
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                }
+            }
+        }
+        
+        session()->flash('message', 'Jugador(es) agregado(s) al equipo correctamente.');
+        
+        $this->showAddPlayerModal = false;
+        $this->searchAvailablePlayer = '';
+        $this->selectedPlayersToAdd = [];
+    }
+    
+    public function cancelAddPlayer()
+    {
+        $this->showAddPlayerModal = false;
+        $this->searchAvailablePlayer = '';
+        $this->selectedPlayersToAdd = [];
+    }
 
     public function cancelRemovePlayer()
     {
         $this->confirmingPlayerRemoval = false;
         $this->playerToRemove = null;
+    }
+
+    protected function getAvailablePlayersForModal()
+    {
+        $availablePlayers = collect();
+        
+        if (!$this->showAddPlayerModal) {
+            return $availablePlayers;
+        }
+        
+        // Obtener sports_school_id
+        $sportsSchoolId = null;
+        if ($this->season_id) {
+            $season = Season::find($this->season_id);
+            if ($season) {
+                $sportsSchoolId = $season->sports_school_id;
+            }
+        }
+        
+        if (!$sportsSchoolId || !$this->season_id) {
+            return $availablePlayers;
+        }
+        
+        $query = \App\Models\Player::where('active', true)
+            ->where('sports_school_id', $sportsSchoolId)
+            ->whereDoesntHave('teams')
+            ->whereHas('seasons', function($q) {
+                $q->where('seasons.id', $this->season_id);
+            })
+            ->whereHas('sections', function($q) {
+                $q->where('sections.id', $this->section_id);
+            });
+            
+        // Aplicar búsqueda si existe
+        if ($this->searchAvailablePlayer) {
+            $query->where(function($q) {
+                $q->where('name', 'like', '%' . $this->searchAvailablePlayer . '%')
+                  ->orWhere('surname', 'like', '%' . $this->searchAvailablePlayer . '%')
+                  ->orWhere('dni', 'like', '%' . $this->searchAvailablePlayer . '%');
+            });
+        }
+        
+        $availablePlayers = $query->orderBy('name')
+            ->orderBy('surname')
+            ->get();
+        
+        // Filtrar por categoría si está activado
+        if ($this->filterByCategory && $this->category_id) {
+            $category = Category::find($this->category_id);
+            $season = Season::find($this->season_id);
+            
+            if ($category && $season && $season->from_year) {
+                $availablePlayers = $availablePlayers->filter(function($player) use ($category, $season) {
+                    if (!$player->dbirth) {
+                        return false;
+                    }
+                    
+                    // Calcular la edad del jugador al inicio de la temporada
+                    $birthYear = $player->dbirth->year;
+                    $ageAtSeasonStart = $season->from_year - $birthYear;
+                    
+                    // Verificar si la edad está dentro del rango de la categoría
+                    return $ageAtSeasonStart >= $category->from_age && $ageAtSeasonStart <= $category->to_age;
+                });
+            }
+        }
+        
+        return $availablePlayers;
     }
 
     public function render()
@@ -208,17 +412,29 @@ class Edit extends Component
         // Obtener entrenadores disponibles de la misma escuela
         $availableCoaches = collect();
         if ($sportsSchoolId) {
-            $availableCoaches = User::where('is_active', true)
+            $query = User::where('is_active', true)
                 ->where('sports_school_id', $sportsSchoolId)
-                ->role('coach')
-                ->orderBy('name')
-                ->get();
+                ->role('coach');
+                
+            // Aplicar búsqueda si existe
+            if ($this->searchCoach) {
+                $query->where(function($q) {
+                    $q->where('name', 'like', '%' . $this->searchCoach . '%')
+                      ->orWhere('email', 'like', '%' . $this->searchCoach . '%');
+                });
+            }
             
-            // Ordenar: primero los seleccionados, luego los demás
-            $availableCoaches = $availableCoaches->sortBy(function($coach) {
-                return in_array($coach->id, $this->selectedCoaches) ? 0 : 1;
-            })->values();
+            $availableCoaches = $query->orderBy('name')->get();
+            
+            // Ordenar: primero los seleccionados, luego los demás (mantener valores originales)
+            $availableCoaches = $availableCoaches->sortBy([
+                fn($coach) => in_array($coach->id, $this->selectedCoaches) ? 0 : 1,
+                fn($coach) => strtolower($coach->name)
+            ])->values();
         }
+
+        // Obtener jugadores disponibles para agregar (no están en el equipo)
+        $availablePlayers = $this->getAvailablePlayersForModal();
 
        
 
@@ -227,12 +443,23 @@ class Edit extends Component
             'seasons' => $seasons,
             'sections' => $sections,
             'availableCoaches' => $availableCoaches,
-            'teamPlayers' => $this->team->players()->orderBy('name')->orderBy('surname')->get(),
+            'teamPlayers' => $this->team->players()
+                ->when($this->searchPlayer, function($query) {
+                    $query->where(function($q) {
+                        $q->where('name', 'like', '%' . $this->searchPlayer . '%')
+                          ->orWhere('surname', 'like', '%' . $this->searchPlayer . '%')
+                          ->orWhere('dni', 'like', '%' . $this->searchPlayer . '%');
+                    });
+                })
+                ->orderBy('name')
+                ->orderBy('surname')
+                ->get(),
             'availableTeams' => Team::where('season_id', $this->team->season_id)
                 ->where('section_id', $this->team->section_id)
                 ->where('id', '!=', $this->team->id)
                 ->orderBy('team')
                 ->get(),
+            'availablePlayers' => $availablePlayers,
         ]);
     }
 }

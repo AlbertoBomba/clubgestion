@@ -136,6 +136,11 @@ Route::middleware([
             return view('teams.edit', compact('team'));
         })->name('teams.edit');
 
+        // Gestión de Pagos de Matrículas
+        Route::get('/payments-teams', function () {
+            return view('payments-teams.index');
+        })->name('payments-teams.index');
+
         // Gestión de Campos de Entrenamiento
         Route::get('/training-fields', function () {
             return view('training-fields.index');

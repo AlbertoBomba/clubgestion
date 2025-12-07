@@ -55,6 +55,13 @@ class Edit extends Component
     public $selectedSections = [];
     public $hasChanges = false;
     
+    // Documentos
+    public $document;
+    public $documentType = '';
+    public $documentLabel = '';
+    public $existingDocuments = [];
+    public $captureMode = false;
+    
     // Valores originales para detectar cambios
     private $originalName;
     private $originalSurname;
@@ -207,6 +214,7 @@ class Edit extends Component
         $this->currentPhoto = $player->player_photo;
         $this->selectedSeasons = $player->seasons->pluck('id')->toArray();
         $this->selectedSections = $player->sections->pluck('id')->toArray();
+        $this->existingDocuments = $player->documents ?? [];
         
         // Guardar valores originales para detectar cambios
         $this->originalName = $this->name;
@@ -322,8 +330,91 @@ class Edit extends Component
         $this->hasChanges = false;
 
         session()->flash('message', 'Jugador actualizado correctamente.');
+        session()->flash('highlightPlayer', $this->playerModel->id);
         
         return redirect()->route('players.index');
+    }
+
+    public function deleteDocument($index)
+    {
+        if (isset($this->existingDocuments[$index])) {
+            $docPath = $this->existingDocuments[$index]['path'];
+            
+            // Eliminar el archivo físicamente del servidor
+            if (\Storage::disk('public')->exists($docPath)) {
+                \Storage::disk('public')->delete($docPath);
+            }
+            
+            // Eliminar del array de documentos existentes
+            unset($this->existingDocuments[$index]);
+            $this->existingDocuments = array_values($this->existingDocuments);
+            
+            // Actualizar inmediatamente en la base de datos
+            $this->playerModel->update(['documents' => $this->existingDocuments]);
+            
+            session()->flash('message', 'Documento eliminado exitosamente.');
+        }
+    }
+
+    public function uploadDocument()
+    {
+        // Validar documento
+        if (!$this->document) {
+            $this->addError('document', 'Debes seleccionar un archivo.');
+            return;
+        }
+
+        if (empty($this->documentType)) {
+            $this->addError('documentType', 'Debes seleccionar un tipo de documento.');
+            return;
+        }
+
+        if ($this->documentType === 'otros' && empty($this->documentLabel)) {
+            $this->addError('documentLabel', 'Debes proporcionar una descripción para el documento.');
+            return;
+        }
+
+        // Validar el archivo
+        $this->validate([
+            'document' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ]);
+
+        // Obtener documentos actuales del jugador
+        $savedDocuments = $this->playerModel->documents ?? [];
+
+        // Determinar la etiqueta según el tipo de documento
+        $label = match($this->documentType) {
+            'dni_frontal' => 'DNI Frontal',
+            'dni_trasero' => 'DNI Trasero',
+            'ficha_medica' => 'Ficha Médica',
+            'autorizacion' => 'Autorización',
+            'otros' => $this->documentLabel ?: 'Documento ' . (count($savedDocuments) + 1),
+            default => 'Documento ' . (count($savedDocuments) + 1)
+        };
+
+        // Guardar el documento
+        $path = $this->document->store('player-documents/' . $this->playerModel->id, 'public');
+
+        $savedDocuments[] = [
+            'path' => $path,
+            'label' => $label,
+            'original_name' => $this->document->getClientOriginalName(),
+            'uploaded_at' => now()->toDateTimeString(),
+        ];
+
+        // Actualizar solo los documentos del jugador
+        $this->playerModel->update(['documents' => $savedDocuments]);
+
+        // Resetear campos de documento
+        $this->document = null;
+        $this->documentType = '';
+        $this->documentLabel = '';
+        $this->captureMode = false;
+
+        // Actualizar la lista de documentos existentes
+        $this->existingDocuments = $savedDocuments;
+
+        session()->flash('message', 'Documento subido exitosamente.');
     }
 
     public function render()

@@ -19,6 +19,7 @@ class Index extends Component
     public $categoryFilter = '';
     public $seasonFilter = '';
     public $showModal = false;
+    public $highlightTeam = null;
     
     // Form fields
     public $team = '';
@@ -29,6 +30,12 @@ class Index extends Component
     public $selectedCoaches = [];
     public $teamImage;
     public $gender = 'mixto';
+    public $price = null;
+    public $federate = false;
+    
+    // Confirmation step
+    public $showConfirmation = false;
+    public $confirmationData = [];
     
     // Delete confirmation
     public $confirmingDeletion = false;
@@ -39,6 +46,9 @@ class Index extends Component
     protected $rules = [
         'team' => 'required|string|max:255',
         'description' => 'nullable|string|max:255',
+        'gender' => 'required|in:masculino,femenino,mixto',
+        'price' => 'nullable|numeric|min:0',
+        'federate' => 'boolean',
         'category_id' => 'required|exists:categories,id',
         'season_id' => 'required|exists:seasons,id',
         'section_id' => 'required|exists:sections,id',
@@ -46,15 +56,31 @@ class Index extends Component
 
     public function mount()
     {
-        // Set default season filter to active season
-        if (empty($this->seasonFilter)) {
-            $activeSeason = Season::where('start_date', '<=', now())
-                ->where('end_date', '>=', now())
-                ->orderBy('created_at', 'desc')
-                ->first();
+        // Check if there's a team to highlight from session
+        if (session()->has('highlightTeam')) {
+            $this->highlightTeam = session('highlightTeam');
+        }
+        
+        // Restore filters from session if available
+        if (session()->has('teams_filters')) {
+            $filters = session('teams_filters');
+            $this->search = $filters['search'] ?? '';
+            $this->categoryFilter = $filters['categoryFilter'] ?? '';
+            $this->seasonFilter = $filters['seasonFilter'] ?? '';
             
-            if ($activeSeason) {
-                $this->seasonFilter = $activeSeason->id;
+            // Clear the session after restoring
+            session()->forget('teams_filters');
+        } else {
+            // Set default season filter to active season only if no saved filters
+            if (empty($this->seasonFilter)) {
+                $activeSeason = Season::where('start_date', '<=', now())
+                    ->where('end_date', '>=', now())
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+                
+                if ($activeSeason) {
+                    $this->seasonFilter = $activeSeason->id;
+                }
             }
         }
     }
@@ -72,6 +98,71 @@ class Index extends Component
     public function updatingSeasonFilter()
     {
         $this->resetPage();
+    }
+
+    public function updatedSectionId($value)
+    {
+        // Auto-fill price from season_section pivot table
+        if ($value && $this->season_id) {
+            $sectionPrice = \DB::table('season_section')
+                ->where('season_id', $this->season_id)
+                ->where('section_id', $value)
+                ->value('price');
+            
+            if ($sectionPrice !== null) {
+                $this->price = $sectionPrice;
+            }
+        }
+    }
+
+    public function updatedPrice($value)
+    {
+        // Handle different decimal separator formats
+        if ($value) {
+            // Remove spaces
+            $cleanValue = str_replace(' ', '', $value);
+            
+            // Detect format: if there's both dot and comma, determine which is decimal separator
+            if (strpos($cleanValue, '.') !== false && strpos($cleanValue, ',') !== false) {
+                // If comma comes after dot, comma is decimal separator (1.502,65)
+                if (strrpos($cleanValue, ',') > strrpos($cleanValue, '.')) {
+                    $cleanValue = str_replace('.', '', $cleanValue); // Remove thousands separator
+                    $cleanValue = str_replace(',', '.', $cleanValue); // Convert comma to dot
+                } else {
+                    // If dot comes after comma, dot is decimal separator (1,502.65)
+                    $cleanValue = str_replace(',', '', $cleanValue); // Remove thousands separator
+                }
+            } elseif (strpos($cleanValue, ',') !== false) {
+                // Only comma present
+                $parts = explode(',', $cleanValue);
+                // If exactly 3 digits after comma, it's a thousands separator (1,500 = 1500)
+                if (count($parts) == 2 && strlen($parts[1]) == 3 && ctype_digit($parts[1])) {
+                    $cleanValue = str_replace(',', '', $cleanValue);
+                } else {
+                    // Otherwise it's a decimal separator (156,9)
+                    $cleanValue = str_replace(',', '.', $cleanValue);
+                }
+            } elseif (strpos($cleanValue, '.') !== false) {
+                // Only dot present
+                $parts = explode('.', $cleanValue);
+                // If exactly 3 digits after dot, it's a thousands separator (1.500 = 1500)
+                if (count($parts) == 2 && strlen($parts[1]) == 3 && ctype_digit($parts[1])) {
+                    $cleanValue = str_replace('.', '', $cleanValue);
+                }
+                // Otherwise it's already in correct format (156.9)
+            }
+            
+            // Clean any remaining non-numeric characters except dot
+            $cleanValue = preg_replace('/[^0-9.]/', '', $cleanValue);
+            
+            // Ensure only one decimal point remains
+            $parts = explode('.', $cleanValue);
+            if (count($parts) > 2) {
+                $cleanValue = $parts[0] . '.' . implode('', array_slice($parts, 1));
+            }
+            
+            $this->price = $cleanValue;
+        }
     }
 
     public function openCreateModal()
@@ -95,6 +186,13 @@ class Index extends Component
 
     public function openEditModal($teamId)
     {
+        // Save current filters to session
+        session()->put('teams_filters', [
+            'search' => $this->search,
+            'categoryFilter' => $this->categoryFilter,
+            'seasonFilter' => $this->seasonFilter,
+        ]);
+        
         // Redirigir a la página de edición en lugar de abrir modal
         return redirect()->route('teams.edit', $teamId);
     }
@@ -103,10 +201,41 @@ class Index extends Component
     {
         $this->validate();
 
+        // Prepare confirmation data
+        $category = Category::find($this->category_id);
+        $season = Season::find($this->season_id);
+        $section = Section::find($this->section_id);
+
+        $this->confirmationData = [
+            'team' => $this->team,
+            'description' => $this->description,
+            'gender' => $this->gender,
+            'price' => $this->price,
+            'federate' => $this->federate,
+            'category' => $category ? $category->category : '',
+            'season' => $season ? $season->season : '',
+            'section' => $section ? $section->name : '',
+        ];
+
+        // Show confirmation screen
+        $this->showConfirmation = true;
+    }
+
+    public function confirmCreate()
+    {
+        // Ensure price is properly formatted for database storage
+        $formattedPrice = null;
+        if ($this->price !== null && $this->price !== '') {
+            // Convert to float to ensure correct decimal format
+            $formattedPrice = floatval($this->price);
+        }
+        
         $dataToCreate = [
             'team' => $this->team,
             'description' => $this->description,
             'gender' => $this->gender,
+            'price' => $formattedPrice,
+            'federate' => $this->federate,
             'category_id' => $this->category_id,
             'season_id' => $this->season_id,
             'section_id' => $this->section_id,
@@ -121,14 +250,14 @@ class Index extends Component
 
         $team = Team::create($dataToCreate);
         
-        // Asociar entrenadores al equipo
-        if (!empty($this->selectedCoaches)) {
-            $team->coaches()->sync($this->selectedCoaches);
-        }
-        
         session()->flash('message', 'Equipo creado correctamente.');
 
         $this->closeModal();
+    }
+
+    public function backToForm()
+    {
+        $this->showConfirmation = false;
     }
 
     public function confirmDelete($teamId)
@@ -153,12 +282,14 @@ class Index extends Component
     public function closeModal()
     {
         $this->showModal = false;
+        $this->showConfirmation = false;
+        $this->confirmationData = [];
         $this->resetForm();
     }
 
     private function resetForm()
     {
-        $this->reset(['team', 'description', 'category_id', 'season_id', 'section_id', 'selectedCoaches', 'teamImage', 'gender']);
+        $this->reset(['team', 'description', 'category_id', 'season_id', 'section_id', 'selectedCoaches', 'teamImage', 'gender', 'price', 'federate']);
         $this->resetErrorBag();
     }
 

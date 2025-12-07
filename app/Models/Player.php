@@ -40,6 +40,7 @@ class Player extends Model
         'goalie',
         'file',
         'player_photo',
+        'documents',
         'created_user',
         'updated_user',
     ];
@@ -54,6 +55,7 @@ class Player extends Model
         'goalie' => 'boolean',
         'file' => 'boolean',
         'dorsal' => 'integer',
+        'documents' => 'array',
     ];
 
     /**
@@ -91,7 +93,7 @@ class Player extends Model
      */
     public function sections()
     {
-        return $this->belongsToMany(Section::class, 'player_section')
+        return $this->belongsToMany(Section::class, 'players_sections')
             ->withTimestamps()
             ->withPivot('created_user', 'updated_user', 'deleted_at')
             ->wherePivot('deleted_at', null);

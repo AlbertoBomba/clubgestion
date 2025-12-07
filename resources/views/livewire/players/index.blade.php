@@ -177,7 +177,8 @@
                 </thead>
                 <tbody class="bg-white-pure divide-y divide-silver/30">
                     @forelse($players as $player)
-                        <tr class="{{ !$player->active ? 'bg-gray-200 hover:bg-gray-300' : ($player->teams->count() === 0 ? 'bg-red-900/10 hover:bg-red-900/20' : 'hover:bg-primary/5') }}">
+                        <tr class="{{ !$player->active ? 'bg-gray-200 hover:bg-gray-300' : ($player->teams->count() === 0 ? 'bg-red-900/10 hover:bg-red-900/20' : 'hover:bg-primary/5') }} {{ $highlightPlayer == $player->id ? 'bg-green-50 border-l-4 border-green-500 animate-pulse' : '' }}" 
+                            id="player-{{ $player->id }}">
                             <td class="px-6 py-4">
                                 <input type="checkbox" 
                                     wire:model.live="selectedPlayers" 
@@ -268,6 +269,7 @@
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <div class="flex items-center justify-end space-x-2">
                                     <a href="{{ route('players.edit', $player->id) }}" 
+                                        wire:click="saveFilters"
                                         class="inline-flex items-center px-3 py-2 bg-primary text-white rounded-lg hover:bg-night-blue transition-colors duration-200 text-xs font-semibold">
                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -440,4 +442,21 @@
             </button>
         </x-slot>
     </x-dialog-modal>
+
+    @if($highlightPlayer)
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const highlightedRow = document.getElementById('player-{{ $highlightPlayer }}');
+            if (highlightedRow) {
+                // Scroll to the highlighted player
+                highlightedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Remove highlight after 3 seconds
+                setTimeout(() => {
+                    @this.set('highlightPlayer', null);
+                }, 3000);
+            }
+        });
+    </script>
+    @endif
 </div>

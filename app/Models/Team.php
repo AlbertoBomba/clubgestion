@@ -15,6 +15,8 @@ class Team extends Model
         'description',
         'team_image',
         'gender',
+        'price',
+        'federate',
         'category_id',
         'season_id',
         'section_id',
@@ -26,6 +28,7 @@ class Team extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
+        'federate' => 'boolean',
     ];
 
     // Relationships
@@ -79,5 +82,13 @@ class Team extends Model
             ->withTimestamps()
             ->withPivot('created_user', 'updated_user', 'deleted_at')
             ->wherePivot('deleted_at', null);
+    }
+
+    /**
+     * Pagos del equipo
+     */
+    public function payments()
+    {
+        return $this->hasMany(PaymentTeam::class);
     }
 }

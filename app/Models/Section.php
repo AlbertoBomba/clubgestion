@@ -37,9 +37,9 @@ class Section extends Model
     /**
      * Get the players associated with the section.
      */
-    public function players(): BelongsToMany
+    public function players()
     {
-        return $this->belongsToMany(Player::class, 'player_section')
+        return $this->belongsToMany(Player::class, 'players_sections')
             ->withTimestamps()
             ->withPivot('created_user', 'updated_user', 'deleted_at')
             ->wherePivot('deleted_at', null);
