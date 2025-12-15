@@ -437,6 +437,15 @@
                     </div>
                 </a>
 
+                <a href="{{ route('training-sessions.index') }}" class="sidebar-link block pl-3 pr-4 py-2 text-base font-medium {{ request()->routeIs('training-sessions.*') ? 'active text-white-pure' : 'text-titanium' }}">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Sesiones de Entrenamiento
+                    </div>
+                </a>
+
                 <a href="{{ route('exercise-types.index') }}" class="sidebar-link block pl-3 pr-4 py-2 text-base font-medium {{ request()->routeIs('exercise-types.*') ? 'active text-white-pure' : 'text-titanium' }}">
                     <div class="flex items-center">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -726,7 +735,9 @@
                     </svg>
                     Ver Horarios
                 </a>
+                @endif
 
+                @if(auth()->user()->hasRole(['master', 'school_admin', 'coach']))
                 <a href="{{ route('exercises.index') }}" 
                    @click="sidebarOpen = false"
                    class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('exercises.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
@@ -734,6 +745,15 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                     </svg>
                     Ejercicios
+                </a>
+
+                <a href="{{ route('training-sessions.index') }}" 
+                   @click="sidebarOpen = false"
+                   class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('training-sessions.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Sesiones de Entrenamiento
                 </a>
 
                 <a href="{{ route('exercise-types.index') }}" 

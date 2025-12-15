@@ -91,4 +91,12 @@ class Team extends Model
     {
         return $this->hasMany(PaymentTeam::class);
     }
+
+    /**
+     * Sesiones de entrenamiento del equipo
+     */
+    public function trainingSessions()
+    {
+        return $this->hasMany(TrainingSession::class);
+    }
 }

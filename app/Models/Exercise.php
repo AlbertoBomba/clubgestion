@@ -105,6 +105,14 @@ class Exercise extends Model
     }
 
     /**
+     * Get training session exercises that use this exercise.
+     */
+    public function trainingSessionExercises(): HasMany
+    {
+        return $this->hasMany(TrainingSessionExercise::class);
+    }
+
+    /**
      * Scope a query to only include active exercises.
      */
     public function scopeActive($query)

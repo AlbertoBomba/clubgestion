@@ -12,6 +12,10 @@ use App\Models\Player;
 use App\Models\Section;
 use App\Models\Team;
 use App\Models\Exercise;
+use App\Models\TrainingSession;
+use App\Livewire\TrainingSessions\Index as TrainingSessionsIndex;
+use App\Livewire\TrainingSessions\Create as TrainingSessionsCreate;
+use App\Livewire\TrainingSessions\Edit as TrainingSessionsEdit;
 
 Route::get('/', function () {
     return view('welcome');
@@ -213,6 +217,16 @@ Route::middleware([
         Route::get('/exercises/{exercise}/edit', function (Exercise $exercise) {
             return view('exercises.edit', compact('exercise'));
         })->name('exercises.edit');
+
+        // Gestión de Sesiones de Entrenamiento
+        Route::get('/training-sessions', TrainingSessionsIndex::class)
+            ->name('training-sessions.index');
+
+        Route::get('/training-sessions/create', TrainingSessionsCreate::class)
+            ->name('training-sessions.create');
+
+        Route::get('/training-sessions/{id}/edit', TrainingSessionsEdit::class)
+            ->name('training-sessions.edit');
 
         // Gestión de Tipos de Ejercicios
         Route::get('/exercise-types', function () {
