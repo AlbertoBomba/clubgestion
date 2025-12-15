@@ -77,24 +77,52 @@
         .btn-primary:active {
             transform: translateY(0);
         }
+        
+        .carousel-container {
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+            margin: 0 auto;
+        }
+        
+        .carousel-track {
+            display: flex;
+            animation: scroll 20s linear infinite;
+            width: fit-content;
+        }
+        
+        .carousel-track:hover {
+            animation-play-state: paused;
+        }
+        
+        @keyframes scroll {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+        
+        .carousel-item {
+            flex: 0 0 auto;
+            padding: 0 0.75rem;
+        }
     </style>
 </head>
 <body class="antialiased">
     <div class="gradient-bg min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
         <div class="w-full max-w-md">
-            <!-- Logo/Brand -->
-            <div class="text-center mb-8 login-card">
-                <div class="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-2xl shadow-xl mb-4">
-                    <svg class="w-10 h-10 sm:w-12 sm:h-12 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                    </svg>
-                </div>
-                <h1 class="text-2xl sm:text-3xl font-bold text-white mb-2">Bienvenido</h1>
-                <p class="text-white-pure/90 text-sm sm:text-base">Inicia sesión en tu cuenta</p>
-            </div>
-
             <!-- Login Card -->
-            <div class="login-card bg-white rounded-2xl shadow-2xl p-6 sm:p-8 lg:p-10">
+            <div class="login-card bg-white rounded-t-2xl shadow-2xl p-6 sm:p-8 lg:p-10">
+                <!-- Logo/Brand -->
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-24 h-24 sm:w-28 sm:h-28  mb-2">
+                        <img src="{{ asset('images/logos/logo_vaed.png') }}" alt="{{ config('app.name', 'Vaed APP') }} Logo" class="w-16 h-16 sm:w-20 sm:h-20">
+                    </div>
+                    {{-- <h1 class="text-2xl sm:text-3xl font-bold text-titanium mb-2">VaedSaas</h1> --}}
+                    <p class="text-gray-600 text-sm sm:text-base">Inicia sesión en VaedSaas</p>
+                </div>
                 <!-- Status Message -->
                 @session('status')
                     <div class="mb-6 p-4 bg-neon-green/10 border-l-4 border-neon-green rounded-lg">
@@ -221,10 +249,34 @@
                 @endif
             </div>
 
+            <!-- Carousel de Logos de Escuelas -->
+            @if(isset($schools) && $schools->count() > 0)
+            <div class="carousel-container rounded-b-2xl login-card p-2 bg-white shadow-2xl mt-8">
+                <div class="carousel-track">
+                    <!-- First set of logos -->
+                    @foreach($schools as $school)
+                        <div class="carousel-item">
+                            <div class="w-16 h-16 bg-white rounded-xl shadow-lg flex items-center justify-center p-2 transition-transform hover:scale-110">
+                                <img src="{{ asset('storage/' . $school->logo) }}" alt="{{ $school->name }}" class="w-full h-full object-contain" onerror="this.parentElement.style.display='none'">
+                            </div>
+                        </div>
+                    @endforeach
+                    <!-- Duplicate set for seamless loop -->
+                    @foreach($schools as $school)
+                        <div class="carousel-item">
+                            <div class="w-16 h-16 bg-white rounded-xl shadow-lg flex items-center justify-center p-2 transition-transform hover:scale-110">
+                                <img src="{{ asset('storage/' . $school->logo) }}" alt="{{ $school->name }}" class="w-full h-full object-contain" onerror="this.parentElement.style.display='none'">
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
             <!-- Footer -->
             <div class="text-center mt-8">
                 <p class="text-white-pure/80 text-xs sm:text-sm">
-                    © {{ date('Y') }} {{ config('app.name', 'Trevion APP') }}. Todos los derechos reservados.
+                    © {{ date('Y') }} {{ config('app.name', 'Vaed APP') }}. Todos los derechos reservados.
                 </p>
             </div>
         </div>

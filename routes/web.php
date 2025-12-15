@@ -11,6 +11,7 @@ use App\Models\Season;
 use App\Models\Player;
 use App\Models\Section;
 use App\Models\Team;
+use App\Models\Exercise;
 
 Route::get('/', function () {
     return view('welcome');
@@ -65,6 +66,45 @@ Route::middleware([
         Route::get('/sections/{section}/edit', function (Section $section) {
             return view('sections.edit', compact('section'));
         })->name('sections.edit');
+
+        // Gestión de Tallas
+        Route::get('/sizes', function () {
+            return view('sizes.index');
+        })->name('sizes.index');
+
+        Route::get('/sizes/create', function () {
+            return view('sizes.create');
+        })->name('sizes.create');
+
+        Route::get('/sizes/{id}/edit', function ($id) {
+            return view('sizes.edit', ['id' => $id]);
+        })->name('sizes.edit');
+
+        // Gestión de Categorías de Productos
+        Route::get('/product-categories', function () {
+            return view('product-categories.index');
+        })->name('product-categories.index');
+
+        Route::get('/product-categories/create', function () {
+            return view('product-categories.create');
+        })->name('product-categories.create');
+
+        Route::get('/product-categories/{id}/edit', function ($id) {
+            return view('product-categories.edit', ['id' => $id]);
+        })->name('product-categories.edit');
+
+        // Gestión de Productos
+        Route::get('/products', function () {
+            return view('products.index');
+        })->name('products.index');
+
+        Route::get('/products/create', function () {
+            return view('products.create');
+        })->name('products.create');
+
+        Route::get('/products/{id}/edit', function ($id) {
+            return view('products.edit', ['id' => $id]);
+        })->name('products.edit');
 
         // Suplantación de identidad
         Route::post('/impersonate/{user}', [ImpersonateController::class, 'impersonate'])->name('impersonate');
@@ -160,5 +200,31 @@ Route::middleware([
         Route::get('/training-schedule/view', function () {
             return view('training-schedule.view');
         })->name('training-schedule.view');
+
+        // Gestión de Ejercicios
+        Route::get('/exercises', function () {
+            return view('exercises.index');
+        })->name('exercises.index');
+
+        Route::get('/exercises/create', function () {
+            return view('exercises.create');
+        })->name('exercises.create');
+
+        Route::get('/exercises/{exercise}/edit', function (Exercise $exercise) {
+            return view('exercises.edit', compact('exercise'));
+        })->name('exercises.edit');
+
+        // Gestión de Tipos de Ejercicios
+        Route::get('/exercise-types', function () {
+            return view('exercise-types.index');
+        })->name('exercise-types.index');
+
+        Route::get('/exercise-types/create', function () {
+            return view('exercise-types.create');
+        })->name('exercise-types.create');
+
+        Route::get('/exercise-types/{type}/edit', function (App\Models\ExerciseType $type) {
+            return view('exercise-types.edit', compact('type'));
+        })->name('exercise-types.edit');
     });
 });

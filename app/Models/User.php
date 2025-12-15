@@ -146,4 +146,13 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Team::class, 'teams_coaches')->withTimestamps();
     }
+
+    /**
+     * Ejercicios favoritos del usuario
+     */
+    public function favoriteExercises()
+    {
+        return $this->belongsToMany(Exercise::class, 'exercise_user_favorites')
+                    ->withTimestamps();
+    }
 }
