@@ -43,6 +43,9 @@ class Create extends Component
     public $customImage;
     public $customIntensity = '';
     public $customDifficulty = '';
+    
+    // Preview exercise
+    public $previewExercise = null;
 
     protected $rules = [
         'team_id' => 'required|exists:teams,id',
@@ -94,7 +97,7 @@ class Create extends Component
 
     public function addExercise($exerciseId)
     {
-        $exercise = Exercise::with('exerciseType', 'category')->find($exerciseId);
+        $exercise = Exercise::with(['exerciseType', 'category', 'images'])->find($exerciseId);
         
         if ($exercise) {
             $this->exercises[] = [
@@ -108,12 +111,24 @@ class Create extends Component
                 'intensity' => $exercise->intensity,
                 'exercise_type' => $exercise->exerciseType?->name,
                 'category' => $exercise->category?->category,
+                'image_url' => $exercise->images->isNotEmpty() ? $exercise->images->first()->file_path : null,
                 'is_custom' => false,
                 'notes' => '',
             ];
 
             $this->dispatch('exercise-added');
+            $this->previewExercise = null;
         }
+    }
+
+    public function showPreview($exerciseId)
+    {
+        $this->previewExercise = Exercise::with(['exerciseType', 'category', 'images'])->find($exerciseId);
+    }
+
+    public function closePreview()
+    {
+        $this->previewExercise = null;
     }
 
     public function addCustomExercise()
@@ -247,10 +262,14 @@ class Create extends Component
     {
         $user = auth()->user();
         
-        // Get teams where user is coach
-        $teams = Team::whereHas('coaches', function($query) use ($user) {
-            $query->where('user_id', $user->id);
-        })->orderBy('team')->get();
+        // Get teams - master sees all teams, coaches see only their teams
+        if ($user->hasRole('master')) {
+            $teams = Team::orderBy('team')->get();
+        } else {
+            $teams = Team::whereHas('coaches', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->orderBy('team')->get();
+        }
 
         // Search exercises
         $searchExercises = collect();
@@ -269,14 +288,13 @@ class Create extends Component
                 ->where('is_active', true)
                 ->where('is_public', true)
                 ->where(function($q) use ($user) {
-                    // Ejercicios de la misma escuela del usuario
-                    $q->where('sports_school_id', $user->sports_school_id)
-                      // O ejercicios creados por usuarios con rol master
-                      ->orWhereHas('user', function($userQuery) {
-                          $userQuery->whereHas('roles', function($roleQuery) {
-                              $roleQuery->where('name', 'master');
-                          });
-                      });
+                    // Ejercicios sin escuela (globales del sistema, disponibles para todas las escuelas)
+                    $q->whereNull('sports_school_id');
+                    
+                    // O ejercicios de la misma escuela del usuario (si el usuario tiene escuela)
+                    if ($user->sports_school_id) {
+                        $q->orWhere('sports_school_id', $user->sports_school_id);
+                    }
                 });
 
             // Exclude already added exercises

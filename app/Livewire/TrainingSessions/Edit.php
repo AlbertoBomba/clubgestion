@@ -66,7 +66,7 @@ class Edit extends Component
     public function mount($id)
     {
         $this->sessionId = $id;
-        $session = TrainingSession::with('sessionExercises.exercise')->findOrFail($id);
+        $session = TrainingSession::with('sessionExercises.exercise.images')->findOrFail($id);
 
         // Check if user is authorized
         if ($session->user_id !== auth()->id()) {
@@ -96,6 +96,8 @@ class Edit extends Component
                 'intensity' => $sessionExercise->exercise->intensity ?? null,
                 'exercise_type' => $sessionExercise->exercise->exerciseType?->name ?? null,
                 'category' => $sessionExercise->exercise->category?->category ?? null,
+                'image_url' => !$sessionExercise->isCustom() && $sessionExercise->exercise?->images?->isNotEmpty() ? $sessionExercise->exercise->images->first()->file_path : null,
+                'custom_image' => $sessionExercise->isCustom() ? $sessionExercise->custom_image : null,
                 'is_custom' => $sessionExercise->isCustom(),
                 'notes' => $sessionExercise->notes,
             ];
@@ -129,7 +131,7 @@ class Edit extends Component
 
     public function addExercise($exerciseId)
     {
-        $exercise = Exercise::with('exerciseType', 'category')->find($exerciseId);
+        $exercise = Exercise::with(['exerciseType', 'category', 'images'])->find($exerciseId);
         
         if ($exercise) {
             $this->exercises[] = [
@@ -143,12 +145,24 @@ class Edit extends Component
                 'intensity' => $exercise->intensity,
                 'exercise_type' => $exercise->exerciseType?->name,
                 'category' => $exercise->category?->category,
+                'image_url' => $exercise->images->isNotEmpty() ? $exercise->images->first()->file_path : null,
                 'is_custom' => false,
                 'notes' => '',
             ];
 
             $this->dispatch('exercise-added');
+            $this->previewExercise = null;
         }
+    }
+
+    public function showPreview($exerciseId)
+    {
+        $this->previewExercise = Exercise::with(['exerciseType', 'category', 'images'])->find($exerciseId);
+    }
+
+    public function closePreview()
+    {
+        $this->previewExercise = null;
     }
 
     public function addCustomExercise()
@@ -286,10 +300,14 @@ class Edit extends Component
     {
         $user = auth()->user();
         
-        // Get teams where user is coach
-        $teams = Team::whereHas('coaches', function($query) use ($user) {
-            $query->where('user_id', $user->id);
-        })->orderBy('team')->get();
+        // Get teams - master sees all teams, coaches see only their teams
+        if ($user->hasRole('master')) {
+            $teams = Team::orderBy('team')->get();
+        } else {
+            $teams = Team::whereHas('coaches', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->orderBy('team')->get();
+        }
 
         // Search exercises
         $searchExercises = collect();
@@ -308,14 +326,13 @@ class Edit extends Component
                 ->where('is_active', true)
                 ->where('is_public', true)
                 ->where(function($q) use ($user) {
-                    // Ejercicios de la misma escuela del usuario
-                    $q->where('sports_school_id', $user->sports_school_id)
-                      // O ejercicios creados por usuarios con rol master
-                      ->orWhereHas('user', function($userQuery) {
-                          $userQuery->whereHas('roles', function($roleQuery) {
-                              $roleQuery->where('name', 'master');
-                          });
-                      });
+                    // Ejercicios sin escuela (globales del sistema, disponibles para todas las escuelas)
+                    $q->whereNull('sports_school_id');
+                    
+                    // O ejercicios de la misma escuela del usuario (si el usuario tiene escuela)
+                    if ($user->sports_school_id) {
+                        $q->orWhere('sports_school_id', $user->sports_school_id);
+                    }
                 });
 
             // Exclude already added exercises

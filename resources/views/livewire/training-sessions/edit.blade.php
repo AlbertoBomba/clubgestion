@@ -100,24 +100,6 @@
                             </label>
                         </div>
 
-                        @if(count($exercises) > 0)
-                            <div class="mt-6 p-4 bg-blue-50 rounded-xl">
-                                <div class="flex items-center justify-between mb-2">
-                                    <span class="text-sm font-semibold text-blue-900">Resumen</span>
-                                </div>
-                                <div class="space-y-1 text-sm text-blue-700">
-                                    <div class="flex justify-between">
-                                        <span>Ejercicios:</span>
-                                        <span class="font-bold">{{ count($exercises) }}</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span>Duración total:</span>
-                                        <span class="font-bold">{{ $this->totalDuration }} min</span>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-
                         <button type="submit" class="w-full mt-6 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                             <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -131,6 +113,28 @@
             <!-- Right Column: Exercises -->
             <div class="lg:col-span-2">
                 <div class="card-modern bg-white-pure rounded-2xl shadow-xl border border-primary/10 p-6">
+                    <!-- Summary Section -->
+                    @if(count($exercises) > 0)
+                        <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border-2 border-blue-200">
+                            <h4 class="font-bold text-blue-900 mb-3 flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                </svg>
+                                Resumen de la sesión
+                            </h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-white rounded-lg p-3 shadow-sm">
+                                    <div class="text-xs text-gray-600 mb-1">Total ejercicios</div>
+                                    <div class="text-2xl font-bold text-blue-600">{{ count($exercises) }}</div>
+                                </div>
+                                <div class="bg-white rounded-lg p-3 shadow-sm">
+                                    <div class="text-xs text-gray-600 mb-1">Duración total</div>
+                                    <div class="text-2xl font-bold text-purple-600">{{ $this->totalDuration }} <span class="text-sm">min</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="flex items-center justify-between mb-6">
                         <h3 class="text-lg font-bold text-titanium">Ejercicios de la Sesión</h3>
                         <div class="flex gap-2">
@@ -203,19 +207,17 @@
                                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                         @foreach($searchExercises as $exercise)
                                             <div class="bg-white rounded-xl border-2 border-blue-200 hover:border-blue-400 hover:shadow-lg transition-all cursor-pointer overflow-hidden group"
-                                                 wire:click="addExercise({{ $exercise->id }})">
+                                                 wire:click="showPreview({{ $exercise->id }})">
                                                 @if($exercise->images->isNotEmpty())
                                                     <div class="relative h-64 overflow-hidden bg-white border-b border-gray-200">
                                                         <img src="{{ Storage::url($exercise->images->first()->file_path) }}" 
                                                              alt="{{ $exercise->title }}"
                                                              class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300">
                                                         <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none"></div>
-                                                        <div class="absolute bottom-2 right-2">
-                                                            <button type="button" class="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-lg">
-                                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                                                                </svg>
-                                                            </button>
+                                                        <div class="absolute top-2 left-2">
+                                                            <span class="p-2 bg-blue-600/90 text-white text-xs rounded-lg shadow-lg font-semibold">
+                                                                Click para ver
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 @else
@@ -223,12 +225,10 @@
                                                         <svg class="w-20 h-20 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                                                         </svg>
-                                                        <div class="absolute bottom-2 right-2">
-                                                            <button type="button" class="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-lg">
-                                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                                                                </svg>
-                                                            </button>
+                                                        <div class="absolute top-2 left-2">
+                                                            <span class="p-2 bg-blue-600/90 text-white text-xs rounded-lg shadow-lg font-semibold">
+                                                                Click para ver
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 @endif
@@ -352,6 +352,39 @@
                     @endif
 
                     <!-- Exercise List -->
+                    <script>
+                        if (typeof Alpine !== 'undefined') {
+                            document.addEventListener('alpine:init', () => {
+                                if (!window.sortableExercisesRegistered) {
+                                    Alpine.data('sortableExercises', () => ({
+                                        sortable: null,
+                                        initSort() {
+                                            const el = document.getElementById('exercises-list');
+                                            if (!el) return;
+                                            if (typeof Sortable === 'undefined') {
+                                                console.error('Sortable.js is not loaded');
+                                                return;
+                                            }
+                                            this.sortable = new Sortable(el, {
+                                                animation: 200,
+                                                handle: '.drag-handle',
+                                                ghostClass: 'bg-blue-100',
+                                                chosenClass: 'border-blue-500',
+                                                dragClass: 'opacity-50',
+                                                forceFallback: false,
+                                                onEnd: (evt) => {
+                                                    const items = el.querySelectorAll('.exercise-item');
+                                                    const orderedIds = Array.from(items).map(item => item.dataset.exerciseId);
+                                                    this.$wire.call('updateExerciseOrder', orderedIds);
+                                                }
+                                            });
+                                        }
+                                    }));
+                                    window.sortableExercisesRegistered = true;
+                                }
+                            });
+                        }
+                    </script>
                     <div class="space-y-3" x-data="sortableExercises()" x-init="initSort()" wire:ignore.self>
                         <div id="exercises-list" class="space-y-3">
                         @if(count($exercises) > 0)
@@ -385,7 +418,29 @@
                                             </button>
                                         </div>
 
-                                        <div class="flex-1">
+                                        <div class="flex-1 flex gap-4">
+                                            <!-- Exercise Image -->
+                                            @if($exercise['is_custom'] && isset($exercise['custom_image']))
+                                                <div class="flex-shrink-0">
+                                                    <img src="{{ Storage::url($exercise['custom_image']) }}" 
+                                                         alt="{{ $exercise['title'] }}"
+                                                         class="w-32 h-32 object-cover rounded-lg border-2 border-gray-200">
+                                                </div>
+                                            @elseif(!$exercise['is_custom'] && isset($exercise['image_url']))
+                                                <div class="flex-shrink-0">
+                                                    <img src="{{ Storage::url($exercise['image_url']) }}" 
+                                                         alt="{{ $exercise['title'] }}"
+                                                         class="w-32 h-32 object-cover rounded-lg border-2 border-gray-200">
+                                                </div>
+                                            @else
+                                                <div class="flex-shrink-0 w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg border-2 border-gray-200 flex items-center justify-center">
+                                                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                                    </svg>
+                                                </div>
+                                            @endif
+
+                                            <div class="flex-1">
                                             <div class="flex items-start justify-between">
                                                 <div class="flex-1">
                                                     <h4 class="font-bold text-titanium flex items-center gap-2">
@@ -458,11 +513,152 @@
         </div>
     </form>
 
+    <!-- Exercise Preview Modal -->
+    @if($previewExercise)
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" 
+             wire:click="closePreview"
+             style="overflow-y: auto;">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full" style="max-height: 90vh; display: flex; flex-direction: column;"
+                 @click.stop>
+                    
+                    <!-- Modal Header -->
+                    <div class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl flex-shrink-0">
+                    <h3 class="text-xl font-bold text-titanium">Vista previa del ejercicio</h3>
+                    <button type="button" 
+                            wire:click="closePreview"
+                            class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="p-6" style="overflow-y: auto; flex: 1;">
+                    <!-- Exercise Image -->
+                    @if($previewExercise->images->isNotEmpty())
+                        <div class="mb-6 rounded-xl overflow-hidden bg-white border-2 border-gray-200">
+                            <img src="{{ Storage::url($previewExercise->images->first()->file_path) }}" 
+                                 alt="{{ $previewExercise->title }}"
+                                 class="w-full max-h-96 object-contain">
+                        </div>
+                    @else
+                        <div class="mb-6 h-64 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center">
+                            <svg class="w-24 h-24 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
+                        </div>
+                    @endif
+
+                    <!-- Exercise Details -->
+                    <div class="space-y-4">
+                        <!-- Title -->
+                        <div>
+                            <h4 class="text-2xl font-bold text-titanium mb-2">{{ $previewExercise->title }}</h4>
+                        </div>
+
+                        <!-- Badges -->
+                        <div class="flex items-center gap-2 flex-wrap">
+                            @if($previewExercise->exerciseType)
+                                <span class="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
+                                    {{ $previewExercise->exerciseType->name }}
+                                </span>
+                            @endif
+                            @if($previewExercise->category)
+                                <span class="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
+                                    {{ $previewExercise->category->category }}
+                                </span>
+                            @endif
+                            @if($previewExercise->difficulty)
+                                <span class="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full text-sm font-semibold">
+                                    Dificultad: {{ $previewExercise->difficulty }}
+                                </span>
+                            @endif
+                            @if($previewExercise->intensity)
+                                <span class="px-3 py-1.5 bg-red-100 text-red-700 rounded-full text-sm font-semibold">
+                                    Intensidad: {{ $previewExercise->intensity }}
+                                </span>
+                            @endif
+                        </div>
+
+                        <!-- Description -->
+                        @if($previewExercise->description)
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <h5 class="font-semibold text-titanium mb-2">Descripción</h5>
+                                <p class="text-gray-700 whitespace-pre-line">{{ $previewExercise->description }}</p>
+                            </div>
+                        @endif
+
+                        <!-- Time and Players -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            @if($previewExercise->recommended_time)
+                                <div class="bg-blue-50 rounded-lg p-4">
+                                    <div class="flex items-center gap-2 text-blue-900">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        <span class="font-semibold">Tiempo recomendado</span>
+                                    </div>
+                                    <p class="text-2xl font-bold text-blue-900 mt-2">{{ $previewExercise->recommended_time }} min</p>
+                                </div>
+                            @endif
+
+                            @if($previewExercise->recommended_players)
+                                <div class="bg-green-50 rounded-lg p-4">
+                                    <div class="flex items-center gap-2 text-green-900">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                        </svg>
+                                        <span class="font-semibold">Jugadores recomendados</span>
+                                    </div>
+                                    <p class="text-2xl font-bold text-green-900 mt-2">{{ $previewExercise->recommended_players }}</p>
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- Objectives -->
+                        @if($previewExercise->objectives)
+                            <div class="bg-yellow-50 rounded-lg p-4">
+                                <h5 class="font-semibold text-yellow-900 mb-2">Objetivos</h5>
+                                <p class="text-yellow-900 whitespace-pre-line">{{ $previewExercise->objectives }}</p>
+                            </div>
+                        @endif
+
+                        <!-- Notes -->
+                        @if($previewExercise->notes)
+                            <div class="bg-purple-50 rounded-lg p-4">
+                                <h5 class="font-semibold text-purple-900 mb-2">Notas adicionales</h5>
+                                <p class="text-purple-900 whitespace-pre-line">{{ $previewExercise->notes }}</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="flex-shrink-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-end gap-3 rounded-b-2xl">
+                    <button type="button"
+                            wire:click="closePreview"
+                            class="px-6 py-2.5 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors">
+                        Cerrar
+                    </button>
+                    <button type="button"
+                            wire:click="addExercise({{ $previewExercise->id }})"
+                            class="px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Añadir ejercicio
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
     @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script>
-        function sortableExercises() {
-            return {
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('sortableExercises', () => ({
                 sortable: null,
                 initSort() {
                     const el = document.getElementById('exercises-list');
@@ -482,8 +678,8 @@
                         }
                     });
                 }
-            }
-        }
+            }));
+        });
     </script>
     @endpush
 </div>

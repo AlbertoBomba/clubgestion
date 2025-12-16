@@ -78,16 +78,24 @@ class Index extends Component
     {
         $user = auth()->user();
         
-        // Get teams where user is coach
-        $teams = Team::whereHas('coaches', function($query) use ($user) {
-            $query->where('user_id', $user->id);
-        })->orderBy('team')->get();
+        // Get teams - master sees all teams, coaches see only their teams
+        if ($user->hasRole('master')) {
+            $teams = Team::orderBy('team')->get();
+        } else {
+            $teams = Team::whereHas('coaches', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->orderBy('team')->get();
+        }
 
         $query = TrainingSession::query()
-            ->with(['team', 'sessionExercises.exercise.images'])
-            ->whereHas('team.coaches', function($query) use ($user) {
-                $query->where('user_id', $user->id);
+            ->with(['team', 'sessionExercises.exercise.images']);
+        
+        // Filter by teams based on user role
+        if (!$user->hasRole('master')) {
+            $query->whereHas('team.coaches', function($q) use ($user) {
+                $q->where('user_id', $user->id);
             });
+        }
 
         if ($this->search) {
             $query->where(function($q) {

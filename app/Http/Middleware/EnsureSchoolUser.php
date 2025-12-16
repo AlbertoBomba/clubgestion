@@ -15,8 +15,8 @@ class EnsureSchoolUser
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Permitir acceso solo si el usuario tiene una escuela asignada
-        if (!auth()->check() || !auth()->user()->sportsSchool) {
+        // Master siempre tiene acceso, otros usuarios necesitan tener escuela asignada
+        if (!auth()->check() || (!auth()->user()->hasRole('master') && !auth()->user()->sportsSchool)) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
