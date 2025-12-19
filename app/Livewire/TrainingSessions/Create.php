@@ -26,7 +26,8 @@ class Create extends Component
 
     // Exercise management
     public $exercises = [];
-    public $showExerciseSearch = false;
+    public $showExerciseModal = false;
+    public $modalStep = 'choose'; // 'choose', 'search', 'custom', 'preview'
     public $exerciseSearch = '';
     public $selectedExerciseType = '';
     public $selectedCategory = '';
@@ -34,7 +35,6 @@ class Create extends Component
     public $favoritesOnly = false;
     
     // Custom exercise form
-    public $showCustomForm = false;
     public $customTitle = '';
     public $customDescription = '';
     public $customDuration = '';
@@ -69,20 +69,54 @@ class Create extends Component
         $this->start_time = '17:00';
     }
 
-    public function toggleExerciseSearch()
+    public function openExerciseModal()
     {
-        $this->showExerciseSearch = !$this->showExerciseSearch;
-        $this->showCustomForm = false;
+        $this->showExerciseModal = true;
+        $this->modalStep = 'choose';
+        $this->resetModalData();
     }
 
-    public function toggleCustomForm()
+    public function closeExerciseModal()
     {
-        $this->showCustomForm = !$this->showCustomForm;
-        $this->showExerciseSearch = false;
+        $this->showExerciseModal = false;
+        $this->modalStep = 'choose';
+        $this->resetModalData();
+    }
+
+    public function selectSearchOption()
+    {
+        $this->modalStep = 'search';
+    }
+
+    public function selectCustomOption()
+    {
+        $this->modalStep = 'custom';
+    }
+
+    public function backToChoose()
+    {
+        $this->modalStep = 'choose';
+        $this->previewExercise = null;
+        $this->resetSearchFilters();
+    }
+
+    private function resetModalData()
+    {
+        $this->previewExercise = null;
+        $this->resetSearchFilters();
         $this->resetCustomForm();
     }
 
-    public function resetCustomForm()
+    private function resetSearchFilters()
+    {
+        $this->exerciseSearch = '';
+        $this->selectedExerciseType = '';
+        $this->selectedCategory = '';
+        $this->selectedDifficulty = '';
+        $this->favoritesOnly = false;
+    }
+
+    private function resetCustomForm()
     {
         $this->customTitle = '';
         $this->customDescription = '';
@@ -94,9 +128,26 @@ class Create extends Component
         $this->customDifficulty = '';
     }
 
-    public function addExercise($exerciseId)
+    public function showPreview($exerciseId)
     {
-        $exercise = Exercise::with(['exerciseType', 'category', 'images'])->find($exerciseId);
+        $this->modalStep = 'preview';
+        try {
+            $this->previewExercise = Exercise::with(['exerciseType', 'category', 'images', 'media'])->find($exerciseId);
+            
+            if (!$this->previewExercise) {
+                session()->flash('error', 'Ejercicio no encontrado.');
+                return;
+            }
+            
+            $this->dispatch('preview-opened');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error al cargar el ejercicio: ' . $e->getMessage());
+        }
+    }
+
+    public function addExercise($exerciseId = null)
+    {
+        $exercise = $exerciseId ? Exercise::with(['exerciseType', 'category', 'images'])->find($exerciseId) : null;
         
         if ($exercise) {
             $this->exercises[] = [
@@ -116,30 +167,14 @@ class Create extends Component
             ];
 
             $this->dispatch('exercise-added');
-            $this->previewExercise = null;
-        }
-    }
-
-    public function showPreview($exerciseId)
-    {
-        try {
-            $this->previewExercise = Exercise::with(['exerciseType', 'category', 'images', 'media'])->find($exerciseId);
-            
-            if (!$this->previewExercise) {
-                session()->flash('error', 'Ejercicio no encontrado.');
-                return;
-            }
-            
-            $this->dispatch('preview-opened');
-        } catch (\Exception $e) {
-            session()->flash('error', 'Error al cargar el ejercicio: ' . $e->getMessage());
-            \Log::error('Error in showPreview: ' . $e->getMessage());
+            $this->closeExerciseModal();
         }
     }
 
     public function closePreview()
     {
         $this->previewExercise = null;
+        $this->modalStep = 'search';
     }
 
     public function addCustomExercise()
@@ -173,7 +208,7 @@ class Create extends Component
         ];
 
         $this->resetCustomForm();
-        $this->showCustomForm = false;
+        $this->closeExerciseModal();
         $this->dispatch('exercise-added');
     }
 
@@ -303,9 +338,8 @@ class Create extends Component
         // Search exercises
         $searchExercises = collect();
         $hasFilters = $this->selectedExerciseType || $this->selectedCategory || $this->selectedDifficulty || $this->favoritesOnly;
-        $hasSearchText = strlen($this->exerciseSearch) >= 2;
         
-        if ($this->showExerciseSearch && ($hasSearchText || $hasFilters)) {
+        if ($this->showExerciseModal && $this->modalStep === 'search' && $hasFilters) {
             // Get IDs of exercises already added (excluding custom exercises)
             $addedExerciseIds = collect($this->exercises)
                 ->whereNotNull('exercise_id')
@@ -329,13 +363,6 @@ class Create extends Component
             // Exclude already added exercises
             if (!empty($addedExerciseIds)) {
                 $query->whereNotIn('id', $addedExerciseIds);
-            }
-
-            if ($this->exerciseSearch) {
-                $query->where(function($q) {
-                    $q->where('title', 'like', '%' . $this->exerciseSearch . '%')
-                      ->orWhere('description', 'like', '%' . $this->exerciseSearch . '%');
-                });
             }
 
             if ($this->selectedExerciseType) {
