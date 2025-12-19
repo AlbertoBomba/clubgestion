@@ -129,16 +129,20 @@ class Index extends Component
         if ($user->hasRole('master')) {
             // Master can see all exercises
         } elseif ($user->hasRole('school_admin')) {
-            // School admin can see exercises from their school
-            $query->where('sports_school_id', $user->sports_school_id);
+            // School admin can see exercises from their school and exercises without school
+            $query->where(function ($q) use ($user) {
+                $q->where('sports_school_id', $user->sports_school_id)
+                  ->orWhereNull('sports_school_id');
+            });
         } elseif ($user->hasRole('coach')) {
-            // Coach can see their own exercises and public exercises from their school
+            // Coach can see their own exercises, public exercises from their school, and exercises without school
             $query->where(function ($q) use ($user) {
                 $q->where('user_id', $user->id)
                   ->orWhere(function ($q2) use ($user) {
                       $q2->where('sports_school_id', $user->sports_school_id)
                          ->where('is_public', true);
-                  });
+                  })
+                  ->orWhereNull('sports_school_id');
             });
         }
 

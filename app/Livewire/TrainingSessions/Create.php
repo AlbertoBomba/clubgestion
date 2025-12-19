@@ -49,7 +49,7 @@ class Create extends Component
 
     protected $rules = [
         'team_id' => 'required|exists:teams,id',
-        'title' => 'required|string|max:255',
+        'title' => 'nullable|string|max:255',
         'description' => 'nullable|string',
         'session_date' => 'required|date',
         'start_time' => 'nullable',
@@ -60,7 +60,6 @@ class Create extends Component
 
     protected $messages = [
         'team_id.required' => 'Debe seleccionar un equipo.',
-        'title.required' => 'El título es obligatorio.',
         'session_date.required' => 'La fecha de la sesión es obligatoria.',
     ];
 
@@ -123,7 +122,19 @@ class Create extends Component
 
     public function showPreview($exerciseId)
     {
-        $this->previewExercise = Exercise::with(['exerciseType', 'category', 'images'])->find($exerciseId);
+        try {
+            $this->previewExercise = Exercise::with(['exerciseType', 'category', 'images', 'media'])->find($exerciseId);
+            
+            if (!$this->previewExercise) {
+                session()->flash('error', 'Ejercicio no encontrado.');
+                return;
+            }
+            
+            $this->dispatch('preview-opened');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error al cargar el ejercicio: ' . $e->getMessage());
+            \Log::error('Error in showPreview: ' . $e->getMessage());
+        }
     }
 
     public function closePreview()
@@ -262,13 +273,31 @@ class Create extends Component
     {
         $user = auth()->user();
         
-        // Get teams - master sees all teams, coaches see only their teams
+        // Get teams - master sees all teams, school_admin sees school teams from active season, coaches see only their teams from active season
         if ($user->hasRole('master')) {
             $teams = Team::orderBy('team')->get();
+        } elseif ($user->hasRole('school_admin')) {
+            // Get teams from active season of the school using join
+            $teams = Team::join('seasons', 'teams.season_id', '=', 'seasons.id')
+                ->where('seasons.sports_school_id', $user->sports_school_id)
+                ->where('seasons.start_date', '<=', now())
+                ->where('seasons.end_date', '>=', now())
+                ->whereNull('seasons.deleted_at')
+                ->select('teams.*')
+                ->orderBy('teams.team')
+                ->get();
         } else {
-            $teams = Team::whereHas('coaches', function($query) use ($user) {
-                $query->where('user_id', $user->id);
-            })->orderBy('team')->get();
+            // Get teams from active season for coaches
+            $teams = Team::join('seasons', 'teams.season_id', '=', 'seasons.id')
+                ->where('seasons.start_date', '<=', now())
+                ->where('seasons.end_date', '>=', now())
+                ->whereNull('seasons.deleted_at')
+                ->whereHas('coaches', function($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                })
+                ->select('teams.*')
+                ->orderBy('teams.team')
+                ->get();
         }
 
         // Search exercises

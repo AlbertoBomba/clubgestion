@@ -2,25 +2,31 @@
     showExerciseDetails: false,
     selectedExercise: null
 }">
-    <div class="sticky top-16 z-10 bg-white-pure flex items-center justify-between p-6 border-b border-gray-100 rounded-t-2xl shadow-xl border border-primary/10 mb-6">
+    <div class="sticky top-16 z-10 bg-white-pure flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 border-b border-gray-100 rounded-t-2xl shadow-xl border border-primary/10 mb-4 sm:mb-6 gap-3 sm:gap-0">
         <div>
-            <h2 class="font-bold text-2xl text-titanium leading-tight">Nueva Sesión de Entrenamiento</h2>
-            <p class="text-sm text-gray-600 mt-1">Prepara tu sesión agregando ejercicios y organizándolos</p>
+            <h2 class="font-bold text-xl sm:text-2xl text-titanium leading-tight">Nueva Sesión de Entrenamiento</h2>
+            {{-- <p class="text-xs sm:text-sm text-gray-600 mt-1">Prepara tu sesión agregando ejercicios y organizándolos</p> --}}
         </div>
-        <a href="{{ route('training-sessions.index') }}" class="inline-flex items-center px-4 py-2 rounded-xl text-gray-700 font-semibold text-sm border-2 border-gray-300 hover:border-gray-400 transition-all duration-300">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button type="submit" class="w-full mt-6 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Guardar Sesión
+        </button>
+        {{-- <a href="{{ route('training-sessions.index') }}" class="inline-flex items-center px-3 sm:px-4 py-2 rounded-xl text-gray-700 font-semibold text-xs sm:text-sm border-2 border-gray-300 hover:border-gray-400 transition-all duration-300 w-full sm:w-auto justify-center">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
             </svg>
             Volver
-        </a>
+        </a> --}}
     </div>
 
     <form wire:submit.prevent="save">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             <!-- Left Column: Session Info -->
             <div class="lg:col-span-1">
-                <div class="card-modern bg-white-pure rounded-2xl shadow-xl border border-primary/10 p-6 sticky top-32">
-                    <h3 class="text-lg font-bold text-titanium mb-4">Información de la Sesión</h3>
+                <div class="card-modern bg-white-pure rounded-2xl shadow-xl border border-primary/10 p-4 sm:p-6 lg:sticky lg:top-32">
+                    <h3 class="text-base sm:text-lg font-bold text-titanium mb-3 sm:mb-4">Información de la Sesión</h3>
                     
                     <div class="space-y-4">
                         <div>
@@ -47,30 +53,30 @@
                                 class="w-full px-4 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"></textarea>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-sm font-semibold text-titanium mb-2">Fecha *</label>
+                                <label class="block text-xs sm:text-sm font-semibold text-titanium mb-2">Fecha *</label>
                                 <input type="date" wire:model="session_date"
                                     class="w-full px-4 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
                                 @error('session_date') <span class="text-xs text-red-500 mt-1">{{ $message }}</span> @enderror
                             </div>
 
                             <div>
-                                <label class="block text-sm font-semibold text-titanium mb-2">Hora</label>
+                                <label class="block text-xs sm:text-sm font-semibold text-titanium mb-2">Hora</label>
                                 <input type="time" wire:model="start_time"
                                     class="w-full px-4 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-sm font-semibold text-titanium mb-2">Duración (min)</label>
+                                <label class="block text-xs sm:text-sm font-semibold text-titanium mb-2">Duración (min)</label>
                                 <input type="number" wire:model="duration_minutes" placeholder="90"
                                     class="w-full px-4 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
                             </div>
 
                             <div>
-                                <label class="block text-sm font-semibold text-titanium mb-2">Día</label>
+                                <label class="block text-xs sm:text-sm font-semibold text-titanium mb-2">Día</label>
                                 <select wire:model="day_of_week" class="w-full px-4 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
                                     <option value="">Seleccionar</option>
                                     <option value="Lunes">Lunes</option>
@@ -108,55 +114,50 @@
                             </div>
                         @endif
 
-                        <button type="submit" class="w-full mt-6 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                            <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                            Guardar Sesión
-                        </button>
+                        
                     </div>
                 </div>
             </div>
 
             <!-- Right Column: Exercises -->
             <div class="lg:col-span-2">
-                <div class="card-modern bg-white-pure rounded-2xl shadow-xl border border-primary/10 p-6">
+                <div class="card-modern bg-white-pure rounded-2xl shadow-xl border border-primary/10 p-4 sm:p-6">
                     <!-- Summary Section -->
                     @if(count($exercises) > 0)
-                        <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border-2 border-blue-200">
-                            <h4 class="font-bold text-blue-900 mb-3 flex items-center gap-2">
+                        <div class="mb-4 sm:mb-6 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border-2 border-blue-200">
+                            <h4 class="text-sm sm:text-base font-bold text-blue-900 mb-3 flex items-center gap-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                                 </svg>
                                 Resumen de la sesión
                             </h4>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="bg-white rounded-lg p-3 shadow-sm">
+                            <div class="grid grid-cols-2 gap-2 sm:gap-4">
+                                <div class="bg-white rounded-lg p-2 sm:p-3 shadow-sm">
                                     <div class="text-xs text-gray-600 mb-1">Total ejercicios</div>
-                                    <div class="text-2xl font-bold text-blue-600">{{ count($exercises) }}</div>
+                                    <div class="text-xl sm:text-2xl font-bold text-blue-600">{{ count($exercises) }}</div>
                                 </div>
-                                <div class="bg-white rounded-lg p-3 shadow-sm">
+                                <div class="bg-white rounded-lg p-2 sm:p-3 shadow-sm">
                                     <div class="text-xs text-gray-600 mb-1">Duración total</div>
-                                    <div class="text-2xl font-bold text-purple-600">{{ $this->totalDuration }} <span class="text-sm">min</span></div>
+                                    <div class="text-xl sm:text-2xl font-bold text-purple-600">{{ $this->totalDuration }} <span class="text-xs sm:text-sm">min</span></div>
                                 </div>
                             </div>
                         </div>
                     @endif
 
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-lg font-bold text-titanium">Ejercicios de la Sesión</h3>
-                        <div class="flex gap-2">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3">
+                        <h3 class="text-base sm:text-lg font-bold text-titanium">Ejercicios de la Sesión</h3>
+                        <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                             <button type="button" wire:click="toggleExerciseSearch" 
-                                    class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300 {{ $showExerciseSearch ? 'bg-gray-500 hover:bg-gray-600' : 'bg-blue-600 hover:bg-blue-700' }}">
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    class="inline-flex items-center justify-center px-3 sm:px-4 py-2 rounded-xl text-white font-semibold text-xs sm:text-sm shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300 w-full sm:w-auto {{ $showExerciseSearch ? 'bg-gray-500 hover:bg-gray-600' : 'bg-blue-600 hover:bg-blue-700' }}">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                                 </svg>
                                 {{ $showExerciseSearch ? 'Cerrar' : 'Buscar Ejercicio' }}
                             </button>
                             
                             <button type="button" wire:click="toggleCustomForm" 
-                                    class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300 {{ $showCustomForm ? 'bg-gray-500 hover:bg-gray-600' : 'bg-green-600 hover:bg-green-700' }}">
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    class="inline-flex items-center justify-center px-3 sm:px-4 py-2 rounded-xl text-white font-semibold text-xs sm:text-sm shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300 w-full sm:w-auto {{ $showCustomForm ? 'bg-gray-500 hover:bg-gray-600' : 'bg-green-600 hover:bg-green-700' }}">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                                 </svg>
                                 {{ $showCustomForm ? 'Cancelar' : 'Ejercicio Libre' }}
@@ -166,10 +167,10 @@
 
                     <!-- Exercise Search -->
                     @if($showExerciseSearch)
-                        <div class="mb-6 p-4 bg-blue-50 rounded-xl border-2 border-blue-200">
-                            <h4 class="font-bold text-blue-900 mb-4">Buscar en tu biblioteca de ejercicios</h4>
+                        <div class="mb-4 sm:mb-6 p-3 sm:p-4 bg-blue-50 rounded-xl border-2 border-blue-200">
+                            <h4 class="text-sm sm:text-base font-bold text-blue-900 mb-3 sm:mb-4">Buscar en tu biblioteca de ejercicios</h4>
                             
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-3">
                                 <input type="text" wire:model.live.debounce.300ms="exerciseSearch" 
                                        placeholder="Buscar por nombre..."
                                        class="px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
@@ -212,12 +213,12 @@
 
                             <div class="max-h-96 overflow-y-auto">
                                 @if($searchExercises->count() > 0)
-                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                                         @foreach($searchExercises as $exercise)
                                             <div class="bg-white rounded-xl border-2 border-blue-200 hover:border-blue-400 hover:shadow-lg transition-all cursor-pointer overflow-hidden group"
                                                  wire:click="showPreview({{ $exercise->id }})">
                                                 @if($exercise->images->isNotEmpty())
-                                                    <div class="relative h-64 overflow-hidden bg-white border-b border-gray-200">
+                                                    <div class="relative h-48 sm:h-64 overflow-hidden bg-white border-b border-gray-200">
                                                         <img src="{{ Storage::url($exercise->images->first()->file_path) }}" 
                                                              alt="{{ $exercise->title }}"
                                                              class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300">
@@ -229,7 +230,7 @@
                                                         </div>
                                                     </div>
                                                 @else
-                                                    <div class="relative h-64 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+                                                    <div class="relative h-48 sm:h-64 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
                                                         <svg class="w-20 h-20 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                                                         </svg>
@@ -240,8 +241,8 @@
                                                         </div>
                                                     </div>
                                                 @endif
-                                                <div class="p-4">
-                                                    <h5 class="font-bold text-base text-titanium mb-2 line-clamp-2">{{ $exercise->title }}</h5>
+                                                <div class="p-3 sm:p-4">
+                                                    <h5 class="font-bold text-sm sm:text-base text-titanium mb-2 line-clamp-2">{{ $exercise->title }}</h5>
                                                     <div class="flex items-center gap-2 flex-wrap text-xs">
                                                         @if($exercise->exerciseType)
                                                             <span class="px-2 py-1 bg-purple-100 text-purple-700 rounded-full font-semibold">{{ $exercise->exerciseType->name }}</span>
@@ -280,8 +281,8 @@
 
                     <!-- Custom Exercise Form -->
                     @if($showCustomForm)
-                        <div class="mb-6 p-4 bg-green-50 rounded-xl border-2 border-green-200">
-                            <h4 class="font-bold text-green-900 mb-4">Crear ejercicio libre</h4>
+                        <div class="mb-4 sm:mb-6 p-3 sm:p-4 bg-green-50 rounded-xl border-2 border-green-200">
+                            <h4 class="text-sm sm:text-base font-bold text-green-900 mb-3 sm:mb-4">Crear ejercicio libre</h4>
                             
                             <div class="space-y-3">
                                 <div>
@@ -309,9 +310,9 @@
                                     @endif
                                 </div>
 
-                                <div class="grid grid-cols-2 gap-3">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
-                                        <label class="block text-sm font-semibold text-green-900 mb-1">Intensidad</label>
+                                        <label class="block text-xs sm:text-sm font-semibold text-green-900 mb-1">Intensidad</label>
                                         <select wire:model="customIntensity" class="w-full px-4 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm">
                                             <option value="">Seleccionar...</option>
                                             <option value="Baja">Baja</option>
@@ -321,7 +322,7 @@
                                     </div>
 
                                     <div>
-                                        <label class="block text-sm font-semibold text-green-900 mb-1">Dificultad</label>
+                                        <label class="block text-xs sm:text-sm font-semibold text-green-900 mb-1">Dificultad</label>
                                         <select wire:model="customDifficulty" class="w-full px-4 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm">
                                             <option value="">Seleccionar...</option>
                                             <option value="Baja">Baja</option>
@@ -331,15 +332,15 @@
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-2 gap-3">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
-                                        <label class="block text-sm font-semibold text-green-900 mb-1">Duración (min)</label>
+                                        <label class="block text-xs sm:text-sm font-semibold text-green-900 mb-1">Duración (min)</label>
                                         <input type="number" wire:model="customDuration" placeholder="15"
                                             class="w-full px-4 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm">
                                     </div>
 
                                     <div>
-                                        <label class="block text-sm font-semibold text-green-900 mb-1">N° Jugadores</label>
+                                        <label class="block text-xs sm:text-sm font-semibold text-green-900 mb-1">N° Jugadores</label>
                                         <input type="number" wire:model="customPlayers" placeholder="10"
                                             class="w-full px-4 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm">
                                     </div>
@@ -397,19 +398,23 @@
                         <div id="exercises-list" class="space-y-3">
                         @if(count($exercises) > 0)
                             @foreach($exercises as $index => $exercise)
-                                <div class="exercise-item bg-gradient-to-r from-gray-50 to-white p-4 rounded-xl border-2 border-gray-200 hover:border-blue-300 transition-all" 
+                                <div class="exercise-item bg-gradient-to-r from-gray-50 to-white p-3 sm:p-4 rounded-xl border-2 border-gray-200 hover:border-blue-300 transition-all" 
                                      data-exercise-id="{{ $exercise['id'] }}"
                                      wire:key="exercise-{{ $exercise['id'] }}">
-                                    <div class="flex items-start gap-3">
-                                        <div class="flex flex-col gap-1 items-center">
-                                            <div class="drag-handle flex items-center justify-center w-8 h-8 bg-blue-600 text-white font-bold rounded-lg text-sm cursor-grab hover:bg-blue-700 active:cursor-grabbing" title="Arrastra para reordenar">
+                                    <div class="flex flex-col sm:flex-row items-start gap-3">
+                                        <div class="flex sm:flex-col gap-2 sm:gap-1 items-center w-full sm:w-auto justify-between sm:justify-start">
+                                            <div class="flex items-center gap-2">
+                                                <div class="drag-handle flex items-center justify-center w-8 h-8 bg-blue-600 text-white font-bold rounded-lg text-sm cursor-grab hover:bg-blue-700 active:cursor-grabbing" title="Arrastra para reordenar">
                                                 <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
                                                 </svg>
                                             </div>
-                                            <span class="text-xs font-bold text-gray-500">{{ $index + 1 }}</span>
+                                                <span class="text-xs font-bold text-gray-500 sm:hidden">{{ $index + 1 }}</span>
+                                            </div>
+                                            <span class="text-xs font-bold text-gray-500 hidden sm:block">{{ $index + 1 }}</span>
                                             
-                                            <button type="button" wire:click="moveUp({{ $index }})" 
+                                            <div class="flex sm:flex-col gap-1">
+                                                <button type="button" wire:click="moveUp({{ $index }})" 
                                                     class="p-1 text-gray-500 hover:text-blue-600 {{ $index === 0 ? 'opacity-30 cursor-not-allowed' : '' }}"
                                                     {{ $index === 0 ? 'disabled' : '' }}>
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -424,34 +429,35 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                                 </svg>
                                             </button>
+                                            </div>
                                         </div>
 
-                                        <div class="flex-1 flex gap-4">
+                                        <div class="flex-1 flex flex-col sm:flex-row gap-3 sm:gap-4 w-full">
                                             <!-- Exercise Image -->
                                             @if($exercise['is_custom'] && isset($exercise['custom_image']))
-                                                <div class="flex-shrink-0">
+                                                <div class="flex-shrink-0 mx-auto sm:mx-0">
                                                     <img src="{{ Storage::url($exercise['custom_image']) }}" 
                                                          alt="{{ $exercise['title'] }}"
-                                                         class="w-32 h-32 object-cover rounded-lg border-2 border-gray-200">
+                                                         class="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-lg border-2 border-gray-200">
                                                 </div>
                                             @elseif(!$exercise['is_custom'] && isset($exercise['image_url']))
-                                                <div class="flex-shrink-0">
+                                                <div class="flex-shrink-0 mx-auto sm:mx-0">
                                                     <img src="{{ Storage::url($exercise['image_url']) }}" 
                                                          alt="{{ $exercise['title'] }}"
-                                                         class="w-32 h-32 object-cover rounded-lg border-2 border-gray-200">
+                                                         class="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-lg border-2 border-gray-200">
                                                 </div>
                                             @else
-                                                <div class="flex-shrink-0 w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg border-2 border-gray-200 flex items-center justify-center">
-                                                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <div class="flex-shrink-0 w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg border-2 border-gray-200 flex items-center justify-center mx-auto sm:mx-0">
+                                                    <svg class="w-8 h-8 sm:w-12 sm:h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                                                     </svg>
                                                 </div>
                                             @endif
 
                                             <div class="flex-1">
-                                            <div class="flex items-start justify-between">
-                                                <div class="flex-1">
-                                                    <h4 class="font-bold text-titanium flex items-center gap-2">
+                                            <div class="flex flex-col sm:flex-row items-start justify-between gap-3">
+                                                <div class="flex-1 w-full">
+                                                    <h4 class="font-bold text-sm sm:text-base text-titanium flex flex-wrap items-center gap-2">
                                                         {{ $exercise['title'] }}
                                                         @if($exercise['is_custom'])
                                                             <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">Libre</span>
@@ -474,7 +480,7 @@
                                                         @endif
                                                     </div>
 
-                                                    <div class="grid grid-cols-2 gap-2 mt-3">
+                                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
                                                         <div>
                                                             <label class="block text-xs font-semibold text-gray-700 mb-1">Duración (min)</label>
                                                             <input type="number" 
@@ -495,7 +501,7 @@
                                                 </div>
 
                                                 <button type="button" wire:click="removeExercise({{ $index }})" 
-                                                        class="ml-3 p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                                                        class="sm:ml-3 p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors self-start">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                                     </svg>
