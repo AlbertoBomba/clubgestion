@@ -394,7 +394,7 @@
                                      wire:key="exercise-{{ $exercise['id'] }}">
                                     <div class="flex items-start gap-3">
                                         <div class="flex flex-col gap-1 items-center">
-                                            <div class="drag-handle flex items-center justify-center w-8 h-8 bg-blue-600 text-white font-bold rounded-lg text-sm cursor-grab hover:bg-blue-700 active:cursor-grabbing" title="Arrastra para reordenar">
+                                            <div class="drag-handle hidden sm:flex items-center justify-center w-8 h-8 bg-blue-600 text-white font-bold rounded-lg text-sm cursor-grab hover:bg-blue-700 active:cursor-grabbing" title="Arrastra para reordenar">
                                                 <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
                                                 </svg>
@@ -402,17 +402,17 @@
                                             <span class="text-xs font-bold text-gray-500">{{ $index + 1 }}</span>
                                             
                                             <button type="button" wire:click="moveUp({{ $index }})" 
-                                                    class="p-1 text-gray-500 hover:text-blue-600 {{ $index === 0 ? 'opacity-30 cursor-not-allowed' : '' }}"
+                                                    class="flex items-center justify-center w-9 h-9 bg-blue-600 sm:bg-transparent text-white sm:text-gray-500 hover:text-blue-600 rounded-lg sm:rounded-none sm:w-auto sm:h-auto sm:p-1 {{ $index === 0 ? 'opacity-30 cursor-not-allowed' : '' }}"
                                                     {{ $index === 0 ? 'disabled' : '' }}>
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <svg class="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
                                                 </svg>
                                             </button>
                                             
                                             <button type="button" wire:click="moveDown({{ $index }})" 
-                                                    class="p-1 text-gray-500 hover:text-blue-600 {{ $index === count($exercises) - 1 ? 'opacity-30 cursor-not-allowed' : '' }}"
+                                                    class="flex items-center justify-center w-9 h-9 bg-blue-600 sm:bg-transparent text-white sm:text-gray-500 hover:text-blue-600 rounded-lg sm:rounded-none sm:w-auto sm:h-auto sm:p-1 {{ $index === count($exercises) - 1 ? 'opacity-30 cursor-not-allowed' : '' }}"
                                                     {{ $index === count($exercises) - 1 ? 'disabled' : '' }}>
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <svg class="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                                 </svg>
                                             </button>
@@ -443,28 +443,27 @@
                                             <div class="flex-1">
                                             <div class="flex items-start justify-between">
                                                 <div class="flex-1">
-                                                    <h4 class="font-bold text-titanium flex items-center gap-2">
-                                                        {{ $exercise['title'] }}
+                                                    <div class="flex flex-wrap items-center gap-2 mb-1">
+                                                        <h4 class="font-bold text-titanium">
+                                                            {{ $exercise['title'] }}
+                                                        </h4>
                                                         @if($exercise['is_custom'])
                                                             <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">Libre</span>
                                                         @endif
-                                                    </h4>
+                                                        @if(isset($exercise['exercise_type']) && $exercise['exercise_type'])
+                                                            <span class="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs">{{ $exercise['exercise_type'] }}</span>
+                                                        @endif
+                                                        @if(isset($exercise['category']) && $exercise['category'])
+                                                            <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">{{ $exercise['category'] }}</span>
+                                                        @endif
+                                                        @if(isset($exercise['difficulty']) && $exercise['difficulty'])
+                                                            <span class="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs">{{ $exercise['difficulty'] }}</span>
+                                                        @endif
+                                                    </div>
                                                     
                                                     @if($exercise['description'])
                                                         <p class="text-sm text-gray-600 mt-1 line-clamp-2">{{ $exercise['description'] }}</p>
                                                     @endif
-
-                                                    <div class="flex items-center gap-2 mt-2 text-xs">
-                                                        @if(isset($exercise['exercise_type']) && $exercise['exercise_type'])
-                                                            <span class="px-2 py-1 bg-purple-100 text-purple-700 rounded">{{ $exercise['exercise_type'] }}</span>
-                                                        @endif
-                                                        @if(isset($exercise['category']) && $exercise['category'])
-                                                            <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded">{{ $exercise['category'] }}</span>
-                                                        @endif
-                                                        @if(isset($exercise['difficulty']) && $exercise['difficulty'])
-                                                            <span class="px-2 py-1 bg-orange-100 text-orange-700 rounded">{{ $exercise['difficulty'] }}</span>
-                                                        @endif
-                                                    </div>
 
                                                     <div class="grid grid-cols-2 gap-2 mt-3">
                                                         <div>
@@ -472,7 +471,7 @@
                                                             <input type="number" 
                                                                    wire:change="updateExerciseDuration({{ $index }}, $event.target.value)"
                                                                    value="{{ $exercise['duration_minutes'] }}"
-                                                                   class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                                                                   class="w-16 px-2 py-1 border border-gray-300 rounded text-sm text-center">
                                                         </div>
 
                                                         <div>
