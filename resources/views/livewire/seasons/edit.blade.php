@@ -1,10 +1,10 @@
 <div class="space-y-6 bg-white-pure rounded-2xl shadow-xl border border-primary/10 overflow-hidden p-3 sm:p-6">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-gray-100 pb-4">
         <div class="flex items-center gap-2 overflow-hidden">
-            <a href="{{ route('seasons.index') }}" class="font-bold text-lg sm:text-2xl text-primary hover:text-night-blue transition-colors leading-tight whitespace-nowrap">
+            {{-- <a href="{{ route('seasons.index') }}" class="font-bold text-lg sm:text-2xl text-primary hover:text-night-blue transition-colors leading-tight whitespace-nowrap">
                 {{ __('Temporadas') }}
-            </a>
-            <span class="text-lg sm:text-2xl text-gray-400 font-bold">/</span>
+            </a> --}}
+            {{-- <span class="text-lg sm:text-2xl text-gray-400 font-bold">/</span> --}}
             <h2 class="font-bold text-lg sm:text-2xl text-titanium leading-tight truncate">
                 <span class="hidden sm:inline">Actualizar </span>{{ $season }}
             </h2>
@@ -15,7 +15,7 @@
                 <svg class="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
-                <span class="hidden sm:inline">{{ $isActive ? 'Cancelar' : 'Volver' }}</span>
+                <span class="hidden sm:inline">{{ $isActive ? 'Salir sin guardar' : 'Volver' }}</span>
             </a>
             @if($isActive)
                 @php
@@ -40,7 +40,7 @@
                             <span class="hidden sm:inline">Eliminar</span>
                         </button>
                         <div class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                            No se puede eliminar: tiene 
+                            No se puedeeliminar: tiene 
                             @if($seasonModel->players_count > 0) {{ $seasonModel->players_count }} jugador(es) @endif
                             @if($seasonModel->teams_count > 0)@if($seasonModel->players_count > 0), @endif{{ $seasonModel->teams_count }} equipo(s) @endif
                             @if($seasonModel->sections_count > 0)@if($seasonModel->players_count > 0 || $seasonModel->teams_count > 0), @endif{{ $seasonModel->sections_count }} sección(es) @endif
@@ -103,7 +103,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Columna Izquierda: Datos de la Temporada -->
             <div class="lg:col-span-1">
-                <div class="card-modern bg-white-pure rounded-2xl shadow-xl border border-primary/10 overflow-hidden p-6">
+                <div class=" bg-white-pure rounded-2xl shadow-xl border border-primary/10 overflow-hidden p-6">
                     <h2 class="text-xl font-bold text-titanium mb-6 pb-3 border-b border-silver">
                         Datos de la Temporada
                     </h2>
@@ -142,6 +142,24 @@
                                 />
                             </div>
                         </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-titanium mb-2">Precio Preinscripción (€)</label>
+                            <input type="text" 
+                                   wire:model.live="precio_preinscripcion"
+                                   placeholder="0.00 €"
+                                   {{ !$isActive ? 'disabled' : '' }}
+                                   onfocus="this.select()"
+                                   class="w-24 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary text-black-deep text-sm font-semibold
+                                          {{ $isActive ? 'border-primary bg-white' : 'border-silver bg-gray-100 cursor-not-allowed' }}">
+                            <p class="text-xs text-gray-500 mt-1">
+                                <svg class="inline w-4 h-4 text-blue-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                </svg>
+                                Si establece un precio, el alumno deberá pagar la preinscripción cuando realice el alta en la escuela.
+                            </p>
+                            @error('precio_preinscripcion') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                        </div>
                         
                     </div>
                 </div>
@@ -149,7 +167,7 @@
 
             <!-- Columna Derecha: Secciones y Precios -->
             <div class="lg:col-span-2">
-                <div class="card-modern bg-white-pure rounded-2xl shadow-xl border border-primary/10 overflow-hidden p-6">
+                <div class=" bg-white-pure rounded-2xl shadow-xl border border-primary/10 overflow-hidden p-6">
                     <div class="mb-6">
                         <h2 class="text-xl font-bold text-titanium mb-2">Secciones y Precios *</h2>
                         <p class="text-sm text-gray-600">Seleccione las secciones disponibles para esta temporada e indique el precio de matrícula anual de cada una.</p>
@@ -166,7 +184,7 @@
                             @php
                                 $isSelected = in_array($section->id, $selectedSections);
                             @endphp
-                            <div class="rounded-xl p-4 border-2 transition-all duration-200 {{ $isSelected ? 'border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-md' : 'bg-white-pure border-silver hover:border-primary/50' }}">
+                            <div class="rounded-xl p-4 border-2 {{ $isSelected ? 'border-primary bg-primary/5' : 'bg-white-pure border-silver' }}">
                                 <div class="flex items-center gap-3">
                                     <input type="checkbox" 
                                            id="section_{{ $section->id }}"

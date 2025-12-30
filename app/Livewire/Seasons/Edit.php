@@ -15,6 +15,7 @@ class Edit extends Component
     public $from_year = '';
     public $to_year = '';
     public $end_date = '';
+    public $precio_preinscripcion = '';
     public $sectionPrices = []; // Array: section_id => price
     public $selectedSections = []; // Array de section_ids seleccionadas
     public $isActive = false; // Si la temporada está activa
@@ -27,6 +28,7 @@ class Edit extends Component
     private $originalFromYear;
     private $originalToYear;
     private $originalEndDate;
+    private $originalPrecioPreinscripcion;
     private $originalSectionPrices = [];
     private $originalSelectedSections = [];
 
@@ -43,12 +45,13 @@ class Edit extends Component
         $fromYearChanged = (string)$this->from_year !== (string)$this->originalFromYear;
         $toYearChanged = (string)$this->to_year !== (string)$this->originalToYear;
         $endDateChanged = $this->end_date !== $this->originalEndDate;
+        $precioPreinscripcionChanged = $this->precio_preinscripcion !== $this->originalPrecioPreinscripcion;
         $pricesChanged = $this->sectionPrices !== $this->originalSectionPrices;
         $sectionsChanged = count(array_diff($this->selectedSections, $this->originalSelectedSections)) > 0 ||
                           count(array_diff($this->originalSelectedSections, $this->selectedSections)) > 0;
         
         $this->hasChanges = $seasonChanged || $descriptionChanged || $fromYearChanged || 
-                           $toYearChanged || $endDateChanged || $pricesChanged || $sectionsChanged;
+                           $toYearChanged || $endDateChanged || $precioPreinscripcionChanged || $pricesChanged || $sectionsChanged;
     }
 
     public function updatedSectionPrices($value, $key)
@@ -56,6 +59,14 @@ class Edit extends Component
         // Convertir comas a puntos para permitir entrada decimal europea
         if (is_string($value)) {
             $this->sectionPrices[$key] = str_replace(',', '.', $value);
+        }
+    }
+
+    public function updatedPrecioPreinscripcion($value)
+    {
+        // Convertir comas a puntos para permitir entrada decimal europea
+        if (is_string($value)) {
+            $this->precio_preinscripcion = str_replace(',', '.', $value);
         }
     }
 
@@ -67,6 +78,7 @@ class Edit extends Component
             'from_year' => 'required|integer|min:1900|max:2100',
             'to_year' => 'required|integer|min:1900|max:2100',
             'end_date' => 'nullable|date',
+            'precio_preinscripcion' => 'nullable|numeric|min:0',
         ];
     }
 
@@ -89,6 +101,7 @@ class Edit extends Component
         $this->from_year = $season->from_year;
         $this->to_year = $season->to_year;
         $this->end_date = $season->end_date ? $season->end_date->format('Y-m-d') : '';
+        $this->precio_preinscripcion = $season->precio_preinscripcion;
         
         // Guardar valores originales para detectar cambios
         $this->originalSeason = $this->season;
@@ -96,6 +109,7 @@ class Edit extends Component
         $this->originalFromYear = $this->from_year;
         $this->originalToYear = $this->to_year;
         $this->originalEndDate = $this->end_date ?? '';
+        $this->originalPrecioPreinscripcion = $this->precio_preinscripcion ?? '';
         
         // Verificar si la temporada está activa (entre start_date y end_date)
         $this->isActive = $season->start_date && $season->end_date &&
@@ -128,6 +142,7 @@ class Edit extends Component
             'from_year' => $this->from_year,
             'to_year' => $this->to_year,
             'end_date' => $this->end_date,
+            'precio_preinscripcion' => $this->precio_preinscripcion ? floatval($this->precio_preinscripcion) : null,
             'updated_user' => auth()->id(),
         ]);
 
@@ -161,6 +176,7 @@ class Edit extends Component
         $this->originalFromYear = $this->from_year;
         $this->originalToYear = $this->to_year;
         $this->originalEndDate = $this->end_date;
+        $this->originalPrecioPreinscripcion = $this->precio_preinscripcion;
         $this->originalSectionPrices = $this->sectionPrices;
         $this->originalSelectedSections = $this->selectedSections;
         $this->hasChanges = false;

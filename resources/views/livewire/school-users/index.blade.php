@@ -10,7 +10,7 @@
         </div>
     @endif
 
-    <div class="sticky top-16 z-10 bg-white-pure flex items-center justify-between p-6 border-b border-gray-100 rounded-t-2xl shadow-xl border border-primary/10 mb-6">
+    <div class="sticky top-16 z-10 bg-white-pure flex items-center justify-between p-6 border-b border-gray-100">
         <h2 class="font-bold text-2xl text-titanium leading-tight">
             {{ __('Usuarios de Escuela') }}
         </h2>
@@ -27,24 +27,7 @@
         </a>
     </div>
 
-    <div class="card-modern bg-white-pure rounded-2xl shadow-xl border border-primary/10 overflow-hidden">
-        <!-- Filters -->
-        <div class="p-6 border-b border-gray-100">
-            <h2 class="font-bold text-2xl text-titanium leading-tight">
-                {{ __('Usuarios de Escuela') }}
-            </h2>
-            @php
-                $createRoute = (auth()->user()->isMaster() || session()->has('impersonator_id')) 
-                    ? 'school-users.create' 
-                    : 'my-school-users.create';
-            @endphp
-            <a href="{{ route($createRoute) }}" class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 hover:-translate-y-1 bg-blue-600 hover:bg-blue-700">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-                Nuevo Usuario
-            </a>
-        </div>
+    <div class="card-modern bg-white-pure rounded-b-2xl shadow-xl border border-primary/10 overflow-hidden">
         <!-- Filters -->
         <div class="p-6 border-b border-gray-100">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">

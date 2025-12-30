@@ -13,12 +13,29 @@ class Create extends Component
     public $from_year = '';
     public $to_year = '';
     public $end_date = '';
+    public $precio_preinscripcion = '';
     public $sectionPrices = []; // Array: section_id => price
 
     public function mount()
     {
         // Set default end_date to June 30 of next year
         $this->end_date = now()->addYear()->month(6)->day(30)->format('Y-m-d');
+    }
+
+    public function updatedSectionPrices($value, $key)
+    {
+        // Convertir comas a puntos para permitir entrada decimal europea
+        if (is_string($value)) {
+            $this->sectionPrices[$key] = str_replace(',', '.', $value);
+        }
+    }
+
+    public function updatedPrecioPreinscripcion($value)
+    {
+        // Convertir comas a puntos para permitir entrada decimal europea
+        if (is_string($value)) {
+            $this->precio_preinscripcion = str_replace(',', '.', $value);
+        }
     }
 
     protected function rules()
@@ -29,6 +46,7 @@ class Create extends Component
             'from_year' => 'required|integer|min:1900|max:2100',
             'to_year' => 'required|integer|min:1900|max:2100',
             'end_date' => 'nullable|date',
+            'precio_preinscripcion' => 'nullable|numeric|min:0',
         ];
     }
 
@@ -61,6 +79,7 @@ class Create extends Component
             'to_year' => $this->to_year,
             'start_date' => now()->toDateString(),
             'end_date' => $this->end_date,
+            'precio_preinscripcion' => $this->precio_preinscripcion ? floatval($this->precio_preinscripcion) : null,
             'created_user' => auth()->id(),
         ]);
 

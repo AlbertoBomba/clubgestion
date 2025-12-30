@@ -21,7 +21,7 @@
         </div>
     @endif
 
-    <div class="sticky top-16 z-10 bg-white-pure flex items-center justify-between p-6 border-b border-gray-100 rounded-t-2xl shadow-xl border border-primary/10 mb-6">
+    <div class="sticky top-16 z-10 bg-white-pure flex items-center justify-between p-6 border-b border-gray-100">
         <h2 class="font-bold text-2xl text-titanium leading-tight">
             {{ __('Tipos de Ejercicios') }}
         </h2>
@@ -33,7 +33,7 @@
         </a>
     </div>
 
-    <div class="card-modern bg-white-pure rounded-2xl shadow-xl border border-primary/10 overflow-hidden">
+    <div class="card-modern bg-white-pure rounded-b-2xl shadow-xl border border-primary/10 overflow-hidden">
         <!-- Search -->
         <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-primary/5 to-night-blue/5">
             <div class="max-w-md">

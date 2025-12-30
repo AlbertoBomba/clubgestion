@@ -11,7 +11,7 @@
     @endif
 
     <!-- Header con contador y botón -->
-    <div class="sticky top-16 z-10 bg-white-pure mb-6 flex justify-between items-center p-6 border-b border-gray-100 rounded-t-2xl shadow-xl border border-primary/10">
+    <div class="sticky top-16 z-10 bg-white-pure flex justify-between items-center p-6 border-b border-gray-100">
         <div>
             <h3 class="text-lg font-semibold text-primary">
                 {{ $fields->total() }} campos encontrados
@@ -38,7 +38,7 @@
     </div>
 
     <!-- Card Wrapper -->
-    <div class="card-modern bg-white-pure rounded-2xl shadow-xl border border-primary/10 overflow-hidden">
+    <div class="card-modern bg-white-pure rounded-b-2xl shadow-xl border border-primary/10 overflow-hidden">
         <!-- Filtros -->
         <div class="p-6 border-b border-silver">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">

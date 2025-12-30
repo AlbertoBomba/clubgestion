@@ -19,6 +19,7 @@ class Season extends Model
         'to_year',
         'start_date',
         'end_date',
+        'precio_preinscripcion',
         'created_user',
         'updated_user',
     ];

@@ -5,7 +5,7 @@
         </div>
     @endif
 
-    <div class="sticky top-16 z-10 bg-white-pure flex items-center justify-between p-6 border-b border-gray-100 rounded-t-2xl shadow-xl border border-primary/10 mb-6">
+    <div class="sticky top-16 z-10 bg-white-pure flex items-center justify-between p-6 border-b border-gray-100">
         <h2 class="font-bold text-2xl text-titanium leading-tight">
             {{ __('Categorías') }}
         </h2>
@@ -17,18 +17,7 @@
         </a>
     </div>
 
-    <div class="card-modern bg-white-pure rounded-2xl shadow-xl border border-primary/10 overflow-hidden">
-        <div class="p-6 border-b border-gray-100">
-            <h2 class="font-bold text-2xl text-titanium leading-tight">
-                {{ __('Categorías') }}
-            </h2>
-            <a href="{{ route('categories.create') }}" class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 hover:-translate-y-1 bg-blue-600 hover:bg-blue-700">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-                Nueva Categoría
-            </a>
-        </div>
+    <div class="card-modern bg-white-pure rounded-b-2xl shadow-xl border border-primary/10 overflow-hidden">
         <div class="p-6 border-b border-gray-100">
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

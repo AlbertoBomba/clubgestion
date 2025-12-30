@@ -91,7 +91,7 @@
             </div>
         @endif
 
-        <div class="min-h-screen bg-gradient-to-br from-gray-400 via-gray-300 to-gray-500">
+        <div class="min-h-screen bg-gray-200">
             @livewire('navigation-menu')
             <!-- Page Heading -->
             @if (isset($header))
@@ -102,7 +102,7 @@
                 </header> --}}
             @endif
             <!-- Page Content -->
-            <main class="py-1 ">
+            <main class="">
                 {{ $slot }}
             </main>
         </div>

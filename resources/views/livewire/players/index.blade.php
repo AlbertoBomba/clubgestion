@@ -5,7 +5,7 @@
         </div>
     @endif
 
-    <div class="sticky top-16 z-10 bg-white-pure flex items-center justify-between p-6 border-b border-gray-100 rounded-t-2xl shadow-xl border border-primary/10 mb-6">
+    <div class="sticky top-16 z-10 bg-white-pure flex items-center justify-between p-6 border-b border-gray-100">
         <h2 class="font-bold text-2xl text-titanium leading-tight">
             {{ __('Jugadores') }}
         </h2>
@@ -35,7 +35,7 @@
         </div>
     </div>
 
-    <div class="card-modern bg-white-pure rounded-2xl shadow-xl border border-primary/10 overflow-hidden">
+    <div class="card-modern bg-white-pure rounded-b-2xl shadow-xl border border-primary/10 overflow-hidden">
         <div class="p-6 border-b border-gray-100 ">
             <div class="flex items-center justify-between mb-4">
                 <div class="text-sm text-gray-600">

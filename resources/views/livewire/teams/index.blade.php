@@ -11,7 +11,7 @@
         </div>
     @endif
 
-    <div class="sticky top-16 z-10 bg-white-pure mb-4 flex items-center justify-between p-6 border-b border-gray-100 rounded-t-2xl shadow-xl border border-primary/10">
+    <div class="sticky top-16 z-10 bg-white-pure flex items-center justify-between p-6 border-b border-gray-100">
         <div class="flex items-center gap-4">
             <div class="text-sm text-gray-600">
                 <span class="font-semibold text-primary text-lg">{{ $teams->total() }}</span> 
@@ -39,7 +39,7 @@
         </button>
     </div>
 
-    <div class="card-modern bg-white-pure rounded-2xl shadow-xl border border-primary/10 overflow-hidden">
+    <div class="card-modern bg-white-pure rounded-b-2xl shadow-xl border border-primary/10 overflow-hidden">
         <!-- Header with Search and Filters -->
         <div class="p-6 border-b border-gray-100">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
