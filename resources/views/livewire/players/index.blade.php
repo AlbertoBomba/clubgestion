@@ -7,7 +7,9 @@
 
     <div class="sticky top-16 z-10 bg-white-pure flex items-center justify-between p-6 border-b border-gray-100">
         <h2 class="font-bold text-2xl text-titanium leading-tight">
-            {{ __('Jugadores') }}
+            <span class="">{{ $players->total() }}</span> 
+                    <span class="text-titanium">{{ $players->total() === 1 ? 'jugador encontrado' : 'jugadores encontrados' }}</span>
+            {{-- {{ __('Jugadores') }} --}}
         </h2>
         <div class="flex gap-3">
             @if(count($selectedPlayers) > 0)
@@ -35,23 +37,23 @@
         </div>
     </div>
 
-    <div class="card-modern bg-white-pure rounded-b-2xl shadow-xl border border-primary/10 overflow-hidden">
+    <div class=" bg-white-pure rounded-b-2xl shadow-xl border border-primary/10 overflow-hidden">
         <div class="p-6 border-b border-gray-100 ">
             <div class="flex items-center justify-between mb-4">
-                <div class="text-sm text-gray-600">
+                {{-- <div class="text-sm text-gray-600">
                     <span class="font-semibold text-primary text-lg">{{ $players->total() }}</span> 
                     <span class="text-titanium">{{ $players->total() === 1 ? 'jugador encontrado' : 'jugadores encontrados' }}</span>
-                </div>
-                @if($activeSeason)
+                </div> --}}
+                {{-- @if($activeSeason)
                     <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-green-600 text-white shadow-md">
                         <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                         </svg>
-                        {{ $activeSeason->season }} en curso
+                        {{ $activeSeason->sseason }} en curso
                     </span>
-                @endif
+                @endif --}}
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,12 +63,26 @@
                     <input wire:model.live="search" type="text" placeholder="Buscar jugadores..." 
                         class="block w-full pl-10 pr-3 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep placeholder-gray-400 text-sm">
                 </div>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/>
+                        </svg>
+                    </div>
+                    <input wire:model.live="dniFilter" type="text" placeholder="Buscar por DNI..." 
+                        class="block w-full pl-10 pr-3 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep placeholder-gray-400 text-sm">
+                </div>
                 <div>
                     <select wire:model.live="seasonFilter" 
                         class="block w-full px-3 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
                         <option value="">Todas las temporadas</option>
                         @foreach($seasons as $season)
-                            <option value="{{ $season->id }}">{{ $season->season }}</option>
+                            <option value="{{ $season->id }}">
+                                {{ $season->season }}
+                                @if($activeSeason && $season->id === $activeSeason->id)
+                                    🟢 (Temporada en curso)
+                                @endif
+                            </option>
                         @endforeach
                     </select>
                 </div>
@@ -98,20 +114,6 @@
                                 :checked="{{ count($selectedPlayers) === $players->count() && $players->count() > 0 ? 'true' : 'false' }}"
                                 class="w-4 h-4 text-primary border-silver rounded focus:ring-2 focus:ring-primary cursor-pointer">
                         </th>
-                        <th wire:click="sortBy('id')" class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider cursor-pointer hover:bg-primary/10 transition">
-                            <div class="flex items-center">
-                                ID
-                                @if($sortField === 'id')
-                                    <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                                        @if($sortDirection === 'asc')
-                                            <path d="M5 10l5-5 5 5H5z"/>
-                                        @else
-                                            <path d="M5 10l5 5 5-5H5z"/>
-                                        @endif
-                                    </svg>
-                                @endif
-                            </div>
-                        </th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Foto</th>
                         <th wire:click="sortBy('surname')" class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider cursor-pointer hover:bg-primary/10 transition">
                             <div class="flex items-center">
@@ -127,37 +129,12 @@
                                 @endif
                             </div>
                         </th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">DNI</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Edad</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Temporada</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Equipo</th>
-                        <th wire:click="sortBy('dorsal')" class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider cursor-pointer hover:bg-primary/10 transition">
-                            <div class="flex items-center">
-                                Dorsal
-                                @if($sortField === 'dorsal')
-                                    <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                                        @if($sortDirection === 'asc')
-                                            <path d="M5 10l5-5 5 5H5z"/>
-                                        @else
-                                            <path d="M5 10l5 5 5-5H5z"/>
-                                        @endif
-                                    </svg>
-                                @endif
-                            </div>
-                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Tutor</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Contacto</th>
-                        <th wire:click="sortBy('created_at')" class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider cursor-pointer hover:bg-primary/10 transition">
-                            <div class="flex items-center">
-                                Fecha Creación
-                                @if($sortField === 'created_at')
-                                    <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                                        @if($sortDirection === 'asc')
-                                            <path d="M5 10l5-5 5 5H5z"/>
-                                        @else
-                                            <path d="M5 10l5 5 5-5H5z"/>
-                                        @endif
-                                    </svg>
-                                @endif
-                            </div>
-                        </th>
                         <th wire:click="sortBy('active')" class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider cursor-pointer hover:bg-primary/10 transition">
                             <div class="flex items-center">
                                 Estado
@@ -186,9 +163,6 @@
                                     class="w-4 h-4 text-primary border-silver rounded focus:ring-2 focus:ring-primary cursor-pointer">
                             </td>
                             <td class="px-6 py-4">
-                                <div class="text-sm font-semibold text-gray-600">{{ $player->id }}</div>
-                            </td>
-                            <td class="px-6 py-4">
                                 @if($player->player_photo)
                                     <img src="{{ asset('storage/' . $player->player_photo) }}" alt="{{ $player->full_name }}" class="w-12 h-12 rounded-full object-cover border-2 border-primary/20">
                                 @else
@@ -201,6 +175,20 @@
                                 <div class="text-sm font-semibold text-black-deep">{{ $player->full_name }}</div>
                                 @if($player->email)
                                     <div class="text-xs text-gray-500">{{ $player->email }}</div>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4">
+                                @if($player->dni)
+                                    <div class="text-sm text-gray-700">{{ $player->dni }}</div>
+                                @else
+                                    <span class="text-gray-400 text-sm">-</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4">
+                                @if($player->dbirth)
+                                    <div class="text-sm font-medium text-gray-700">{{ \Carbon\Carbon::parse($player->dbirth)->age }} años</div>
+                                @else
+                                    <span class="text-gray-400 text-sm">-</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4">
@@ -232,10 +220,13 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4">
-                                @if($player->dorsal)
-                                    <span class="px-2 py-1 bg-primary/10 text-primary rounded-lg font-bold text-sm">{{ $player->dorsal }}</span>
+                                @if($player->nametutor)
+                                    <div class="text-sm font-medium text-black-deep">{{ $player->nametutor }}</div>
+                                    @if($player->dnitutor)
+                                        <div class="text-xs text-gray-500">{{ $player->dnitutor }}</div>
+                                    @endif
                                 @else
-                                    <span class="text-gray-400">-</span>
+                                    <span class="text-gray-400 text-sm">-</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4">
@@ -250,10 +241,6 @@
                                         <span class="text-gray-400">-</span>
                                     @endif
                                 </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="text-sm text-gray-600">{{ $player->created_at->format('d/m/Y') }}</div>
-                                <div class="text-xs text-gray-400">{{ $player->created_at->format('H:i') }}</div>
                             </td>
                             <td class="px-6 py-4">
                                 @if($player->active)
@@ -301,7 +288,7 @@
 
         @if($players->hasPages())
             <div class="px-6 py-4 border-t border-silver/30 text-gray-600">{{ $players->links() }}</div>
-        @endif>
+        @endif
     </div>
 
     <x-dialog-modal wire:model="confirmingDeletion">

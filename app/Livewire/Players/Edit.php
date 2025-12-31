@@ -47,6 +47,18 @@ class Edit extends Component
     public $goalie = false;
     public $file = false;
     
+    // Descuentos
+    public $discountType = 'ninguno';
+    public $descEnt = '';
+    public $descPerc = '';
+    
+    // Modal de tallas
+    public $showSizesModal = false;
+    
+    // Modal de confirmación eliminar documento
+    public $showDeleteModal = false;
+    public $documentToDelete = null;
+    
     // Otros
     public $observations = '';
     public $player_photo;
@@ -54,6 +66,46 @@ class Edit extends Component
     public $selectedSeasons = [];
     public $selectedSections = [];
     public $hasChanges = false;
+    
+    public function updatedDiscountType($value)
+    {
+        // Limpiar valores al cambiar el tipo
+        if ($value !== 'cantidad') {
+            $this->descEnt = '';
+        }
+        if ($value !== 'porcentaje') {
+            $this->descPerc = '';
+        }
+    }
+
+    public function updatedDescEnt($value)
+    {
+        $this->descEnt = str_replace(',', '.', $value);
+    }
+
+    public function updatedDescPerc($value)
+    {
+        $this->descPerc = str_replace(',', '.', $value);
+    }
+    
+    public function openSizesModal()
+    {
+        $this->showSizesModal = true;
+    }
+    
+    public function closeSizesModal()
+    {
+        $this->showSizesModal = false;
+    }
+    
+    public function selectSize($sizeId)
+    {
+        $size = \App\Models\Size::find($sizeId);
+        if ($size) {
+            $this->sizes = $size->size;
+            $this->closeSizesModal();
+        }
+    }
     
     // Documentos
     public $document;
@@ -175,6 +227,9 @@ class Edit extends Component
         'player_photo' => 'nullable|image|max:2048',
         'selectedSections' => 'nullable|array',
         'selectedSections.*' => 'exists:sections,id',
+        'discountType' => 'nullable|in:ninguno,cantidad,porcentaje',
+        'descEnt' => 'nullable|numeric|min:0',
+        'descPerc' => 'nullable|numeric|min:0|max:100',
     ];
 
     public function mount(Player $player)
@@ -211,6 +266,18 @@ class Edit extends Component
         $this->goalie = $player->goalie;
         $this->file = $player->file;
         $this->observations = $player->observations;
+        $this->descEnt = $player->descEnt;
+        $this->descPerc = $player->descPerc;
+        
+        // Detectar tipo de descuento
+        if ($player->descEnt && $player->descEnt > 0) {
+            $this->discountType = 'cantidad';
+        } elseif ($player->descPerc && $player->descPerc > 0) {
+            $this->discountType = 'porcentaje';
+        } else {
+            $this->discountType = 'ninguno';
+        }
+        
         $this->currentPhoto = $player->player_photo;
         $this->selectedSeasons = $player->seasons->pluck('id')->toArray();
         $this->selectedSections = $player->sections->pluck('id')->toArray();
@@ -290,6 +357,8 @@ class Edit extends Component
             'goalie' => $this->goalie,
             'file' => $this->file,
             'observations' => $this->observations,
+            'descEnt' => $this->descEnt ? floatval(str_replace(',', '.', $this->descEnt)) : null,
+            'descPerc' => $this->descPerc ? floatval(str_replace(',', '.', $this->descPerc)) : null,
             'updated_user' => auth()->id(),
         ];
 
@@ -335,10 +404,22 @@ class Edit extends Component
         return redirect()->route('players.index');
     }
 
-    public function deleteDocument($index)
+    public function confirmDeleteDocument($index)
     {
-        if (isset($this->existingDocuments[$index])) {
-            $docPath = $this->existingDocuments[$index]['path'];
+        $this->documentToDelete = $index;
+        $this->showDeleteModal = true;
+    }
+
+    public function cancelDeleteDocument()
+    {
+        $this->showDeleteModal = false;
+        $this->documentToDelete = null;
+    }
+
+    public function deleteDocument()
+    {
+        if ($this->documentToDelete !== null && isset($this->existingDocuments[$this->documentToDelete])) {
+            $docPath = $this->existingDocuments[$this->documentToDelete]['path'];
             
             // Eliminar el archivo físicamente del servidor
             if (\Storage::disk('public')->exists($docPath)) {
@@ -346,7 +427,7 @@ class Edit extends Component
             }
             
             // Eliminar del array de documentos existentes
-            unset($this->existingDocuments[$index]);
+            unset($this->existingDocuments[$this->documentToDelete]);
             $this->existingDocuments = array_values($this->existingDocuments);
             
             // Actualizar inmediatamente en la base de datos
@@ -354,6 +435,9 @@ class Edit extends Component
             
             session()->flash('message', 'Documento eliminado exitosamente.');
         }
+        
+        $this->showDeleteModal = false;
+        $this->documentToDelete = null;
     }
 
     public function uploadDocument()
@@ -433,9 +517,22 @@ class Edit extends Component
             })->distinct()->orderBy('name')->get();
         }
 
+        // Obtener el equipo del jugador (si tiene) con su categoría
+        // Refrescar desde la BD para obtener la última información
+        $playerTeam = \App\Models\Team::whereHas('players', function($query) {
+            $query->where('players.id', $this->playerModel->id);
+        })->with('category')->first();
+
+        // Obtener tallas asociadas a la escuela
+        $availableSizes = \App\Models\Size::whereHas('brand.sportsSchools', function($query) {
+            $query->where('sports_schools.id', auth()->user()->sports_school_id);
+        })->with('brand')->orderBy('brand_id')->orderBy('order')->orderBy('size')->get();
+
         return view('livewire.players.edit', [
             'seasons' => $seasons,
-            'sections' => $sections
+            'sections' => $sections,
+            'playerTeam' => $playerTeam,
+            'availableSizes' => $availableSizes
         ]);
     }
 }

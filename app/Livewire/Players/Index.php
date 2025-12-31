@@ -12,6 +12,7 @@ class Index extends Component
     use WithPagination;
 
     public $search = '';
+    public $dniFilter = '';
     public $seasonFilter = '';
     public $teamFilter = '';
     public $withoutTeam = false;
@@ -25,7 +26,7 @@ class Index extends Component
     public $confirmingTeamChange = false;
     public $newTeamId = '';
 
-    protected $queryString = ['search', 'seasonFilter', 'teamFilter', 'withoutTeam', 'sortField', 'sortDirection'];
+    protected $queryString = ['search', 'dniFilter', 'seasonFilter', 'teamFilter', 'withoutTeam', 'sortField', 'sortDirection'];
 
     public function mount()
     {
@@ -38,6 +39,7 @@ class Index extends Component
         if (session()->has('players_filters')) {
             $filters = session('players_filters');
             $this->search = $filters['search'] ?? '';
+            $this->dniFilter = $filters['dniFilter'] ?? '';
             $this->seasonFilter = $filters['seasonFilter'] ?? '';
             $this->teamFilter = $filters['teamFilter'] ?? '';
             $this->withoutTeam = $filters['withoutTeam'] ?? false;
@@ -67,6 +69,11 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function updatingDniFilter()
+    {
+        $this->resetPage();
+    }
+
     public function updatingSeasonFilter()
     {
         $this->resetPage();
@@ -87,6 +94,7 @@ class Index extends Component
         // Save current filters to session
         session()->put('players_filters', [
             'search' => $this->search,
+            'dniFilter' => $this->dniFilter,
             'seasonFilter' => $this->seasonFilter,
             'teamFilter' => $this->teamFilter,
             'withoutTeam' => $this->withoutTeam,
@@ -220,11 +228,25 @@ class Index extends Component
             ->with(['seasons', 'teams'])
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
-                    $q->where('name', 'like', '%' . $this->search . '%')
-                      ->orWhere('surname', 'like', '%' . $this->search . '%')
-                      ->orWhere('dni', 'like', '%' . $this->search . '%')
-                      ->orWhere('email', 'like', '%' . $this->search . '%')
-                      ->orWhere('dorsal', 'like', '%' . $this->search . '%');
+                    $searchTerm = $this->search;
+                    
+                    // Búsqueda en campos individuales
+                    $q->where('name', 'like', '%' . $searchTerm . '%')
+                      ->orWhere('surname', 'like', '%' . $searchTerm . '%')
+                      ->orWhere('dni', 'like', '%' . $searchTerm . '%')
+                      ->orWhere('email', 'like', '%' . $searchTerm . '%')
+                      ->orWhere('dorsal', 'like', '%' . $searchTerm . '%')
+                      ->orWhere('nametutor', 'like', '%' . $searchTerm . '%')
+                      // Búsqueda combinada de nombre y apellido
+                      ->orWhereRaw("CONCAT(name, ' ', surname) LIKE ?", ['%' . $searchTerm . '%'])
+                      ->orWhereRaw("CONCAT(surname, ' ', name) LIKE ?", ['%' . $searchTerm . '%']);
+                });
+            })
+            ->when($this->dniFilter, function ($query) {
+                $query->where(function ($q) {
+                    $dniTerm = $this->dniFilter;
+                    $q->where('dni', 'like', '%' . $dniTerm . '%')
+                      ->orWhere('dnitutor', 'like', '%' . $dniTerm . '%');
                 });
             })
             ->when($this->seasonFilter, function ($query) {

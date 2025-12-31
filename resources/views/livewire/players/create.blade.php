@@ -79,6 +79,39 @@
                         @error('sizes') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                     </div>
                 </div>
+
+                <div class="flex items-start gap-4 mt-6">
+                    <div class="form-group">
+                        <label class="block text-sm font-semibold text-titanium mb-2">Tipo de Descuento</label>
+                        <select wire:model.live="discountType" 
+                            class="block w-64 px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                            <option value="ninguno">Sin descuento</option>
+                            <option value="cantidad">Descuento en cantidad (€)</option>
+                            <option value="porcentaje">Descuento en porcentaje (%)</option>
+                        </select>
+                        @error('discountType') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                    </div>
+
+                    @if($discountType === 'cantidad')
+                        <div class="form-group">
+                            <label class="block text-sm font-semibold text-titanium mb-2">Cantidad (€)</label>
+                            <input wire:model.live="descEnt" type="text" onfocus="this.select()"
+                                class="w-32 px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
+                                placeholder="0,00">
+                            @error('descEnt') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                        </div>
+                    @endif
+
+                    @if($discountType === 'porcentaje')
+                        <div class="form-group">
+                            <label class="block text-sm font-semibold text-titanium mb-2">Porcentaje (%)</label>
+                            <input wire:model.live="descPerc" type="text" onfocus="this.select()"
+                                class="w-32 px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
+                                placeholder="0,00">
+                            @error('descPerc') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                        </div>
+                    @endif
+                </div>
             </div>
 
             <!-- Datos del Tutor -->

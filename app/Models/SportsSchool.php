@@ -87,4 +87,12 @@ class SportsSchool extends Model
     {
         return $this->hasMany(User::class)->where('role', 'student');
     }
+
+    /**
+     * Relación con marcas (many-to-many)
+     */
+    public function brands()
+    {
+        return $this->belongsToMany(Brand::class, 'sports_schools_brand', 'sports_school_id', 'brand_id');
+    }
 }

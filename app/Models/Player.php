@@ -41,6 +41,8 @@ class Player extends Model
         'file',
         'player_photo',
         'documents',
+        'descEnt',
+        'descPerc',
         'created_user',
         'updated_user',
     ];

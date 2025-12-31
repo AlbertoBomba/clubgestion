@@ -17,6 +17,11 @@ class Size extends Model
         'category',
         'active',
         'order',
+        'edad',
+        'pecho',
+        'cintura',
+        'cadera',
+        'brand_id',
         'created_user',
         'updated_user',
     ];
@@ -25,6 +30,14 @@ class Size extends Model
         'active' => 'boolean',
         'order' => 'integer',
     ];
+
+    /**
+     * Relación con marca
+     */
+    public function brand(): BelongsTo
+    {
+        return $this->belongsTo(Brand::class);
+    }
 
     /**
      * Relación con stock de productos

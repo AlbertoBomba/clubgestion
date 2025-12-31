@@ -46,10 +46,36 @@ class Create extends Component
     public $goalie = false;
     public $file = false;
     
+    // Descuentos
+    public $discountType = 'ninguno';
+    public $descEnt = '';
+    public $descPerc = '';
+    
     // Otros
     public $observations = '';
     public $player_photo;
     public $selectedSections = [];
+
+    public function updatedDiscountType($value)
+    {
+        // Limpiar valores al cambiar el tipo
+        if ($value !== 'cantidad') {
+            $this->descEnt = '';
+        }
+        if ($value !== 'porcentaje') {
+            $this->descPerc = '';
+        }
+    }
+
+    public function updatedDescEnt($value)
+    {
+        $this->descEnt = str_replace(',', '.', $value);
+    }
+
+    public function updatedDescPerc($value)
+    {
+        $this->descPerc = str_replace(',', '.', $value);
+    }
 
     protected $rules = [
         'selectedSeasons' => 'required|array|min:1',
@@ -77,6 +103,9 @@ class Create extends Component
         'player_photo' => 'nullable|image|max:2048',
         'selectedSections' => 'nullable|array',
         'selectedSections.*' => 'exists:sections,id',
+        'discountType' => 'nullable|in:ninguno,cantidad,porcentaje',
+        'descEnt' => 'nullable|numeric|min:0',
+        'descPerc' => 'nullable|numeric|min:0|max:100',
     ];
 
     public function save()
@@ -111,6 +140,8 @@ class Create extends Component
             'goalie' => $this->goalie,
             'file' => $this->file,
             'observations' => $this->observations,
+            'descEnt' => $this->descEnt ? floatval(str_replace(',', '.', $this->descEnt)) : null,
+            'descPerc' => $this->descPerc ? floatval(str_replace(',', '.', $this->descPerc)) : null,
             'created_user' => auth()->id(),
         ];
 
