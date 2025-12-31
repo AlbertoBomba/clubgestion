@@ -434,7 +434,7 @@
                                         <!-- Opción de captura de foto para DNI -->
                                         <div class="space-y-3">
                                             <div class="flex gap-2">
-                                                <button type="button" wire:click="$set('captureMode', true)" 
+                                                <button type="button" onclick="activateCamera()" 
                                                     class="flex-1 px-4 py-2 bg-primary/10 text-primary rounded-xl font-semibold text-sm hover:bg-primary/20 transition-colors">
                                                     📷 Tomar Foto
                                                 </button>
@@ -447,20 +447,16 @@
                                             </div>
                                             
                                             @if($captureMode)
-                                                <div class="border-2 border-dashed border-primary rounded-xl p-4">
+                                                <div class="border-2 border-dashed border-primary rounded-xl p-4" wire:ignore>
                                                     <div class="relative bg-black rounded-lg overflow-hidden" style="aspect-ratio: 16/10;">
-                                                        <video id="camera-preview" autoplay playsinline class="w-full h-full object-cover"></video>
-                                                        <!-- Guías de DNI -->
-                                                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                                            <div class="border-4 border-white/50 rounded-xl" style="width: 85%; height: 60%; box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);"></div>
-                                                        </div>
+                                                        <video id="camera-preview" autoplay playsinline muted class="w-full h-full object-cover"></video>
                                                     </div>
                                                     <div class="flex gap-2 mt-3">
                                                         <button type="button" onclick="capturePhoto()" 
                                                             class="flex-1 px-4 py-2 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors">
                                                             📸 Capturar
                                                         </button>
-                                                        <button type="button" wire:click="$set('captureMode', false)" 
+                                                        <button type="button" onclick="cancelCamera()" 
                                                             class="px-4 py-2 bg-red-500 text-white rounded-xl font-semibold text-sm hover:bg-red-600 transition-colors">
                                                             ✕ Cancelar
                                                         </button>
@@ -552,9 +548,10 @@
                                                 <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/>
                                             </svg>
                                         @else
-                                            <svg class="w-6 h-6 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
-                                            </svg>
+                                            <!-- Miniatura de imagen -->
+                                            <img src="{{ asset('storage/' . $doc['path']) }}" 
+                                                 alt="{{ $doc['label'] }}"
+                                                 class="w-16 h-16 object-cover rounded-lg border-2 border-primary/20">
                                         @endif
                                         <div>
                                             <p class="text-sm font-medium text-titanium">{{ $doc['label'] }}</p>
@@ -601,13 +598,27 @@
         document.addEventListener('livewire:initialized', () => {
             currentComponent = @this;
             
-            // Observar cambios en captureMode
-            Livewire.hook('morph.updated', ({ el, component }) => {
-                if (currentComponent && currentComponent.captureMode) {
-                    setTimeout(() => startCamera(), 100);
-                }
+            // Escuchar cuando se active el modo captura
+            window.addEventListener('start-camera', () => {
+                setTimeout(() => startCamera(), 300);
             });
         });
+        
+        // Activar cámara
+        function activateCamera() {
+            if (currentComponent) {
+                currentComponent.set('captureMode', true);
+                setTimeout(() => startCamera(), 500);
+            }
+        }
+        
+        // Cancelar cámara
+        function cancelCamera() {
+            stopCamera();
+            if (currentComponent) {
+                currentComponent.set('captureMode', false);
+            }
+        }
 
         // Manejar selección de foto del jugador para recortar
         window.handlePlayerPhotoSelect = function(event) {

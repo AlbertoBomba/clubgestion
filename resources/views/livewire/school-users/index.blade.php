@@ -27,7 +27,7 @@
         </a>
     </div>
 
-    <div class="card-modern bg-white-pure rounded-b-2xl shadow-xl border border-primary/10 overflow-hidden">
+    <div class=" bg-white-pure rounded-b-2xl shadow-xl border border-primary/10 overflow-hidden">
         <!-- Filters -->
         <div class="p-6 border-b border-gray-100">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -69,11 +69,11 @@
             <table class="min-w-full divide-y divide-silver/30">
                 <thead class="bg-gradient-to-r from-gray-50 to-primary/5">
                     <tr>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Usuario</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Escuela</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Rol</th>
-                        <th class="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider">Archivos</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Estado</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider w-1/4">Usuario</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider w-1/5">Escuela</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider w-1/6">Rol</th>
+                        <th class="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider w-1/6">Archivos</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider w-1/6">Estado</th>
                         <th class="px-6 py-4 text-right text-xs font-semibold text-primary uppercase tracking-wider"></th>
                     </tr>
                 </thead>
