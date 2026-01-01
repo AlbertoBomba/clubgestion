@@ -2,9 +2,11 @@
 
 namespace App\Livewire\Players;
 
+use App\Classes\PdfFile;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\Player;
+use Mpdf\Mpdf;
 
 class Edit extends Component
 {
@@ -326,6 +328,8 @@ class Edit extends Component
         session()->flash('message', 'Foto eliminada correctamente.');
     }
 
+    
+
     public function save()
     {
         $this->validate();
@@ -438,6 +442,26 @@ class Edit extends Component
         
         $this->showDeleteModal = false;
         $this->documentToDelete = null;
+    }
+
+    public function printPlayerCard()
+    {
+        $pdf = new PdfFile();
+        $pdf->file_name = 'player_card_' . $this->playerModel->id . '.pdf';
+        $pdf->templates[0] = 'pdfs.playercard';
+        $pdf->records = [
+            'player' => $this->playerModel,
+        ];
+
+        $content = $pdf->generateFromTemplate($pdf->templates[0] );
+
+         return response()->streamDownload(
+            fn () => print(
+                $content
+            ),
+            $pdf->getFileName()
+        );
+        
     }
 
     public function uploadDocument()

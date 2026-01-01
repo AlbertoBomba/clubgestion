@@ -6,6 +6,8 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Player;
 use App\Models\Season;
+use Mpdf\Mpdf;
+use ZipArchive;
 
 class Index extends Component
 {
@@ -294,4 +296,5 @@ class Index extends Component
             'selectedPlayersModels' => Player::whereIn('id', $this->selectedPlayers)->get(),
         ]);
     }
+
 }
