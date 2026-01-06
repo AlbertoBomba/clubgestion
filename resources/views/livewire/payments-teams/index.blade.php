@@ -11,20 +11,28 @@
 @endpush
 
 <div class="py-12">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class=" sm:px-6 lg:px-8">
         <div class="bg-white-pure overflow-hidden shadow-xl sm:rounded-lg">
             <div class="p-6">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold text-black-deep">Generar pagos</h2>
                     <div class="flex gap-3">
-                        <!-- Botón Imprimir (TODO: Implementar funcionalidad) -->
+                        <!-- Botón Imprimir -->
                         <button 
-                            title="Funcionalidad pendiente de implementar"
-                            class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg font-semibold text-sm text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150 opacity-75">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            wire:click="printPayments"
+                            wire:loading.attr="disabled"
+                            wire:target="printPayments"
+                            title="Imprimir lista de pagos"
+                            class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg font-semibold text-sm text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-50">
+                            <svg wire:loading.remove wire:target="printPayments" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                             </svg>
-                            <span>Imprimir</span>
+                            <svg wire:loading wire:target="printPayments" class="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span wire:loading.remove wire:target="printPayments">Imprimir</span>
+                            <span wire:loading wire:target="printPayments">Generando...</span>
                         </button>
                         
                         <!-- Spinner mientras se cargan los equipos seleccionados -->
@@ -97,7 +105,12 @@
                             class="w-full rounded-lg border-silver focus:border-primary focus:ring-2 focus:ring-primary/20">
                             <option value="">Todas las temporadas</option>
                             @foreach($seasons as $season)
-                                <option value="{{ $season->id }}">{{ $season->season }}</option>
+                                <option value="{{ $season->id }}">
+                                    {{ $season->season }}
+                                    @if($activeSeason && $season->id === $activeSeason->id)
+                                        🟢 (Temporada en curso)
+                                    @endif
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -211,6 +224,13 @@
                                                             </svg>
                                                             Editar
                                                         </button>
+                                                        <button wire:click="openDeleteSingleModal({{ $team->id }})" 
+                                                            class="inline-flex items-center px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 font-semibold">
+                                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                            </svg>
+                                                            Eliminar
+                                                        </button>
                                                     </div>
                                                 </div>
                                                 <div class="grid grid-cols-1 gap-1">
@@ -293,10 +313,13 @@
                     </label>
                     <select wire:model.live="numPlazos" id="numPlazos" 
                         class="w-full md:w-48 rounded-lg border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20">
-                        @for($i = 1; $i <= 12; $i++)
+                        @for($i = 1; $i <= $maxPlazos; $i++)
                             <option value="{{ $i }}">{{ $i }} {{ $i == 1 ? 'plazo' : 'plazos' }}</option>
                         @endfor
                     </select>
+                    @if($maxPlazos < 12)
+                        <p class="text-xs text-gray-500 mt-1">Máximo {{ $maxPlazos }} {{ $maxPlazos == 1 ? 'plazo' : 'plazos' }} según configuración de la temporada</p>
+                    @endif
                 </div>
 
                 <!-- Fechas de los Plazos -->
@@ -356,10 +379,11 @@
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Equipo</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sección</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio Matrícula</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio temporada</th>
                                 @for($i = 1; $i <= $numPlazos; $i++)
                                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Cuota {{ $i }}</th>
                                 @endfor
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-100 border-l-2 border-gray-300">Total</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
@@ -407,12 +431,23 @@
                                     </td>
                                     @php
                                         $pricePerInstallment = ($team->price && $team->price > 0) ? $team->price / $numPlazos : 0;
+                                        $totalTeamAmount = 0;
+                                        for($j = 1; $j <= $numPlazos; $j++) {
+                                            $totalTeamAmount += floatval($teamAmounts[$team->id][$j] ?? 0);
+                                        }
                                     @endphp
                                     @for($i = 1; $i <= $numPlazos; $i++)
                                         <td class="px-6 py-2 text-center {{ $i % 2 == 0 ? 'bg-gray-100' : 'bg-white' }}">
                                             @if($team->price && $team->price > 0)
-                                                <div class="text-xs font-semibold text-blue-600 mb-1">
-                                                    {{ number_format($pricePerInstallment, 2) }} €
+                                                <div class="mb-1">
+                                                    <input type="number" 
+                                                        wire:model.blur="teamAmounts.{{ $team->id }}.{{ $i }}"
+                                                        step="0.01"
+                                                        min="0"
+                                                        {{ $numPlazos == 1 ? 'disabled' : '' }}
+                                                        class="w-20 px-2 py-1 text-xs font-semibold {{ $numPlazos == 1 ? 'text-gray-500 bg-gray-100 cursor-not-allowed' : 'text-blue-600' }} border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary text-center"
+                                                        placeholder="0.00">
+                                                    <span class="text-xs text-gray-500">€</span>
                                                 </div>
                                                 @if(isset($plazos[$i]))
                                                     <div class="text-[11px] text-gray-700 font-medium">
@@ -424,6 +459,20 @@
                                             @endif
                                         </td>
                                     @endfor
+                                    @if($team->price && $team->price > 0)
+                                        <td class="px-6 py-2 text-center bg-gray-50 border-l-2 border-gray-300">
+                                            <div class="text-sm font-bold {{ isset($teamTotalErrors[$team->id]) ? 'text-red-600' : 'text-green-600' }}">
+                                                {{ number_format($totalTeamAmount, 2, ',', '.') }} €
+                                            </div>
+                                            <div class="text-[10px] text-gray-500 mt-1">
+                                                de {{ number_format($team->price, 2, ',', '.') }} €
+                                            </div>
+                                        </td>
+                                    @else
+                                        <td class="px-6 py-2 text-center bg-gray-50 border-l-2 border-gray-300">
+                                            <div class="text-xs text-red-500">-</div>
+                                        </td>
+                                    @endif
                                 </tr>
                             @endforeach
                         </tbody>
@@ -439,6 +488,28 @@
                 </div>
             @endif
                 </div>
+
+                <!-- Errores de validación -->
+                @if(count($teamTotalErrors) > 0)
+                    <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-red-600 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            <div class="flex-1">
+                                <h3 class="text-sm font-semibold text-red-800 mb-2">Errores en los importes de las cuotas:</h3>
+                                <ul class="list-disc list-inside text-xs text-red-700 space-y-1">
+                                    @foreach($teamTotalErrors as $teamId => $error)
+                                        @php
+                                            $team = $modalTeams->firstWhere('id', $teamId);
+                                        @endphp
+                                        <li><strong>{{ $team->team }}:</strong> {{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                @endif
 
                 <!-- Footer Configuración -->
                 <div class="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
@@ -857,6 +928,113 @@
                         </button>
                     </div>
                 @endif
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Modal para Eliminar Pagos de un Equipo Individual -->
+    @if($showDeleteSingleModal && $teamToDelete)
+    <div class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+            <!-- Background overlay -->
+            <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" wire:click="closeDeleteSingleModal"></div>
+
+            <!-- Modal panel -->
+            <div class="relative inline-block w-full max-w-2xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg">
+                <div class="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        Confirmar Eliminación de Pagos
+                    </h3>
+                    <button wire:click="closeDeleteSingleModal" class="text-gray-400 hover:text-gray-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="mb-6">
+                    <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-semibold text-red-800">
+                                    ¿Está seguro de eliminar TODOS los pagos del equipo?
+                                </p>
+                                <p class="text-sm text-red-700 mt-1">
+                                    Esta acción NO se puede deshacer.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información del equipo -->
+                    <div class="bg-white border border-gray-200 rounded-lg p-4 mb-4 shadow-sm">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h4 class="text-lg font-semibold text-gray-900">{{ $teamToDelete->team }}</h4>
+                                <p class="text-sm text-gray-600">
+                                    {{ $teamToDelete->section->name ?? '-' }} - {{ $teamToDelete->season->season ?? '-' }}
+                                </p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm text-gray-600">Total a eliminar</p>
+                                <p class="text-xl font-bold text-red-600">
+                                    {{ number_format($teamToDelete->payments->sum('amount'), 2) }} €
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-gray-200 pt-3">
+                            <p class="text-xs font-semibold text-gray-700 mb-2">
+                                Pagos que se eliminarán ({{ $teamToDelete->payments->count() }}):
+                            </p>
+                            <div class="max-h-60 overflow-y-auto">
+                                <div class="grid grid-cols-1 gap-2">
+                                    @foreach($teamToDelete->payments as $payment)
+                                        <div class="flex items-center justify-between text-xs bg-red-50 px-3 py-2 rounded border border-red-200">
+                                            <div class="flex items-center">
+                                                <span class="font-medium text-red-700 mr-2">Cuota {{ $payment->cuota }}:</span>
+                                                <span class="text-gray-700">{{ $payment->description }}</span>
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <span class="text-red-600 font-semibold">{{ number_format($payment->amount, 2) }} €</span>
+                                                <span class="text-gray-500 text-[10px]">
+                                                    {{ $payment->date_start->format('d/m/Y') }} - {{ $payment->date_end->format('d/m/Y') }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                    <button wire:click="closeDeleteSingleModal" 
+                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold">
+                        Cancelar
+                    </button>
+                    <button wire:click="confirmDeleteSingleTeam" 
+                        wire:loading.attr="disabled"
+                        wire:target="confirmDeleteSingleTeam"
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold disabled:opacity-50 inline-flex items-center">
+                        <svg wire:loading.remove wire:target="confirmDeleteSingleTeam" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                        <svg wire:loading wire:target="confirmDeleteSingleTeam" class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span wire:loading.remove wire:target="confirmDeleteSingleTeam">Sí, Eliminar Todos los Pagos</span>
+                        <span wire:loading wire:target="confirmDeleteSingleTeam">Eliminando...</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>

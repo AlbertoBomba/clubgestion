@@ -10,6 +10,7 @@ use App\Models\Category;
 use App\Models\Season;
 use App\Models\Section;
 use App\Models\User;
+use App\Classes\ExcelFile;
 
 class Index extends Component
 {
@@ -304,6 +305,98 @@ class Index extends Component
     {
         $this->reset(['team', 'description', 'category_id', 'season_id', 'section_id', 'selectedCoaches', 'teamImage', 'gender', 'price', 'federate']);
         $this->resetErrorBag();
+    }
+
+    public function exportExcel()
+    {
+        $userSchoolId = auth()->user()->sports_school_id;
+        
+        // Construir query con los mismos filtros de la vista
+        $query = Team::with(['category', 'season', 'section', 'coaches', 'players'])
+            ->whereHas('season', function ($query) use ($userSchoolId) {
+                $query->where('sports_school_id', $userSchoolId);
+            })
+            ->when($this->search, function ($query) {
+                $query->where(function ($q) {
+                    $q->where('team', 'like', '%' . $this->search . '%')
+                      ->orWhere('description', 'like', '%' . $this->search . '%')
+                      ->orWhereHas('category', function ($query) {
+                          $query->where('category', 'like', '%' . $this->search . '%');
+                      })
+                      ->orWhereHas('season', function ($query) {
+                          $query->where('season', 'like', '%' . $this->search . '%');
+                      });
+                });
+            })
+            ->when($this->categoryFilter, function ($query) {
+                $query->where('category_id', $this->categoryFilter);
+            })
+            ->when($this->seasonFilter, function ($query) {
+                $query->where('season_id', $this->seasonFilter);
+            })
+            ->orderBy('team')
+            ->get();
+
+        $excel = new ExcelFile(
+            Team::class,
+            [],
+            [
+                'team' => [
+                    'title' => 'Equipo',
+                    'value' => '$record->team',
+                    'type' => 'eval'
+                ],
+                'category' => [
+                    'title' => 'Categoría',
+                    'value' => '$record->category ? $record->category->category : "-"',
+                    'type' => 'eval'
+                ],
+                'gender' => [
+                    'title' => 'Género',
+                    'value' => 'ucfirst($record->gender)',
+                    'type' => 'eval'
+                ],
+                'season' => [
+                    'title' => 'Temporada',
+                    'value' => '$record->season ? $record->season->season : "-"',
+                    'type' => 'eval'
+                ],
+                'section' => [
+                    'title' => 'Sección',
+                    'value' => '$record->section ? $record->section->name : "-"',
+                    'type' => 'eval'
+                ],
+                'players_count' => [
+                    'title' => 'N° Jugadores',
+                    'value' => '$record->players->count()',
+                    'type' => 'eval'
+                ],
+                'price' => [
+                    'title' => 'Precio Matrícula (€)',
+                    'value' => '$record->price ? number_format($record->price, 2, ",", ".") : "0,00"',
+                    'type' => 'eval'
+                ],
+                'federate' => [
+                    'title' => 'Federado',
+                    'value' => '$record->federate ? "Sí" : "No"',
+                    'type' => 'eval'
+                ],
+                'coaches' => [
+                    'title' => 'Entrenadores',
+                    'value' => '$record->coaches->pluck("name")->implode(", ") ?: "Sin asignar"',
+                    'type' => 'eval'
+                ],
+            ],
+            'Listado equipos',
+            [],
+            [],
+            $query
+        );
+        
+        return response()->streamDownload(
+            fn () => print($excel->generate()),
+            'Listado_equipos.xlsx'
+        );
     }
 
     public function render()

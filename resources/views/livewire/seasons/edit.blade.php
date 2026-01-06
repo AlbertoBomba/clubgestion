@@ -143,22 +143,37 @@
                             </div>
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-semibold text-titanium mb-2">Precio Preinscripción (€)</label>
-                            <input type="text" 
-                                   wire:model.live="precio_preinscripcion"
-                                   placeholder="0.00 €"
-                                   {{ !$isActive ? 'disabled' : '' }}
-                                   onfocus="this.select()"
-                                   class="w-24 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary text-black-deep text-sm font-semibold
-                                          {{ $isActive ? 'border-primary bg-white' : 'border-silver bg-gray-100 cursor-not-allowed' }}">
-                            <p class="text-xs text-gray-500 mt-1">
-                                <svg class="inline w-4 h-4 text-blue-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                                </svg>
-                                Si establece un precio, el alumno deberá pagar la preinscripción cuando realice el alta en la escuela.
-                            </p>
-                            @error('precio_preinscripcion') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                        <div class="flex w-full gap-4">
+                            <div class="flex-1">
+                                <label class="block text-sm font-semibold text-titanium mb-2">Número de Cuotas *</label>
+                                <select wire:model.live="cuota" {{ !$isActive ? 'disabled' : '' }} class="w-full px-3 py-2 border border-silver rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm {{ !$isActive ? 'bg-gray-100 cursor-not-allowed' : '' }}">
+                                    @for ($i = 1; $i <= 12; $i++)
+                                        <option value="{{ $i }}">{{ $i }} {{ $i == 1 ? 'cuota' : 'cuotas' }}</option>
+                                    @endfor
+                                </select>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Cantidad de cuotas permitidas en los pagos
+                                </p>
+                                @error('cuota') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="flex-1">
+                                <label class="block text-sm font-semibold text-titanium mb-2">Precio Preinscripción (€)</label>
+                                <input type="text" 
+                                       wire:model.live="precio_preinscripcion"
+                                       placeholder="0.00 €"
+                                       {{ !$isActive ? 'disabled' : '' }}
+                                       onfocus="this.select()"
+                                       class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary text-black-deep text-sm font-semibold
+                                              {{ $isActive ? 'border-primary bg-white' : 'border-silver bg-gray-100 cursor-not-allowed' }}">
+                                <p class="text-xs text-gray-500 mt-1">
+                                    <svg class="inline w-4 h-4 text-blue-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                    </svg>
+                                    Si establece un precio, el alumno deberá pagar la preinscripción cuando realice el alta en la escuela.
+                                </p>
+                                @error('precio_preinscripcion') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
                         </div>
                         
                     </div>

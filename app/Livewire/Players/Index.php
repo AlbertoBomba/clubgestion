@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Players;
 
+use App\Classes\ExcelFile;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Player;
@@ -194,6 +195,183 @@ class Index extends Component
             $this->newTeamId = '';
             $this->confirmingTeamChange = true;
         }
+    }
+
+     public function exportExcel(){
+        // Construir query con los mismos filtros de la vista
+        $query = Player::where('sports_school_id', auth()->user()->sports_school_id)
+            ->with(['seasons', 'teams', 'sections'])
+            ->when($this->search, function ($query) {
+                $query->where(function ($q) {
+                    $searchTerm = $this->search;
+                    $q->where('name', 'like', '%' . $searchTerm . '%')
+                      ->orWhere('surname', 'like', '%' . $searchTerm . '%')
+                      ->orWhere('dni', 'like', '%' . $searchTerm . '%')
+                      ->orWhere('email', 'like', '%' . $searchTerm . '%')
+                      ->orWhere('dorsal', 'like', '%' . $searchTerm . '%')
+                      ->orWhere('nametutor', 'like', '%' . $searchTerm . '%')
+                      ->orWhereRaw("CONCAT(name, ' ', surname) LIKE ?", ['%' . $searchTerm . '%'])
+                      ->orWhereRaw("CONCAT(surname, ' ', name) LIKE ?", ['%' . $searchTerm . '%']);
+                });
+            })
+            ->when($this->dniFilter, function ($query) {
+                $query->where(function ($q) {
+                    $dniTerm = $this->dniFilter;
+                    $q->where('dni', 'like', '%' . $dniTerm . '%')
+                      ->orWhere('dnitutor', 'like', '%' . $dniTerm . '%');
+                });
+            })
+            ->when($this->seasonFilter, function ($query) {
+                $query->whereHas('seasons', function ($q) {
+                    $q->where('seasons.id', $this->seasonFilter);
+                });
+            })
+            ->when($this->teamFilter, function ($query) {
+                $query->whereHas('teams', function ($q) {
+                    $q->where('teams.id', $this->teamFilter);
+                });
+            })
+            ->when($this->withoutTeam, function ($query) {
+                $query->doesntHave('teams');
+            })
+            ->orderBy($this->sortField, $this->sortDirection)
+            ->get();
+
+        $excel = new ExcelFile(
+                    Player::class,
+                    [], // Sin filtros, ya pasamos los registros filtrados
+                    [
+                        // 'id' => [
+                        //     'title' => '#ID#',
+                        //     'value' => '$record->id',
+                        //     'type' => 'eval'
+                        // ],
+                        'cod_matricula' => [
+                            'title' => 'Matricula',
+                            'value' => '$record->cod_matricula',
+                            'type' => 'eval'
+                        ],
+                        'dni' => [
+                            'title' => 'DNI/NIE',
+                            'value' => '$record->dni',
+                            'type' => 'eval'
+                        ],
+                        'name' => [
+                            'title' => 'Nombre',
+                            'value' => '$record->name',
+                            'type' => 'eval'
+                        ],
+                        'surname' => [
+                            'title' => 'Apellido',
+                            'value' => '$record->surname',
+                            'type' => 'eval'
+                        ],
+                        'dbirth' => [
+                            'title' => 'F. Nacimiento',
+                            'value' => '$record->dbirth',
+                            'type' => 'eval'
+                        ],
+                        'dbanio' => [
+                            'title' => 'Año',
+                            'value' => '$record->dbanio',
+                            'type' => 'eval'
+                        ],
+                        'Team' => [
+                            'title' => 'Equipo',
+                            'value' => '$record->teams->first()->team ?? "Sin equipo"',
+                            'type' => 'eval'
+                        ],
+                        'sections' => [
+                            'title' => 'Secciones',
+                            'value' => '$record->sections->pluck("name")->implode(", ")',
+                            'type' => 'eval'
+                        ],
+                        // 'soccer' => [
+                        //     'title' => 'Futbol',
+                        //     'value' => '$record->soccer',
+                        //     'type' => 'eval'
+                        // ],
+                        // 'paddle' => [
+                        //     'title' => 'Pádel',
+                        //     'value' => '$record->paddle',
+                        //     'type' => 'eval'
+                        // ],
+                        'sizes' => [
+                            'title' => 'Talla',
+                            'value' => '$record->sizes',
+                            'type' => 'eval'
+                        ],
+                        'dorsal' => [
+                            'title' => 'Dorsal',
+                            'value' => '$record->dorsal',
+                            'type' => 'eval'
+                        ],
+                        'goalie' => [
+                            'title' => 'Portero',
+                            'value' => '$record->goalie',
+                            'type' => 'eval'
+                        ],
+                        // 'file' => [
+                        //     'title' => 'Ficha',
+                        //     'value' => '$record->file',
+                        //     'type' => 'eval'
+                        // ],
+                        'dnitutor' => [
+                            'title' => 'DNI/NIE Tutor',
+                            'value' => '$record->dnitutor',
+                            'type' => 'eval'
+                        ],
+                        'nametutor' => [
+                            'title' => 'Nombre Tutor',
+                            'value' => '$record->nametutor',
+                            'type' => 'eval'
+                        ],
+                        'address' => [
+                            'title' => 'Dirección',
+                            'value' => '$record->address',
+                            'type' => 'eval'
+                        ],
+                        'zip' => [
+                            'title' => 'CP',
+                            'value' => '$record->zip',
+                            'type' => 'eval'
+                        ],
+                        'town' => [
+                            'title' => 'Población',
+                            'value' => '$record->town',
+                            'type' => 'eval'
+                        ],
+                        'phone1' => [
+                            'title' => 'Teléfono',
+                            'value' => '$record->phone1',
+                            'type' => 'eval'
+                        ],
+                        'email' => [
+                            'title' => 'eMail',
+                            'value' => '$record->email',
+                            'type' => 'eval'
+                        ],
+                        // 'created_at' => [
+                        //     'title' => 'F.Incripción',
+                        //     'value' => '$record->created_at',
+                        //     'type' => 'eval'
+                        // ],
+                        'observations' => [
+                            'title' => 'Observaciones',
+                            'value' => '$record->observations',
+                            'type' => 'eval'
+                        ],
+                    ],
+                    'Jugadores Escuelas deportivas',
+                    [], // Sin sort, ya está ordenado
+                    [], // Sin with, ya están cargadas las relaciones
+                    $query // Pasar los registros ya filtrados
+                );
+                return response()->streamDownload(
+                    fn () => print($excel->generate()),
+                    'Listado jugadores.xlsx'
+                );
+        
     }
 
     public function changeTeam()

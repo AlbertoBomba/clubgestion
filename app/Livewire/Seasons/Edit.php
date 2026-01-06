@@ -14,6 +14,7 @@ class Edit extends Component
     public $description = '';
     public $from_year = '';
     public $to_year = '';
+    public $cuota = 1;
     public $end_date = '';
     public $precio_preinscripcion = '';
     public $sectionPrices = []; // Array: section_id => price
@@ -27,6 +28,7 @@ class Edit extends Component
     private $originalDescription;
     private $originalFromYear;
     private $originalToYear;
+    private $originalCuota;
     private $originalEndDate;
     private $originalPrecioPreinscripcion;
     private $originalSectionPrices = [];
@@ -44,6 +46,7 @@ class Edit extends Component
         $descriptionChanged = $this->description !== $this->originalDescription;
         $fromYearChanged = (string)$this->from_year !== (string)$this->originalFromYear;
         $toYearChanged = (string)$this->to_year !== (string)$this->originalToYear;
+        $cuotaChanged = (string)$this->cuota !== (string)$this->originalCuota;
         $endDateChanged = $this->end_date !== $this->originalEndDate;
         $precioPreinscripcionChanged = $this->precio_preinscripcion !== $this->originalPrecioPreinscripcion;
         $pricesChanged = $this->sectionPrices !== $this->originalSectionPrices;
@@ -51,7 +54,7 @@ class Edit extends Component
                           count(array_diff($this->originalSelectedSections, $this->selectedSections)) > 0;
         
         $this->hasChanges = $seasonChanged || $descriptionChanged || $fromYearChanged || 
-                           $toYearChanged || $endDateChanged || $precioPreinscripcionChanged || $pricesChanged || $sectionsChanged;
+                           $toYearChanged || $cuotaChanged || $endDateChanged || $precioPreinscripcionChanged || $pricesChanged || $sectionsChanged;
     }
 
     public function updatedSectionPrices($value, $key)
@@ -77,6 +80,7 @@ class Edit extends Component
             'description' => 'nullable|string',
             'from_year' => 'required|integer|min:1900|max:2100',
             'to_year' => 'required|integer|min:1900|max:2100',
+            'cuota' => 'required|integer|min:1|max:12',
             'end_date' => 'nullable|date',
             'precio_preinscripcion' => 'nullable|numeric|min:0',
         ];
@@ -100,6 +104,7 @@ class Edit extends Component
         $this->description = $season->description;
         $this->from_year = $season->from_year;
         $this->to_year = $season->to_year;
+        $this->cuota = $season->cuota ?? 1;
         $this->end_date = $season->end_date ? $season->end_date->format('Y-m-d') : '';
         $this->precio_preinscripcion = $season->precio_preinscripcion;
         
@@ -108,6 +113,7 @@ class Edit extends Component
         $this->originalDescription = $this->description ?? '';
         $this->originalFromYear = $this->from_year;
         $this->originalToYear = $this->to_year;
+        $this->originalCuota = $this->cuota;
         $this->originalEndDate = $this->end_date ?? '';
         $this->originalPrecioPreinscripcion = $this->precio_preinscripcion ?? '';
         
@@ -141,6 +147,7 @@ class Edit extends Component
             'description' => $this->description,
             'from_year' => $this->from_year,
             'to_year' => $this->to_year,
+            'cuota' => $this->cuota,
             'end_date' => $this->end_date,
             'precio_preinscripcion' => $this->precio_preinscripcion ? floatval($this->precio_preinscripcion) : null,
             'updated_user' => auth()->id(),
@@ -175,6 +182,7 @@ class Edit extends Component
         $this->originalDescription = $this->description;
         $this->originalFromYear = $this->from_year;
         $this->originalToYear = $this->to_year;
+        $this->originalCuota = $this->cuota;
         $this->originalEndDate = $this->end_date;
         $this->originalPrecioPreinscripcion = $this->precio_preinscripcion;
         $this->originalSectionPrices = $this->sectionPrices;

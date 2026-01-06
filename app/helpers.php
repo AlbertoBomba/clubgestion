@@ -28,8 +28,15 @@ if (!function_exists('length')) {
 	function length($element)
 	{
 		$count = 0;
-		if (is_array($element) || is_object(($element))) {
+		if (is_array($element)) {
 			$count = count($element);
+		} elseif (is_object($element)) {
+			// For objects, check if they're Countable, otherwise count properties
+			if ($element instanceof Countable) {
+				$count = count($element);
+			} else {
+				$count = count(get_object_vars($element));
+			}
 		} elseif (is_string($element)) {
 			$count = strlen($element);
 		} else {

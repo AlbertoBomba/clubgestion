@@ -7,6 +7,7 @@ use Livewire\WithPagination;
 use App\Models\PaymentTeam;
 use App\Models\Season;
 use App\Models\Team;
+use App\Classes\PdfFile;
 
 class Index extends Component
 {
@@ -18,6 +19,8 @@ class Index extends Component
     public $showPreview = false;
     public $showDeleteModal = false;
     public $showDeleteConfirm = false;
+    public $showDeleteSingleModal = false;
+    public $teamToDelete = null;
     public $showEditModal = false;
     public $showEditPreview = false;
     public $selectedSeasonId = '';
@@ -32,7 +35,10 @@ class Index extends Component
     public $editNumPlazos = 1;
     public $editPlazos = [];
     public $numPlazos = 1;
+    public $maxPlazos = 12;
     public $plazos = [];
+    public $teamAmounts = []; // Almacena los importes personalizados por equipo y plazo
+    public $teamTotalErrors = []; // Errores de validación por equipo
     public $previewData = [];
     public $plazoErrors = [];
 
@@ -75,6 +81,8 @@ class Index extends Component
 
         if ($activeSeason) {
             $this->selectedSeasonId = $activeSeason->id;
+            // Set max plazos from season's cuota field (default to 12 if not set)
+            $this->maxPlazos = $activeSeason->cuota && $activeSeason->cuota > 0 ? $activeSeason->cuota : 12;
             $this->loadTeams();
             $this->numPlazos = 1;
             $this->initializePlazos();
@@ -100,6 +108,137 @@ class Index extends Component
     public function updatedNumPlazos()
     {
         $this->initializePlazos();
+        $this->initializeTeamAmounts();
+    }
+
+    public function initializeTeamAmounts()
+    {
+        foreach ($this->modalTeams as $team) {
+            if ($team->price && $team->price > 0) {
+                $pricePerInstallment = $team->price / $this->numPlazos;
+                for ($i = 1; $i <= $this->numPlazos; $i++) {
+                    $this->teamAmounts[$team->id][$i] = number_format($pricePerInstallment, 2, '.', '');
+                }
+            }
+        }
+        $this->teamTotalErrors = [];
+    }
+
+    public function updatedTeamAmounts($value, $key)
+    {
+        // $key será algo como "123.1" donde 123 es el team_id y 1 es el plazo
+        $parts = explode('.', $key);
+        if (count($parts) === 2) {
+            $teamId = $parts[0];
+            $plazoModificado = (int)$parts[1];
+            
+            // Normalizar el valor: convertir coma a punto para decimales
+            $normalizedValue = str_replace(',', '.', $value);
+            $this->teamAmounts[$teamId][$plazoModificado] = $normalizedValue;
+            
+            $this->adjustTeamAmounts($teamId, $plazoModificado);
+        }
+    }
+
+    public function adjustTeamAmounts($teamId, $plazoModificado)
+    {
+        $team = $this->modalTeams->firstWhere('id', $teamId);
+        if (!$team || !$team->price) {
+            return;
+        }
+
+        // Si solo hay un plazo, no permitir modificación - debe ser igual al precio total
+        if ($this->numPlazos == 1) {
+            $this->teamAmounts[$teamId][$plazoModificado] = number_format($team->price, 2, '.', '');
+            unset($this->teamTotalErrors[$teamId]);
+            return;
+        }
+
+        // Obtener el valor del plazo modificado
+        $valorPlazoModificado = floatval($this->teamAmounts[$teamId][$plazoModificado] ?? 0);
+        
+        // Si el plazo modificado es mayor o igual al precio total, ajustarlo al máximo permitido
+        if ($valorPlazoModificado >= $team->price) {
+            // Si solo hay un plazo, debe ser igual al precio
+            if ($this->numPlazos == 1) {
+                $this->teamAmounts[$teamId][$plazoModificado] = number_format($team->price, 2, '.', '');
+                unset($this->teamTotalErrors[$teamId]);
+                return;
+            }
+            
+            // Si hay varios plazos, dejar un mínimo de 0.01 para las otras cuotas
+            $minimoOtrasCuotas = 0.01 * ($this->numPlazos - 1);
+            $maxPermitido = $team->price - $minimoOtrasCuotas;
+            $this->teamAmounts[$teamId][$plazoModificado] = number_format($maxPermitido, 2, '.', '');
+            $valorPlazoModificado = $maxPermitido;
+        }
+        
+        // Calcular cuánto queda por distribuir entre las otras cuotas
+        $restoPorDistribuir = $team->price - $valorPlazoModificado;
+        
+        // Contar cuántas cuotas hay además de la modificada
+        $otrosPlazos = $this->numPlazos - 1;
+        
+        if ($otrosPlazos > 0) {
+            // Distribuir el resto equitativamente entre las otras cuotas
+            $importePorPlazo = $restoPorDistribuir / $otrosPlazos;
+            
+            for ($i = 1; $i <= $this->numPlazos; $i++) {
+                if ($i !== $plazoModificado) {
+                    $this->teamAmounts[$teamId][$i] = number_format($importePorPlazo, 2, '.', '');
+                }
+            }
+            
+            // Ajustar posibles diferencias de redondeo en la última cuota no modificada
+            $totalCalculado = $valorPlazoModificado;
+            $ultimoPlazoNoModificado = null;
+            
+            for ($i = 1; $i <= $this->numPlazos; $i++) {
+                if ($i !== $plazoModificado) {
+                    $totalCalculado += floatval($this->teamAmounts[$teamId][$i]);
+                    $ultimoPlazoNoModificado = $i;
+                }
+            }
+            
+            // Ajustar el último plazo para compensar errores de redondeo
+            if ($ultimoPlazoNoModificado !== null) {
+                $diferencia = $team->price - $totalCalculado;
+                $valorUltimoPlazo = floatval($this->teamAmounts[$teamId][$ultimoPlazoNoModificado]) + $diferencia;
+                $this->teamAmounts[$teamId][$ultimoPlazoNoModificado] = number_format($valorUltimoPlazo, 2, '.', '');
+            }
+        }
+
+        // Limpiar errores
+        unset($this->teamTotalErrors[$teamId]);
+    }
+
+    public function validateTeamTotal($teamId)
+    {
+        $team = $this->modalTeams->firstWhere('id', $teamId);
+        if (!$team || !$team->price) {
+            return true;
+        }
+
+        $total = 0;
+        for ($i = 1; $i <= $this->numPlazos; $i++) {
+            $amount = $this->teamAmounts[$teamId][$i] ?? 0;
+            $total += floatval($amount);
+        }
+
+        // Redondear a 2 decimales para evitar problemas de precisión de punto flotante
+        $totalRedondeado = round($total, 2);
+        $precioRedondeado = round($team->price, 2);
+        
+        // Usar una tolerancia mínima para comparación (0.01€)
+        $diferencia = abs($totalRedondeado - $precioRedondeado);
+
+        if ($diferencia > 0.01) {
+            $this->teamTotalErrors[$teamId] = 'El total de las cuotas (' . number_format($totalRedondeado, 2, ',', '.') . ' €) supera el precio de matrícula (' . number_format($precioRedondeado, 2, ',', '.') . ' €)';
+            return false;
+        } else {
+            unset($this->teamTotalErrors[$teamId]);
+            return true;
+        }
     }
 
     public function loadTeams()
@@ -119,6 +258,9 @@ class Index extends Component
                 ->filter(fn($team) => $team->price > 0)
                 ->pluck('id')
                 ->toArray();
+            
+            // Inicializar importes por equipo
+            $this->initializeTeamAmounts();
         }
     }
 
@@ -164,6 +306,14 @@ class Index extends Component
             return;
         }
 
+        // Validar totales de equipos
+        foreach ($this->selectedTeamIds as $teamId) {
+            if (!$this->validateTeamTotal($teamId)) {
+                session()->flash('error', 'Por favor, corrija los importes de las cuotas. El total no puede superar el precio de matrícula.');
+                return;
+            }
+        }
+
         // Generar previsualización solo para equipos seleccionados
         $this->previewData = [];
         
@@ -177,13 +327,13 @@ class Index extends Component
             }
 
             $teamPayments = [];
-            $pricePerInstallment = $team->price / $this->numPlazos;
 
             for ($i = 1; $i <= $this->numPlazos; $i++) {
+                $amount = floatval($this->teamAmounts[$team->id][$i] ?? 0);
                 $teamPayments[] = [
                     'cuota' => $i,
                     'description' => "Matrícula {$team->team} - Cuota {$i}/{$this->numPlazos}",
-                    'amount' => round($pricePerInstallment, 2),
+                    'amount' => round($amount, 2),
                     'price' => $team->price,
                     'date_start' => $this->plazos[$i]['date_start'],
                     'date_end' => $this->plazos[$i]['date_end'],
@@ -266,6 +416,79 @@ class Index extends Component
             
             $this->selectedTeamsToDelete = [];
             $this->closeDeleteModal();
+            
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error al eliminar los pagos: ' . $e->getMessage());
+        }
+    }
+
+    public function deleteSinglePayment($paymentId)
+    {
+        try {
+            $userSchoolId = auth()->user()->sports_school_id;
+            
+            $payment = PaymentTeam::where('id', $paymentId)
+                ->where('sports_school_id', $userSchoolId)
+                ->first();
+
+            if (!$payment) {
+                session()->flash('error', 'Pago no encontrado o no tienes permisos para eliminarlo.');
+                return;
+            }
+
+            $payment->delete();
+
+            session()->flash('message', 'Pago eliminado correctamente.');
+            
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error al eliminar el pago: ' . $e->getMessage());
+        }
+    }
+
+    public function openDeleteSingleModal($teamId)
+    {
+        $userSchoolId = auth()->user()->sports_school_id;
+        
+        $this->teamToDelete = Team::with(['payments' => function($query) use ($userSchoolId) {
+                $query->where('sports_school_id', $userSchoolId)->orderBy('cuota');
+            }, 'season', 'section'])
+            ->find($teamId);
+
+        if (!$this->teamToDelete || $this->teamToDelete->payments->isEmpty()) {
+            session()->flash('error', 'No se encontraron pagos para eliminar.');
+            return;
+        }
+
+        $this->showDeleteSingleModal = true;
+    }
+
+    public function closeDeleteSingleModal()
+    {
+        $this->showDeleteSingleModal = false;
+        $this->teamToDelete = null;
+    }
+
+    public function confirmDeleteSingleTeam()
+    {
+        try {
+            if (!$this->teamToDelete) {
+                session()->flash('error', 'No se encontró el equipo.');
+                return;
+            }
+
+            $userSchoolId = auth()->user()->sports_school_id;
+            
+            $deletedCount = PaymentTeam::where('team_id', $this->teamToDelete->id)
+                ->where('sports_school_id', $userSchoolId)
+                ->delete();
+
+            if ($deletedCount > 0) {
+                session()->flash('message', "Se eliminaron correctamente {$deletedCount} " . ($deletedCount == 1 ? 'pago' : 'pagos') . " del equipo {$this->teamToDelete->team}.");
+            } else {
+                session()->flash('error', 'No se encontraron pagos para eliminar.');
+            }
+
+            $this->closeDeleteSingleModal();
             
         } catch (\Exception $e) {
             session()->flash('error', 'Error al eliminar los pagos: ' . $e->getMessage());
@@ -496,9 +719,71 @@ class Index extends Component
             ->orderBy('from_year', 'desc')
             ->get();
 
+        $activeSeason = Season::where('sports_school_id', $userSchoolId)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->orderBy('created_at', 'desc')
+            ->first();
+
         return view('livewire.payments-teams.index', [
             'teams' => $teams,
             'seasons' => $seasons,
+            'activeSeason' => $activeSeason,
         ]);
+    }
+
+    public function printPayments()
+    {
+        $userSchoolId = auth()->user()->sports_school_id;
+
+        // Obtener equipos con pagos aplicando los mismos filtros que la vista
+        $query = Team::join('seasons', 'teams.season_id', '=', 'seasons.id')
+            ->leftJoin('categories', 'teams.category_id', '=', 'categories.id')
+            ->leftJoin('sections', 'teams.section_id', '=', 'sections.id')
+            ->where('seasons.sports_school_id', $userSchoolId)
+            ->select('teams.*');
+
+        if (!empty($this->search)) {
+            $query->where('teams.team', 'like', '%' . $this->search . '%');
+        }
+
+        if (!empty($this->seasonFilter)) {
+            $query->where('teams.season_id', $this->seasonFilter);
+        }
+
+        $teams = $query->withCount('payments')
+            ->with(['season.sportsSchool', 'category', 'section', 'payments' => function($query) {
+                $query->orderBy('cuota', 'asc');
+            }])
+            ->having('payments_count', '>', 0)
+            ->orderBy('seasons.from_year', 'desc')
+            ->orderBy('teams.team', 'asc')
+            ->get();
+
+        // Obtener la escuela deportiva del primer equipo
+        $sportsSchool = $teams->first()->season->sportsSchool ?? null;
+
+        if ($teams->isEmpty()) {
+            session()->flash('error', 'No hay pagos para imprimir con los filtros actuales.');
+            return;
+        }
+
+        $pdf = new PdfFile();
+        $pdf->file_name = 'pagos_equipos_' . now()->format('Y-m-d_His');
+        $pdf->templates[0] = 'pdfs.payments-teams';
+        $pdf->records = [
+            'data' => [
+                'teams' => $teams,
+                'generatedDate' => now()->format('d/m/Y H:i'),
+                'sportsSchool' => $sportsSchool,
+            ]
+        ];
+
+        $content = $pdf->generateFromTemplate($pdf->templates[0]);
+
+        return response()->streamDownload(
+            fn () => print($content),
+            $pdf->getFileName()
+        );
     }
 }

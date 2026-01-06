@@ -12,6 +12,7 @@ class Create extends Component
     public $description = '';
     public $from_year = '';
     public $to_year = '';
+    public $cuota = 1;
     public $end_date = '';
     public $precio_preinscripcion = '';
     public $sectionPrices = []; // Array: section_id => price
@@ -45,6 +46,7 @@ class Create extends Component
             'description' => 'nullable|string',
             'from_year' => 'required|integer|min:1900|max:2100',
             'to_year' => 'required|integer|min:1900|max:2100',
+            'cuota' => 'required|integer|min:1|max:12',
             'end_date' => 'nullable|date',
             'precio_preinscripcion' => 'nullable|numeric|min:0',
         ];
@@ -77,6 +79,7 @@ class Create extends Component
             'description' => $this->description,
             'from_year' => $this->from_year,
             'to_year' => $this->to_year,
+            'cuota' => $this->cuota,
             'start_date' => now()->toDateString(),
             'end_date' => $this->end_date,
             'precio_preinscripcion' => $this->precio_preinscripcion ? floatval($this->precio_preinscripcion) : null,

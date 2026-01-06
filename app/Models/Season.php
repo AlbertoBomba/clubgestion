@@ -17,6 +17,7 @@ class Season extends Model
         'sports_school_id',
         'from_year',
         'to_year',
+        'cuota',
         'start_date',
         'end_date',
         'precio_preinscripcion',
@@ -27,6 +28,7 @@ class Season extends Model
     protected $casts = [
         'from_year' => 'integer',
         'to_year' => 'integer',
+        'cuota' => 'integer',
         'start_date' => 'date',
         'end_date' => 'date',
     ];
