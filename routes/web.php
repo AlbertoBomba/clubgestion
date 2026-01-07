@@ -190,6 +190,23 @@ Route::middleware([
             return view('pay-orders.index');
         })->name('pay-orders.index');
 
+        Route::get('/pay-orders/{playerId}', function ($playerId) {
+            return view('pay-orders.show', compact('playerId'));
+        })->name('pay-orders.show');
+
+        Route::get('/pay-orders/download/{paymentId}', function ($paymentId) {
+            return app(\App\Livewire\PaymentOrders\Show::class)->downloadPaymentPdf($paymentId);
+        })->name('pay-orders.download-pdf');
+
+        Route::get('/pay-orders/receipt/{paymentId}', function ($paymentId) {
+            return app(\App\Livewire\PaymentOrders\Show::class)->downloadPaymentReceipt($paymentId);
+        })->name('pay-orders.download-receipt');
+
+        // Estadísticas de pagos
+        Route::get('/payment-statistics', function () {
+            return view('payment-statistics.index');
+        })->name('payment-statistics.index');
+
         // Gestión de Campos de Entrenamiento
         Route::get('/training-fields', function () {
             return view('training-fields.index');
