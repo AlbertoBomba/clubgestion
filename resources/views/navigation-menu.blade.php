@@ -629,7 +629,7 @@
             </div>
 
             <!-- Sidebar Menu Items -->
-            <nav class="p-4 space-y-2 flex-1 overflow-y-auto">
+            <nav class="p-4 space-y-2 flex-1 overflow-y-auto" x-data="{ openMenu: null }">
                 <a href="{{ route('dashboard') }}" 
                    @click="sidebarOpen = false"
                    class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('dashboard') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
@@ -640,25 +640,243 @@
                 </a>
 
                 @if(auth()->user()->hasAnyRole(['school_admin', 'coach']))
-                <a href="{{ route('my-school-users.index', ['filterSchool' => auth()->user()->sports_school_id]) }}" 
-                   @click="sidebarOpen = false"
-                   class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('my-school-users.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-                    </svg>
-                    Usuarios
-                </a>
+                <!-- Menú: Gestión Escuela -->
+                <div class="space-y-1">
+                    <button @click="openMenu = openMenu === 'gestion' ? null : 'gestion'" 
+                            class="flex items-center justify-between w-full px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200"
+                            :class="{'bg-primary/10 text-primary font-semibold': openMenu === 'gestion'}">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            <span>Gestión Escuela</span>
+                        </div>
+                        <svg class="w-4 h-4 transition-transform duration-200" 
+                             :class="{'rotate-180': openMenu === 'gestion'}"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    
+                    <div x-show="openMenu === 'gestion'" 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 transform -translate-y-2"
+                         x-transition:enter-end="opacity-100 transform translate-y-0"
+                         class="pl-4 space-y-1">
+                        <a href="{{ route('seasons.index') }}" 
+                           @click="sidebarOpen = false"
+                           class="flex items-center px-4 py-2 text-sm text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('seasons.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            Temporadas
+                        </a>
+
+                        <a href="{{ route('players.index') }}" 
+                           @click="sidebarOpen = false"
+                           class="flex items-center px-4 py-2 text-sm text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('players.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                            Jugadores
+                        </a>
+
+                        <a href="{{ route('teams.index') }}" 
+                           @click="sidebarOpen = false"
+                           class="flex items-center px-4 py-2 text-sm text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('teams.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            Equipos
+                        </a>
+
+                        @if(auth()->user()->hasRole('school_admin'))
+                        <a href="{{ route('training-fields.index') }}" 
+                           @click="sidebarOpen = false"
+                           class="flex items-center px-4 py-2 text-sm text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('training-fields.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>
+                            </svg>
+                            Campos
+                        </a>
+
+                        <a href="{{ route('training-schedule.index') }}" 
+                           @click="sidebarOpen = false"
+                           class="flex items-center px-4 py-2 text-sm text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('training-schedule.index') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            Planificar Horarios
+                        </a>
+
+                        <a href="{{ route('training-schedule.view') }}" 
+                           @click="sidebarOpen = false"
+                           class="flex items-center px-4 py-2 text-sm text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('training-schedule.view') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            Ver Horarios
+                        </a>
+                        @endif
+                    </div>
+                </div>
+                @endif
+
+                @if(auth()->user()->hasRole('school_admin'))
+                <!-- Menú: Tesorería -->
+                <div class="space-y-1">
+                    <button @click="openMenu = openMenu === 'tesoreria' ? null : 'tesoreria'" 
+                            class="flex items-center justify-between w-full px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200"
+                            :class="{'bg-primary/10 text-primary font-semibold': openMenu === 'tesoreria'}">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                            <span>Tesorería</span>
+                        </div>
+                        <svg class="w-4 h-4 transition-transform duration-200" 
+                             :class="{'rotate-180': openMenu === 'tesoreria'}"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    
+                    <div x-show="openMenu === 'tesoreria'" 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 transform -translate-y-2"
+                         x-transition:enter-end="opacity-100 transform translate-y-0"
+                         class="pl-4 space-y-1">
+                        <a href="{{ route('payments-teams.index') }}" 
+                           @click="sidebarOpen = false"
+                           class="flex items-center px-4 py-2 text-sm text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('payments-teams.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Generar pagos
+                        </a>
+
+                        <a href="{{ route('pay-orders.index') }}" 
+                           @click="sidebarOpen = false"
+                           class="flex items-center px-4 py-2 text-sm text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('pay-orders.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            Cartas de pago
+                        </a>
+
+                        <a href="{{ route('payment-statistics.index') }}" 
+                           @click="sidebarOpen = false"
+                           class="flex items-center px-4 py-2 text-sm text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('payment-statistics.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            Estadísticas
+                        </a>
+                    </div>
+                </div>
+                @endif
+
+                @if(auth()->user()->hasRole(['master', 'school_admin', 'coach']))
+                <!-- Menú: Entrenamientos -->
+                <div class="space-y-1">
+                    <button @click="openMenu = openMenu === 'entrenamientos' ? null : 'entrenamientos'" 
+                            class="flex items-center justify-between w-full px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200"
+                            :class="{'bg-primary/10 text-primary font-semibold': openMenu === 'entrenamientos'}">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
+                            <span>Entrenamientos</span>
+                        </div>
+                        <svg class="w-4 h-4 transition-transform duration-200" 
+                             :class="{'rotate-180': openMenu === 'entrenamientos'}"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    
+                    <div x-show="openMenu === 'entrenamientos'" 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 transform -translate-y-2"
+                         x-transition:enter-end="opacity-100 transform translate-y-0"
+                         class="pl-4 space-y-1">
+                        <a href="{{ route('exercises.index') }}" 
+                           @click="sidebarOpen = false"
+                           class="flex items-center px-4 py-2 text-sm text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('exercises.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
+                            Ejercicios
+                        </a>
+
+                        <a href="{{ route('training-sessions.index') }}" 
+                           @click="sidebarOpen = false"
+                           class="flex items-center px-4 py-2 text-sm text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('training-sessions.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            Sesiones de entrenamiento
+                        </a>
+                    </div>
+                </div>
                 @endif
 
                 @if(auth()->user()->hasAnyRole(['school_admin', 'coach']))
-                <a href="{{ route('categories.index') }}" 
-                   @click="sidebarOpen = false"
-                   class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('categories.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
-                    </svg>
-                    Categorías
-                </a>
+                <!-- Menú: Configuración -->
+                <div class="space-y-1">
+                    <button @click="openMenu = openMenu === 'configuracion' ? null : 'configuracion'" 
+                            class="flex items-center justify-between w-full px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200"
+                            :class="{'bg-primary/10 text-primary font-semibold': openMenu === 'configuracion'}">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span>Configuración</span>
+                        </div>
+                        <svg class="w-4 h-4 transition-transform duration-200" 
+                             :class="{'rotate-180': openMenu === 'configuracion'}"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    
+                    <div x-show="openMenu === 'configuracion'" 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 transform -translate-y-2"
+                         x-transition:enter-end="opacity-100 transform translate-y-0"
+                         class="pl-4 space-y-1">
+                        <a href="{{ route('my-school-users.index', ['filterSchool' => auth()->user()->sports_school_id]) }}" 
+                           @click="sidebarOpen = false"
+                           class="flex items-center px-4 py-2 text-sm text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('my-school-users.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                            </svg>
+                            Usuarios
+                        </a>
+
+                        <a href="{{ route('categories.index') }}" 
+                           @click="sidebarOpen = false"
+                           class="flex items-center px-4 py-2 text-sm text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('categories.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                            </svg>
+                            Categorías
+                        </a>
+
+                        @if(auth()->user()->hasRole(['master', 'school_admin', 'coach']))
+                        <a href="{{ route('exercise-types.index') }}" 
+                           @click="sidebarOpen = false"
+                           class="flex items-center px-4 py-2 text-sm text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('exercise-types.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                            </svg>
+                            Tipos de entrenamiento
+                        </a>
+                        @endif
+                    </div>
+                </div>
                 @endif
 
                 @if(auth()->user()->hasRole('master') && !auth()->user()->sportsSchool)
@@ -696,127 +914,6 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                     </svg>
                     Productos
-                </a>
-                @endif
-
-                @if(auth()->user()->hasAnyRole(['school_admin', 'coach']))
-                <a href="{{ route('seasons.index') }}" 
-                   @click="sidebarOpen = false"
-                   class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('seasons.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                    Temporadas
-                </a>
-
-                <a href="{{ route('players.index') }}" 
-                   @click="sidebarOpen = false"
-                   class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('players.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                    </svg>
-                    Jugadores
-                </a>
-
-                <a href="{{ route('teams.index') }}" 
-                   @click="sidebarOpen = false"
-                   class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('teams.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    Equipos
-                </a>
-                @endif
-
-                @if(auth()->user()->hasRole('school_admin'))
-                <a href="{{ route('payments-teams.index') }}" 
-                   @click="sidebarOpen = false"
-                   class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('payments-teams.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
-                    </svg>
-                    Generar pagos
-                </a>
-                @endif
-
-                @if(auth()->user()->hasRole('school_admin'))
-                <a href="{{ route('pay-orders.index') }}" 
-                   @click="sidebarOpen = false"
-                   class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('pay-orders.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    Cartas de pago
-                </a>
-                @endif
-
-                @if(auth()->user()->hasRole('school_admin'))
-                <a href="{{ route('payment-statistics.index') }}" 
-                   @click="sidebarOpen = false"
-                   class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('payment-statistics.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                    </svg>
-                    Estadísticas de Pagos
-                </a>
-                @endif
-
-                @if(auth()->user()->hasRole('school_admin'))
-                <a href="{{ route('training-fields.index') }}" 
-                   @click="sidebarOpen = false"
-                   class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('training-fields.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>
-                    </svg>
-                    Campos
-                </a>
-
-                <a href="{{ route('training-schedule.index') }}" 
-                   @click="sidebarOpen = false"
-                   class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('training-schedule.index') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                    Planificar Horarios
-                </a>
-
-                <a href="{{ route('training-schedule.view') }}" 
-                   @click="sidebarOpen = false"
-                   class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('training-schedule.view') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                    </svg>
-                    Ver Horarios
-                </a>
-                @endif
-
-                @if(auth()->user()->hasRole(['master', 'school_admin', 'coach']))
-                <a href="{{ route('exercises.index') }}" 
-                   @click="sidebarOpen = false"
-                   class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('exercises.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                    </svg>
-                    Ejercicios
-                </a>
-
-                <a href="{{ route('training-sessions.index') }}" 
-                   @click="sidebarOpen = false"
-                   class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('training-sessions.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    Sesiones de Entrenamiento
-                </a>
-
-                <a href="{{ route('exercise-types.index') }}" 
-                   @click="sidebarOpen = false"
-                   class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('exercise-types.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
-                    </svg>
-                    Tipos de Ejercicios
                 </a>
                 @endif
             </nav>

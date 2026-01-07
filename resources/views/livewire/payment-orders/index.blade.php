@@ -40,14 +40,14 @@
                     <span wire:loading wire:target="generatePaymentOrders">Generando...</span>
                 </button>
                 
-                @if($activeSeason)
+                {{-- @if($activeSeason)
                     <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-green-600 text-white shadow-md">
                         <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                         </svg>
                         {{ $activeSeason->season }} en curso
                     </span>
-                @endif
+                @endif --}}
             </div>
         </div>
 
@@ -68,7 +68,12 @@
                     class="block w-full px-3 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
                     <option value="">Todas las temporadas</option>
                     @foreach($seasons as $season)
-                        <option value="{{ $season->id }}">{{ $season->season }}</option>
+                        <option value="{{ $season->id }}">
+                            {{ $season->season }}
+                            @if($activeSeason && $season->id === $activeSeason->id)
+                                🟢 (Temporada en curso)
+                            @endif
+                        </option>
                     @endforeach
                 </select>
             </div>
