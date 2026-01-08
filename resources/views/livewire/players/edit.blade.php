@@ -250,54 +250,70 @@
                     
                 </div>
 
-                <!-- Datos del Tutor -->
-                @if(!$this->isAdult)
+                <!-- Datos del Tutor y Contacto -->
                 <div>
                     <!-- Equipo del Jugador -->
                     <div class="mb-8">
-                        {{-- <h3 class="text-lg font-semibold text-titanium flex items-center border-b border-silver/30 pb-3 mb-4">
-                            <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-3-3v0a3 3 0 00-3 3v2zm-5-2a3 3 0 013-3m0 0a3 3 0 013 3m-6 0h6m2-13a4 4 0 11-8 0 4 4 0 018 0z"/>
-                            </svg>
-                            Equipo del Jugador
-                        </h3> --}}
-                        
                         @if($playerTeam)
                             <div class="bg-gradient-to-br from-blue-50 to-blue-100/50 border-2 border-blue-200 rounded-xl p-4">
-                                <div class="flex items-center gap-3">
-                                    @if($playerTeam->team_image)
-                                        <img src="{{ asset('storage/' . $playerTeam->team_image) }}" alt="{{ $playerTeam->team }}" class="w-12 h-12 rounded-full object-cover border-2 border-blue-300">
-                                    @else
-                                        <div class="w-12 h-12 rounded-full bg-blue-200 flex items-center justify-center border-2 border-blue-300">
-                                            <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
-                                            </svg>
-                                        </div>
-                                    @endif
-                                    <div>
-                                        <p class="text-sm text-gray-600 font-medium">Equipo asignado</p>
-                                        <p class="text-lg font-bold text-blue-700">{{ $playerTeam->team }}</p>
-                                        @if($playerTeam->category)
-                                            <p class="text-xs text-gray-500">Categoría: {{ $playerTeam->category->name }}</p>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        @if($playerTeam->team_image)
+                                            <img src="{{ asset('storage/' . $playerTeam->team_image) }}" alt="{{ $playerTeam->team }}" class="w-12 h-12 rounded-full object-cover border-2 border-blue-300">
+                                        @else
+                                            <div class="w-12 h-12 rounded-full bg-blue-200 flex items-center justify-center border-2 border-blue-300">
+                                                <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                                                </svg>
+                                            </div>
                                         @endif
+                                        <div>
+                                            <p class="text-sm text-gray-600 font-medium">Equipo asignado</p>
+                                            <p class="text-lg font-bold text-blue-700">{{ $playerTeam->team }}</p>
+                                            @if($playerTeam->category)
+                                                <p class="text-xs text-gray-500">Categoría: {{ $playerTeam->category->name }}</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button type="button" wire:click="openTeamsModal" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors flex items-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                                            </svg>
+                                            Cambiar
+                                        </button>
+                                        <button type="button" wire:click="removeTeam" wire:confirm="¿Seguro que quieres quitar al jugador de este equipo?" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors flex items-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                            </svg>
+                                            Quitar
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         @else
                             <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg">
-                                <div class="flex items-center">
-                                    <svg class="w-6 h-6 text-yellow-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                                    </svg>
-                                    <div>
-                                        <p class="text-sm font-semibold text-yellow-800">El jugador no tiene equipo asignado</p>
-                                        <p class="text-xs text-yellow-700 mt-1">Por favor, asigna al jugador a un equipo desde la gestión de equipos.</p>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <svg class="w-6 h-6 text-yellow-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        <div>
+                                            <p class="text-sm font-semibold text-yellow-800">El jugador no tiene equipo asignado</p>
+                                        </div>
                                     </div>
+                                    <button type="button" wire:click="openTeamsModal" class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors flex items-center gap-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                        </svg>
+                                        Asignar Equipo
+                                    </button>
                                 </div>
                             </div>
                         @endif
                     </div>
 
+                    @if(!$this->isAdult)
                     <h3 class="text-lg font-semibold text-titanium flex items-center border-b border-silver/30 pb-3 mb-4">
                         <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
@@ -326,6 +342,7 @@
                             @error('dnitutor') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
                     </div>
+                    @endif
                     
                     <!-- Datos de Contacto -->
                     <div class="mt-8">
@@ -399,7 +416,6 @@
                         </div>
                     </div>
                 </div>
-                @endif
 
                 <!-- Foto y Observaciones -->
                 <div>
@@ -1036,6 +1052,96 @@
 
                     <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                         <button type="button" wire:click="closeSizesModal"
+                            class="w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm">
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Modal de Equipos -->
+    @if($showTeamsModal)
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <!-- Overlay -->
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" wire:click="closeTeamsModal"></div>
+
+                <!-- Modal panel -->
+                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="flex items-center justify-between border-b border-gray-200 pb-4 mb-4">
+                            <h3 class="text-2xl font-bold text-titanium flex items-center">
+                                <svg class="w-6 h-6 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-3-3v0a3 3 0 00-3 3v2zm-5-2a3 3 0 013-3m0 0a3 3 0 013 3m-6 0h6m2-13a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                </svg>
+                                Seleccionar Equipo
+                            </h3>
+                            <button type="button" wire:click="closeTeamsModal" class="text-gray-400 hover:text-gray-500">
+                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="mt-4">
+                            @php
+                                $availableTeams = \App\Models\Team::whereHas('season', function ($query) {
+                                        $query->where('sports_school_id', auth()->user()->sports_school_id);
+                                    })
+                                    ->with('category')
+                                    ->orderBy('team')
+                                    ->get();
+                            @endphp
+
+                            @if($availableTeams->isEmpty())
+                                <div class="text-center py-8">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                                    </svg>
+                                    <p class="mt-2 text-sm text-gray-500">No hay equipos disponibles.</p>
+                                    <p class="text-xs text-gray-400 mt-1">Por favor, crea equipos en tu escuela deportiva.</p>
+                                </div>
+                            @else
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                                    @foreach($availableTeams as $team)
+                                        <button type="button" wire:click="assignTeam({{ $team->id }})"
+                                            class="p-4 border-2 rounded-xl transition-all duration-200 hover:border-primary hover:bg-primary/5 hover:shadow-md
+                                                {{ $playerTeam && $playerTeam->id === $team->id ? 'border-primary bg-primary/10' : 'border-gray-200' }}
+                                                flex items-center gap-4 text-left">
+                                            @if($team->team_image)
+                                                <img src="{{ asset('storage/' . $team->team_image) }}" alt="{{ $team->team }}" class="w-14 h-14 rounded-full object-cover border-2 border-gray-300">
+                                            @else
+                                                <div class="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-300">
+                                                    <svg class="w-7 h-7 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                                                    </svg>
+                                                </div>
+                                            @endif
+                                            <div class="flex-1">
+                                                <p class="text-lg font-bold text-titanium">{{ $team->team }}</p>
+                                                @if($team->category)
+                                                    <p class="text-sm text-gray-600">{{ $team->category->name }}</p>
+                                                @endif
+                                                @if($playerTeam && $playerTeam->id === $team->id)
+                                                    <span class="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-primary/20 text-primary rounded-full">
+                                                        Equipo actual
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                            </svg>
+                                        </button>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="button" wire:click="closeTeamsModal"
                             class="w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm">
                             Cerrar
                         </button>

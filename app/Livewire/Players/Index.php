@@ -48,9 +48,6 @@ class Index extends Component
             $this->withoutTeam = $filters['withoutTeam'] ?? false;
             $this->sortField = $filters['sortField'] ?? 'surname';
             $this->sortDirection = $filters['sortDirection'] ?? 'asc';
-            
-            // Clear the session after restoring
-            session()->forget('players_filters');
         } else {
             // Set default season filter to active season only if no saved filters
             if (empty($this->seasonFilter)) {
@@ -64,32 +61,39 @@ class Index extends Component
                     $this->seasonFilter = $activeSeason->id;
                 }
             }
+            // Save initial filters
+            $this->saveFilters();
         }
     }
 
     public function updatingSearch()
     {
         $this->resetPage();
+        $this->saveFilters();
     }
 
     public function updatingDniFilter()
     {
         $this->resetPage();
+        $this->saveFilters();
     }
 
     public function updatingSeasonFilter()
     {
         $this->resetPage();
+        $this->saveFilters();
     }
 
     public function updatingTeamFilter()
     {
         $this->resetPage();
+        $this->saveFilters();
     }
 
     public function updatingWithoutTeam()
     {
         $this->resetPage();
+        $this->saveFilters();
     }
 
     public function saveFilters()
@@ -115,6 +119,7 @@ class Index extends Component
             $this->sortDirection = 'asc';
         }
         $this->resetPage();
+        $this->saveFilters();
     }
 
     public function confirmDelete($playerId)

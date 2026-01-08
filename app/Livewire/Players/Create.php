@@ -51,6 +51,9 @@ class Create extends Component
     public $descEnt = '';
     public $descPerc = '';
     
+    // Modal de tallas
+    public $showSizesModal = false;
+    
     // Otros
     public $observations = '';
     public $player_photo;
@@ -64,6 +67,25 @@ class Create extends Component
         }
         if ($value !== 'porcentaje') {
             $this->descPerc = '';
+        }
+    }
+    
+    public function openSizesModal()
+    {
+        $this->showSizesModal = true;
+    }
+    
+    public function closeSizesModal()
+    {
+        $this->showSizesModal = false;
+    }
+    
+    public function selectSize($sizeId)
+    {
+        $size = \App\Models\Size::find($sizeId);
+        if ($size) {
+            $this->sizes = $size->size;
+            $this->closeSizesModal();
         }
     }
 
@@ -193,10 +215,16 @@ class Create extends Component
                       ->where('active', true);
             })->distinct()->orderBy('name')->get();
         }
+        
+        // Obtener tallas asociadas a la escuela
+        $availableSizes = \App\Models\Size::whereHas('brand.sportsSchools', function($query) {
+            $query->where('sports_schools.id', auth()->user()->sports_school_id);
+        })->with('brand')->orderBy('brand_id')->orderBy('order')->orderBy('size')->get();
             
         return view('livewire.players.create', [
             'seasons' => $seasons,
-            'sections' => $sections
+            'sections' => $sections,
+            'availableSizes' => $availableSizes
         ]);
     }
 }

@@ -310,8 +310,20 @@
                         Sesiones de Entrenamiento
                     </div>
                 </a>
-            @elseif((auth()->user()->sportsSchool || auth()->user()->hasRole('master')) && !session()->has('impersonator_id'))
+            @elseif(auth()->user()->sportsSchool && !session()->has('impersonator_id'))
                 {{-- Menú de usuarios de escuela móvil (Back 2) --}}
+                
+                @if(auth()->user()->hasAnyRole(['school_admin', 'coach']))
+                <a href="{{ route('matches.index') }}" class="sidebar-link block pl-3 pr-4 py-2 text-base font-medium {{ request()->routeIs('matches.*') ? 'active text-white-pure' : 'text-titanium' }}">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        Partidos
+                    </div>
+                </a>
+                @endif
+
                 @if(auth()->user()->hasAnyRole(['school_admin', 'coach']))
                 <a href="{{ route('my-school-users.index', ['filterSchool' => auth()->user()->sports_school_id]) }}" class="sidebar-link block pl-3 pr-4 py-2 text-base font-medium {{ request()->routeIs('my-school-users.*') ? 'active text-white-pure' : 'text-titanium' }}">
                     <div class="flex items-center">
@@ -723,6 +735,20 @@
                 </div>
                 @endif
 
+                @if(auth()->user()->hasAnyRole(['school_admin', 'coach']))
+                <!-- Menú: Partidos -->
+                <div class="space-y-1">
+                    <a href="{{ route('matches.index') }}" 
+                       @click="sidebarOpen = false"
+                       class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('matches.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <span>Partidos</span>
+                    </a>
+                </div>
+                @endif
+
                 @if(auth()->user()->hasRole('school_admin'))
                 <!-- Menú: Tesorería -->
                 <div class="space-y-1">
@@ -778,25 +804,25 @@
                 @endif
 
                 @if(auth()->user()->hasRole(['master', 'school_admin', 'coach']))
-                <!-- Menú: Entrenamientos -->
+                <!-- Menú: Entrenador -->
                 <div class="space-y-1">
-                    <button @click="openMenu = openMenu === 'entrenamientos' ? null : 'entrenamientos'" 
+                    <button @click="openMenu = openMenu === 'entrenador' ? null : 'entrenador'" 
                             class="flex items-center justify-between w-full px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200"
-                            :class="{'bg-primary/10 text-primary font-semibold': openMenu === 'entrenamientos'}">
+                            :class="{'bg-primary/10 text-primary font-semibold': openMenu === 'entrenador'}">
                         <div class="flex items-center">
                             <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                             </svg>
-                            <span>Entrenamientos</span>
+                            <span>Entrenador</span>
                         </div>
                         <svg class="w-4 h-4 transition-transform duration-200" 
-                             :class="{'rotate-180': openMenu === 'entrenamientos'}"
+                             :class="{'rotate-180': openMenu === 'entrenador'}"
                              fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
                     </button>
                     
-                    <div x-show="openMenu === 'entrenamientos'" 
+                    <div x-show="openMenu === 'entrenador'" 
                          x-transition:enter="transition ease-out duration-200"
                          x-transition:enter-start="opacity-0 transform -translate-y-2"
                          x-transition:enter-end="opacity-100 transform translate-y-0"

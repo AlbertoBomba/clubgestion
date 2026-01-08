@@ -16,6 +16,10 @@ use App\Models\TrainingSession;
 use App\Livewire\TrainingSessions\Index as TrainingSessionsIndex;
 use App\Livewire\TrainingSessions\Create as TrainingSessionsCreate;
 use App\Livewire\TrainingSessions\Edit as TrainingSessionsEdit;
+use App\Livewire\PublicConvocatoria;
+
+// Public routes
+Route::get('/convocatoria/{token}', PublicConvocatoria::class)->name('public.convocatoria');
 
 Route::get('/', function () {
     return view('welcome');
@@ -257,5 +261,18 @@ Route::middleware([
         Route::get('/exercise-types/{type}/edit', function (App\Models\ExerciseType $type) {
             return view('exercise-types.edit', compact('type'));
         })->name('exercise-types.edit');
+
+        // Gestión de Partidos
+        Route::get('/matches', function () {
+            return view('matches.index');
+        })->name('matches.index');
+
+        Route::get('/matches/create', function () {
+            return view('matches.create');
+        })->name('matches.create');
+
+        Route::get('/matches/{match}/edit', function (App\Models\SeasonMatch $match) {
+            return view('matches.edit', compact('match'));
+        })->name('matches.edit');
     });
 });

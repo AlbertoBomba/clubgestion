@@ -57,6 +57,10 @@ class Edit extends Component
     // Modal de tallas
     public $showSizesModal = false;
     
+    // Modal de equipos
+    public $showTeamsModal = false;
+    public $selectedTeam = null;
+    
     // Modal de confirmación eliminar documento
     public $showDeleteModal = false;
     public $documentToDelete = null;
@@ -107,6 +111,40 @@ class Edit extends Component
             $this->sizes = $size->size;
             $this->closeSizesModal();
         }
+    }
+    
+    // Métodos para el modal de equipos
+    public function openTeamsModal()
+    {
+        $this->showTeamsModal = true;
+    }
+    
+    public function closeTeamsModal()
+    {
+        $this->showTeamsModal = false;
+    }
+    
+    public function assignTeam($teamId)
+    {
+        $this->selectedTeam = $teamId;
+        
+        // Sincronizar la relación con el equipo
+        $this->playerModel->teams()->sync([$teamId => [
+            'created_user' => auth()->user()->id,
+            'updated_user' => auth()->user()->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]]);
+        
+        $this->closeTeamsModal();
+        session()->flash('message', 'Equipo asignado correctamente.');
+    }
+    
+    public function removeTeam()
+    {
+        $this->playerModel->teams()->detach();
+        $this->selectedTeam = null;
+        session()->flash('message', 'Equipo removido correctamente.');
     }
     
     // Documentos
