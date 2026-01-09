@@ -22,10 +22,14 @@ class SeasonMatch extends Model
         'hour_meeting',
         'site',
         'observations',
+        'match_description',
         'goals_team',
         'goals_oponent',
         'escudo_team_oponent',
         'sites',
+        'formation',
+        'lineup',
+        'football_type',
         'share_token',
         'created_user',
         'updated_user',
@@ -35,6 +39,7 @@ class SeasonMatch extends Model
         'date' => 'date',
         'hour_match' => 'datetime:H:i',
         'hour_meeting' => 'datetime:H:i',
+        'lineup' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -59,7 +64,14 @@ class SeasonMatch extends Model
     public function players()
     {
         return $this->belongsToMany(Player::class, 'match_player', 'match_id', 'player_id')
-            ->withPivot('created_user', 'updated_user', 'reason_not_called', 'confirmed', 'confirmed_at')
+            ->withPivot('created_user', 'updated_user', 'reason_not_called', 'confirmed', 'confirmed_at', 'card_yellow1', 'card_yellow2', 'card_red')
+            ->withTimestamps();
+    }
+
+    public function notCalledPlayers()
+    {
+        return $this->belongsToMany(Player::class, 'match_player_not_called', 'match_id', 'player_id')
+            ->withPivot('reason', 'created_user', 'updated_user')
             ->withTimestamps();
     }
 

@@ -118,6 +118,14 @@
                                 placeholder="Observaciones generales del partido"></textarea>
                             @error('observations') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
+
+                        <div class="form-group lg:col-span-3">
+                            <label class="block text-sm font-semibold text-titanium mb-2">Descripción y Estadísticas del Partido</label>
+                            <textarea wire:model="match_description" rows="5"
+                                class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
+                                placeholder="Descripción detallada del desarrollo del partido, estadísticas, jugadas destacadas, etc."></textarea>
+                            @error('match_description') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                        </div>
                     </div>
                 </div>
 

@@ -22,7 +22,7 @@ use App\Livewire\PublicConvocatoria;
 Route::get('/convocatoria/{token}', PublicConvocatoria::class)->name('public.convocatoria');
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('home');
 });
 
 Route::middleware([

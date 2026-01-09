@@ -75,124 +75,279 @@
 
         <!-- Matches Table -->
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-silver/30">
-                <thead class="bg-gradient-to-r from-gray-50 to-primary/5">
-                    <tr>
-                        <th wire:click="sortBy('date')" class="px-6 py-4 text-left text-xs font-bold text-titanium uppercase tracking-wider cursor-pointer hover:bg-primary/10 transition-colors">
-                            <div class="flex items-center gap-2">
-                                Fecha
-                                @if($sortField === 'date')
-                                    @if($sortDirection === 'asc')
-                                        <svg class="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                        </svg>
-                                    @else
-                                        <svg class="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                                        </svg>
-                                    @endif
-                                @endif
-                            </div>
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-titanium uppercase tracking-wider">
-                            Equipo
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-titanium uppercase tracking-wider">
-                            Rival
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-titanium uppercase tracking-wider">
-                            Lugar
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-titanium uppercase tracking-wider">
-                            Hora Partido
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-titanium uppercase tracking-wider">
-                            Convocatoria
-                        </th>
-                        <th class="px-6 py-4 text-right text-xs font-bold text-titanium uppercase tracking-wider">
-                            Acciones
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-silver/20">
-                    @forelse($matches as $match)
-                        <tr class="hover:bg-primary/5 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-bold text-black-deep">{{ $match->date->format('d/m/Y') }}</div>
-                                <div class="text-xs text-gray-500">{{ $match->season->season }}</div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="flex items-center gap-3">
-                                    @if($match->team->team_image)
-                                        <img src="{{ asset('storage/' . $match->team->team_image) }}" alt="{{ $match->team->team }}" class="w-10 h-10 rounded-full object-cover border-2 border-primary/20">
-                                    @else
-                                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                                            <svg class="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
-                                            </svg>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+                @forelse($matches as $match)
+                    <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-primary/30 hover:-translate-y-1">
+                        <!-- Header Card con fecha y temporada -->
+                        <div class="bg-gradient-to-r from-primary/10 to-blue-500/10 px-4 py-3 border-b border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    <span class="text-sm font-bold text-titanium">{{ $match->date->format('d/m/Y') }}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    @if($match->goals_team !== null && $match->goals_oponent !== null)
+                                        <!-- Resultado en miniatura en el header -->
+                                        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold text-sm shadow-sm
+                                            {{ $match->goals_team > $match->goals_oponent ? 'bg-green-500 text-white' : 
+                                               ($match->goals_team < $match->goals_oponent ? 'bg-red-500 text-white' : 'bg-gray-500 text-white') }}">
+                                            <span>{{ $match->goals_team }}</span>
+                                            <span class="text-xs opacity-90">-</span>
+                                            <span>{{ $match->goals_oponent }}</span>
                                         </div>
+                                    @else
+                                        <span class="text-xs px-2 py-1 bg-gray-100 text-gray-500 rounded-full font-medium">
+                                            Sin resultado
+                                        </span>
                                     @endif
-                                    <div>
-                                        <div class="text-sm font-bold text-black-deep">{{ $match->team->team }}</div>
+                                    <span class="text-xs px-2 py-1 bg-white rounded-full text-gray-600 font-medium">{{ $match->season->season }}</span>
+                                </div>
+                            </div>
+                            @if($match->hour_match)
+                                <div class="mt-2 flex items-center gap-2 text-xs text-gray-600">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    <span>{{ $match->hour_match->format('H:i') }}</span>
+                                    @if($match->hour_meeting)
+                                        <span class="text-gray-400">• Citación: {{ $match->hour_meeting->format('H:i') }}</span>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- Versus Section -->
+                        <div class="p-6">
+                            <div class="flex items-center justify-between gap-4">
+                                @php
+                                    $isHome = $match->sites === 'home';
+                                    $isAway = $match->sites === 'away';
+                                @endphp
+
+                                @if($isHome || !$isAway)
+                                    <!-- Equipo Local (Escuela) -->
+                                    <div class="flex-1 text-center">
+                                        <div class="flex justify-center mb-3">
+                                            @if($match->sportsSchool && $match->sportsSchool->logo)
+                                                <img src="{{ asset('storage/' . $match->sportsSchool->logo) }}" alt="{{ $match->sportsSchool->sports_school }}" class="w-16 h-16 rounded-full object-cover border-3 border-blue-500/30 shadow-md">
+                                            @else
+                                                <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/30 flex items-center justify-center border-3 border-blue-500/30 shadow-md">
+                                                    <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
+                                                    </svg>
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <h3 class="text-sm font-bold text-black-deep truncate">
+                                            @if($match->sportsSchool)
+                                                {{ $match->sportsSchool->sports_school }}
+                                            @else
+                                                {{ $match->team->team }}
+                                            @endif
+                                        </h3>
                                         @if($match->team->category)
-                                            <div class="text-xs text-gray-500">{{ $match->team->category->name }}</div>
+                                            <p class="text-xs text-gray-500 mt-1">{{ $match->team->category->name }}</p>
+                                        @endif
+                                        <span class="inline-block mt-2 text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full font-medium">
+                                            Local
+                                        </span>
+                                    </div>
+
+                                    <!-- Marcador / VS -->
+                                    <div class="flex flex-col items-center justify-center px-4">
+                                        @if($match->goals_team !== null && $match->goals_oponent !== null)
+                                            <!-- Resultado final -->
+                                            <div class="flex items-center gap-3 mb-2">
+                                                <div class="text-center">
+                                                    <div class="text-3xl font-black {{ $match->goals_team > $match->goals_oponent ? 'text-green-600' : ($match->goals_team < $match->goals_oponent ? 'text-red-600' : 'text-gray-600') }}">
+                                                        {{ $match->goals_team }}
+                                                    </div>
+                                                </div>
+                                                <div class="text-2xl font-bold text-gray-400">-</div>
+                                                <div class="text-center">
+                                                    <div class="text-3xl font-black {{ $match->goals_oponent > $match->goals_team ? 'text-green-600' : ($match->goals_oponent < $match->goals_team ? 'text-red-600' : 'text-gray-600') }}">
+                                                        {{ $match->goals_oponent }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <span class="text-xs px-3 py-1 rounded-full font-bold
+                                                {{ $match->goals_team > $match->goals_oponent ? 'bg-green-100 text-green-700' : 
+                                                   ($match->goals_team < $match->goals_oponent ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700') }}">
+                                                {{ $match->goals_team > $match->goals_oponent ? 'Victoria' : 
+                                                   ($match->goals_team < $match->goals_oponent ? 'Derrota' : 'Empate') }}
+                                            </span>
+                                        @else
+                                            <!-- Partido sin jugar -->
+                                            <div class="text-center">
+                                                <div class="text-xl font-black text-gray-400">VS</div>
+                                                <span class="text-xs text-gray-500 mt-1 block">Por jugar</span>
+                                            </div>
                                         @endif
                                     </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="text-sm font-medium text-black-deep">{{ $match->opponent }}</div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="text-sm text-gray-600">{{ $match->site ?? '-' }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                @if($match->hour_match)
-                                    <div class="text-sm font-medium text-black-deep">{{ $match->hour_match->format('H:i') }}</div>
-                                    @if($match->hour_meeting)
-                                        <div class="text-xs text-gray-500">Citación: {{ $match->hour_meeting->format('H:i') }}</div>
-                                    @endif
+
+                                    <!-- Equipo Visitante (Rival) -->
+                                    <div class="flex-1 text-center">
+                                        <div class="flex justify-center mb-3">
+                                            @if($match->escudo_team_oponent)
+                                                <img src="{{ asset('storage/' . $match->escudo_team_oponent) }}" alt="{{ $match->opponent }}" class="w-16 h-16 rounded-full object-cover border-3 border-red-500/30 shadow-md">
+                                            @else
+                                                <div class="w-16 h-16 rounded-full bg-gradient-to-br from-red-500/20 to-red-600/30 flex items-center justify-center border-3 border-red-500/30 shadow-md">
+                                                    <svg class="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                                                    </svg>
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <h3 class="text-sm font-bold text-black-deep truncate">{{ $match->opponent }}</h3>
+                                        <p class="text-xs text-gray-500 mt-1">Rival</p>
+                                    </div>
                                 @else
-                                    <span class="text-sm text-gray-400">-</span>
+                                    <!-- Partido de VISITANTE: Rival primero, Escuela después -->
+                                    
+                                    <!-- Equipo Rival (Local del rival) -->
+                                    <div class="flex-1 text-center">
+                                        <div class="flex justify-center mb-3">
+                                            @if($match->escudo_team_oponent)
+                                                <img src="{{ asset('storage/' . $match->escudo_team_oponent) }}" alt="{{ $match->opponent }}" class="w-16 h-16 rounded-full object-cover border-3 border-red-500/30 shadow-md">
+                                            @else
+                                                <div class="w-16 h-16 rounded-full bg-gradient-to-br from-red-500/20 to-red-600/30 flex items-center justify-center border-3 border-red-500/30 shadow-md">
+                                                    <svg class="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                                                    </svg>
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <h3 class="text-sm font-bold text-black-deep truncate">{{ $match->opponent }}</h3>
+                                        <p class="text-xs text-gray-500 mt-1">Rival</p>
+                                    </div>
+
+                                    <!-- Marcador / VS -->
+                                    <div class="flex flex-col items-center justify-center px-4">
+                                        @if($match->goals_team !== null && $match->goals_oponent !== null)
+                                            <!-- Resultado final -->
+                                            <div class="flex items-center gap-3 mb-2">
+                                                <div class="text-center">
+                                                    <div class="text-3xl font-black {{ $match->goals_oponent > $match->goals_team ? 'text-red-600' : ($match->goals_oponent < $match->goals_team ? 'text-green-600' : 'text-gray-600') }}">
+                                                        {{ $match->goals_oponent }}
+                                                    </div>
+                                                </div>
+                                                <div class="text-2xl font-bold text-gray-400">-</div>
+                                                <div class="text-center">
+                                                    <div class="text-3xl font-black {{ $match->goals_team > $match->goals_oponent ? 'text-green-600' : ($match->goals_team < $match->goals_oponent ? 'text-red-600' : 'text-gray-600') }}">
+                                                        {{ $match->goals_team }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <span class="text-xs px-3 py-1 rounded-full font-bold
+                                                {{ $match->goals_team > $match->goals_oponent ? 'bg-green-100 text-green-700' : 
+                                                   ($match->goals_team < $match->goals_oponent ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700') }}">
+                                                {{ $match->goals_team > $match->goals_oponent ? 'Victoria' : 
+                                                   ($match->goals_team < $match->goals_oponent ? 'Derrota' : 'Empate') }}
+                                            </span>
+                                        @else
+                                            <!-- Partido sin jugar -->
+                                            <div class="text-center">
+                                                <div class="text-xl font-black text-gray-400">VS</div>
+                                                <span class="text-xs text-gray-500 mt-1 block">Por jugar</span>
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    <!-- Equipo Visitante (Nuestra Escuela) -->
+                                    <div class="flex-1 text-center">
+                                        <div class="flex justify-center mb-3">
+                                            @if($match->sportsSchool && $match->sportsSchool->logo)
+                                                <img src="{{ asset('storage/' . $match->sportsSchool->logo) }}" alt="{{ $match->sportsSchool->sports_school }}" class="w-16 h-16 rounded-full object-cover border-3 border-blue-500/30 shadow-md">
+                                            @else
+                                                <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/30 flex items-center justify-center border-3 border-blue-500/30 shadow-md">
+                                                    <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
+                                                    </svg>
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <h3 class="text-sm font-bold text-black-deep truncate">
+                                            @if($match->sportsSchool)
+                                                {{ $match->sportsSchool->sports_school }}
+                                            @else
+                                                {{ $match->team->team }}
+                                            @endif
+                                        </h3>
+                                        @if($match->team->category)
+                                            <p class="text-xs text-gray-500 mt-1">{{ $match->team->category->name }}</p>
+                                        @endif
+                                        <span class="inline-block mt-2 text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded-full font-medium">
+                                            Visitante
+                                        </span>
+                                    </div>
                                 @endif
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="flex items-center gap-2">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        {{ $match->players->count() }} jugadores
-                                    </span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <div class="flex items-center justify-end gap-2">
-                                    <a href="{{ route('matches.edit', $match) }}" class="text-blue-600 hover:text-blue-900 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </div>
+
+                            <!-- Información adicional -->
+                            <div class="mt-4 pt-4 border-t border-gray-100 space-y-2">
+                                @if($match->site)
+                                    <div class="flex items-center gap-2 text-xs text-gray-600">
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                                         </svg>
-                                    </a>
-                                    <button wire:click="confirmDelete({{ $match->id }})" class="text-red-600 hover:text-red-900 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        <span class="truncate">{{ $match->site }}</span>
+                                    </div>
+                                @endif
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                                         </svg>
-                                    </button>
+                                        <span class="text-xs font-medium text-gray-700">{{ $match->players->count() }} convocados</span>
+                                    </div>
+                                    @if($match->notCalledPlayers->count() > 0)
+                                        <div class="flex items-center gap-1">
+                                            <span class="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-medium">
+                                                {{ $match->notCalledPlayers->count() }} bajas
+                                            </span>
+                                        </div>
+                                    @endif
                                 </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="px-6 py-12 text-center">
-                                <div class="flex flex-col items-center justify-center">
-                                    <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                                    </svg>
-                                    <p class="text-gray-500 text-lg font-medium">No se encontraron partidos</p>
-                                    <p class="text-gray-400 text-sm mt-1">Crea tu primer partido para comenzar</p>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                            </div>
+                        </div>
+
+                        <!-- Footer con acciones -->
+                        <div class="bg-gray-50 px-4 py-3 flex items-center justify-end gap-2 border-t border-gray-100">
+                            <a href="{{ route('matches.edit', $match) }}" class="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-colors shadow-sm hover:shadow">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                                Editar
+                            </a>
+                            <button wire:click="confirmDelete({{ $match->id }})" class="inline-flex items-center px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold transition-colors shadow-sm hover:shadow">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                @empty
+                    <div class="col-span-full py-12">
+                        <div class="flex flex-col items-center justify-center">
+                            <svg class="w-20 h-20 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            </svg>
+                            <p class="text-gray-500 text-lg font-medium">No se encontraron partidos</p>
+                            <p class="text-gray-400 text-sm mt-1">Crea tu primer partido para comenzar</p>
+                            <a href="{{ route('matches.create') }}" class="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-md hover:shadow-lg">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
+                                Crear Primer Partido
+                            </a>
+                        </div>
+                    </div>
+                @endforelse
+            </div>
         </div>
 
         <!-- Pagination -->

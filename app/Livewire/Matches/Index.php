@@ -103,7 +103,7 @@ class Index extends Component
     public function render()
     {
         $matches = SeasonMatch::where('sports_school_id', auth()->user()->sports_school_id)
-            ->with(['season', 'team.category', 'players'])
+            ->with(['season', 'team.category', 'players', 'notCalledPlayers', 'sportsSchool'])
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('opponent', 'like', '%' . $this->search . '%')

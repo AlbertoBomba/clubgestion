@@ -10,7 +10,6 @@
                 <span class="hidden sm:inline">Actualizar </span>{{ $playerModel->name }} {{ $playerModel->surname }}
             </h2>
         </div>
-        
         <div class="flex gap-2 sm:gap-3 flex-wrap sm:flex-nowrap">
             <a href="{{ route('players.index') }}" class="inline-flex items-center px-3 py-2 sm:px-4 bg-silver/30 text-titanium rounded-xl font-semibold text-xs sm:text-sm hover:bg-silver/50 transition-colors whitespace-nowrap">
                 <svg class="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

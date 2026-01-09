@@ -18,6 +18,7 @@ class Create extends Component
     public $hour_meeting = '';
     public $site = '';
     public $observations = '';
+    public $match_description = '';
     
     // Convocatoria - dos columnas
     public $calledPlayers = []; // Jugadores convocados (columna derecha)
@@ -35,6 +36,7 @@ class Create extends Component
         'hour_meeting' => 'nullable|date_format:H:i',
         'site' => 'nullable|string|max:255',
         'observations' => 'nullable|string',
+        'match_description' => 'nullable|string',
     ];
 
     public function mount()
@@ -116,6 +118,7 @@ class Create extends Component
             'hour_meeting' => $this->hour_meeting,
             'site' => $this->site,
             'observations' => $this->observations,
+            'match_description' => $this->match_description,
             'created_user' => auth()->user()->id,
             'updated_user' => auth()->user()->id,
         ]);

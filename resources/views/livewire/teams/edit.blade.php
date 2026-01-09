@@ -335,6 +335,15 @@
                 </h3>
                 
                 <div class="flex items-center gap-3">
+                    <!-- Botón Imprimir PDF -->
+                    <button type="button" wire:click="openPdfModal"
+                        class="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors flex items-center gap-2 text-sm font-medium">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                        </svg>
+                        <span>Imprimir PDF</span>
+                    </button>
+                    
                     <!-- Botón Agregar Jugadores -->
                     <button type="button" wire:click="openAddPlayerModal" wire:loading.attr="disabled" wire:target="openAddPlayerModal"
                         class="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-dark transition-colors flex items-center gap-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">
@@ -699,6 +708,84 @@
             </x-button>
         </x-slot>
     </x-dialog-modal>
+
+    <!-- PDF Column Selection Modal -->
+    @if($showPdfModal)
+    <div class="fixed inset-0 z-50 overflow-y-auto" x-data="{ show: @entangle('showPdfModal') }">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Background overlay -->
+            <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" wire:click="closePdfModal"></div>
+
+            <!-- Modal panel -->
+            <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                <!-- Header -->
+                <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xl font-bold text-white flex items-center">
+                            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                            </svg>
+                            Seleccionar Columnas para PDF
+                        </h3>
+                        <button wire:click="closePdfModal" class="text-white hover:text-gray-200 transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Body -->
+                <div class="px-6 py-6">
+                    <p class="text-sm text-gray-600 mb-4">Selecciona las columnas que deseas incluir en el listado de jugadores del equipo:</p>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        @foreach($availableColumns as $key => $label)
+                            <label class="flex items-start p-3 border rounded-xl cursor-pointer transition-all hover:bg-gray-50
+                                {{ in_array($key, $selectedColumns) ? 'border-green-600 bg-green-50' : 'border-gray-300' }}">
+                                <input type="checkbox" wire:model.live="selectedColumns" value="{{ $key }}"
+                                    class="w-5 h-5 mt-0.5 text-green-600 border-gray-300 rounded focus:ring-green-500 focus:ring-2 flex-shrink-0">
+                                <span class="ml-3 text-sm font-medium text-gray-700">{{ $label }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+
+                    @if(empty($selectedColumns))
+                        <div class="mt-4 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+                            <p class="text-yellow-700 text-sm font-medium">
+                                <svg class="w-5 h-5 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                </svg>
+                                Debes seleccionar al menos una columna
+                            </p>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Footer -->
+                <div class="bg-gray-50 px-6 py-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                    <button wire:click="closePdfModal" type="button"
+                        class="px-4 py-2 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors font-medium text-sm">
+                        Cancelar
+                    </button>
+                    <button wire:click="generatePdf" wire:loading.attr="disabled" wire:target="generatePdf"
+                        {{ empty($selectedColumns) ? 'disabled' : '' }}
+                        class="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center">
+                        <svg wire:loading.remove wire:target="generatePdf" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
+                        </svg>
+                        <svg wire:loading wire:target="generatePdf" class="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span wire:loading.remove wire:target="generatePdf">Generar PDF</span>
+                        <span wire:loading wire:target="generatePdf">Generando...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 
     <!-- Delete Confirmation Modal -->
     <x-dialog-modal wire:model="confirmingDeletion">

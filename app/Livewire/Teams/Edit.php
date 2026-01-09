@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\Season;
 use App\Models\Section;
 use App\Models\User;
+use App\Classes\PdfFile;
 use Illuminate\Support\Facades\Storage;
 
 class Edit extends Component
@@ -47,6 +48,29 @@ class Edit extends Component
     
     // Eliminar equipo
     public $confirmingDeletion = false;
+    
+    // PDF Generation
+    public $showPdfModal = false;
+    public $selectedColumns = [];
+    public $availableColumns = [
+        'name' => 'Nombre',
+        'surname' => 'Apellidos',
+        'dni' => 'DNI',
+        'dbirth' => 'Fecha Nacimiento',
+        'dbanio' => 'Año Nacimiento',
+        'position' => 'Posición',
+        'shirt_number' => 'Dorsal',
+        'sizes' => 'Tallas',
+        'nametutor' => 'Nombre Tutor',
+        'surnametutor' => 'Apellidos Tutor',
+        'dnitutor' => 'DNI Tutor',
+        'address' => 'Dirección',
+        'town' => 'Localidad',
+        'province' => 'Provincia',
+        'cp' => 'Código Postal',
+        'phone' => 'Teléfono',
+        'email' => 'Email',
+    ];
     
     // Valores originales para detectar cambios
     private $originalTeamName;
@@ -553,4 +577,61 @@ class Edit extends Component
             'availablePlayers' => $availablePlayers,
         ]);
     }
-}
+    
+    public function openPdfModal()
+    {
+        // Seleccionar columnas básicas por defecto
+        $this->selectedColumns = ['name', 'surname', 'dni', 'dbirth', 'position', 'shirt_number'];
+        $this->showPdfModal = true;
+    }
+    
+    public function closePdfModal()
+    {
+        $this->showPdfModal = false;
+        $this->selectedColumns = [];
+    }
+    
+    public function generatePdf()
+    {
+        if (empty($this->selectedColumns)) {
+            session()->flash('error', 'Debes seleccionar al menos una columna.');
+            return;
+        }
+        
+        // Obtener jugadores del equipo
+        $players = $this->team->players()
+            ->orderBy('surname')
+            ->orderBy('name')
+            ->get();
+        
+        if ($players->isEmpty()) {
+            session()->flash('error', 'No hay jugadores en este equipo para generar el PDF.');
+            $this->closePdfModal();
+            return;
+        }
+        
+        $pdf = new PdfFile();
+        $pdf->file_name = 'listado_jugadores_' . str_replace(' ', '_', $this->team->team);
+        $pdf->templates[0] = 'pdfs.team-players-list';
+        
+        // Preparar datos para el PDF
+        $data = [
+            'team' => $this->team,
+            'players' => $players,
+            'selectedColumns' => $this->selectedColumns,
+            'availableColumns' => $this->availableColumns,
+            'season' => $this->team->season,
+            'category' => $this->team->category,
+        ];
+        
+        $pdf->records = ['data' => $data];
+        
+        $content = $pdf->generateFromTemplate($pdf->templates[0]);
+        
+        $this->closePdfModal();
+        
+        return response()->streamDownload(
+            fn () => print($content),
+            $pdf->getFileName()
+        );
+    }}
