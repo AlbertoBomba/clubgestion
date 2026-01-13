@@ -54,17 +54,10 @@
                                 </a>
                             @else
                                 <a href="{{ route('login') }}" 
-                                   class="px-3 py-2 sm:px-4 md:px-6 text-sm sm:text-base text-gray-700 hover:text-indigo-600 transition duration-200 font-medium">
+                                   class="px-3 py-2 sm:px-4 md:px-6 text-sm sm:text-base bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-200 font-medium">
                                     <span class="hidden sm:inline">Iniciar Sesión</span>
                                     <span class="sm:hidden">Iniciar sesión</span>
                                 </a>
-                                @if (Route::has('register'))
-                                    <a href="{{ route('register') }}" 
-                                       class="px-3 py-2 sm:px-4 md:px-6 text-sm sm:text-base bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-200 font-medium">
-                                        <span class="hidden sm:inline">Registrarse</span>
-                                        <span class="sm:hidden">Registro</span>
-                                    </a>
-                                @endif
                             @endauth
                         </div>
                     @endif
