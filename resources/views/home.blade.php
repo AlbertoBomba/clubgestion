@@ -1390,9 +1390,9 @@
                     <div>
                         <h4 class="text-lg font-semibold mb-4">Legal</h4>
                         <ul class="space-y-2 text-gray-400">
-                            <li><a href="#" class="hover:text-white transition">Privacidad</a></li>
-                            <li><a href="#" class="hover:text-white transition">Términos</a></li>
-                            <li><a href="#" class="hover:text-white transition">Cookies</a></li>
+                            <li><a href="{{ url('/privacy') }}" class="hover:text-white transition">Privacidad</a></li>
+                            <li><a href="{{ url('/terms') }}" class="hover:text-white transition">Términos</a></li>
+                            <li><a href="{{ url('/cookies') }}" class="hover:text-white transition">Cookies</a></li>
                         </ul>
                     </div>
                 </div>
@@ -1401,5 +1401,8 @@
                 </div>
             </div>
         </footer>
+
+        <!-- Cookie Consent Banner -->
+        <x-cookie-consent />
     </body>
 </html>

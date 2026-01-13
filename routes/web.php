@@ -25,6 +25,19 @@ Route::get('/', function () {
     return view('home');
 });
 
+// Legal Pages
+Route::get('/privacy', function () {
+    return view('privacy');
+})->name('privacy');
+
+Route::get('/terms', function () {
+    return view('terms-conditions');
+})->name('terms');
+
+Route::get('/cookies', function () {
+    return view('cookies');
+})->name('cookies');
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
