@@ -23,15 +23,14 @@
 
         <title>{{ config('app.name', 'Vaed-APP') }} -  Gestión deportivo educativa del fútbol amateur</title>
         
-
-            <!-- Canonical URL -->
-    <link rel="canonical" href="{{ url()->current() }}" />
-    
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="@yield('description', 'Gestión deportiva educativa gratuita para clubes y escuelas de fútbol amateur. Organiza entrenamientos, eventos y comunicación interna de tu equipo fácilmente.')">
-    <meta name="keywords" content="@yield('keywords', 'gestión deportiva, fútbol amateur, clubes de fútbol, escuelas de fútbol, software gratuito, comunicación interna, organización de equipos, entrenamientos de fútbol, eventos deportivos')">
-    <meta name="robots" content="index, follow">
-    <meta name="author" content="Vaed">
+        <!-- Canonical URL -->
+        <link rel="canonical" href="{{ url()->current() }}" />
+        
+        <!-- SEO Meta Tags -->
+        <meta name="description" content="@yield('description', 'Gestión deportiva educativa gratuita para clubes y escuelas de fútbol amateur. Organiza entrenamientos, eventos y comunicación interna de tu equipo fácilmente.')">
+        <meta name="keywords" content="@yield('keywords', 'gestión deportiva, fútbol amateur, clubes de fútbol, escuelas de fútbol, software gratuito, comunicación interna, organización de equipos, entrenamientos de fútbol, eventos deportivos')">
+        <meta name="robots" content="index, follow">
+        <meta name="author" content="Vaed">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -139,7 +138,7 @@
         <section class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden flex items-center">
             <!-- Background Image with Overlay -->
             <div class="absolute inset-0">
-                <img src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=2000&auto=format&fit=crop" 
+                <img src="{{ asset('images/public/personal-trainer-sports-outfit-takes-notes-clipboard-city-park-area-training-exercising-endurance-healthy-lifestyle-concept-outdoor.jpg') }}" 
                      alt="Football Team" 
                      class="w-full h-full object-cover">
                 <div class="absolute inset-0 bg-gradient-to-r from-blue-900/95 via-blue-900/90 to-blue-900/70"></div>
@@ -361,7 +360,7 @@
                         
                         <!-- Person Image Card -->
                         <div class="relative z-10 bg-white rounded-3xl shadow-xl overflow-hidden w-full max-w-md">
-                            <img src="https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=800&auto=format&fit=crop" 
+                            <img src="{{ asset('images/public/fitness-rugby-coach-with-clipboard-teamwork-training-competition-workout-wellness-male-trainer-group-with-healthy-lifestyle-sports-practice-exercise-support-plan.jpg') }}" 
                                  alt="Gestión profesional" 
                                  class="w-full h-80 object-cover">
                         </div>
@@ -615,7 +614,7 @@
                             
                             <!-- Main image card -->
                             <div class="bg-white rounded-2xl shadow-2xl overflow-hidden border-4 border-blue-400">
-                                <img src="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?q=80&w=800&auto=format&fit=crop" 
+                                <img src="{{ asset('images/public/soccer-ball-blurred-kids-soccer-team-with-coach-field.jpg') }}" 
                                      alt="Gestión de club deportivo" 
                                      class="w-full h-96 object-cover">
                             </div>
