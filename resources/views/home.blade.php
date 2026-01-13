@@ -3,8 +3,35 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="apple-touch-icon" sizes="57x57" href="{{ asset('images/favicon/apple-icon-57x57.png') }}">
+        <link rel="apple-touch-icon" sizes="60x60" href="{{ asset('images/favicon/apple-icon-60x60.png') }}">
+        <link rel="apple-touch-icon" sizes="72x72" href="{{ asset('images/favicon/apple-icon-72x72.png') }}">
+        <link rel="apple-touch-icon" sizes="76x76" href="{{ asset('images/favicon/apple-icon-76x76.png') }}">
+        <link rel="apple-touch-icon" sizes="114x114" href="{{ asset('images/favicon/apple-icon-114x114.png') }}">
+        <link rel="apple-touch-icon" sizes="120x120" href="{{ asset('images/favicon/apple-icon-120x120.png') }}">
+        <link rel="apple-touch-icon" sizes="144x144" href="{{ asset('images/favicon/apple-icon-144x144.png') }}">
+        <link rel="apple-touch-icon" sizes="152x152" href="{{ asset('images/favicon/apple-icon-152x152.png') }}">
+        <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/favicon/apple-icon-180x180.png') }}">
+        <link rel="icon" type="image/png" sizes="192x192"  href="{{ asset('images/favicon/android-icon-192x192.png') }}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/favicon/favicon-32x32.png') }}">
+        <link rel="icon" type="image/png" sizes="96x96" href="{{ asset('images/favicon/favicon-96x96.png') }}">
+        <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/favicon/favicon-16x16.png') }}">
+        <link rel="manifest" href="{{ asset('images/favicon/manifest.json') }}">
+        <meta name="msapplication-TileColor" content="#ffffff">
+        <meta name="msapplication-TileImage" content="{{ asset('images/favicon/ms-icon-144x144.png') }}">
+        <meta name="theme-color" content="#ffffff">
 
-        <title>{{ config('app.name', 'Vaed-APP') }} - Gestión GRATUITA para Escuelas de Fútbol</title>
+        <title>{{ config('app.name', 'Vaed-APP') }} -  Gestión deportivo educativa del fútbol amateur</title>
+        
+
+            <!-- Canonical URL -->
+    <link rel="canonical" href="{{ url()->current() }}" />
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="@yield('description', 'Gestión deportiva educativa gratuita para clubes y escuelas de fútbol amateur. Organiza entrenamientos, eventos y comunicación interna de tu equipo fácilmente.')">
+    <meta name="keywords" content="@yield('keywords', 'gestión deportiva, fútbol amateur, clubes de fútbol, escuelas de fútbol, software gratuito, comunicación interna, organización de equipos, entrenamientos de fútbol, eventos deportivos')">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Vaed">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -116,7 +143,7 @@
         </nav>
 
         <!-- Hero Fullscreen Section -->
-        <section class="hero-fullscreen flex items-center relative">
+        <section class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden flex items-center">
             <!-- Background Image with Overlay -->
             <div class="absolute inset-0">
                 <img src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=2000&auto=format&fit=crop" 
@@ -169,13 +196,13 @@
                 <div class="max-w-7xl mx-auto">
                     <div class="grid lg:grid-cols-2 gap-12 items-center min-h-[calc(100vh-10rem)]">
                         <!-- Left Content -->
-                        <div class="text-white animate-slide-left">
+                        <div class="text-white animate-slide-in-left">
                             <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
-                                La app nº1 para gestionar un equipo o un club de deporte amateur
+                                La gestión deportivo educativa del fútbol amateur, al alcance de todos.
                             </h1>
                             
                             <p class="text-sm sm:text-base lg:text-lg text-gray-200 mb-6 sm:mb-8 leading-relaxed max-w-xl">
-                                Como dirigente de club o como entrenador, simplifica la organización y la comunicación interna de tu equipo o club deportivo.
+                                Como dirigente de club o como entrenador, la gestión deportivo educativa y la comunicación interna de tu equipo amateur.
                             </p>
                             
                             <div class="flex flex-col sm:flex-row gap-4">
@@ -193,9 +220,9 @@
                         </div>
                         
                         <!-- Right Content - Interactive Mockup -->
-                        <div class="relative animate-slide-right hidden lg:block min-h-[600px]">
+                        <div class="relative animate-slide-in-right hidden lg:block min-h-[600px]">
                             <!-- Central Phone Mockup -->
-                            <div class="relative mx-auto animate-float" style="max-width: 280px; z-index: 20;">
+                            <div class="relative mx-auto animate-float max-w-[280px] z-20">
                                 <div class="bg-black rounded-[2.5rem] p-2 shadow-2xl">
                                     <div class="bg-white rounded-[2.2rem] overflow-hidden" style="aspect-ratio: 9/19.5;">
                                         <img src="{{ asset('images/public/capturaappmovil.jpg') }}" 
@@ -666,14 +693,14 @@
         <section id="por-que-gratis" class="bg-gray-50 py-12 sm:py-16 md:py-20 px-4">
             <div class="max-w-7xl mx-auto">
                 <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 text-center mb-10 sm:mb-16 md:mb-20 px-4">
-                    ¿Por qué VaedSaas es <span class="text-green-600">Gratuito para Siempre</span>?
+                    ¿Por que la aplicación de futbol  <span class="text-green-600"> es gratis para Siempre</span>?
                 </h2>
 
                 <div class="grid lg:grid-cols-2 gap-8 sm:gap-12 md:gap-16 items-center mb-10 sm:mb-16 md:mb-20">
                     <!-- Left Side: Content -->
                     <div class="lg:pr-8">
                         <h3 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 sm:mb-6">
-                            Modelo Win-Win: Ganamos juntos
+                            Modelo Win-Win para equipos amateur: Ganamos juntos
                         </h3>
                         <p class="text-lg text-gray-700 leading-relaxed mb-4">
                             Creemos en crear una <span class="font-bold text-green-600">sinergia donde ambos ganamos</span>. VaedSaas vende productos deportivos a través de tu club, y esta es nuestra forma de monetizar la plataforma.
@@ -965,18 +992,18 @@
                             La App que simplifica los clubes deportivos. Disponible para los usuarios de los clubes registrados.
                         </p>
                         
-                        <a href="#" class="inline-block text-cyan-400 font-semibold hover:text-cyan-300 mb-8 text-lg">
+                        {{-- <a href="#" class="inline-block text-cyan-400 font-semibold hover:text-cyan-300 mb-8 text-lg">
                             COMPRUEBE SI TU CLUB ESTÁ REGISTRADO →
                         </a>
-                        
+                         --}}
                         <!-- App Store Buttons -->
                         <div class="flex flex-col sm:flex-row gap-4">
-                            <a href="#" class="inline-block transform hover:scale-105 transition-transform duration-200">
+                            <a href="#" title="Descargar app Android"class="inline-block transform hover:scale-105 transition-transform duration-200">
                                 <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" 
                                      alt="Descargar en Google Play" 
                                      class="h-14">
                             </a>
-                            <a href="#" class="inline-block transform hover:scale-105 transition-transform duration-200">
+                            <a href="#" title="Descargar app iOS" class="inline-block transform hover:scale-105 transition-transform duration-200">
                                 <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg" 
                                      alt="Descargar en App Store" 
                                      class="h-14">
@@ -1028,9 +1055,7 @@
                                                 </svg>
                                             </button>
                                             
-                                            <h1 class="text-white text-2xl font-bold mb-2">Training</h1>
-                                            <p class="text-white text-sm opacity-90 mb-1">Under 16</p>
-                                            <p class="text-white text-xs opacity-75 mb-6">AAA Esportiu (Xalest)</p>
+                                        <h2 class="text-white text-2xl font-bold mb-2">Training</h2>
                                             
                                             <!-- Info card -->
                                             <div class="bg-white/20 backdrop-blur-sm rounded-xl p-4 mb-6">
@@ -1114,8 +1139,7 @@
                                         <!-- Content -->
                                         <div class="pt-16 px-6">
                                             <div class="flex justify-between items-center mb-6">
-                                                <h1 class="text-white text-2xl font-bold">Invoices</h1>
-                                                <button class="text-white">
+                                            <h2 class="text-white text-2xl font-bold">Invoices</h2>
                                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                                                     </svg>
@@ -1261,12 +1285,12 @@
                     Únete a las escuelas de fútbol que ya gestionan sus equipos profesionalmente <span class="font-semibold">sin pagar nada</span> y además generan ingresos vendiendo productos
                 </p>
                 @auth
-                    <a href="{{ url('/dashboard') }}" 
+                    <a href="{{ url('/dashboard') }}" title="Acceder al dashboard si el usuario está autenticado"
                        class="inline-block px-10 py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition duration-200 font-bold text-lg shadow-xl hover:shadow-2xl transform hover:scale-105">
                         Acceder al Dashboard
                     </a>
                 @else
-                    <a href="{{ route('login') }}" 
+                    <a href="{{ route('login') }}" title="Acceder al login de usuario" 
                        class="inline-block px-10 py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition duration-200 font-bold text-lg shadow-xl hover:shadow-2xl transform hover:scale-105">
                         Acceder si estás registrado
                     </a>
@@ -1275,23 +1299,23 @@
         </section>
 
         <!-- Carousel de Escudos de Equipos -->
-        @php
+        {{-- @php
             $schools = \App\Models\SportsSchool::whereNotNull('logo')->where('logo', '!=', '')->get();
-        @endphp
+        @endphp --}}
         
-        @if($schools->count() > 0)
+        {{-- @if($schools->count() > 0)
         <section class="py-16 px-4 bg-gray-50 overflow-hidden">
             <div class="max-w-full mx-auto">
                 <h2 class="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-12">
                     Clubes que Confían en VaedSaas
                 </h2>
                 
-                <div class="carousel-wrapper">
-                    <div class="carousel-track-wrapper">
-                        <!-- First set of logos -->
+                <div class="relative w-full overflow-hidden mx-auto">
+                    <div class="flex animate-scroll-logos w-fit hover:[animation-play-state:paused]">
+                        
                         @foreach($schools as $school)
-                            <div class="carousel-slide">
-                                <div class="bg-white rounded-2xl shadow-lg flex items-center justify-center p-6 transition-all duration-300 hover:scale-110 hover:shadow-2xl" style="width: 140px; height: 140px;">
+                            <div class="flex-none px-6 sm:px-4">
+                                <div class="bg-white rounded-2xl shadow-lg flex items-center justify-center p-6 transition-all duration-300 hover:scale-110 hover:shadow-2xl w-[140px] h-[140px] sm:w-[100px] sm:h-[100px]">
                                     <img src="{{ asset('storage/' . $school->logo) }}" 
                                          alt="{{ $school->name }}" 
                                          title="{{ $school->name }}"
@@ -1300,10 +1324,10 @@
                                 </div>
                             </div>
                         @endforeach
-                        <!-- Duplicate set for seamless loop -->
+                     
                         @foreach($schools as $school)
-                            <div class="carousel-slide">
-                                <div class="bg-white rounded-2xl shadow-lg flex items-center justify-center p-6 transition-all duration-300 hover:scale-110 hover:shadow-2xl" style="width: 140px; height: 140px;">
+                            <div class="flex-none px-6 sm:px-4">
+                                <div class="bg-white rounded-2xl shadow-lg flex items-center justify-center p-6 transition-all duration-300 hover:scale-110 hover:shadow-2xl w-[140px] h-[140px] sm:w-[100px] sm:h-[100px]">
                                     <img src="{{ asset('storage/' . $school->logo) }}" 
                                          alt="{{ $school->name }}" 
                                          title="{{ $school->name }}"
@@ -1316,50 +1340,7 @@
                 </div>
             </div>
         </section>
-        
-        <style>
-            .carousel-wrapper {
-                position: relative;
-                width: 100%;
-                overflow: hidden;
-                margin: 0 auto;
-            }
-            
-            .carousel-track-wrapper {
-                display: flex;
-                animation: scroll-logos 30s linear infinite;
-                width: fit-content;
-            }
-            
-            .carousel-track-wrapper:hover {
-                animation-play-state: paused;
-            }
-            
-            @keyframes scroll-logos {
-                0% {
-                    transform: translateX(0);
-                }
-                100% {
-                    transform: translateX(-50%);
-                }
-            }
-            
-            .carousel-slide {
-                flex: 0 0 auto;
-                padding: 0 1.5rem;
-            }
-            
-            @media (max-width: 640px) {
-                .carousel-slide {
-                    padding: 0 1rem;
-                }
-                .carousel-slide > div {
-                    width: 100px !important;
-                    height: 100px !important;
-                }
-            }
-        </style>
-        @endif
+        @endif --}}
 
         <!-- Footer -->
         <footer class="bg-gray-900 text-white py-12 px-4">
@@ -1374,25 +1355,25 @@
                     <div>
                         <h4 class="text-lg font-semibold mb-4">Producto</h4>
                         <ul class="space-y-2 text-gray-400">
-                            <li><a href="#" class="hover:text-white transition">Funcionalidades</a></li>
+                            {{-- <li><a href="#" class="hover:text-white transition">Funcionalidades</a></li>
                             <li><a href="#" class="hover:text-white transition">Precios</a></li>
-                            <li><a href="#" class="hover:text-white transition">Actualizaciones</a></li>
+                            <li><a href="#" class="hover:text-white transition">Actualizaciones</a></li> --}}
                         </ul>
                     </div>
                     <div>
                         <h4 class="text-lg font-semibold mb-4">Soporte</h4>
                         <ul class="space-y-2 text-gray-400">
-                            <li><a href="#" class="hover:text-white transition">Documentación</a></li>
+                            {{-- <li><a href="#" class="hover:text-white transition">Documentación</a></li>
                             <li><a href="#" class="hover:text-white transition">Ayuda</a></li>
-                            <li><a href="#" class="hover:text-white transition">Contacto</a></li>
+                            <li><a href="#" class="hover:text-white transition">Contacto</a></li> --}}
                         </ul>
                     </div>
                     <div>
                         <h4 class="text-lg font-semibold mb-4">Legal</h4>
                         <ul class="space-y-2 text-gray-400">
-                            <li><a href="{{ url('/privacy') }}" class="hover:text-white transition">Privacidad</a></li>
+                            {{-- <li><a href="{{ url('/privacy') }}" class="hover:text-white transition">Privacidad</a></li>
                             <li><a href="{{ url('/terms') }}" class="hover:text-white transition">Términos</a></li>
-                            <li><a href="{{ url('/cookies') }}" class="hover:text-white transition">Cookies</a></li>
+                            <li><a href="{{ url('/cookies') }}" class="hover:text-white transition">Cookies</a></li> --}}
                         </ul>
                     </div>
                 </div>

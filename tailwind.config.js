@@ -28,6 +28,42 @@ export default {
                 'silver': '#CCCCCC',         // Gris Plata
                 'night-blue': '#001C40',     // Azul Noche
             },
+            animation: {
+                'float': 'float 6s ease-in-out infinite',
+                'slide-in-left': 'slideInLeft 0.8s ease-out',
+                'slide-in-right': 'slideInRight 0.8s ease-out',
+                'scroll-logos': 'scroll-logos 30s linear infinite',
+            },
+            keyframes: {
+                float: {
+                    '0%, 100%': { transform: 'translateY(0px)' },
+                    '50%': { transform: 'translateY(-20px)' },
+                },
+                slideInLeft: {
+                    from: {
+                        transform: 'translateX(-50px)',
+                        opacity: '0',
+                    },
+                    to: {
+                        transform: 'translateX(0)',
+                        opacity: '1',
+                    },
+                },
+                slideInRight: {
+                    from: {
+                        transform: 'translateX(50px)',
+                        opacity: '0',
+                    },
+                    to: {
+                        transform: 'translateX(0)',
+                        opacity: '1',
+                    },
+                },
+                'scroll-logos': {
+                    '0%': { transform: 'translateX(0)' },
+                    '100%': { transform: 'translateX(-50%)' },
+                },
+            },
         },
     },
 

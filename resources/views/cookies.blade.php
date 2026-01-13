@@ -25,18 +25,18 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-16">
                     <a href="{{ url('/') }}" class="flex items-center gap-2 sm:gap-3">
-                        <img src="{{ asset('images/logos/logo_vaed.png') }}" alt="{{ config('app.name', 'VaedSaas') }}" class="h-10 sm:h-12 md:h-14">
+                        <img src="{{ asset('images/logos/logo_vaed.png') }}" title="{{ config('app.name', 'VaedSaas logotipo proyecto') }}" alt="{{ config('app.name', 'VaedSaas logotipo proyecto') }}" class="h-10 sm:h-12 md:h-14">
                         <span class="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">VaedSaas</span>
                     </a>
                     @if (Route::has('login'))
                         <div class="flex items-center gap-2 sm:gap-4">
                             @auth
-                                <a href="{{ url('/dashboard') }}" 
+                                <a href="{{ url('/dashboard') }}" title="redirecciona al al dashboard si el usuario esta logado"
                                    class="px-3 py-2 sm:px-4 md:px-6 text-sm sm:text-base bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-200 font-medium">
                                     Dashboard
                                 </a>
                             @else
-                                <a href="{{ route('login') }}" 
+                                <a href="{{ route('login') }}" title="apunta a la pantalla de login para que el usuario pueda logarse"
                                    class="px-3 py-2 sm:px-4 md:px-6 text-sm sm:text-base text-gray-700 hover:text-indigo-600 transition duration-200 font-medium">
                                     Iniciar Sesión
                                 </a>
@@ -219,8 +219,8 @@
                         Para más información sobre cómo tratamos tus datos personales, consulta:
                     </p>
                     <ul class="list-disc pl-6 mb-6 text-gray-700 space-y-2">
-                        <li><a href="{{ url('/privacy') }}" class="text-green-600 hover:text-green-800 font-semibold">Política de Privacidad</a></li>
-                        <li><a href="{{ url('/terms') }}" class="text-green-600 hover:text-green-800 font-semibold">Términos y Condiciones</a></li>
+                        <li><a href="{{ url('/privacy') }}" title="ver política de privaciad" class="text-green-600 hover:text-green-800 font-semibold">Política de Privacidad</a></li>
+                        <li><a href="{{ url('/terms') }}" title="ver Termino y condiciones" class="text-green-600 hover:text-green-800 font-semibold">Términos y Condiciones</a></li>
                     </ul>
 
                     <h2 class="text-2xl font-bold text-gray-900 mb-4">Contacto</h2>
@@ -228,15 +228,15 @@
                         <p class="text-gray-700 mb-2">
                             Si tienes preguntas sobre nuestra Política de Cookies, contáctanos:
                         </p>
-                        <p class="text-gray-700 mb-2"><strong>Email:</strong> <a href="mailto:cookies@vaedsaas.com" class="text-green-600 hover:text-green-800">cookies@vaedsaas.com</a></p>
-                        <p class="text-gray-700"><strong>Sitio web:</strong> <a href="{{ url('/') }}" class="text-green-600 hover:text-green-800">{{ url('/') }}</a></p>
+                        <p class="text-gray-700 mb-2"><strong>Email:</strong> <a href="mailto:cookies@vaedsaas.com" class="text-green-600 hover:text-green-800" title="ver cookies">cookies@vaedsaas.com</a></p>
+                        <p class="text-gray-700"><strong>Sitio web:</strong> <a href="{{ url('/') }}" class="text-green-600 hover:text-green-800" title="ver sitio web">{{ url('/') }}</a></p>
                     </div>
 
                 </div>
 
                 <!-- Back Button -->
                 <div class="mt-8 text-center">
-                    <a href="{{ url('/') }}" class="inline-flex items-center px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-200 font-semibold">
+                    <a href="{{ url('/') }}" title="volver a la página de inicio" class="inline-flex items-center px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-200 font-semibold">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                         </svg>
@@ -250,9 +250,9 @@
         <footer class="bg-gray-900 text-white py-8">
             <div class="max-w-7xl mx-auto px-4 text-center">
                 <div class="flex flex-wrap justify-center gap-6 mb-4 text-sm">
-                    <a href="{{ url('/privacy') }}" class="hover:text-indigo-400 transition">Privacidad</a>
-                    <a href="{{ url('/terms') }}" class="hover:text-indigo-400 transition">Términos</a>
-                    <a href="{{ url('/cookies') }}" class="hover:text-indigo-400 transition">Cookies</a>
+                    <a href="{{ url('/privacy') }}" title="ver política de privacidad" class="hover:text-indigo-400 transition">Privacidad</a>
+                    <a href="{{ url('/terms') }}" title="ver términos y condiciones" class="hover:text-indigo-400 transition">Términos</a>
+                    <a href="{{ url('/cookies') }}" title="ver política de cookies" class="hover:text-indigo-400 transition">Cookies</a>
                 </div>
                 <p class="text-gray-400 text-sm">&copy; {{ date('Y') }} {{ config('app.name', 'VaedSaas') }}. Todos los derechos reservados.</p>
             </div>
