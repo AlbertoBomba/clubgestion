@@ -15,7 +15,7 @@
                 <svg class="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
-                <span class="hidden sm:inline">Cancelar</span>
+                <span class="hidden sm:inline">Salir</span>
             </a>
             <button type="button" wire:click="printPlayerCard" wire:loading.attr="disabled" wire:target="printPlayerCard" class="inline-flex items-center px-3 py-2 sm:px-4 rounded-xl text-white font-semibold text-xs sm:text-sm shadow-lg hover:shadow-xl transition-all bg-green-600 hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed whitespace-nowrap">
                 <svg wire:loading.remove wire:target="printPlayerCard" class="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1086,12 +1086,18 @@
 
                         <div class="mt-4">
                             @php
-                                $availableTeams = \App\Models\Team::whereHas('season', function ($query) {
-                                        $query->where('sports_school_id', auth()->user()->sports_school_id);
-                                    })
-                                    ->with('category')
-                                    ->orderBy('team')
-                                    ->get();
+                                $activeSeason = \App\Models\Season::where('sports_school_id', auth()->user()->sports_school_id)
+                                    ->where('start_date', '<=', now())
+                                    ->where('end_date', '>=', now())
+                                    ->first();
+                                
+                                $availableTeams = collect();
+                                if ($activeSeason) {
+                                    $availableTeams = \App\Models\Team::where('season_id', $activeSeason->id)
+                                        ->with('category')
+                                        ->orderBy('team')
+                                        ->get();
+                                }
                             @endphp
 
                             @if($availableTeams->isEmpty())
@@ -1100,7 +1106,13 @@
                                         <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
                                     </svg>
                                     <p class="mt-2 text-sm text-gray-500">No hay equipos disponibles.</p>
-                                    <p class="text-xs text-gray-400 mt-1">Por favor, crea equipos en tu escuela deportiva.</p>
+                                    <p class="text-xs text-gray-400 mt-1">
+                                        @if(!$activeSeason)
+                                            No hay temporada activa configurada.
+                                        @else
+                                            Por favor, crea equipos para la temporada actual.
+                                        @endif
+                                    </p>
                                 </div>
                             @else
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
@@ -1143,6 +1155,289 @@
                         <button type="button" wire:click="closeTeamsModal"
                             class="w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm">
                             Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Modal de Previsualización de Cambio de Equipo -->
+    @if($showPreviewModal)
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <!-- Overlay -->
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+                <!-- Modal panel -->
+                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-6xl sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6">
+                        <div class="flex items-center justify-between border-b border-gray-200 pb-4 mb-4">
+                            <h3 class="text-2xl font-bold text-titanium flex items-center">
+                                <svg class="w-6 h-6 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                Previsualización de Cambio de Equipo
+                            </h3>
+                            <button type="button" wire:click="$set('showPreviewModal', false)" class="text-gray-400 hover:text-gray-500">
+                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="space-y-6">
+                            <!-- Pagos que se van a eliminar -->
+                            @if(count($paymentsToDelete) > 0)
+                                <div class="bg-red-50 border-2 border-red-200 rounded-xl p-4">
+                                    <h4 class="text-lg font-bold text-red-800 mb-3 flex items-center">
+                                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Cartas de pago que se eliminarán ({{ count($paymentsToDelete) }})
+                                    </h4>
+                                    <div class="space-y-2">
+                                        @foreach($paymentsToDelete as $payment)
+                                            <div class="bg-white p-3 rounded-lg shadow-sm border border-red-200">
+                                                <div class="grid grid-cols-5 gap-2 text-sm">
+                                                    <div><span class="font-semibold">Código:</span> {{ $payment['code'] }}</div>
+                                                    <div><span class="font-semibold">Cuota:</span> {{ $payment['cuota'] }}</div>
+                                                    <div><span class="font-semibold">Descripción:</span> {{ $payment['description'] }}</div>
+                                                    <div><span class="font-semibold">Importe:</span> {{ number_format($payment['amount'], 2) }}€</div>
+                                                    <div class="text-right">
+                                                        <span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">Pendiente</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
+                            <!-- Pagos pagados que se mantendrán -->
+                            @if(count($paymentsPaid) > 0)
+                                <div class="bg-green-50 border-2 border-green-200 rounded-xl p-4">
+                                    <h4 class="text-lg font-bold text-green-800 mb-3 flex items-center">
+                                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Cartas de pago pagadas que se mantienen ({{ count($paymentsPaid) }})
+                                    </h4>
+                                    <div class="space-y-2">
+                                        @foreach($paymentsPaid as $payment)
+                                            <div class="bg-white p-3 rounded-lg shadow-sm border border-green-200">
+                                                <div class="grid grid-cols-6 gap-2 text-sm">
+                                                    <div><span class="font-semibold">Código:</span> {{ $payment['code'] }}</div>
+                                                    <div><span class="font-semibold">Cuota:</span> {{ $payment['cuota'] }}</div>
+                                                    <div><span class="font-semibold">Descripción:</span> {{ $payment['description'] }}</div>
+                                                    <div><span class="font-semibold">Importe:</span> {{ number_format($payment['amount'], 2) }}€</div>
+                                                    <div><span class="font-semibold">F. Pago:</span> {{ $payment['payment_date'] }}</div>
+                                                    <div class="text-right">
+                                                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">✓ Pagada</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
+                            <!-- Nuevas cartas de pago a generar -->
+                            @if(count($paymentsToCreate) > 0)
+                                <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <h4 class="text-lg font-bold text-blue-800 flex items-center">
+                                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
+                                                <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/>
+                                            </svg>
+                                            Nuevas cartas de pago a generar ({{ count($paymentsToCreate) }})
+                                        </h4>
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            <input type="checkbox" 
+                                                wire:click="toggleAllPaymentsToCreate($event.target.checked)"
+                                                @if(count($selectedPaymentsToCreate) === count($paymentsToCreate)) checked @endif
+                                                class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary">
+                                            <span class="text-sm font-medium text-blue-800">Seleccionar todas</span>
+                                        </label>
+                                    </div>
+                                    <div class="space-y-2">
+                                        @foreach($paymentsToCreate as $payment)
+                                            <div class="bg-white p-3 rounded-lg shadow-sm border border-blue-200">
+                                                <div class="flex items-center">
+                                                    <input type="checkbox" 
+                                                        wire:model.live="selectedPaymentsToCreate" 
+                                                        value="{{ $payment['unique_id'] }}"
+                                                        class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary mr-3">
+                                                    <div class="grid grid-cols-5 gap-2 text-sm flex-1">
+                                                        <div><span class="font-semibold">Cuota:</span> {{ $payment['cuota'] }}</div>
+                                                        <div><span class="font-semibold">Descripción:</span> {{ $payment['description'] }}</div>
+                                                        <div><span class="font-semibold">Equipo:</span> {{ $payment['team_name'] }}</div>
+                                                        <div><span class="font-semibold">Importe:</span> {{ number_format($payment['amount'], 2) }}€</div>
+                                                        <div class="text-right">
+                                                            @if(isset($payment['is_restore']) && $payment['is_restore'])
+                                                                <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">Restaurar</span>
+                                                            @else
+                                                                <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">Nuevo</span>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if(count($paymentsToDelete) === 0 && count($paymentsToCreate) === 0 && count($paymentsPaid) === 0)
+                                <div class="bg-gray-50 border-2 border-gray-200 rounded-xl p-8 text-center">
+                                    <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <p class="text-gray-600 font-medium">No hay cambios en los pagos</p>
+                                    <p class="text-sm text-gray-500 mt-1">El jugador se cambiará de equipo sin modificar pagos</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
+                        <button type="button" wire:click="confirmPaymentsAction"
+                            class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm transition-colors">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Confirmar Cambio
+                        </button>
+                        <button type="button" wire:click="$set('showPreviewModal', false)"
+                            class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:w-auto sm:text-sm transition-colors">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Modal de Confirmación Quitar Equipo -->
+    @if($showRemoveTeamModal)
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <!-- Overlay -->
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+                <!-- Modal panel -->
+                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6">
+                        <div class="flex items-center justify-between border-b border-gray-200 pb-4 mb-4">
+                            <h3 class="text-2xl font-bold text-titanium flex items-center">
+                                <svg class="w-6 h-6 mr-2 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                                Confirmar Remover Jugador del Equipo
+                            </h3>
+                            <button type="button" wire:click="$set('showRemoveTeamModal', false)" class="text-gray-400 hover:text-gray-500">
+                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="space-y-6">
+                            <!-- Información importante -->
+                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-yellow-700 font-semibold">
+                                            El jugador quedará sin equipo asignado. Las cartas de pago pendientes se eliminarán.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pagos que se van a eliminar -->
+                            @if(count($paymentsToDelete) > 0)
+                                <div class="bg-red-50 border-2 border-red-200 rounded-xl p-4">
+                                    <h4 class="text-lg font-bold text-red-800 mb-3 flex items-center">
+                                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Cartas de pago que se eliminarán ({{ count($paymentsToDelete) }})
+                                    </h4>
+                                    <div class="space-y-2">
+                                        @foreach($paymentsToDelete as $payment)
+                                            <div class="bg-white p-3 rounded-lg shadow-sm border border-red-200">
+                                                <div class="grid grid-cols-5 gap-2 text-sm">
+                                                    <div><span class="font-semibold">Código:</span> {{ $payment['code'] }}</div>
+                                                    <div><span class="font-semibold">Cuota:</span> {{ $payment['cuota'] }}</div>
+                                                    <div><span class="font-semibold">Descripción:</span> {{ $payment['description'] }}</div>
+                                                    <div><span class="font-semibold">Importe:</span> {{ number_format($payment['amount'], 2) }}€</div>
+                                                    <div class="text-right">
+                                                        <span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">Pendiente</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
+                            <!-- Pagos pagados que se mantienen -->
+                            @if(count($paymentsPaid) > 0)
+                                <div class="bg-green-50 border-2 border-green-200 rounded-xl p-4">
+                                    <h4 class="text-lg font-bold text-green-800 mb-3 flex items-center">
+                                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Cartas de pago pagadas que se mantienen ({{ count($paymentsPaid) }})
+                                    </h4>
+                                    <div class="space-y-2">
+                                        @foreach($paymentsPaid as $payment)
+                                            <div class="bg-white p-3 rounded-lg shadow-sm border border-green-200">
+                                                <div class="grid grid-cols-6 gap-2 text-sm">
+                                                    <div><span class="font-semibold">Código:</span> {{ $payment['code'] }}</div>
+                                                    <div><span class="font-semibold">Cuota:</span> {{ $payment['cuota'] }}</div>
+                                                    <div><span class="font-semibold">Descripción:</span> {{ $payment['description'] }}</div>
+                                                    <div><span class="font-semibold">Importe:</span> {{ number_format($payment['amount'], 2) }}€</div>
+                                                    <div><span class="font-semibold">F. Pago:</span> {{ $payment['payment_date'] }}</div>
+                                                    <div class="text-right">
+                                                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">✓ Pagada</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if(count($paymentsToDelete) === 0 && count($paymentsPaid) === 0)
+                                <div class="bg-gray-50 border-2 border-gray-200 rounded-xl p-8 text-center">
+                                    <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <p class="text-gray-600 font-medium">No hay pagos asociados a este equipo</p>
+                                    <p class="text-sm text-gray-500 mt-1">El jugador será removido del equipo sin afectar pagos</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
+                        <button type="button" wire:click="confirmRemoveTeam"
+                            class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                            Confirmar y Quitar Equipo
+                        </button>
+                        <button type="button" wire:click="$set('showRemoveTeamModal', false)"
+                            class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:w-auto sm:text-sm transition-colors">
+                            Cancelar
                         </button>
                     </div>
                 </div>

@@ -60,6 +60,13 @@ class Edit extends Component
     // Modal de equipos
     public $showTeamsModal = false;
     public $selectedTeam = null;
+    public $showPreviewModal = false;
+    public $showRemoveTeamModal = false;
+    public $paymentsToDelete = [];
+    public $paymentsToCreate = [];
+    public $paymentsPaid = [];
+    public $selectedPaymentsToCreate = [];
+    public $newTeamId = '';
     
     // Modal de confirmación eliminar documento
     public $showDeleteModal = false;
@@ -126,51 +133,423 @@ class Edit extends Component
     
     public function assignTeam($teamId)
     {
-        $this->selectedTeam = $teamId;
+        $this->newTeamId = $teamId;
+        $this->showTeamsModal = false;
         
-        // Sincronizar la relación con el equipo
-        $this->playerModel->teams()->sync([$teamId => [
-            'created_user' => auth()->user()->id,
-            'updated_user' => auth()->user()->id,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]]);
-        
-        // Generar pagos automáticamente para el jugador
-        $team = \App\Models\Team::with('payments')->find($teamId);
-        if ($team) {
-            $result = generatePlayerPayments(
-                $this->playerModel,
-                $team,
-                auth()->user()->sports_school_id,
-                auth()->user()->id
-            );
-            
-            $totalProcessed = $result['generated'] + $result['restored'];
-            if ($totalProcessed > 0) {
-                $message = "Equipo asignado correctamente.";
-                if ($result['generated'] > 0) {
-                    $message .= " Se generaron {$result['generated']} cartas de pago.";
-                }
-                if ($result['restored'] > 0) {
-                    $message .= " Se restauraron {$result['restored']} cartas de pago.";
-                }
-                session()->flash('message', $message);
-            } else {
-                session()->flash('message', 'Equipo asignado correctamente.');
-            }
-        } else {
-            session()->flash('message', 'Equipo asignado correctamente.');
+        // Verificar si el jugador ya pertenece a este equipo
+        if ($this->playerModel->teams()->where('teams.id', $teamId)->exists()) {
+            session()->flash('info', 'El jugador ya pertenece a este equipo.');
+            return;
         }
         
-        $this->closeTeamsModal();
+        // Obtener temporada activa
+        $activeSeason = \App\Models\Season::where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->first();
+
+        if (!$activeSeason) {
+            session()->flash('error', 'No hay temporada activa configurada.');
+            return;
+        }
+
+        // Obtener el nuevo equipo
+        $newTeam = \App\Models\Team::with(['payments'])->find($teamId);
+
+        if (!$newTeam) {
+            session()->flash('error', 'Equipo no encontrado.');
+            return;
+        }
+
+        $this->paymentsToDelete = [];
+        $this->paymentsToCreate = [];
+        $this->paymentsPaid = [];
+        $this->selectedPaymentsToCreate = [];
+
+        // Obtener pagos pendientes a eliminar
+        $pendingPayments = \App\Models\PaymentPlayer::with('paymentTeam')
+            ->where('player_id', $this->playerModel->id)
+            ->where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('state', 0)
+            ->whereHas('paymentTeam', function($query) use ($activeSeason) {
+                $query->where('season_id', $activeSeason->id);
+            })
+            ->get();
+
+        foreach ($pendingPayments as $payment) {
+            $this->paymentsToDelete[] = [
+                'id' => $payment->id,
+                'player_id' => $this->playerModel->id,
+                'player_name' => $this->playerModel->name . ' ' . $this->playerModel->surname,
+                'code' => $payment->code,
+                'cuota' => $payment->cuota,
+                'amount' => $payment->amount,
+                'description' => $payment->paymentTeam->description ?? 'N/A',
+            ];
+        }
+
+        // Obtener cuotas YA PAGADAS para no generarlas de nuevo
+        $paidCuotas = \App\Models\PaymentPlayer::where('player_id', $this->playerModel->id)
+            ->where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('state', 1) // Pagadas
+            ->whereHas('paymentTeam', function($query) use ($activeSeason) {
+                $query->where('season_id', $activeSeason->id);
+            })
+            ->with('paymentTeam')
+            ->get()
+            ->pluck('cuota')
+            ->toArray();
+
+        // Mostrar pagos pagados que se mantendrán
+        $paidPayments = \App\Models\PaymentPlayer::with('paymentTeam')
+            ->where('player_id', $this->playerModel->id)
+            ->where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('state', 1)
+            ->whereHas('paymentTeam', function($query) use ($activeSeason) {
+                $query->where('season_id', $activeSeason->id);
+            })
+            ->get();
+
+        foreach ($paidPayments as $payment) {
+            $this->paymentsPaid[] = [
+                'player_name' => $this->playerModel->name . ' ' . $this->playerModel->surname,
+                'code' => $payment->code,
+                'cuota' => $payment->cuota,
+                'amount' => $payment->amount,
+                'description' => $payment->paymentTeam->description ?? 'N/A',
+                'payment_date' => $payment->payment_date ? $payment->payment_date->format('d/m/Y') : 'N/A',
+            ];
+        }
+
+        // Preparar nuevos pagos a crear (excluyendo cuotas ya pagadas)
+        if ($newTeam->payments->isNotEmpty()) {
+            $newPayments = $this->preparePlayerPaymentsForTeam($this->playerModel, $newTeam, $paidCuotas);
+            foreach ($newPayments as $index => $newPayment) {
+                $uniqueId = $this->playerModel->id . '_' . $index;
+                $newPayment['unique_id'] = $uniqueId;
+                $this->paymentsToCreate[] = $newPayment;
+                $this->selectedPaymentsToCreate[] = $uniqueId;
+            }
+        }
+
+        $this->showPreviewModal = true;
+    }
+
+    private function preparePlayerPaymentsForTeam($player, $team, $excludedCuotas = [])
+    {
+        $paymentsData = [];
+        $sportsSchoolId = auth()->user()->sports_school_id;
+
+        // Calcular descuentos del jugador
+        $descuentoEuros = 0;
+        $descuentoPorcentaje = 0;
+        
+        if ($player->descEnt) {
+            $descuentoEuros = floatval($player->descEnt);
+        }
+        
+        if ($player->descPerc) {
+            $descuentoPorcentaje = floatval($player->descPerc);
+        }
+
+        // Calcular precio total del equipo
+        $precioTotal = floatval($team->price);
+        
+        // Aplicar descuentos al precio total
+        $precioTotalConDescuento = $precioTotal;
+        
+        // Aplicar descuento en euros
+        if ($descuentoEuros > 0) {
+            $precioTotalConDescuento -= $descuentoEuros;
+        }
+        
+        // Aplicar descuento en porcentaje
+        if ($descuentoPorcentaje > 0) {
+            $descuentoPorcentajeImporte = ($precioTotal * $descuentoPorcentaje) / 100;
+            $precioTotalConDescuento -= $descuentoPorcentajeImporte;
+        }
+        
+        // Asegurar que no sea negativo
+        $precioTotalConDescuento = max(0, $precioTotalConDescuento);
+        
+        // Número total de cuotas del equipo
+        $totalCuotas = $team->payments->count();
+        
+        // Calcular importe por cuota (dividiendo el total entre TODAS las cuotas)
+        $importePorCuota = $totalCuotas > 0 ? $precioTotalConDescuento / $totalCuotas : 0;
+
+        // Procesar cada pago del equipo
+        foreach ($team->payments as $payment) {
+            // Saltar si esta cuota ya está pagada
+            if (in_array($payment->cuota, $excludedCuotas)) {
+                continue;
+            }
+
+            // Verificar que no exista ya esta combinación player_id + payment_id ACTIVA (no soft deleted)
+            $existsActive = \App\Models\PaymentPlayer::where('player_id', $player->id)
+                ->where('payment_id', $payment->id)
+                ->whereNull('deleted_at')
+                ->exists();
+
+            if ($existsActive) {
+                continue;
+            }
+
+            // Verificar si existe un pago soft deleted para marcarlo como "a restaurar"
+            $deletedPayment = \App\Models\PaymentPlayer::withTrashed()
+                ->where('player_id', $player->id)
+                ->where('payment_id', $payment->id)
+                ->whereNotNull('deleted_at')
+                ->first();
+
+            // Si existe un pago eliminado, también lo agregamos a la lista
+            if ($deletedPayment) {
+                $amountOriginal = floatval($payment->amount);
+
+                $paymentsData[] = [
+                    'player_id' => $player->id,
+                    'player_name' => $player->name . ' ' . $player->surname,
+                    'payment_id' => $payment->id,
+                    'sports_school_id' => $sportsSchoolId,
+                    'cuota' => $payment->cuota,
+                    'price' => $precioTotalConDescuento,
+                    'amount_original' => $amountOriginal,
+                    'amount' => $importePorCuota,
+                    'descEnt' => $descuentoEuros,
+                    'descPerc' => $descuentoPorcentaje,
+                    'description' => $payment->description ?? 'N/A',
+                    'team_name' => $team->team,
+                    'is_restore' => true,
+                    'existing_payment_id' => $deletedPayment->id,
+                ];
+                continue;
+            }
+
+            // Crear nuevo pago
+            $amountOriginal = floatval($payment->amount);
+
+            $paymentsData[] = [
+                'player_id' => $player->id,
+                'player_name' => $player->name . ' ' . $player->surname,
+                'payment_id' => $payment->id,
+                'sports_school_id' => $sportsSchoolId,
+                'cuota' => $payment->cuota,
+                'price' => $precioTotalConDescuento,
+                'amount_original' => $amountOriginal,
+                'amount' => $importePorCuota,
+                'descEnt' => $descuentoEuros,
+                'descPerc' => $descuentoPorcentaje,
+                'description' => $payment->description ?? 'N/A',
+                'team_name' => $team->team,
+            ];
+        }
+
+        return $paymentsData;
+    }
+
+    public function confirmPaymentsAction()
+    {
+        try {
+            \DB::beginTransaction();
+
+            $deletedCount = 0;
+            $generatedCount = 0;
+            $restoredCount = 0;
+
+            // Eliminar todos los pagos pendientes
+            foreach ($this->paymentsToDelete as $paymentInfo) {
+                $payment = \App\Models\PaymentPlayer::find($paymentInfo['id']);
+                if ($payment) {
+                    $payment->delete();
+                    $deletedCount++;
+                }
+            }
+
+            // Crear o restaurar nuevos pagos seleccionados
+            foreach ($this->paymentsToCreate as $newPayment) {
+                if (in_array($newPayment['unique_id'], $this->selectedPaymentsToCreate)) {
+                    if (isset($newPayment['is_restore']) && $newPayment['is_restore'] && isset($newPayment['existing_payment_id'])) {
+                        $deletedPayment = \App\Models\PaymentPlayer::withTrashed()->find($newPayment['existing_payment_id']);
+                        if ($deletedPayment) {
+                            $deletedPayment->deleted_at = null;
+                            $deletedPayment->state = 0;
+                            $deletedPayment->payment_date = null;
+                            $deletedPayment->payment_order = null;
+                            $deletedPayment->payment_auth = null;
+                            $deletedPayment->payment_type = null;
+                            $deletedPayment->amount_original = $newPayment['amount_original'];
+                            $deletedPayment->amount = $newPayment['amount'];
+                            $deletedPayment->descEnt = $newPayment['descEnt'];
+                            $deletedPayment->descPerc = $newPayment['descPerc'];
+                            $deletedPayment->price = $newPayment['price'];
+                            $deletedPayment->updated_user = auth()->id();
+                            $deletedPayment->save();
+                            $restoredCount++;
+                        }
+                    } else {
+                        \App\Models\PaymentPlayer::create([
+                            'player_id' => $newPayment['player_id'],
+                            'payment_id' => $newPayment['payment_id'],
+                            'sports_school_id' => $newPayment['sports_school_id'],
+                            'code' => \App\Models\PaymentCodeSequentials::getCode(),
+                            'state' => 0,
+                            'cuota' => $newPayment['cuota'],
+                            'price' => $newPayment['price'],
+                            'amount_original' => $newPayment['amount_original'],
+                            'amount' => $newPayment['amount'],
+                            'descEnt' => $newPayment['descEnt'],
+                            'descPerc' => $newPayment['descPerc'],
+                            'created_user' => auth()->id(),
+                        ]);
+                        $generatedCount++;
+                    }
+                }
+            }
+
+            // Sincronizar equipo
+            $this->playerModel->teams()->sync([$this->newTeamId]);
+
+            \DB::commit();
+
+            $message = '';
+            if ($deletedCount > 0) {
+                $message .= "Se eliminaron {$deletedCount} pagos pendientes. ";
+            }
+            if ($generatedCount > 0) {
+                $message .= "Se generaron {$generatedCount} nuevas cartas de pago. ";
+            }
+            if ($restoredCount > 0) {
+                $message .= "Se restauraron {$restoredCount} cartas de pago.";
+            }
+            if (empty($message)) {
+                $message = "Equipo cambiado correctamente.";
+            }
+            
+            session()->flash('message', trim($message));
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            session()->flash('error', 'Error al cambiar el equipo: ' . $e->getMessage());
+        }
+
+        $this->showPreviewModal = false;
+        $this->paymentsToDelete = [];
+        $this->paymentsToCreate = [];
+        $this->paymentsPaid = [];
+        $this->selectedPaymentsToCreate = [];
+        $this->newTeamId = '';
+    }
+
+    public function toggleAllPaymentsToCreate($checked)
+    {
+        if ($checked) {
+            $this->selectedPaymentsToCreate = array_column($this->paymentsToCreate, 'unique_id');
+        } else {
+            $this->selectedPaymentsToCreate = [];
+        }
     }
     
     public function removeTeam()
     {
-        $this->playerModel->teams()->detach();
-        $this->selectedTeam = null;
-        session()->flash('message', 'Equipo removido correctamente.');
+        // Obtener temporada activa
+        $activeSeason = \App\Models\Season::where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->first();
+
+        if (!$activeSeason) {
+            session()->flash('error', 'No hay temporada activa configurada.');
+            return;
+        }
+
+        $this->paymentsToDelete = [];
+        $this->paymentsPaid = [];
+
+        // Obtener pagos pendientes del jugador en la temporada activa
+        $pendingPayments = \App\Models\PaymentPlayer::with('paymentTeam')
+            ->where('player_id', $this->playerModel->id)
+            ->where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('state', 0)
+            ->whereHas('paymentTeam', function($query) use ($activeSeason) {
+                $query->where('season_id', $activeSeason->id);
+            })
+            ->get();
+
+        foreach ($pendingPayments as $payment) {
+            $this->paymentsToDelete[] = [
+                'id' => $payment->id,
+                'player_id' => $this->playerModel->id,
+                'player_name' => $this->playerModel->name . ' ' . $this->playerModel->surname,
+                'code' => $payment->code,
+                'cuota' => $payment->cuota,
+                'amount' => $payment->amount,
+                'description' => $payment->paymentTeam->description ?? 'N/A',
+            ];
+        }
+
+        // Obtener pagos pagados para mostrarlos
+        $paidPayments = \App\Models\PaymentPlayer::with('paymentTeam')
+            ->where('player_id', $this->playerModel->id)
+            ->where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('state', 1)
+            ->whereHas('paymentTeam', function($query) use ($activeSeason) {
+                $query->where('season_id', $activeSeason->id);
+            })
+            ->get();
+
+        foreach ($paidPayments as $payment) {
+            $this->paymentsPaid[] = [
+                'player_name' => $this->playerModel->name . ' ' . $this->playerModel->surname,
+                'code' => $payment->code,
+                'cuota' => $payment->cuota,
+                'amount' => $payment->amount,
+                'description' => $payment->paymentTeam->description ?? 'N/A',
+                'payment_date' => $payment->payment_date ? $payment->payment_date->format('d/m/Y') : 'N/A',
+            ];
+        }
+
+        $this->showRemoveTeamModal = true;
+    }
+
+    public function confirmRemoveTeam()
+    {
+        try {
+            \DB::beginTransaction();
+
+            $deletedCount = 0;
+
+            // Eliminar todos los pagos pendientes
+            foreach ($this->paymentsToDelete as $paymentInfo) {
+                $payment = \App\Models\PaymentPlayer::find($paymentInfo['id']);
+                if ($payment) {
+                    $payment->delete();
+                    $deletedCount++;
+                }
+            }
+
+            // Quitar el jugador del equipo
+            $this->playerModel->teams()->detach();
+
+            \DB::commit();
+
+            $message = 'Jugador removido del equipo correctamente.';
+            if ($deletedCount > 0) {
+                $message .= " Se eliminaron {$deletedCount} cartas de pago pendientes.";
+            }
+            if (count($this->paymentsPaid) > 0) {
+                $message .= " Se mantienen " . count($this->paymentsPaid) . " cartas de pago ya abonadas.";
+            }
+            
+            session()->flash('message', $message);
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            session()->flash('error', 'Error al remover el equipo: ' . $e->getMessage());
+        }
+
+        $this->showRemoveTeamModal = false;
+        $this->paymentsToDelete = [];
+        $this->paymentsPaid = [];
     }
     
     // Documentos
@@ -465,11 +844,38 @@ class Edit extends Component
 
         // Resetear indicador de cambios
         $this->hasChanges = false;
+        
+        // Actualizar valores originales después de guardar
+        $this->originalName = $this->name;
+        $this->originalSurname = $this->surname;
+        $this->originalDni = $this->dni ?? '';
+        $this->originalDbirth = $this->dbirth ?? '';
+        $this->originalDbanio = $this->dbanio ?? '';
+        $this->originalNametutor = $this->nametutor ?? '';
+        $this->originalSurnametutor = $this->surnametutor ?? '';
+        $this->originalDnitutor = $this->dnitutor ?? '';
+        $this->originalAddress = $this->address ?? '';
+        $this->originalTown = $this->town ?? '';
+        $this->originalProvince = $this->province ?? '';
+        $this->originalZip = $this->zip ?? '';
+        $this->originalPhone1 = $this->phone1 ?? '';
+        $this->originalPhone2 = $this->phone2 ?? '';
+        $this->originalEmail = $this->email ?? '';
+        $this->originalDorsal = $this->dorsal ?? '';
+        $this->originalPosition = $this->position ?? '';
+        $this->originalSizes = $this->sizes ?? '';
+        $this->originalCodMatricula = $this->cod_matricula ?? '';
+        $this->originalActive = $this->active;
+        $this->originalSoccer = $this->soccer;
+        $this->originalPassport = $this->passport;
+        $this->originalPaddle = $this->paddle;
+        $this->originalGoalie = $this->goalie;
+        $this->originalFile = $this->file;
+        $this->originalObservations = $this->observations ?? '';
+        $this->originalSelectedSeasons = $this->selectedSeasons;
+        $this->originalSelectedSections = $this->selectedSections;
 
         session()->flash('message', 'Jugador actualizado correctamente.');
-        session()->flash('highlightPlayer', $this->playerModel->id);
-        
-        return redirect()->route('players.index');
     }
 
     public function confirmDeleteDocument($index)

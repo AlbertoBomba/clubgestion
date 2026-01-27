@@ -70,7 +70,7 @@
                     </span>
                 @endif --}}
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,6 +87,15 @@
                         </svg>
                     </div>
                     <input wire:model.live="dniFilter" type="text" placeholder="Buscar por DNI..." 
+                        class="block w-full pl-10 pr-3 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep placeholder-gray-400 text-sm">
+                </div>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
+                        </svg>
+                    </div>
+                    <input wire:model.live="matriculaFilter" type="text" placeholder="Buscar por matrícula..." 
                         class="block w-full pl-10 pr-3 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep placeholder-gray-400 text-sm">
                 </div>
                 <div>
@@ -194,13 +203,13 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4">
-                                <div class="text-sm font-semibold text-black-deep">{{ $player->full_name }}</div>
+                                <div class="text-sm font-semibold text-black-deep">{!! $this->highlightText($player->full_name) !!}</div>
                                 @if($player->email)
-                                    <div class="text-xs text-gray-500">{{ $player->email }}</div>
+                                    <div class="text-xs text-gray-500">{!! $this->highlightText($player->email) !!}</div>
                                 @endif
                             </td>
                             <td class="px-3 py-4 text-center">
-                                {{$player->payment_players_count}}
+                                {{-- {{$player->payment_players_count}} --}}
                                 @if($player->payment_players_count > 0)
                                     <div class="inline-flex items-center" title="{{ $player->payment_players_count }} carta(s) de pago">
                                         <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -213,7 +222,7 @@
                             </td>
                             <td class="px-6 py-4">
                                 @if($player->dni)
-                                    <div class="text-sm text-gray-700">{{ $player->dni }}</div>
+                                    <div class="text-sm text-gray-700">{!! $this->highlightText($player->dni) !!}</div>
                                 @else
                                     <span class="text-gray-400 text-sm">-</span>
                                 @endif
@@ -255,9 +264,9 @@
                             </td>
                             <td class="px-6 py-4">
                                 @if($player->nametutor)
-                                    <div class="text-sm font-medium text-black-deep">{{ $player->nametutor }}</div>
+                                    <div class="text-sm font-medium text-black-deep">{!! $this->highlightText($player->nametutor) !!}</div>
                                     @if($player->dnitutor)
-                                        <div class="text-xs text-gray-500">{{ $player->dnitutor }}</div>
+                                        <div class="text-xs text-gray-500">{!! $this->highlightText($player->dnitutor) !!}</div>
                                     @endif
                                 @else
                                     <span class="text-gray-400 text-sm">-</span>
@@ -297,19 +306,46 @@
                                         </svg>
                                         Editar
                                     </a>
-                                    <button wire:click="confirmDelete({{ $player->id }})" 
-                                        wire:loading.attr="disabled"
-                                        wire:target="confirmDelete"
-                                        class="inline-flex items-center px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
-                                        <svg wire:loading.remove wire:target="confirmDelete" class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                        </svg>
-                                        <svg wire:loading wire:target="confirmDelete" class="animate-spin h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                        </svg>
-                                        Eliminar
-                                    </button>
+                                    @php
+                                        $canDelete = $this->canDeletePlayer($player->id);
+                                        $hasTeam = $player->teams()->exists();
+                                        $hasPayments = \App\Models\PaymentPlayer::where('player_id', $player->id)->exists();
+                                        $tooltipMessage = '';
+                                        if (!$canDelete) {
+                                            if ($hasTeam && $hasPayments) {
+                                                $tooltipMessage = 'No se puede eliminar: el jugador tiene equipo asignado y pagos generados';
+                                            } elseif ($hasTeam) {
+                                                $tooltipMessage = 'No se puede eliminar: el jugador tiene equipo asignado';
+                                            } elseif ($hasPayments) {
+                                                $tooltipMessage = 'No se puede eliminar: el jugador tiene pagos generados';
+                                            }
+                                        }
+                                    @endphp
+                                    <div class="relative group">
+                                        <button wire:click="confirmDelete({{ $player->id }})" 
+                                            wire:loading.attr="disabled"
+                                            wire:target="confirmDelete"
+                                            @if(!$canDelete) disabled @endif
+                                            class="inline-flex items-center px-3 py-2 text-white rounded-lg transition-colors duration-200 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed
+                                                {{ $canDelete ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-400' }}">
+                                            <svg wire:loading.remove wire:target="confirmDelete" class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                            </svg>
+                                            <svg wire:loading wire:target="confirmDelete" class="animate-spin h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Eliminar
+                                        </button>
+                                        @if(!$canDelete)
+                                            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                                                {{ $tooltipMessage }}
+                                                <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                                                    <div class="border-4 border-transparent border-t-gray-900"></div>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div>
                                 </div>
                             </td>
                         </tr>

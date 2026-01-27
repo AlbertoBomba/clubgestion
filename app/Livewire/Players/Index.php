@@ -21,6 +21,7 @@ class Index extends Component
 
     public $search = '';
     public $dniFilter = '';
+    public $matriculaFilter = '';
     public $seasonFilter = '';
     public $teamFilter = '';
     public $withoutTeam = false;
@@ -48,7 +49,7 @@ class Index extends Component
     public $selectedPaymentsToDelete = [];
     public $selectedPaymentsToCreate = [];
 
-    protected $queryString = ['search', 'dniFilter', 'seasonFilter', 'teamFilter', 'withoutTeam', 'sortField', 'sortDirection'];
+    protected $queryString = ['search', 'dniFilter', 'matriculaFilter', 'seasonFilter', 'teamFilter', 'withoutTeam', 'sortField', 'sortDirection'];
 
     public function mount()
     {
@@ -62,6 +63,7 @@ class Index extends Component
             $filters = session('players_filters');
             $this->search = $filters['search'] ?? '';
             $this->dniFilter = $filters['dniFilter'] ?? '';
+            $this->matriculaFilter = $filters['matriculaFilter'] ?? '';
             $this->seasonFilter = $filters['seasonFilter'] ?? '';
             $this->teamFilter = $filters['teamFilter'] ?? '';
             $this->withoutTeam = $filters['withoutTeam'] ?? false;
@@ -97,6 +99,12 @@ class Index extends Component
         $this->saveFilters();
     }
 
+    public function updatingMatriculaFilter()
+    {
+        $this->resetPage();
+        $this->saveFilters();
+    }
+
     public function updatingSeasonFilter()
     {
         $this->resetPage();
@@ -121,12 +129,44 @@ class Index extends Component
         session()->put('players_filters', [
             'search' => $this->search,
             'dniFilter' => $this->dniFilter,
+            'matriculaFilter' => $this->matriculaFilter,
             'seasonFilter' => $this->seasonFilter,
             'teamFilter' => $this->teamFilter,
             'withoutTeam' => $this->withoutTeam,
             'sortField' => $this->sortField,
             'sortDirection' => $this->sortDirection,
         ]);
+    }
+
+    public function clearFilter($field)
+    {
+        if ($field === 'search') {
+            $this->search = '';
+        } elseif ($field === 'dniFilter') {
+            $this->dniFilter = '';
+        } elseif ($field === 'matriculaFilter') {
+            $this->matriculaFilter = '';
+        } elseif ($field === 'seasonFilter') {
+            $this->seasonFilter = '';
+        } elseif ($field === 'teamFilter') {
+            $this->teamFilter = '';
+        } elseif ($field === 'withoutTeam') {
+            $this->withoutTeam = false;
+        }
+        $this->resetPage();
+        $this->saveFilters();
+    }
+
+    public function clearFilters()
+    {
+        $this->search = '';
+        $this->dniFilter = '';
+        $this->matriculaFilter = '';
+        $this->seasonFilter = '';
+        $this->teamFilter = '';
+        $this->withoutTeam = false;
+        $this->resetPage();
+        $this->saveFilters();
     }
 
     public function sortBy($field)
@@ -139,6 +179,66 @@ class Index extends Component
         }
         $this->resetPage();
         $this->saveFilters();
+    }
+
+    public function canEditPlayer($playerId)
+    {
+        $player = Player::find($playerId);
+        
+        if (!$player) {
+            return false;
+        }
+        
+        // Obtener temporada activa
+        $activeSeason = Season::where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->first();
+        
+        if (!$activeSeason) {
+            return false;
+        }
+        
+        // Verificar si el jugador pertenece a la temporada activa
+        $belongsToActiveSeason = $player->seasons()->where('seasons.id', $activeSeason->id)->exists();
+        
+        return $belongsToActiveSeason;
+    }
+
+    public function canDeletePlayer($playerId)
+    {
+        $player = Player::find($playerId);
+        
+        if (!$player) {
+            return false;
+        }
+        
+        // Obtener temporada activa
+        $activeSeason = Season::where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->first();
+        
+        if (!$activeSeason) {
+            return false;
+        }
+        
+        // Verificar si el jugador pertenece a la temporada activa
+        $belongsToActiveSeason = $player->seasons()->where('seasons.id', $activeSeason->id)->exists();
+        
+        if (!$belongsToActiveSeason) {
+            return false;
+        }
+        
+        // Verificar si tiene equipo asignado
+        $hasTeam = $player->teams()->exists();
+        
+        // Verificar si tiene pagos generados
+        $hasPayments = PaymentPlayer::where('player_id', $playerId)
+            ->exists();
+        
+        // Solo se puede eliminar si NO tiene equipo Y NO tiene pagos
+        return !$hasTeam && !$hasPayments;
     }
 
     public function confirmDelete($playerId)
@@ -182,7 +282,7 @@ class Index extends Component
                 if ($player && $player->sports_school_id === auth()->user()->sports_school_id && $player->active) {
                     $playerData = [
                         'id' => $player->id,
-                        'name' => $player->full_name,
+                        'name' => $player->name.' '.$player->surname,
                         'photo' => $player->player_photo,
                         'dni' => $player->dni,
                         'teams' => $player->teams->pluck('team')->toArray(),
@@ -346,16 +446,21 @@ class Index extends Component
         $query = Player::where('sports_school_id', auth()->user()->sports_school_id)
             ->with(['seasons', 'teams', 'sections'])
             ->when($this->search, function ($query) {
-                $query->where(function ($q) {
-                    $searchTerm = $this->search;
-                    $q->where('name', 'like', '%' . $searchTerm . '%')
-                      ->orWhere('surname', 'like', '%' . $searchTerm . '%')
-                      ->orWhere('dni', 'like', '%' . $searchTerm . '%')
-                      ->orWhere('email', 'like', '%' . $searchTerm . '%')
-                      ->orWhere('dorsal', 'like', '%' . $searchTerm . '%')
-                      ->orWhere('nametutor', 'like', '%' . $searchTerm . '%')
-                      ->orWhereRaw("CONCAT(name, ' ', surname) LIKE ?", ['%' . $searchTerm . '%'])
-                      ->orWhereRaw("CONCAT(surname, ' ', name) LIKE ?", ['%' . $searchTerm . '%']);
+                // Dividir búsqueda en palabras individuales
+                $searchTerms = array_filter(explode(' ', trim($this->search)));
+                
+                $query->where(function ($q) use ($searchTerms) {
+                    // Cada palabra debe aparecer en al menos uno de los campos
+                    foreach ($searchTerms as $term) {
+                        $q->where(function ($subQ) use ($term) {
+                            $subQ->where('name', 'like', '%' . $term . '%')
+                                ->orWhere('surname', 'like', '%' . $term . '%')
+                                ->orWhere('nametutor', 'like', '%' . $term . '%')
+                                ->orWhere('dni', 'like', '%' . $term . '%')
+                                ->orWhere('email', 'like', '%' . $term . '%')
+                                ->orWhere('dorsal', 'like', '%' . $term . '%');
+                        });
+                    }
                 });
             })
             ->when($this->dniFilter, function ($query) {
@@ -364,6 +469,9 @@ class Index extends Component
                     $q->where('dni', 'like', '%' . $dniTerm . '%')
                       ->orWhere('dnitutor', 'like', '%' . $dniTerm . '%');
                 });
+            })
+            ->when($this->matriculaFilter, function ($query) {
+                $query->where('cod_matricula', 'like', '%' . $this->matriculaFilter . '%');
             })
             ->when($this->seasonFilter, function ($query) {
                 $query->whereHas('seasons', function ($q) {
@@ -779,24 +887,43 @@ class Index extends Component
         $paymentsData = [];
         $sportsSchoolId = auth()->user()->sports_school_id;
 
-
-        // Calcular descuentos totales del jugador
-        $totalDiscount = 0;
-        $discountPercentage = 0;
+        // Calcular descuentos del jugador
+        $descuentoEuros = 0;
+        $descuentoPorcentaje = 0;
         
         if ($player->descEnt) {
-            $totalDiscount += floatval($player->descEnt);
+            $descuentoEuros = floatval($player->descEnt);
         }
         
         if ($player->descPerc) {
-            $discountPercentage = floatval($player->descPerc);
+            $descuentoPorcentaje = floatval($player->descPerc);
         }
 
-        // Número total de pagos para dividir el descuento
-        $totalPayments = $team->payments->count();
+        // Calcular precio total del equipo
+        $precioTotal = floatval($team->price);
         
-        // Calcular descuento por cuota
-        $discountPerPayment = $totalPayments > 0 ? $totalDiscount / $totalPayments : 0;
+        // Aplicar descuentos al precio total
+        $precioTotalConDescuento = $precioTotal;
+        
+        // Aplicar descuento en euros
+        if ($descuentoEuros > 0) {
+            $precioTotalConDescuento -= $descuentoEuros;
+        }
+        
+        // Aplicar descuento en porcentaje
+        if ($descuentoPorcentaje > 0) {
+            $descuentoPorcentajeImporte = ($precioTotal * $descuentoPorcentaje) / 100;
+            $precioTotalConDescuento -= $descuentoPorcentajeImporte;
+        }
+        
+        // Asegurar que no sea negativo
+        $precioTotalConDescuento = max(0, $precioTotalConDescuento);
+        
+        // Número total de cuotas del equipo
+        $totalCuotas = $team->payments->count();
+        
+        // Calcular importe por cuota (dividiendo el total entre TODAS las cuotas)
+        $importePorCuota = $totalCuotas > 0 ? $precioTotalConDescuento / $totalCuotas : 0;
 
         // Procesar cada pago del equipo
         foreach ($team->payments as $payment) {
@@ -816,35 +943,15 @@ class Index extends Component
             }
 
             // Verificar si existe un pago soft deleted para marcarlo como "a restaurar"
-            $deletedPayment = PaymentPlayer::where('player_id', $player->id)
+            $deletedPayment = PaymentPlayer::withTrashed()
+                ->where('player_id', $player->id)
                 ->where('payment_id', $payment->id)
                 ->whereNotNull('deleted_at')
                 ->first();
 
-            // Si existe un pago eliminado, también lo agregamos a la lista para mostrarlo en la previsualización
-            // pero con un indicador especial
+            // Si existe un pago eliminado, también lo agregamos a la lista
             if ($deletedPayment) {
-                // Recalcular descuentos por si han cambiado
                 $amountOriginal = floatval($payment->amount);
-                $amountWithDiscount = $amountOriginal;
-
-                // Aplicar descuento en euros (dividido entre todas las cuotas)
-                if ($discountPerPayment > 0) {
-                    $amountWithDiscount -= $discountPerPayment;
-                }
-
-                // Aplicar descuento en porcentaje
-                if ($discountPercentage > 0) {
-                    $percentageDiscount = ($amountOriginal * $discountPercentage) / 100;
-                    $amountWithDiscount -= $percentageDiscount;
-                }
-
-                // Asegurar que el importe no sea negativo
-                $amountWithDiscount = max(0, $amountWithDiscount);
-
-                // Calcular descuentos aplicados a esta cuota
-                $descEntApplied = $discountPerPayment;
-                $descPercApplied = $discountPercentage;
 
                 $paymentsData[] = [
                     'player_id' => $player->id,
@@ -852,53 +959,33 @@ class Index extends Component
                     'payment_id' => $payment->id,
                     'sports_school_id' => $sportsSchoolId,
                     'cuota' => $payment->cuota,
-                    'price' => $team->price,
+                    'price' => $precioTotalConDescuento,
                     'amount_original' => $amountOriginal,
-                    'amount' => $amountWithDiscount,
-                    'descEnt' => $descEntApplied,
-                    'descPerc' => $descPercApplied,
+                    'amount' => $importePorCuota,
+                    'descEnt' => $descuentoEuros,
+                    'descPerc' => $descuentoPorcentaje,
                     'description' => $payment->description ?? 'N/A',
                     'team_name' => $team->team,
-                    'is_restore' => true, // Indicador de que es una restauración
-                    'existing_payment_id' => $deletedPayment->id, // ID del pago a restaurar
+                    'is_restore' => true,
+                    'existing_payment_id' => $deletedPayment->id,
                 ];
                 continue;
             }
 
-            // Calcular importe original y con descuento
+            // Crear nuevo pago
             $amountOriginal = floatval($payment->amount);
-            $amountWithDiscount = $amountOriginal;
 
-            // Aplicar descuento en euros (dividido entre todas las cuotas)
-            if ($discountPerPayment > 0) {
-                $amountWithDiscount -= $discountPerPayment;
-            }
-
-            // Aplicar descuento en porcentaje
-            if ($discountPercentage > 0) {
-                $percentageDiscount = ($amountOriginal * $discountPercentage) / 100;
-                $amountWithDiscount -= $percentageDiscount;
-            }
-
-            // Asegurar que el importe no sea negativo
-            $amountWithDiscount = max(0, $amountWithDiscount);
-
-            // Calcular descuentos aplicados a esta cuota
-            $descEntApplied = $discountPerPayment;
-            $descPercApplied = $discountPercentage;
-
-            // Preparar datos del pago
             $paymentsData[] = [
                 'player_id' => $player->id,
                 'player_name' => $player->name . ' ' . $player->surname,
                 'payment_id' => $payment->id,
                 'sports_school_id' => $sportsSchoolId,
                 'cuota' => $payment->cuota,
-                'price' => $team->price,
+                'price' => $precioTotalConDescuento,
                 'amount_original' => $amountOriginal,
-                'amount' => $amountWithDiscount,
-                'descEnt' => $descEntApplied,
-                'descPerc' => $descPercApplied,
+                'amount' => $importePorCuota,
+                'descEnt' => $descuentoEuros,
+                'descPerc' => $descuentoPorcentaje,
                 'description' => $payment->description ?? 'N/A',
                 'team_name' => $team->team,
             ];
@@ -1018,6 +1105,40 @@ class Index extends Component
         }
     }
 
+    public function highlightText($text, $searchTerms = null)
+    {
+        if (empty($text)) {
+            return '';
+        }
+
+        // Si no se pasan términos, usar los del componente
+        if ($searchTerms === null) {
+            if (empty($this->search)) {
+                return $text;
+            }
+            $searchTerms = array_filter(explode(' ', trim($this->search)));
+        }
+
+        if (empty($searchTerms)) {
+            return $text;
+        }
+
+        // Escapar el texto original
+        $highlightedText = e($text);
+
+        // Resaltar cada término encontrado
+        foreach ($searchTerms as $term) {
+            $term = preg_quote($term, '/');
+            $highlightedText = preg_replace(
+                '/(' . $term . ')/iu',
+                '<mark class="bg-yellow-200 font-semibold">$1</mark>',
+                $highlightedText
+            );
+        }
+
+        return $highlightedText;
+    }
+
     private function executeTeamChange()
     {
         $changed = 0;
@@ -1075,19 +1196,21 @@ class Index extends Component
                 $query->whereNull('payments_players.deleted_at');
             }])
             ->when($this->search, function ($query) {
-                $query->where(function ($q) {
-                    $searchTerm = $this->search;
-                    
-                    // Búsqueda en campos individuales
-                    $q->where('name', 'like', '%' . $searchTerm . '%')
-                      ->orWhere('surname', 'like', '%' . $searchTerm . '%')
-                      ->orWhere('dni', 'like', '%' . $searchTerm . '%')
-                      ->orWhere('email', 'like', '%' . $searchTerm . '%')
-                      ->orWhere('dorsal', 'like', '%' . $searchTerm . '%')
-                      ->orWhere('nametutor', 'like', '%' . $searchTerm . '%')
-                      // Búsqueda combinada de nombre y apellido
-                      ->orWhereRaw("CONCAT(name, ' ', surname) LIKE ?", ['%' . $searchTerm . '%'])
-                      ->orWhereRaw("CONCAT(surname, ' ', name) LIKE ?", ['%' . $searchTerm . '%']);
+                // Dividir búsqueda en palabras individuales
+                $searchTerms = array_filter(explode(' ', trim($this->search)));
+                
+                $query->where(function ($q) use ($searchTerms) {
+                    // Cada palabra debe aparecer en al menos uno de los campos
+                    foreach ($searchTerms as $term) {
+                        $q->where(function ($subQ) use ($term) {
+                            $subQ->where('name', 'like', '%' . $term . '%')
+                                ->orWhere('surname', 'like', '%' . $term . '%')
+                                ->orWhere('nametutor', 'like', '%' . $term . '%')
+                                ->orWhere('dni', 'like', '%' . $term . '%')
+                                ->orWhere('email', 'like', '%' . $term . '%')
+                                ->orWhere('dorsal', 'like', '%' . $term . '%');
+                        });
+                    }
                 });
             })
             ->when($this->dniFilter, function ($query) {
@@ -1096,6 +1219,9 @@ class Index extends Component
                     $q->where('dni', 'like', '%' . $dniTerm . '%')
                       ->orWhere('dnitutor', 'like', '%' . $dniTerm . '%');
                 });
+            })
+            ->when($this->matriculaFilter, function ($query) {
+                $query->where('cod_matricula', 'like', '%' . $this->matriculaFilter . '%');
             })
             ->when($this->seasonFilter, function ($query) {
                 $query->whereHas('seasons', function ($q) {
