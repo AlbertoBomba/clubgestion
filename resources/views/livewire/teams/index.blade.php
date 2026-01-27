@@ -54,7 +54,7 @@
         </div>
     </div>
 
-    <div class="card-modern bg-white-pure rounded-b-2xl shadow-xl border border-primary/10 overflow-hidden">
+    <div class=" bg-white-pure rounded-b-2xl shadow-xl border border-primary/10 overflow-hidden">
         <!-- Header with Search and Filters -->
         <div class="p-6 border-b border-gray-100">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
