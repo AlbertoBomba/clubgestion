@@ -2,7 +2,7 @@
     <!-- Header con migas de pan y botones -->
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-gray-100 pb-4">
         <div class="flex items-center gap-2 overflow-hidden">
-            <a href="{{ route('teams.index') }}" class="font-bold text-lg sm:text-2xl text-primary hover:text-night-blue transition-colors leading-tight whitespace-nowrap">
+            <a href="" class="font-bold text-lg sm:text-2xl text-primary hover:text-night-blue transition-colors leading-tight whitespace-nowrap">
                 {{ __('Equipos') }}
             </a>
             <span class="text-lg sm:text-2xl text-gray-400 font-bold">/</span>
@@ -24,7 +24,7 @@
                 <svg class="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
-                <span class="hidden sm:inline">Volver</span>
+                <span class="hidden sm:inline">Salir</span>
             </a>
             
             @if($team->payments_count > 0 || $team->players->count() > 0)
@@ -252,69 +252,60 @@
 
                 <!-- Columna derecha: Entrenadores (1/3) -->
                 <div class="lg:col-span-1">
-                    <h3 class="text-lg font-bold text-titanium mb-4 flex items-center border-b border-silver/30 pb-3">
-                        <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                        </svg>
-                        Entrenadores
-                    </h3>
-                    
-                    <div class="mb-3">
-                        <div class="relative">
-                            <input type="text" wire:model.live.debounce.300ms="searchCoach" 
-                                placeholder="Buscar entrenador..."
-                                class="w-full px-4 py-2 pl-10 border border-silver rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm">
-                            <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    <div class="flex items-center justify-between border-b border-silver/30 pb-3 mb-4">
+                        <h3 class="text-lg font-bold text-titanium flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                             </svg>
-                        </div>
+                            Entrenadores
+                            <span class="ml-2 px-2 py-1 bg-primary/10 text-primary rounded-lg text-xs font-semibold">
+                                {{ $assignedCoaches->count() }}
+                            </span>
+                        </h3>
+                        <button type="button" wire:click="openAddCoachModal" 
+                            class="px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors text-xs font-semibold inline-flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            </svg>
+                            Asignar entrenador
+                        </button>
                     </div>
-                        
-                        @if(count($selectedCoaches) > 0)
-                            <p class="text-xs text-gray-600 mb-3 p-2 bg-green-50 rounded-lg border border-green-200">
-                                <svg class="w-4 h-4 inline text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                                {{ count($selectedCoaches) }} entrenador(es) seleccionado(s)
-                            </p>
-                        @endif
-                        
-                        @if(count($availableCoaches) === 0)
-                            <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                                <p class="text-amber-800 text-sm">No hay entrenadores disponibles en esta escuela.</p>
-                            </div>
-                        @else
-                            <div class="max-h-96 overflow-y-auto pr-2">
-                                <div class="grid grid-cols-2 gap-2">
-                                    @foreach($availableCoaches as $coach)
-                                        <label wire:key="coach-{{ $coach->id }}" class="flex flex-col p-3 border rounded-xl cursor-pointer transition-all
-                                            {{ in_array($coach->id, $selectedCoaches) ? 'border-primary bg-primary/10 shadow-md' : 'border-silver hover:bg-gray-50' }}">
-                                            <div class="flex items-start gap-2">
-                                                <input type="checkbox" wire:model.live="selectedCoaches" value="{{ $coach->id }}"
-                                                    {{ in_array($coach->id, $selectedCoaches) ? 'checked' : '' }}
-                                                    class="w-4 h-4 mt-0.5 text-primary border-gray-300 rounded focus:ring-primary focus:ring-2 flex-shrink-0">
-                                                <div class="flex-1 min-w-0">
-                                                    <div class="flex items-center gap-2 mb-1">
-                                                        @if($coach->profile_photo_path)
-                                                            <img src="{{ asset('storage/' . $coach->profile_photo_path) }}" 
-                                                                class="w-8 h-8 rounded-full object-cover border border-silver flex-shrink-0">
-                                                        @else
-                                                            <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                                                <span class="text-primary text-xs font-semibold">{{ substr($coach->name, 0, 1) }}</span>
-                                                            </div>
-                                                        @endif
-                                                        <p class="text-sm font-medium text-titanium truncate">{{ $coach->name }}</p>
-                                                    </div>
-                                                    <p class="text-xs text-gray-500 truncate ml-10">{{ $coach->email }}</p>
-                                                </div>
+                    
+                    @if($assignedCoaches->isEmpty())
+                        <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-center">
+                            <svg class="w-10 h-10 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                            <p class="text-gray-600 text-sm font-medium">Sin entrenadores</p>
+                        </div>
+                    @else
+                        <div class="space-y-2 max-h-96 overflow-y-auto pr-2">
+                            @foreach($assignedCoaches as $coach)
+                                <div class="flex items-center justify-between p-3 border border-silver rounded-xl hover:bg-gray-50 transition-colors">
+                                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                                        @if($coach->profile_photo_path)
+                                            <img src="{{ asset('storage/' . $coach->profile_photo_path) }}" 
+                                                class="w-10 h-10 rounded-full object-cover border border-silver flex-shrink-0">
+                                        @else
+                                            <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                                <span class="text-primary text-sm font-semibold">{{ substr($coach->name, 0, 1) }}</span>
                                             </div>
-                                        </label>
-                                    @endforeach
+                                        @endif
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-titanium truncate">{{ $coach->name }}</p>
+                                            <p class="text-xs text-gray-500 truncate">{{ $coach->email }}</p>
+                                        </div>
+                                    </div>
+                                    <button type="button" wire:click="confirmRemoveCoach({{ $coach->id }})"
+                                        class="ml-2 p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                    </button>
                                 </div>
-                            </div>
-                        @endif
-
-                         
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -335,13 +326,13 @@
                 </h3>
                 
                 <div class="flex items-center gap-3">
-                    <!-- Botón Imprimir PDF -->
+                    <!-- Botón Exportar Listado Jugadores -->
                     <button type="button" wire:click="openPdfModal"
                         class="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors flex items-center gap-2 text-sm font-medium">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
-                        <span>Imprimir PDF</span>
+                        <span>Exportar Listado Jugadores</span>
                     </button>
                     
                     <!-- Botón Agregar Jugadores -->
@@ -457,6 +448,16 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
                                     <div class="flex items-center justify-center gap-2">
+                                        <!-- Botón Editar jugador -->
+                                        <button type="button" wire:click="openEditPlayerModal({{ $player->id }})"
+                                            class="inline-flex items-center px-3 py-1.5 bg-amber-50 text-amber-700 rounded-lg text-xs font-semibold hover:bg-amber-100 transition-colors"
+                                            title="Editar jugador">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                            </svg>
+                                            <span>Editar</span>
+                                        </button>
+                                        
                                         <!-- Botón Mover a otro equipo -->
                                         <button type="button" wire:click="openMovePlayerModal({{ $player->id }})" wire:loading.attr="disabled" wire:target="openMovePlayerModal({{ $player->id }})"
                                             class="inline-flex items-center px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-xs font-semibold hover:bg-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -496,33 +497,158 @@
         @endif
     </div>
 
-    <!-- Modal: Confirmar eliminación de jugador -->
-    <x-confirmation-modal wire:model.live="confirmingPlayerRemoval">
-        <x-slot name="title">
-            Quitar Jugador del Equipo
-        </x-slot>
+    <!-- Modal: Confirmar eliminación de jugador con previsualización de pagos -->
+    <div x-data="{ show: @entangle('confirmingPlayerRemoval').live }" 
+         x-show="show" 
+         x-cloak
+         class="fixed inset-0 z-50 overflow-y-auto" 
+         aria-labelledby="modal-title" 
+         role="dialog" 
+         aria-modal="true"
+         style="display: none;">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Overlay -->
+            <div x-show="show" 
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                 @click="show = false"></div>
 
-        <x-slot name="content">
-            ¿Está seguro de quitar a este jugador del equipo? Esta acción no eliminará al jugador de la base de datos, solo lo quitará de este equipo.
-        </x-slot>
+            <!-- Modal panel -->
+            <div x-show="show"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6">
+                    <div class="flex items-center justify-between border-b border-gray-200 pb-4 mb-4">
+                        <h3 class="text-2xl font-bold text-titanium flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            Confirmar Quitar Jugador del Equipo
+                        </h3>
+                        <button type="button" @click="show = false" class="text-gray-400 hover:text-gray-500">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
 
-        <x-slot name="footer">
-            <x-secondary-button wire:click="cancelRemovePlayer">
-                Cancelar
-            </x-secondary-button>
+                    <div class="space-y-6">
+                        <!-- Información importante -->
+                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-yellow-700 font-semibold">
+                                        El jugador será quitado del equipo. Las cartas de pago pendientes se eliminarán.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
 
-            <x-danger-button class="ms-3" wire:click="removePlayer" wire:loading.attr="disabled" wire:target="removePlayer">
-                <span wire:loading.remove wire:target="removePlayer">Quitar del Equipo</span>
-                <span wire:loading wire:target="removePlayer" class="inline-flex items-center">
-                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Quitando...
-                </span>
-            </x-danger-button>
-        </x-slot>
-    </x-confirmation-modal>
+                        <!-- Pagos que se van a eliminar -->
+                        @if(count($paymentsToDeleteRemove) > 0)
+                            <div class="bg-red-50 border-2 border-red-200 rounded-xl p-4">
+                                <h4 class="text-lg font-bold text-red-800 mb-3 flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                    Cartas de pago que se eliminarán ({{ count($paymentsToDeleteRemove) }})
+                                </h4>
+                                <div class="space-y-2">
+                                    @foreach($paymentsToDeleteRemove as $payment)
+                                        <div class="bg-white p-3 rounded-lg shadow-sm border border-red-200">
+                                            <div class="grid grid-cols-5 gap-2 text-sm">
+                                                <div><span class="font-semibold">Código:</span> {{ $payment['code'] }}</div>
+                                                <div><span class="font-semibold">Cuota:</span> {{ $payment['cuota'] }}</div>
+                                                <div><span class="font-semibold">Descripción:</span> {{ $payment['description'] }}</div>
+                                                <div><span class="font-semibold">Importe:</span> {{ number_format($payment['amount'], 2) }}€</div>
+                                                <div class="text-right">
+                                                    <span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">Pendiente</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Pagos pagados que se mantienen -->
+                        @if(count($paymentsPaidRemove) > 0)
+                            <div class="bg-green-50 border-2 border-green-200 rounded-xl p-4">
+                                <h4 class="text-lg font-bold text-green-800 mb-3 flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    Cartas de pago pagadas que se mantienen ({{ count($paymentsPaidRemove) }})
+                                </h4>
+                                <div class="space-y-2">
+                                    @foreach($paymentsPaidRemove as $payment)
+                                        <div class="bg-white p-3 rounded-lg shadow-sm border border-green-200">
+                                            <div class="grid grid-cols-6 gap-2 text-sm">
+                                                <div><span class="font-semibold">Código:</span> {{ $payment['code'] }}</div>
+                                                <div><span class="font-semibold">Cuota:</span> {{ $payment['cuota'] }}</div>
+                                                <div><span class="font-semibold">Descripción:</span> {{ $payment['description'] }}</div>
+                                                <div><span class="font-semibold">Importe:</span> {{ number_format($payment['amount'], 2) }}€</div>
+                                                <div><span class="font-semibold">F. Pago:</span> {{ $payment['payment_date'] }}</div>
+                                                <div class="text-right">
+                                                    <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">✓ Pagada</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        @if(count($paymentsToDeleteRemove) === 0 && count($paymentsPaidRemove) === 0)
+                            <div class="bg-gray-50 border-2 border-gray-200 rounded-xl p-8 text-center">
+                                <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                </svg>
+                                <p class="text-gray-600 font-medium">No hay pagos asociados a este jugador</p>
+                                <p class="text-sm text-gray-500 mt-1">El jugador será removido del equipo sin afectar pagos</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
+                    <button type="button" wire:click="removePlayer" wire:loading.attr="disabled" wire:target="removePlayer"
+                        class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors disabled:opacity-50">
+                        <svg wire:loading.remove wire:target="removePlayer" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                        <span wire:loading.remove wire:target="removePlayer">Confirmar y Quitar del Equipo</span>
+                        <span wire:loading wire:target="removePlayer" class="inline-flex items-center">
+                            <svg class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Quitando...
+                        </span>
+                    </button>
+                    <button type="button" wire:click="cancelRemovePlayer"
+                        class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:w-auto sm:text-sm transition-colors">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal: Mover jugador a otro equipo -->
     <x-dialog-modal wire:model.live="showMovePlayerModal">
@@ -709,6 +835,259 @@
         </x-slot>
     </x-dialog-modal>
 
+    <!-- Modal Editar Jugador -->
+    @if($showEditPlayerModal)
+    <div class="fixed inset-0 z-50 overflow-y-auto" x-data="{ show: @entangle('showEditPlayerModal').live }">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Background overlay -->
+            <div x-show="show" 
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" 
+                 @click="show = false"></div>
+
+            <!-- Modal panel -->
+            <div x-show="show"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                
+                <!-- Header -->
+                <div class="bg-gradient-to-r from-amber-600 to-amber-700 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xl font-bold text-white flex items-center">
+                            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                            Editar Jugador
+                        </h3>
+                        <button wire:click="closeEditPlayerModal" class="text-white hover:text-gray-200 transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Body -->
+                <div class="px-6 py-6">
+                    <div class="space-y-4">
+                        <!-- Nombre y Apellidos -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    Nombre <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" wire:model.defer="editPlayerName" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                                @error('editPlayerName') 
+                                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span> 
+                                @enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    Apellidos <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" wire:model.defer="editPlayerSurname" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                                @error('editPlayerSurname') 
+                                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span> 
+                                @enderror
+                            </div>
+                        </div>
+
+                        <!-- DNI -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                DNI/NIE
+                            </label>
+                            <input type="text" wire:model.defer="editPlayerDni" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                            @error('editPlayerDni') 
+                                <span class="text-red-500 text-xs mt-1">{{ $message }}</span> 
+                            @enderror
+                        </div>
+
+                        <!-- Fecha de Nacimiento, Año de Nacimiento, Dorsal y Talla -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    Fecha de Nacimiento
+                                </label>
+                                <input type="date" wire:model.defer="editPlayerDbirth" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                                @error('editPlayerDbirth') 
+                                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span> 
+                                @enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    Año de Nacimiento
+                                </label>
+                                <input type="number" wire:model.defer="editPlayerDbanio" min="1900" max="{{ date('Y') }}"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                                @error('editPlayerDbanio') 
+                                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span> 
+                                @enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    Dorsal
+                                </label>
+                                <input type="number" wire:model.defer="editPlayerShirtNumber" min="0" max="99"
+                                    class="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                                @error('editPlayerShirtNumber') 
+                                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span> 
+                                @enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    Talla
+                                </label>
+                                <div class="flex gap-2">
+                                    <input wire:model="editPlayerSize" type="text" placeholder="Talla" readonly
+                                        class="w-24 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed">
+                                    <button type="button" wire:click="openSizesModal" 
+                                        class="px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold text-sm hover:bg-amber-700 transition-colors flex items-center gap-2 whitespace-nowrap">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                        </svg>
+                                       
+                                    </button>
+                                </div>
+                                @error('editPlayerSize') 
+                                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span> 
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="bg-gray-50 px-6 py-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                    <button wire:click="closeEditPlayerModal" type="button"
+                        class="px-4 py-2 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors font-medium text-sm">
+                        Cancelar
+                    </button>
+                    <button wire:click="updatePlayer" wire:loading.attr="disabled" wire:target="updatePlayer"
+                        class="px-4 py-2 bg-amber-600 text-white rounded-xl hover:bg-amber-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center">
+                        <svg wire:loading.remove wire:target="updatePlayer" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <svg wire:loading wire:target="updatePlayer" class="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span wire:loading.remove wire:target="updatePlayer">Guardar Cambios</span>
+                        <span wire:loading wire:target="updatePlayer">Guardando...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Modal de Tallas -->
+    @if($showSizesModal)
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <!-- Overlay -->
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" wire:click="closeSizesModal"></div>
+
+                <!-- Modal panel -->
+                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="flex items-center justify-between border-b border-gray-200 pb-4 mb-4">
+                            <h3 class="text-2xl font-bold text-titanium flex items-center">
+                                <svg class="w-6 h-6 mr-2 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                                </svg>
+                                Seleccionar Talla
+                            </h3>
+                            <button type="button" wire:click="closeSizesModal" class="text-gray-400 hover:text-gray-500">
+                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="mt-4">
+                            @if($availableSizes->isEmpty())
+                                <div class="text-center py-8">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                                    </svg>
+                                    <p class="mt-2 text-sm text-gray-500">No hay tallas asociadas a esta escuela.</p>
+                                    <p class="text-xs text-gray-400 mt-1">Por favor, asocia marcas a tu escuela deportiva.</p>
+                                </div>
+                            @else
+                                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-96 overflow-y-auto">
+                                    @php
+                                        $currentBrand = null;
+                                    @endphp
+                                    
+                                    @foreach($availableSizes as $size)
+                                        @if($currentBrand !== $size->brand_id)
+                                            @php $currentBrand = $size->brand_id; @endphp
+                                            <div class="col-span-full mt-3 mb-2">
+                                                <h4 class="text-sm font-bold text-amber-600 uppercase tracking-wide">
+                                                    {{ $size->brand->brand ?? 'Sin marca' }}
+                                                </h4>
+                                                <div class="h-px bg-amber-600/20 mt-1"></div>
+                                            </div>
+                                        @endif
+                                        
+                                        <button type="button" wire:click="selectSize({{ $size->id }})"
+                                            class="p-4 border-2 rounded-xl transition-all duration-200 hover:border-amber-600 hover:bg-amber-50 hover:shadow-md
+                                                {{ $editPlayerSize === $size->size ? 'border-amber-600 bg-amber-50' : 'border-gray-200' }}">
+                                            <div class="text-center">
+                                                <p class="text-lg font-bold text-titanium">{{ $size->size }}</p>
+                                                @if($size->description)
+                                                    <p class="text-xs text-gray-500 mt-1">{{ $size->description }}</p>
+                                                @endif
+                                                @if($size->edad || $size->pecho || $size->cintura || $size->cadera)
+                                                    <div class="mt-2 text-xs text-gray-600 space-y-0.5">
+                                                        @if($size->edad)
+                                                            <p>Edad: {{ $size->edad }}</p>
+                                                        @endif
+                                                        @if($size->pecho)
+                                                            <p>Pecho: {{ $size->pecho }}</p>
+                                                        @endif
+                                                        @if($size->cintura)
+                                                            <p>Cintura: {{ $size->cintura }}</p>
+                                                        @endif
+                                                        @if($size->cadera)
+                                                            <p>Cadera: {{ $size->cadera }}</p>
+                                                        @endif
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </button>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 px-6 py-3 flex justify-end">
+                        <button type="button" wire:click="closeSizesModal"
+                            class="px-4 py-2 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors font-medium text-sm">
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <!-- PDF Column Selection Modal -->
     @if($showPdfModal)
     <div class="fixed inset-0 z-50 overflow-y-auto" x-data="{ show: @entangle('showPdfModal') }">
@@ -723,9 +1102,9 @@
                     <div class="flex items-center justify-between">
                         <h3 class="text-xl font-bold text-white flex items-center">
                             <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
-                            Seleccionar Columnas para PDF
+                            Exportar Listado de Jugadores
                         </h3>
                         <button wire:click="closePdfModal" class="text-white hover:text-gray-200 transition-colors">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -767,6 +1146,19 @@
                     <button wire:click="closePdfModal" type="button"
                         class="px-4 py-2 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors font-medium text-sm">
                         Cancelar
+                    </button>
+                    <button wire:click="generateExcel" wire:loading.attr="disabled" wire:target="generateExcel"
+                        {{ empty($selectedColumns) ? 'disabled' : '' }}
+                        class="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center">
+                        <svg wire:loading.remove wire:target="generateExcel" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <svg wire:loading wire:target="generateExcel" class="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span wire:loading.remove wire:target="generateExcel">Exportar Excel</span>
+                        <span wire:loading wire:target="generateExcel">Generando...</span>
                     </button>
                     <button wire:click="generatePdf" wire:loading.attr="disabled" wire:target="generatePdf"
                         {{ empty($selectedColumns) ? 'disabled' : '' }}
@@ -815,6 +1207,293 @@
                     Eliminando...
                 </span>
             </x-danger-button>
+        </x-slot>
+    </x-dialog-modal>
+
+    <!-- Modal: Añadir Entrenador -->
+    <x-dialog-modal wire:model.live="showAddCoachModal">
+        <x-slot name="title">
+            <div class="flex items-center gap-2">
+                <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                </svg>
+                Añadir Entrenador al Equipo
+            </div>
+        </x-slot>
+
+        <x-slot name="content">
+            <!-- Buscador -->
+            <div class="mb-4">
+                <div class="relative">
+                    <input type="text" wire:model.live.debounce.300ms="searchCoach" 
+                        placeholder="Buscar por nombre o email..."
+                        class="w-full px-4 py-2 pl-10 border border-silver rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm">
+                    <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+            </div>
+            
+            @if($availableCoaches->isEmpty())
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <p class="text-amber-800 text-sm">
+                        @if($searchCoach)
+                            No se encontraron entrenadores disponibles con esos criterios de búsqueda.
+                        @else
+                            No hay entrenadores disponibles para añadir al equipo.
+                        @endif
+                    </p>
+                </div>
+            @else
+                <div class="max-h-96 overflow-y-auto border border-silver rounded-lg">
+                    <table class="min-w-full divide-y divide-silver">
+                        <thead class="bg-gray-50 sticky top-0">
+                            <tr>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Foto</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    {{-- Rol --}}
+                                </th>
+                                <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-silver">
+                            @foreach($availableCoaches as $coach)
+                                <tr wire:key="available-coach-{{ $coach->id }}" class="hover:bg-gray-50">
+                                    <td class="px-3 py-2">
+                                        @if($coach->profile_photo_path)
+                                            <img src="{{ asset('storage/' . $coach->profile_photo_path) }}" 
+                                                class="w-10 h-10 rounded-full object-cover border border-silver">
+                                        @else
+                                            <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center border border-silver">
+                                                <span class="text-primary text-sm font-semibold">{{ substr($coach->name, 0, 1) }}</span>
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="px-3 py-2 text-sm text-titanium font-medium">{{ $coach->name }}</td>
+                                    <td class="px-3 py-2 text-sm text-gray-600">{{ $coach->email }}</td>
+                                    <td class="px-3 py-2">
+                                        {{-- @if($coach->hasRole('coach'))
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                Entrenador
+                                            </span>
+                                        @elseif($coach->hasRole('school_admin'))
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                                Admin Escuela
+                                            </span>
+                                        @endif --}}
+                                    </td>
+                                    <td class="px-3 py-2 text-center">
+                                        <button type="button" wire:click="addCoach({{ $coach->id }})"
+                                            class="inline-flex items-center px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-semibold hover:bg-primary-dark transition-colors">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                            </svg>
+                                            Añadir
+                                        </button>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="closeAddCoachModal">
+                Cerrar
+            </x-secondary-button>
+        </x-slot>
+    </x-dialog-modal>
+
+    <!-- Modal: Confirmar eliminación de entrenador -->
+    <x-confirmation-modal wire:model.live="confirmingCoachRemoval">
+        <x-slot name="title">
+            Quitar Entrenador del Equipo
+        </x-slot>
+
+        <x-slot name="content">
+            ¿Está seguro de quitar a este entrenador del equipo? Esta acción no eliminará al usuario, solo lo quitará de este equipo.
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="cancelRemoveCoach">
+                Cancelar
+            </x-secondary-button>
+
+            <x-danger-button class="ms-3" wire:click="removeCoach" wire:loading.attr="disabled" wire:target="removeCoach">
+                <span wire:loading.remove wire:target="removeCoach">Quitar del Equipo</span>
+                <span wire:loading wire:target="removeCoach" class="inline-flex items-center">
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Quitando...
+                </span>
+            </x-danger-button>
+        </x-slot>
+    </x-confirmation-modal>
+
+    <!-- Modal de Previsualización de Pagos -->
+    <x-dialog-modal wire:model="showPreviewModal" maxWidth="2xl">
+        <x-slot name="title">
+            <div class="flex items-center gap-2">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                <span>Previsualización de Cambios en Pagos</span>
+            </div>
+        </x-slot>
+        <x-slot name="content">
+            <div class="space-y-4">
+                <!-- Resumen compacto -->
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                        <div class="space-y-2 text-sm">
+                            @if(count($paymentsPaid) > 0)
+                                <p class="text-green-700">✅ <strong>{{ count($paymentsPaid) }}</strong> pagos ya pagados se mantendrán</p>
+                            @endif
+                            @if(count($paymentsToDelete) > 0)
+                                <p class="text-red-700">🗑️ <strong>{{ count($paymentsToDelete) }}</strong> pagos pendientes se eliminarán</p>
+                            @endif
+                            @if(count($paymentsToCreate) > 0)
+                                <p class="text-blue-700">➕ <strong>{{ count($paymentsToCreate) }}</strong> nuevas cartas de pago se generarán</p>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid de dos columnas -->
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Columna izquierda: Pagos a eliminar -->
+                    <div class="border border-red-200 rounded-lg bg-white">
+                        <div class="bg-red-50 px-3 py-2 border-b border-red-200">
+                            <h4 class="text-sm font-semibold text-red-900">
+                                🗑️ A Eliminar ({{ count($paymentsToDelete) }})
+                            </h4>
+                        </div>
+                        <div class="p-3 space-y-2">
+                            @forelse($paymentsToDelete as $payment)
+                                <div class="flex flex-col gap-1 p-2 bg-red-50 rounded text-xs border border-red-100">
+                                    <div class="flex items-center justify-between">
+                                        <div class="font-semibold text-gray-900">{{ $payment['player_name'] }}</div>
+                                        <span class="font-bold text-red-600">{{ number_format($payment['amount'], 2) }}€</span>
+                                    </div>
+                                    <div class="text-gray-600">
+                                        <span class="font-medium">Cuota {{ $payment['cuota'] }}</span> • {{ $payment['description'] }}
+                                    </div>
+                                    <div class="text-gray-500 font-mono text-xs">
+                                        Código: {{ $payment['code'] }}
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="text-center py-4 text-gray-500 text-xs">
+                                    No hay pagos pendientes a eliminar
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+
+                    <!-- Columna derecha: Nuevas cartas de pago -->
+                    <div class="border border-green-200 rounded-lg bg-white">
+                        <div class="bg-green-50 px-3 py-2 border-b border-green-200">
+                            <h4 class="text-sm font-semibold text-green-900">
+                                ➕ Nuevas Cartas de Pago ({{ count($paymentsToCreate) }})
+                            </h4>
+                        </div>
+                        <div class="p-3 space-y-2">
+                            @forelse($paymentsToCreate as $payment)
+                                <div class="flex flex-col gap-1 p-2 bg-green-50 rounded text-xs border border-green-100">
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        <div class="flex items-center justify-between flex-1">
+                                            <div class="font-semibold text-gray-900">{{ $payment['player_name'] }}</div>
+                                            <span class="font-bold text-green-600 flex-shrink-0 ml-2">
+                                                @if($payment['amount'] != $payment['amount_original'])
+                                                    <span class="text-gray-400 line-through text-xs mr-1">{{ number_format($payment['amount_original'], 2) }}€</span>
+                                                @endif
+                                                {{ number_format($payment['amount'], 2) }}€
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="text-gray-600 ml-7">
+                                        <span class="font-medium">Cuota {{ $payment['cuota'] }}</span> • {{ $payment['description'] }}
+                                    </div>
+                                    <div class="text-gray-500 ml-7 text-xs">
+                                        🏆 Equipo: {{ $payment['team_name'] ?? 'N/A' }}
+                                    </div>
+                                    @if(isset($payment['is_restore']) && $payment['is_restore'])
+                                        <div class="ml-7 text-blue-600 text-xs">
+                                            🔄 Se restaurará pago existente
+                                        </div>
+                                    @endif
+                                </div>
+                            @empty
+                                <div class="text-center py-4 text-gray-500 text-xs">
+                                    No hay nuevas cartas de pago a generar
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagos pagados que se mantienen (compacto) -->
+                @if(count($paymentsPaid) > 0)
+                    <div class="border border-green-300 rounded-lg bg-green-50">
+                        <button type="button" 
+                                onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('span').textContent = this.nextElementSibling.classList.contains('hidden') ? 'Ver detalles' : 'Ocultar'"
+                                class="w-full px-3 py-2 flex items-center justify-between hover:bg-green-100 transition-colors">
+                            <h4 class="text-sm font-semibold text-green-900">
+                                ✅ Pagos Ya Pagados - Se Mantienen ({{ count($paymentsPaid) }})
+                            </h4>
+                            <span class="text-xs text-green-700 hover:text-green-900 underline">
+                                Ver detalles
+                            </span>
+                        </button>
+                        <div class="hidden px-3 pb-3 space-y-1 border-t border-green-200">
+                            @foreach($paymentsPaid as $payment)
+                                <div class="flex items-center justify-between text-xs bg-white p-2 rounded">
+                                    <div>
+                                        <span class="font-semibold">{{ $payment['player_name'] }}</span>
+                                        <span class="text-gray-600">- Cuota {{ $payment['cuota'] }}</span>
+                                    </div>
+                                    <span class="text-green-700">{{ number_format($payment['amount'], 2) }}€</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            </div>
+        </x-slot>
+        <x-slot name="footer">
+            <div class="flex items-center justify-between w-full gap-3">
+                <x-secondary-button wire:click="$set('showPreviewModal', false)">
+                    Cancelar
+                </x-secondary-button>
+                <button wire:click="confirmPaymentsAction" wire:loading.attr="disabled" wire:target="confirmPaymentsAction"
+                    class="inline-flex items-center px-6 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 transition ease-in-out duration-150">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span wire:loading.remove wire:target="confirmPaymentsAction">
+                        Confirmar Cambios
+                    </span>
+                    <span wire:loading wire:target="confirmPaymentsAction" class="inline-flex items-center">
+                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Procesando...
+                    </span>
+                </button>
+            </div>
         </x-slot>
     </x-dialog-modal>
 </div>

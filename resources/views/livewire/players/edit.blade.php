@@ -281,7 +281,7 @@
                                             </svg>
                                             Cambiar
                                         </button>
-                                        <button type="button" wire:click="removeTeam" wire:confirm="¿Seguro que quieres quitar al jugador de este equipo?" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors flex items-center gap-2">
+                                        <button type="button" wire:click="removeTeam" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors flex items-center gap-2">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                             </svg>
@@ -1162,172 +1162,197 @@
         </div>
     @endif
 
-    <!-- Modal de Previsualización de Cambio de Equipo -->
-    @if($showPreviewModal)
-        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <!-- Overlay -->
-                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
-
-                <!-- Modal panel -->
-                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-6xl sm:w-full">
-                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6">
-                        <div class="flex items-center justify-between border-b border-gray-200 pb-4 mb-4">
-                            <h3 class="text-2xl font-bold text-titanium flex items-center">
-                                <svg class="w-6 h-6 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                </svg>
-                                Previsualización de Cambio de Equipo
-                            </h3>
-                            <button type="button" wire:click="$set('showPreviewModal', false)" class="text-gray-400 hover:text-gray-500">
-                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div class="space-y-6">
-                            <!-- Pagos que se van a eliminar -->
-                            @if(count($paymentsToDelete) > 0)
-                                <div class="bg-red-50 border-2 border-red-200 rounded-xl p-4">
-                                    <h4 class="text-lg font-bold text-red-800 mb-3 flex items-center">
-                                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                                        </svg>
-                                        Cartas de pago que se eliminarán ({{ count($paymentsToDelete) }})
-                                    </h4>
-                                    <div class="space-y-2">
-                                        @foreach($paymentsToDelete as $payment)
-                                            <div class="bg-white p-3 rounded-lg shadow-sm border border-red-200">
-                                                <div class="grid grid-cols-5 gap-2 text-sm">
-                                                    <div><span class="font-semibold">Código:</span> {{ $payment['code'] }}</div>
-                                                    <div><span class="font-semibold">Cuota:</span> {{ $payment['cuota'] }}</div>
-                                                    <div><span class="font-semibold">Descripción:</span> {{ $payment['description'] }}</div>
-                                                    <div><span class="font-semibold">Importe:</span> {{ number_format($payment['amount'], 2) }}€</div>
-                                                    <div class="text-right">
-                                                        <span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">Pendiente</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endif
-
-                            <!-- Pagos pagados que se mantendrán -->
+    <!-- Modal de Previsualización de Pagos -->
+    <x-dialog-modal wire:model="showPreviewModal" maxWidth="2xl">
+        <x-slot name="title">
+            <div class="flex items-center gap-2">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                <span>Previsualización de Cambios en Pagos</span>
+            </div>
+        </x-slot>
+        <x-slot name="content">
+            <div class="space-y-4">
+                <!-- Resumen compacto -->
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                        <div class="space-y-2 text-sm">
                             @if(count($paymentsPaid) > 0)
-                                <div class="bg-green-50 border-2 border-green-200 rounded-xl p-4">
-                                    <h4 class="text-lg font-bold text-green-800 mb-3 flex items-center">
-                                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                        </svg>
-                                        Cartas de pago pagadas que se mantienen ({{ count($paymentsPaid) }})
-                                    </h4>
-                                    <div class="space-y-2">
-                                        @foreach($paymentsPaid as $payment)
-                                            <div class="bg-white p-3 rounded-lg shadow-sm border border-green-200">
-                                                <div class="grid grid-cols-6 gap-2 text-sm">
-                                                    <div><span class="font-semibold">Código:</span> {{ $payment['code'] }}</div>
-                                                    <div><span class="font-semibold">Cuota:</span> {{ $payment['cuota'] }}</div>
-                                                    <div><span class="font-semibold">Descripción:</span> {{ $payment['description'] }}</div>
-                                                    <div><span class="font-semibold">Importe:</span> {{ number_format($payment['amount'], 2) }}€</div>
-                                                    <div><span class="font-semibold">F. Pago:</span> {{ $payment['payment_date'] }}</div>
-                                                    <div class="text-right">
-                                                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">✓ Pagada</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
+                                <p class="text-green-700">✅ <strong>{{ count($paymentsPaid) }}</strong> pagos ya pagados se mantendrán</p>
                             @endif
-
-                            <!-- Nuevas cartas de pago a generar -->
+                            @if(count($paymentsToDelete) > 0)
+                                <p class="text-red-700">🗑️ <strong>{{ count($paymentsToDelete) }}</strong> pagos pendientes se eliminarán</p>
+                            @endif
                             @if(count($paymentsToCreate) > 0)
-                                <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
-                                    <div class="flex items-center justify-between mb-3">
-                                        <h4 class="text-lg font-bold text-blue-800 flex items-center">
-                                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
-                                                <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/>
-                                            </svg>
-                                            Nuevas cartas de pago a generar ({{ count($paymentsToCreate) }})
-                                        </h4>
-                                        <label class="flex items-center space-x-2 cursor-pointer">
-                                            <input type="checkbox" 
-                                                wire:click="toggleAllPaymentsToCreate($event.target.checked)"
-                                                @if(count($selectedPaymentsToCreate) === count($paymentsToCreate)) checked @endif
-                                                class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary">
-                                            <span class="text-sm font-medium text-blue-800">Seleccionar todas</span>
-                                        </label>
-                                    </div>
-                                    <div class="space-y-2">
-                                        @foreach($paymentsToCreate as $payment)
-                                            <div class="bg-white p-3 rounded-lg shadow-sm border border-blue-200">
-                                                <div class="flex items-center">
-                                                    <input type="checkbox" 
-                                                        wire:model.live="selectedPaymentsToCreate" 
-                                                        value="{{ $payment['unique_id'] }}"
-                                                        class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary mr-3">
-                                                    <div class="grid grid-cols-5 gap-2 text-sm flex-1">
-                                                        <div><span class="font-semibold">Cuota:</span> {{ $payment['cuota'] }}</div>
-                                                        <div><span class="font-semibold">Descripción:</span> {{ $payment['description'] }}</div>
-                                                        <div><span class="font-semibold">Equipo:</span> {{ $payment['team_name'] }}</div>
-                                                        <div><span class="font-semibold">Importe:</span> {{ number_format($payment['amount'], 2) }}€</div>
-                                                        <div class="text-right">
-                                                            @if(isset($payment['is_restore']) && $payment['is_restore'])
-                                                                <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">Restaurar</span>
-                                                            @else
-                                                                <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">Nuevo</span>
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endif
-
-                            @if(count($paymentsToDelete) === 0 && count($paymentsToCreate) === 0 && count($paymentsPaid) === 0)
-                                <div class="bg-gray-50 border-2 border-gray-200 rounded-xl p-8 text-center">
-                                    <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                                    </svg>
-                                    <p class="text-gray-600 font-medium">No hay cambios en los pagos</p>
-                                    <p class="text-sm text-gray-500 mt-1">El jugador se cambiará de equipo sin modificar pagos</p>
-                                </div>
+                                <p class="text-blue-700">➕ <strong>{{ count($paymentsToCreate) }}</strong> nuevas cartas de pago se generarán</p>
                             @endif
                         </div>
-                    </div>
-
-                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
-                        <button type="button" wire:click="confirmPaymentsAction"
-                            class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm transition-colors">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                            Confirmar Cambio
-                        </button>
-                        <button type="button" wire:click="$set('showPreviewModal', false)"
-                            class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:w-auto sm:text-sm transition-colors">
-                            Cancelar
-                        </button>
                     </div>
                 </div>
+
+                <!-- Grid de dos columnas -->
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Columna izquierda: Pagos a eliminar -->
+                    <div class="border border-red-200 rounded-lg bg-white">
+                        <div class="bg-red-50 px-3 py-2 border-b border-red-200">
+                            <h4 class="text-sm font-semibold text-red-900">
+                                🗑️ A Eliminar ({{ count($paymentsToDelete) }})
+                            </h4>
+                        </div>
+                        <div class="p-3 space-y-2">
+                            @forelse($paymentsToDelete as $payment)
+                                <div class="flex flex-col gap-1 p-2 bg-red-50 rounded text-xs border border-red-100">
+                                    <div class="flex items-center justify-between">
+                                        <div class="font-semibold text-gray-900">{{ $payment['player_name'] }}</div>
+                                        <span class="font-bold text-red-600">{{ number_format($payment['amount'], 2) }}€</span>
+                                    </div>
+                                    <div class="text-gray-600">
+                                        <span class="font-medium">Cuota {{ $payment['cuota'] }}</span> • {{ $payment['description'] }}
+                                    </div>
+                                    <div class="text-gray-500 font-mono text-xs">
+                                        Código: {{ $payment['code'] }}
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="text-center py-4 text-gray-500 text-xs">
+                                    No hay pagos pendientes a eliminar
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+
+                    <!-- Columna derecha: Nuevas cartas de pago -->
+                    <div class="border border-green-200 rounded-lg bg-white">
+                        <div class="bg-green-50 px-3 py-2 border-b border-green-200">
+                            <h4 class="text-sm font-semibold text-green-900">
+                                ➕ Nuevas Cartas de Pago ({{ count($paymentsToCreate) }})
+                            </h4>
+                        </div>
+                        <div class="p-3 space-y-2">
+                            @forelse($paymentsToCreate as $payment)
+                                <div class="flex flex-col gap-1 p-2 bg-green-50 rounded text-xs border border-green-100">
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        <div class="flex items-center justify-between flex-1">
+                                            <div class="font-semibold text-gray-900">{{ $payment['player_name'] }}</div>
+                                            <span class="font-bold text-green-600 flex-shrink-0 ml-2">
+                                                @if($payment['amount'] != $payment['amount_original'])
+                                                    <span class="text-gray-400 line-through text-xs mr-1">{{ number_format($payment['amount_original'], 2) }}€</span>
+                                                @endif
+                                                {{ number_format($payment['amount'], 2) }}€
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="text-gray-600 ml-7">
+                                        <span class="font-medium">Cuota {{ $payment['cuota'] }}</span> • {{ $payment['description'] }}
+                                    </div>
+                                    <div class="text-gray-500 ml-7 text-xs">
+                                        🏆 Equipo: {{ $payment['team_name'] ?? 'N/A' }}
+                                    </div>
+                                    @if(isset($payment['is_restore']) && $payment['is_restore'])
+                                        <div class="ml-7 text-blue-600 text-xs">
+                                            🔄 Se restaurará pago existente
+                                        </div>
+                                    @endif
+                                </div>
+                            @empty
+                                <div class="text-center py-4 text-gray-500 text-xs">
+                                    No hay nuevas cartas de pago a generar
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagos pagados que se mantienen (compacto) -->
+                @if(count($paymentsPaid) > 0)
+                    <div class="border border-green-300 rounded-lg bg-green-50">
+                        <button type="button" 
+                                onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('span').textContent = this.nextElementSibling.classList.contains('hidden') ? 'Ver detalles' : 'Ocultar'"
+                                class="w-full px-3 py-2 flex items-center justify-between hover:bg-green-100 transition-colors">
+                            <h4 class="text-sm font-semibold text-green-900">
+                                ✅ Pagos Ya Pagados - Se Mantienen ({{ count($paymentsPaid) }})
+                            </h4>
+                            <span class="text-xs text-green-700 hover:text-green-900 underline">
+                                Ver detalles
+                            </span>
+                        </button>
+                        <div class="hidden px-3 pb-3 space-y-1 border-t border-green-200">
+                            @foreach($paymentsPaid as $payment)
+                                <div class="flex items-center justify-between text-xs bg-white p-2 rounded">
+                                    <div>
+                                        <span class="font-semibold">{{ $payment['player_name'] }}</span>
+                                        <span class="text-gray-600">- Cuota {{ $payment['cuota'] }}</span>
+                                    </div>
+                                    <span class="text-green-700">{{ number_format($payment['amount'], 2) }}€</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
-        </div>
-    @endif
+        </x-slot>
+        <x-slot name="footer">
+            <div class="flex items-center justify-between w-full gap-3">
+                <x-secondary-button wire:click="$set('showPreviewModal', false)">
+                    Cancelar
+                </x-secondary-button>
+                <button wire:click="confirmPaymentsAction" wire:loading.attr="disabled" wire:target="confirmPaymentsAction"
+                    class="inline-flex items-center px-6 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 transition ease-in-out duration-150">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span wire:loading.remove wire:target="confirmPaymentsAction">
+                        Confirmar Cambios
+                    </span>
+                    <span wire:loading wire:target="confirmPaymentsAction" class="inline-flex items-center">
+                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Procesando...
+                    </span>
+                </button>
+            </div>
+        </x-slot>
+    </x-dialog-modal>
 
     <!-- Modal de Confirmación Quitar Equipo -->
-    @if($showRemoveTeamModal)
-        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <!-- Overlay -->
-                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+    <div x-data="{ show: @entangle('showRemoveTeamModal').live }" 
+         x-show="show" 
+         x-cloak
+         class="fixed inset-0 z-50 overflow-y-auto" 
+         aria-labelledby="modal-title" 
+         role="dialog" 
+         aria-modal="true"
+         style="display: none;">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Overlay -->
+            <div x-show="show" 
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                 @click="show = false"></div>
 
-                <!-- Modal panel -->
-                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full">
+            <!-- Modal panel -->
+            <div x-show="show"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full">
                     <div class="bg-white px-4 pt-5 pb-4 sm:p-6">
                         <div class="flex items-center justify-between border-b border-gray-200 pb-4 mb-4">
                             <h3 class="text-2xl font-bold text-titanium flex items-center">
@@ -1443,7 +1468,7 @@
                 </div>
             </div>
         </div>
-    @endif
+    </div>
 
     <!-- Modal de Confirmación Eliminar Documento -->
     @if($showDeleteModal)

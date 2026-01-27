@@ -10,6 +10,7 @@ use App\Models\Season;
 use App\Models\Section;
 use App\Models\User;
 use App\Classes\PdfFile;
+use App\Classes\ExcelFile;
 use Illuminate\Support\Facades\Storage;
 
 class Edit extends Component
@@ -32,19 +33,46 @@ class Edit extends Component
     
     // Gestión de jugadores
     public $searchPlayer = '';
-    public $searchCoach = '';
     public $showMovePlayerModal = false;
     public $playerToMove = null;
     public $playerToMoveName = '';
     public $targetTeamId = null;
     public $confirmingPlayerRemoval = false;
     public $playerToRemove = null;
+    public $paymentsToDeleteRemove = [];
+    public $paymentsPaidRemove = [];
+    
+    // Edición de jugador
+    public $showEditPlayerModal = false;
+    public $editingPlayerId = null;
+    public $editPlayerName = '';
+    public $editPlayerSurname = '';
+    public $editPlayerDni = '';
+    public $editPlayerDbirth = '';
+    public $editPlayerDbanio = '';
+    public $editPlayerShirtNumber = '';
+    public $editPlayerSize = '';
+    public $showSizesModal = false;
+    
+    // Previsualización de pagos al mover jugador
+    public $showPreviewModal = false;
+    public $paymentsToDelete = [];
+    public $paymentsToCreate = [];
+    public $paymentsPaid = [];
+    public $selectedPaymentsToDelete = [];
+    public $selectedPaymentsToCreate = [];
     
     // Agregar jugadores
     public $showAddPlayerModal = false;
     public $searchAvailablePlayer = '';
     public $selectedPlayersToAdd = [];
     public $filterByCategory = true;
+    
+    // Gestión de entrenadores
+    public $showAddCoachModal = false;
+    public $searchCoach = '';
+    public $confirmingCoachRemoval = false;
+    public $coachToRemove = null;
     
     // Eliminar equipo
     public $confirmingDeletion = false;
@@ -198,8 +226,7 @@ class Edit extends Component
             $this->federate !== $this->originalFederate ||
             $this->category_id !== $this->originalCategoryId ||
             $this->season_id !== $this->originalSeasonId ||
-            $this->section_id !== $this->originalSectionId ||
-            $this->selectedCoaches !== $this->originalSelectedCoaches;
+            $this->section_id !== $this->originalSectionId;
     }
 
     public function save()
@@ -232,38 +259,140 @@ class Edit extends Component
 
         $this->team->update($dataToUpdate);
 
-        // Sincronizar entrenadores
-        $this->team->coaches()->sync($this->selectedCoaches);
+        // Ya no sincronizamos entrenadores aquí porque se gestionan individualmente
+        // con los métodos addCoach() y removeCoach()
+
+        // Actualizar valores originales después de guardar
+        $this->originalTeamName = $this->teamName;
+        $this->originalDescription = $this->description ?? '';
+        $this->originalGender = $this->gender;
+        $this->originalPrice = $this->price;
+        $this->originalFederate = $this->federate;
+        $this->originalCategoryId = $this->category_id;
+        $this->originalSeasonId = $this->season_id;
+        $this->originalSectionId = $this->section_id;
 
         // Resetear flag de cambios
         $this->hasChanges = false;
 
         session()->flash('message', 'Equipo actualizado correctamente.');
-        session()->flash('highlightTeam', $this->team->id);
-        
-        return redirect()->route('teams.index');
     }
 
     public function confirmRemovePlayer($playerId)
     {
         $this->playerToRemove = $playerId;
+        
+        // Obtener temporada activa
+        $activeSeason = \App\Models\Season::where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->first();
+
+        if (!$activeSeason) {
+            session()->flash('error', 'No hay temporada activa configurada.');
+            return;
+        }
+
+        $player = \App\Models\Player::find($playerId);
+        if (!$player) {
+            session()->flash('error', 'Jugador no encontrado.');
+            return;
+        }
+
+        $this->paymentsToDeleteRemove = [];
+        $this->paymentsPaidRemove = [];
+
+        // Obtener pagos pendientes del jugador en la temporada activa
+        $pendingPayments = \App\Models\PaymentPlayer::with('paymentTeam')
+            ->where('player_id', $playerId)
+            ->where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('state', 0)
+            ->whereHas('paymentTeam', function($query) use ($activeSeason) {
+                $query->where('season_id', $activeSeason->id);
+            })
+            ->get();
+
+        foreach ($pendingPayments as $payment) {
+            $this->paymentsToDeleteRemove[] = [
+                'id' => $payment->id,
+                'player_id' => $player->id,
+                'player_name' => $player->name . ' ' . $player->surname,
+                'code' => $payment->code,
+                'cuota' => $payment->cuota,
+                'amount' => $payment->amount,
+                'description' => $payment->paymentTeam->description ?? 'N/A',
+            ];
+        }
+
+        // Obtener pagos pagados para mostrarlos
+        $paidPayments = \App\Models\PaymentPlayer::with('paymentTeam')
+            ->where('player_id', $playerId)
+            ->where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('state', 1)
+            ->whereHas('paymentTeam', function($query) use ($activeSeason) {
+                $query->where('season_id', $activeSeason->id);
+            })
+            ->get();
+
+        foreach ($paidPayments as $payment) {
+            $this->paymentsPaidRemove[] = [
+                'player_name' => $player->name . ' ' . $player->surname,
+                'code' => $payment->code,
+                'cuota' => $payment->cuota,
+                'amount' => $payment->amount,
+                'description' => $payment->paymentTeam->description ?? 'N/A',
+                'payment_date' => $payment->payment_date ? $payment->payment_date->format('d/m/Y') : 'N/A',
+            ];
+        }
+        
         $this->confirmingPlayerRemoval = true;
     }
 
     public function removePlayer()
     {
         if ($this->playerToRemove) {
-            // Eliminar la relación (soft delete en la tabla pivote)
-            $this->team->players()->updateExistingPivot($this->playerToRemove, [
-                'deleted_at' => now(),
-                'updated_user' => auth()->id()
-            ]);
-            
-            session()->flash('message', 'Jugador eliminado del equipo correctamente.');
+            try {
+                \DB::beginTransaction();
+
+                $deletedCount = 0;
+
+                // Eliminar todos los pagos pendientes
+                foreach ($this->paymentsToDeleteRemove as $paymentInfo) {
+                    $payment = \App\Models\PaymentPlayer::find($paymentInfo['id']);
+                    if ($payment) {
+                        $payment->delete();
+                        $deletedCount++;
+                    }
+                }
+
+                // Eliminar la relación (soft delete en la tabla pivote)
+                $this->team->players()->updateExistingPivot($this->playerToRemove, [
+                    'deleted_at' => now(),
+                    'updated_user' => auth()->id()
+                ]);
+
+                \DB::commit();
+
+                $message = 'Jugador eliminado del equipo correctamente.';
+                if ($deletedCount > 0) {
+                    $message .= " Se eliminaron {$deletedCount} cartas de pago pendientes.";
+                }
+                if (count($this->paymentsPaidRemove) > 0) {
+                    $message .= " Se mantienen " . count($this->paymentsPaidRemove) . " cartas de pago ya abonadas.";
+                }
+                
+                session()->flash('message', $message);
+
+            } catch (\Exception $e) {
+                \DB::rollBack();
+                session()->flash('error', 'Error al eliminar el jugador: ' . $e->getMessage());
+            }
         }
         
         $this->confirmingPlayerRemoval = false;
         $this->playerToRemove = null;
+        $this->paymentsToDeleteRemove = [];
+        $this->paymentsPaidRemove = [];
     }
 
     public function openMovePlayerModal($playerId)
@@ -287,46 +416,350 @@ class Edit extends Component
             return;
         }
 
-        // Eliminar del equipo actual (soft delete)
-        $this->team->players()->updateExistingPivot($this->playerToMove, [
-            'deleted_at' => now(),
-            'updated_user' => auth()->id()
-        ]);
+        // Obtener temporada activa
+        $activeSeason = \App\Models\Season::where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->first();
 
-        // Agregar al nuevo equipo
-        $targetTeam = Team::with('payments')->find($this->targetTeamId);
-        $targetTeam->players()->attach($this->playerToMove, [
-            'created_user' => auth()->id(),
-            'updated_user' => auth()->id(),
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
+        if (!$activeSeason) {
+            session()->flash('error', 'No hay temporada activa configurada.');
+            return;
+        }
 
-        // Generar pagos para el jugador en el nuevo equipo
+        // Preparar previsualización de pagos
+        $this->preparePaymentsRegeneration();
+    }
+    
+    private function preparePaymentsRegeneration()
+    {
+        // Obtener temporada activa
+        $activeSeason = \App\Models\Season::where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->first();
+
+        // Obtener el nuevo equipo
+        $newTeam = Team::with(['payments'])->find($this->targetTeamId);
+
+        if (!$newTeam) {
+            session()->flash('error', 'Equipo no encontrado.');
+            return;
+        }
+
+        $this->paymentsToDelete = [];
+        $this->paymentsToCreate = [];
+        $this->paymentsPaid = [];
+        $this->selectedPaymentsToDelete = [];
+        $this->selectedPaymentsToCreate = [];
+
         $player = \App\Models\Player::find($this->playerToMove);
-        $message = 'Jugador movido al nuevo equipo correctamente.';
-        if ($player && $targetTeam) {
-            $result = generatePlayerPayments(
-                $player,
-                $targetTeam,
-                auth()->user()->sports_school_id,
-                auth()->user()->id
-            );
-            
-            if ($result['generated'] > 0) {
-                $message .= " Se generaron {$result['generated']} cartas de pago.";
-            }
-            if ($result['restored'] > 0) {
-                $message .= " Se restauraron {$result['restored']} cartas de pago.";
+        if (!$player) return;
+
+        // Obtener pagos pendientes a eliminar
+        $pendingPayments = \App\Models\PaymentPlayer::with('paymentTeam')
+            ->where('player_id', $this->playerToMove)
+            ->where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('state', 0)
+            ->whereHas('paymentTeam', function($query) use ($activeSeason) {
+                $query->where('season_id', $activeSeason->id);
+            })
+            ->get();
+
+        foreach ($pendingPayments as $payment) {
+            $paymentId = $payment->id;
+            $this->paymentsToDelete[] = [
+                'id' => $paymentId,
+                'player_id' => $player->id,
+                'player_name' => $player->name . ' ' . $player->surname,
+                'code' => $payment->code,
+                'cuota' => $payment->cuota,
+                'amount' => $payment->amount,
+                'description' => $payment->paymentTeam->description ?? 'N/A',
+            ];
+            $this->selectedPaymentsToDelete[] = $paymentId;
+        }
+
+        // Obtener cuotas YA PAGADAS para no generarlas de nuevo
+        $paidCuotas = \App\Models\PaymentPlayer::where('player_id', $this->playerToMove)
+            ->where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('state', 1)
+            ->whereHas('paymentTeam', function($query) use ($activeSeason) {
+                $query->where('season_id', $activeSeason->id);
+            })
+            ->with('paymentTeam')
+            ->get()
+            ->pluck('cuota')
+            ->toArray();
+
+        // Mostrar pagos pagados que se mantendrán
+        $paidPayments = \App\Models\PaymentPlayer::with('paymentTeam')
+            ->where('player_id', $this->playerToMove)
+            ->where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('state', 1)
+            ->whereHas('paymentTeam', function($query) use ($activeSeason) {
+                $query->where('season_id', $activeSeason->id);
+            })
+            ->get();
+
+        foreach ($paidPayments as $payment) {
+            $this->paymentsPaid[] = [
+                'player_name' => $player->name . ' ' . $player->surname,
+                'code' => $payment->code,
+                'cuota' => $payment->cuota,
+                'amount' => $payment->amount,
+                'description' => $payment->paymentTeam->description ?? 'N/A',
+                'payment_date' => $payment->payment_date ? $payment->payment_date->format('d/m/Y') : 'N/A',
+            ];
+        }
+
+        // Preparar nuevos pagos a crear (excluyendo cuotas ya pagadas)
+        if ($newTeam->payments->isNotEmpty()) {
+            $newPayments = $this->preparePlayerPaymentsForTeam($player, $newTeam, $paidCuotas);
+            foreach ($newPayments as $index => $newPayment) {
+                $uniqueId = $player->id . '_' . $index;
+                $newPayment['unique_id'] = $uniqueId;
+                $this->paymentsToCreate[] = $newPayment;
+                $this->selectedPaymentsToCreate[] = $uniqueId;
             }
         }
 
-        session()->flash('message', $message);
-        
         $this->showMovePlayerModal = false;
+        $this->showPreviewModal = true;
+    }
+    
+    private function preparePlayerPaymentsForTeam($player, $team, $excludedCuotas = [])
+    {
+        $paymentsData = [];
+        $sportsSchoolId = auth()->user()->sports_school_id;
+
+        // Calcular descuentos del jugador
+        $descuentoEuros = 0;
+        $descuentoPorcentaje = 0;
+        
+        if ($player->descEnt) {
+            $descuentoEuros = floatval($player->descEnt);
+        }
+        
+        if ($player->descPerc) {
+            $descuentoPorcentaje = floatval($player->descPerc);
+        }
+
+        // Calcular precio total del equipo
+        $precioTotal = floatval($team->price);
+        
+        // Aplicar descuentos al precio total
+        $precioTotalConDescuento = $precioTotal;
+        
+        // Aplicar descuento en euros
+        if ($descuentoEuros > 0) {
+            $precioTotalConDescuento -= $descuentoEuros;
+        }
+        
+        // Aplicar descuento en porcentaje
+        if ($descuentoPorcentaje > 0) {
+            $descuentoPorcentajeImporte = ($precioTotal * $descuentoPorcentaje) / 100;
+            $precioTotalConDescuento -= $descuentoPorcentajeImporte;
+        }
+        
+        // Asegurar que no sea negativo
+        $precioTotalConDescuento = max(0, $precioTotalConDescuento);
+        
+        // Número total de cuotas del equipo
+        $totalCuotas = $team->payments->count();
+        
+        // Calcular importe por cuota (dividiendo el total entre TODAS las cuotas)
+        $importePorCuota = $totalCuotas > 0 ? $precioTotalConDescuento / $totalCuotas : 0;
+
+        // Procesar cada pago del equipo
+        foreach ($team->payments as $payment) {
+            // Saltar si esta cuota ya está pagada
+            if (in_array($payment->cuota, $excludedCuotas)) {
+                continue;
+            }
+
+            // Verificar que no exista ya esta combinación player_id + payment_id ACTIVA
+            $existsActive = \App\Models\PaymentPlayer::where('player_id', $player->id)
+                ->where('payment_id', $payment->id)
+                ->whereNull('deleted_at')
+                ->exists();
+
+            if ($existsActive) {
+                continue;
+            }
+
+            // Verificar si existe un pago soft deleted para marcarlo como "a restaurar"
+            $deletedPayment = \App\Models\PaymentPlayer::withTrashed()
+                ->where('player_id', $player->id)
+                ->where('payment_id', $payment->id)
+                ->whereNotNull('deleted_at')
+                ->first();
+
+            // Si existe un pago eliminado, lo agregamos a la lista
+            if ($deletedPayment) {
+                $amountOriginal = floatval($payment->amount);
+
+                $paymentsData[] = [
+                    'player_id' => $player->id,
+                    'player_name' => $player->name . ' ' . $player->surname,
+                    'payment_id' => $payment->id,
+                    'sports_school_id' => $sportsSchoolId,
+                    'cuota' => $payment->cuota,
+                    'price' => $precioTotalConDescuento,
+                    'amount_original' => $amountOriginal,
+                    'amount' => $importePorCuota,
+                    'descEnt' => $descuentoEuros,
+                    'descPerc' => $descuentoPorcentaje,
+                    'description' => $payment->description ?? 'N/A',
+                    'team_name' => $team->team,
+                    'is_restore' => true,
+                    'existing_payment_id' => $deletedPayment->id,
+                ];
+                continue;
+            }
+
+            // Crear nuevo pago
+            $amountOriginal = floatval($payment->amount);
+
+            $paymentsData[] = [
+                'player_id' => $player->id,
+                'player_name' => $player->name . ' ' . $player->surname,
+                'payment_id' => $payment->id,
+                'sports_school_id' => $sportsSchoolId,
+                'cuota' => $payment->cuota,
+                'price' => $precioTotalConDescuento,
+                'amount_original' => $amountOriginal,
+                'amount' => $importePorCuota,
+                'descEnt' => $descuentoEuros,
+                'descPerc' => $descuentoPorcentaje,
+                'description' => $payment->description ?? 'N/A',
+                'team_name' => $team->team,
+            ];
+        }
+
+        return $paymentsData;
+    }
+    
+    public function confirmPaymentsAction()
+    {
+        $this->regeneratePayments();
+    }
+    
+    private function regeneratePayments()
+    {
+        try {
+            \DB::beginTransaction();
+
+            $deletedCount = 0;
+            $generatedCount = 0;
+            $restoredCount = 0;
+
+            // Eliminar todos los pagos pendientes
+            foreach ($this->paymentsToDelete as $paymentInfo) {
+                $payment = \App\Models\PaymentPlayer::find($paymentInfo['id']);
+                if ($payment) {
+                    $payment->delete();
+                    $deletedCount++;
+                }
+            }
+
+            // Crear o restaurar nuevos pagos seleccionados
+            foreach ($this->paymentsToCreate as $newPayment) {
+                if (in_array($newPayment['unique_id'], $this->selectedPaymentsToCreate)) {
+                    // Si es una restauración
+                    if (isset($newPayment['is_restore']) && $newPayment['is_restore'] && isset($newPayment['existing_payment_id'])) {
+                        $deletedPayment = \App\Models\PaymentPlayer::withTrashed()->find($newPayment['existing_payment_id']);
+                        if ($deletedPayment) {
+                            $deletedPayment->deleted_at = null;
+                            $deletedPayment->state = 0;
+                            $deletedPayment->payment_date = null;
+                            $deletedPayment->payment_order = null;
+                            $deletedPayment->payment_auth = null;
+                            $deletedPayment->payment_type = null;
+                            $deletedPayment->amount_original = $newPayment['amount_original'];
+                            $deletedPayment->amount = $newPayment['amount'];
+                            $deletedPayment->descEnt = $newPayment['descEnt'];
+                            $deletedPayment->descPerc = $newPayment['descPerc'];
+                            $deletedPayment->price = $newPayment['price'];
+                            $deletedPayment->updated_user = auth()->id();
+                            $deletedPayment->save();
+                            $restoredCount++;
+                        }
+                    } else {
+                        // Crear nuevo pago
+                        \App\Models\PaymentPlayer::create([
+                            'player_id' => $newPayment['player_id'],
+                            'payment_id' => $newPayment['payment_id'],
+                            'sports_school_id' => $newPayment['sports_school_id'],
+                            'code' => \App\Models\PaymentCodeSequentials::getCode(),
+                            'state' => 0,
+                            'cuota' => $newPayment['cuota'],
+                            'price' => $newPayment['price'],
+                            'amount_original' => $newPayment['amount_original'],
+                            'amount' => $newPayment['amount'],
+                            'descEnt' => $newPayment['descEnt'],
+                            'descPerc' => $newPayment['descPerc'],
+                            'created_user' => auth()->id(),
+                        ]);
+                        $generatedCount++;
+                    }
+                }
+            }
+
+            \DB::commit();
+
+            $message = '';
+            if ($deletedCount > 0) {
+                $message .= "Se eliminaron {$deletedCount} pagos pendientes. ";
+            }
+            if ($generatedCount > 0) {
+                $message .= "Se generaron {$generatedCount} nuevas cartas de pago. ";
+            }
+            if ($restoredCount > 0) {
+                $message .= "Se restauraron {$restoredCount} cartas de pago.";
+            }
+            if (empty($message)) {
+                $message = "Jugador movido al nuevo equipo correctamente.";
+            }
+            
+            session()->flash('message', trim($message));
+            
+            // Ejecutar el cambio de equipo
+            $this->executePlayerMove();
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            session()->flash('error', 'Error al regenerar los pagos: ' . $e->getMessage());
+        }
+
+        $this->showPreviewModal = false;
+        $this->dispatch('modal-closed');
+    }
+    
+    private function executePlayerMove()
+    {
+        $player = \App\Models\Player::find($this->playerToMove);
+        
+        if ($player && $player->sports_school_id === auth()->user()->sports_school_id) {
+            // Sync the player with the new team
+            $player->teams()->sync([$this->targetTeamId]);
+        }
+        
         $this->playerToMove = null;
         $this->playerToMoveName = '';
         $this->targetTeamId = null;
+        $this->paymentsToDelete = [];
+        $this->paymentsToCreate = [];
+        $this->paymentsPaid = [];
+    }
+    
+    public function toggleAllPaymentsToCreate($checked)
+    {
+        if ($checked) {
+            $this->selectedPaymentsToCreate = array_column($this->paymentsToCreate, 'unique_id');
+        } else {
+            $this->selectedPaymentsToCreate = [];
+        }
     }
 
     public function cancelMovePlayer()
@@ -355,6 +788,64 @@ class Edit extends Component
             // Si no todos están seleccionados, seleccionar todos
             $this->selectedPlayersToAdd = $availablePlayers->pluck('id')->toArray();
         }
+    }
+    
+    // Gestión de entrenadores
+    public function openAddCoachModal()
+    {
+        $this->showAddCoachModal = true;
+        $this->searchCoach = '';
+    }
+    
+    public function closeAddCoachModal()
+    {
+        $this->showAddCoachModal = false;
+        $this->searchCoach = '';
+    }
+    
+    public function addCoach($coachId)
+    {
+        if (!in_array($coachId, $this->selectedCoaches)) {
+            $this->selectedCoaches[] = $coachId;
+            $this->team->coaches()->syncWithoutDetaching([$coachId]);
+            
+            // Actualizar valores originales
+            $this->originalSelectedCoaches = $this->selectedCoaches;
+            $this->checkForChanges();
+            
+            session()->flash('message', 'Entrenador añadido correctamente.');
+            
+            // Cerrar el modal
+            $this->closeAddCoachModal();
+        }
+    }
+    
+    public function confirmRemoveCoach($coachId)
+    {
+        $this->coachToRemove = $coachId;
+        $this->confirmingCoachRemoval = true;
+    }
+    
+    public function cancelRemoveCoach()
+    {
+        $this->coachToRemove = null;
+        $this->confirmingCoachRemoval = false;
+    }
+    
+    public function removeCoach()
+    {
+        if ($this->coachToRemove) {
+            $this->selectedCoaches = array_diff($this->selectedCoaches, [$this->coachToRemove]);
+            $this->team->coaches()->detach($this->coachToRemove);
+            
+            // Actualizar valores originales
+            $this->originalSelectedCoaches = $this->selectedCoaches;
+            $this->checkForChanges();
+            
+            session()->flash('message', 'Entrenador eliminado del equipo correctamente.');
+        }
+        
+        $this->cancelRemoveCoach();
     }
     
     public function addPlayersToTeam()
@@ -438,6 +929,107 @@ class Edit extends Component
     {
         $this->confirmingPlayerRemoval = false;
         $this->playerToRemove = null;
+        $this->paymentsToDeleteRemove = [];
+        $this->paymentsPaidRemove = [];
+    }
+    
+    public function openEditPlayerModal($playerId)
+    {
+        $player = \App\Models\Player::find($playerId);
+        
+        if (!$player) {
+            session()->flash('error', 'Jugador no encontrado.');
+            return;
+        }
+        
+        $this->editingPlayerId = $player->id;
+        $this->editPlayerName = $player->name;
+        $this->editPlayerSurname = $player->surname;
+        $this->editPlayerDni = $player->dni ?? '';
+        $this->editPlayerDbirth = $player->dbirth ? $player->dbirth->format('Y-m-d') : '';
+        $this->editPlayerDbanio = $player->dbanio ?? '';
+        $this->editPlayerShirtNumber = $player->dorsal ?? '';
+        $this->editPlayerSize = $player->sizes ?? '';
+        
+        $this->showEditPlayerModal = true;
+    }
+    
+    public function closeEditPlayerModal()
+    {
+        $this->showEditPlayerModal = false;
+        $this->editingPlayerId = null;
+        $this->editPlayerName = '';
+        $this->editPlayerSurname = '';
+        $this->editPlayerDni = '';
+        $this->editPlayerDbirth = '';
+        $this->editPlayerDbanio = '';
+        $this->editPlayerShirtNumber = '';
+        $this->editPlayerSize = '';
+    }
+    
+    public function openSizesModal()
+    {
+        $this->showSizesModal = true;
+    }
+    
+    public function closeSizesModal()
+    {
+        $this->showSizesModal = false;
+    }
+    
+    public function selectSize($sizeId)
+    {
+        $size = \App\Models\Size::find($sizeId);
+        if ($size) {
+            $this->editPlayerSize = $size->size;
+            $this->closeSizesModal();
+        }
+    }
+    
+    public function updatePlayer()
+    {
+        $this->validate([
+            'editPlayerName' => 'required|string|max:255',
+            'editPlayerSurname' => 'required|string|max:255',
+            'editPlayerDni' => 'nullable|string|max:20',
+            'editPlayerDbirth' => 'nullable|date',
+            'editPlayerDbanio' => 'nullable|integer|min:1900|max:' . date('Y'),
+            'editPlayerShirtNumber' => 'nullable|integer|min:0|max:99',
+            'editPlayerSize' => 'nullable|string|max:50',
+        ], [
+            'editPlayerName.required' => 'El nombre es obligatorio.',
+            'editPlayerSurname.required' => 'Los apellidos son obligatorios.',
+            'editPlayerDbirth.date' => 'La fecha de nacimiento no es válida.',
+            'editPlayerDbanio.integer' => 'El año de nacimiento debe ser un número.',
+            'editPlayerDbanio.min' => 'El año de nacimiento no es válido.',
+            'editPlayerDbanio.max' => 'El año de nacimiento no puede ser mayor al año actual.',
+            'editPlayerShirtNumber.integer' => 'El dorsal debe ser un número.',
+        ]);
+        
+        try {
+            $player = \App\Models\Player::find($this->editingPlayerId);
+            
+            if (!$player) {
+                session()->flash('error', 'Jugador no encontrado.');
+                return;
+            }
+            
+            $player->name = $this->editPlayerName;
+            $player->surname = $this->editPlayerSurname;
+            $player->dni = $this->editPlayerDni ?: null;
+            $player->dbirth = $this->editPlayerDbirth ?: null;
+            $player->dbanio = $this->editPlayerDbanio ?: null;
+            $player->dorsal = $this->editPlayerShirtNumber ?: null;
+            $player->sizes = $this->editPlayerSize ?: null;
+            $player->save();
+            
+            $this->closeEditPlayerModal();
+            
+            session()->flash('message', 'Jugador actualizado correctamente.');
+            
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error al actualizar el jugador: ' . $e->getMessage());
+        }
     }
     
     public function confirmDelete()
@@ -567,12 +1159,22 @@ class Edit extends Component
         }
         
 
-        // Obtener entrenadores disponibles de la misma escuela
+        // Obtener entrenadores asignados al equipo
+        $assignedCoaches = $this->team->coaches;
+        
+        // Obtener entrenadores disponibles (coaches + school_admins) de la misma escuela
+        // que NO están asignados al equipo
         $availableCoaches = collect();
         if ($sportsSchoolId) {
             $query = User::where('is_active', true)
                 ->where('sports_school_id', $sportsSchoolId)
-                ->role('coach');
+                ->where(function($q) {
+                    $q->role('coach')
+                      ->orWhere(function($subQ) {
+                          $subQ->role('school_admin');
+                      });
+                })
+                ->whereNotIn('id', $this->selectedCoaches);
                 
             // Aplicar búsqueda si existe
             if ($this->searchCoach) {
@@ -583,12 +1185,6 @@ class Edit extends Component
             }
             
             $availableCoaches = $query->orderBy('name')->get();
-            
-            // Ordenar: primero los seleccionados, luego los demás (mantener valores originales)
-            $availableCoaches = $availableCoaches->sortBy([
-                fn($coach) => in_array($coach->id, $this->selectedCoaches) ? 0 : 1,
-                fn($coach) => strtolower($coach->name)
-            ])->values();
         }
 
         // Obtener jugadores disponibles para agregar (no están en el equipo)
@@ -600,6 +1196,7 @@ class Edit extends Component
             'categories' => $categories,
             'seasons' => $seasons,
             'sections' => $sections,
+            'assignedCoaches' => $assignedCoaches,
             'availableCoaches' => $availableCoaches,
             'teamPlayers' => $this->team->players()
                 ->when($this->searchPlayer, function($query) {
@@ -618,6 +1215,9 @@ class Edit extends Component
                 ->orderBy('team')
                 ->get(),
             'availablePlayers' => $availablePlayers,
+            'availableSizes' => \App\Models\Size::whereHas('brand.sportsSchools', function($query) {
+                $query->where('sports_schools.id', auth()->user()->sports_school_id);
+            })->with('brand')->orderBy('brand_id')->orderBy('order')->orderBy('size')->get(),
         ]);
     }
     
@@ -676,5 +1276,111 @@ class Edit extends Component
         return response()->streamDownload(
             fn () => print($content),
             $pdf->getFileName()
+        );
+    }
+    
+    public function generateExcel()
+    {
+        if (empty($this->selectedColumns)) {
+            session()->flash('error', 'Debes seleccionar al menos una columna.');
+            return;
+        }
+        
+        // Obtener jugadores del equipo
+        $players = $this->team->players()
+            ->orderBy('surname')
+            ->orderBy('name')
+            ->get();
+        
+        if ($players->isEmpty()) {
+            session()->flash('error', 'No hay jugadores en este equipo para generar el Excel.');
+            $this->closePdfModal();
+            return;
+        }
+        
+        // Preparar columnas para Excel en el formato requerido
+        $columns = [];
+        foreach ($this->selectedColumns as $columnKey) {
+            if (isset($this->availableColumns[$columnKey])) {
+                $valueExpression = '';
+                
+                switch ($columnKey) {
+                    case 'name':
+                        $valueExpression = '$record->name';
+                        break;
+                    case 'surname':
+                        $valueExpression = '$record->surname';
+                        break;
+                    case 'dni':
+                        $valueExpression = '$record->dni';
+                        break;
+                    case 'dbirth':
+                        $valueExpression = '$record->dbirth ? $record->dbirth->format("d/m/Y") : ""';
+                        break;
+                    case 'dbanio':
+                        $valueExpression = '$record->dbanio';
+                        break;
+                    case 'position':
+                        $valueExpression = '$record->position ?? ""';
+                        break;
+                    case 'shirt_number':
+                        $valueExpression = '$record->shirt_number ?? ""';
+                        break;
+                    case 'sizes':
+                        $valueExpression = '(function($p) { $s = []; if ($p->size_shirt) $s[] = "Cam: ".$p->size_shirt; if ($p->size_pants) $s[] = "Pan: ".$p->size_pants; if ($p->size_shoes) $s[] = "Cal: ".$p->size_shoes; return implode(", ", $s); })($record)';
+                        break;
+                    case 'nametutor':
+                        $valueExpression = '$record->nametutor ?? ""';
+                        break;
+                    case 'surnametutor':
+                        $valueExpression = '$record->surnametutor ?? ""';
+                        break;
+                    case 'dnitutor':
+                        $valueExpression = '$record->dnitutor ?? ""';
+                        break;
+                    case 'address':
+                        $valueExpression = '$record->address ?? ""';
+                        break;
+                    case 'town':
+                        $valueExpression = '$record->town ?? ""';
+                        break;
+                    case 'province':
+                        $valueExpression = '$record->province ?? ""';
+                        break;
+                    case 'cp':
+                        $valueExpression = '$record->cp ?? ""';
+                        break;
+                    case 'phone':
+                        $valueExpression = '$record->phone ?? ""';
+                        break;
+                    case 'email':
+                        $valueExpression = '$record->email ?? ""';
+                        break;
+                }
+                
+                $columns[$columnKey] = [
+                    'title' => $this->availableColumns[$columnKey],
+                    'value' => $valueExpression,
+                    'type' => 'eval'
+                ];
+            }
+        }
+        
+        // Generar Excel usando ExcelFile
+        $excel = new ExcelFile(
+            \App\Models\Player::class,
+            [],
+            $columns,
+            'listado_jugadores_' . str_replace(' ', '_', $this->team->team),
+            [],
+            [],
+            $players
+        );
+        
+        $this->closePdfModal();
+        
+        return response()->streamDownload(
+            fn () => print($excel->generate()),
+            'listado_jugadores_' . str_replace(' ', '_', $this->team->team) . '.xlsx'
         );
     }}
