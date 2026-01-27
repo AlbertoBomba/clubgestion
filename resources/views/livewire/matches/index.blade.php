@@ -74,7 +74,7 @@
         </div>
 
         <!-- Matches Table -->
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto max-h-[calc(100vh-400px)] overflow-y-auto">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
                 @forelse($matches as $match)
                     <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-primary/30 hover:-translate-y-1">
@@ -395,4 +395,21 @@
             </div>
         </div>
     @endif
+
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('modal-closed', () => {
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+                document.body.classList.remove('overflow-hidden');
+                document.documentElement.style.overflow = '';
+                document.documentElement.classList.remove('overflow-hidden');
+                setTimeout(() => {
+                    document.body.removeAttribute('style');
+                    document.body.classList.remove('overflow-hidden', 'overflow-y-hidden');
+                    window.scrollTo(window.scrollX, window.scrollY);
+                }, 150);
+            });
+        });
+    </script>
 </div>

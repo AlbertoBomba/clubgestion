@@ -136,8 +136,34 @@ class Edit extends Component
             'updated_at' => now(),
         ]]);
         
+        // Generar pagos automáticamente para el jugador
+        $team = \App\Models\Team::with('payments')->find($teamId);
+        if ($team) {
+            $result = generatePlayerPayments(
+                $this->playerModel,
+                $team,
+                auth()->user()->sports_school_id,
+                auth()->user()->id
+            );
+            
+            $totalProcessed = $result['generated'] + $result['restored'];
+            if ($totalProcessed > 0) {
+                $message = "Equipo asignado correctamente.";
+                if ($result['generated'] > 0) {
+                    $message .= " Se generaron {$result['generated']} cartas de pago.";
+                }
+                if ($result['restored'] > 0) {
+                    $message .= " Se restauraron {$result['restored']} cartas de pago.";
+                }
+                session()->flash('message', $message);
+            } else {
+                session()->flash('message', 'Equipo asignado correctamente.');
+            }
+        } else {
+            session()->flash('message', 'Equipo asignado correctamente.');
+        }
+        
         $this->closeTeamsModal();
-        session()->flash('message', 'Equipo asignado correctamente.');
     }
     
     public function removeTeam()

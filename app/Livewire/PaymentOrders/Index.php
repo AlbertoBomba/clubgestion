@@ -372,13 +372,34 @@ class Index extends Component
 
         // Procesar cada pago del equipo
         foreach ($team->payments as $payment) {
-            // Verificar que no exista ya esta combinación player_id + payment_id
-            $exists = PaymentPlayer::where('player_id', $player->id)
+            // Verificar si existe un pago activo (no eliminado)
+            $existsActive = PaymentPlayer::where('player_id', $player->id)
                 ->where('payment_id', $payment->id)
+                ->whereNull('deleted_at')
                 ->exists();
 
-            if ($exists) {
+            if ($existsActive) {
                 $skippedCount++;
+                continue;
+            }
+
+            // Verificar si existe un pago eliminado (soft deleted) para restaurarlo
+            $deletedPayment = PaymentPlayer::where('player_id', $player->id)
+                ->where('payment_id', $payment->id)
+                ->whereNotNull('deleted_at')
+                ->first();
+
+            if ($deletedPayment) {
+                // Restaurar el pago eliminado
+                $deletedPayment->deleted_at = null;
+                $deletedPayment->state = 0; // Volver a pendiente
+                $deletedPayment->payment_date = null;
+                $deletedPayment->payment_order = null;
+                $deletedPayment->payment_auth = null;
+                $deletedPayment->payment_type = null;
+                $deletedPayment->updated_user = auth()->id();
+                $deletedPayment->save();
+                $generatedCount++;
                 continue;
             }
 

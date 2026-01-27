@@ -54,9 +54,9 @@
             </div>
 
             <!-- Tabla -->
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto max-h-[calc(100vh-400px)] overflow-y-auto">
                 <table class="min-w-full divide-y divide-silver/30">
-                    <thead class="bg-gradient-to-r from-gray-50 to-primary/5">
+                    <thead class="bg-gradient-to-r from-gray-50 to-primary/5 sticky top-0 z-10">
                         <tr>
                             <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Talla</th>
                             <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Descripción</th>
@@ -175,4 +175,21 @@
             </div>
         </div>
     @endif
+
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('modal-closed', () => {
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+                document.body.classList.remove('overflow-hidden');
+                document.documentElement.style.overflow = '';
+                document.documentElement.classList.remove('overflow-hidden');
+                setTimeout(() => {
+                    document.body.removeAttribute('style');
+                    document.body.classList.remove('overflow-hidden', 'overflow-y-hidden');
+                    window.scrollTo(window.scrollX, window.scrollY);
+                }, 150);
+            });
+        });
+    </script>
 </div>

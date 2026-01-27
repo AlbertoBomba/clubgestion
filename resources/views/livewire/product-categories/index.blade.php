@@ -32,9 +32,9 @@
     </div>
 
     <!-- Table -->
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto max-h-[calc(100vh-400px)] overflow-y-auto">
         <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
+            <thead class="bg-gray-50 sticky top-0 z-10">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
@@ -145,4 +145,21 @@
             </div>
         </div>
     @endif
+
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('modal-closed', () => {
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+                document.body.classList.remove('overflow-hidden');
+                document.documentElement.style.overflow = '';
+                document.documentElement.classList.remove('overflow-hidden');
+                setTimeout(() => {
+                    document.body.removeAttribute('style');
+                    document.body.classList.remove('overflow-hidden', 'overflow-y-hidden');
+                    window.scrollTo(window.scrollX, window.scrollY);
+                }, 150);
+            });
+        });
+    </script>
 </div>

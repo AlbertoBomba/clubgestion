@@ -56,7 +56,7 @@ class Index extends Component
             })
             ->orderBy('from_year', 'desc')
             ->paginate(10);
-
+    
         return view('livewire.seasons.index', [
             'seasons' => $seasons
         ]);

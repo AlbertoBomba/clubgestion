@@ -5,16 +5,26 @@
         </div>
     @endif
 
+    @php
+        $hasActiveSeason = $seasons->contains(function($season) {
+            return $season->start_date && $season->end_date && 
+                   $season->start_date <= now() && 
+                   $season->end_date >= now();
+        });
+    @endphp
+
     <div class="sticky top-16 z-10 bg-white-pure flex items-center justify-between p-6 border-b border-gray-100">
         <h2 class="font-bold text-2xl text-titanium leading-tight">
             {{ __('Temporadas') }}
         </h2>
-        <a href="{{ route('seasons.create') }}" class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 hover:-translate-y-1 bg-blue-600 hover:bg-blue-700">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-            </svg>
-            Nueva Temporada
-        </a>
+        @if(!$hasActiveSeason)
+            <a href="{{ route('seasons.create') }}" class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 hover:-translate-y-1 bg-blue-600 hover:bg-blue-700">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Nueva Temporada
+            </a>
+        @endif
     </div>
 
     <div class=" bg-white-pure rounded-b-2xl shadow-xl border border-primary/10 overflow-hidden">
@@ -30,9 +40,9 @@
             </div>
         </div>
 
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto max-h-[calc(100vh-400px)] overflow-y-auto">
             <table class="min-w-full divide-y divide-silver/30">
-                <thead class="bg-gradient-to-r from-gray-50 to-primary/5">
+                <thead class="bg-gradient-to-r from-gray-50 to-primary/5 sticky top-0 z-10">
                     <tr>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Temporada</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Descripción</th>
@@ -169,4 +179,21 @@
             </x-danger-button>
         </x-slot>
     </x-dialog-modal>
+
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('modal-closed', () => {
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+                document.body.classList.remove('overflow-hidden');
+                document.documentElement.style.overflow = '';
+                document.documentElement.classList.remove('overflow-hidden');
+                setTimeout(() => {
+                    document.body.removeAttribute('style');
+                    document.body.classList.remove('overflow-hidden', 'overflow-y-hidden');
+                    window.scrollTo(window.scrollX, window.scrollY);
+                }, 150);
+            });
+        });
+    </script>
 </div>

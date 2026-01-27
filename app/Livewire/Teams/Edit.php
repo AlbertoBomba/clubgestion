@@ -294,7 +294,7 @@ class Edit extends Component
         ]);
 
         // Agregar al nuevo equipo
-        $targetTeam = Team::find($this->targetTeamId);
+        $targetTeam = Team::with('payments')->find($this->targetTeamId);
         $targetTeam->players()->attach($this->playerToMove, [
             'created_user' => auth()->id(),
             'updated_user' => auth()->id(),
@@ -302,7 +302,26 @@ class Edit extends Component
             'updated_at' => now()
         ]);
 
-        session()->flash('message', 'Jugador movido al nuevo equipo correctamente.');
+        // Generar pagos para el jugador en el nuevo equipo
+        $player = \App\Models\Player::find($this->playerToMove);
+        $message = 'Jugador movido al nuevo equipo correctamente.';
+        if ($player && $targetTeam) {
+            $result = generatePlayerPayments(
+                $player,
+                $targetTeam,
+                auth()->user()->sports_school_id,
+                auth()->user()->id
+            );
+            
+            if ($result['generated'] > 0) {
+                $message .= " Se generaron {$result['generated']} cartas de pago.";
+            }
+            if ($result['restored'] > 0) {
+                $message .= " Se restauraron {$result['restored']} cartas de pago.";
+            }
+        }
+
+        session()->flash('message', $message);
         
         $this->showMovePlayerModal = false;
         $this->playerToMove = null;
@@ -345,6 +364,9 @@ class Edit extends Component
             return;
         }
         
+        $totalGenerated = 0;
+        $totalRestored = 0;
+        
         foreach ($this->selectedPlayersToAdd as $playerId) {
             // Verificar si existe un registro eliminado (soft deleted)
             $deletedRecord = \DB::table('teams_players')
@@ -375,9 +397,30 @@ class Edit extends Component
                     ]);
                 }
             }
+            
+            // Generar pagos para el jugador
+            $player = \App\Models\Player::find($playerId);
+            if ($player) {
+                $result = generatePlayerPayments(
+                    $player,
+                    $this->team,
+                    auth()->user()->sports_school_id,
+                    auth()->user()->id
+                );
+                $totalGenerated += $result['generated'];
+                $totalRestored += $result['restored'];
+            }
         }
         
-        session()->flash('message', 'Jugador(es) agregado(s) al equipo correctamente.');
+        $message = 'Jugador(es) agregado(s) al equipo correctamente.';
+        if ($totalGenerated > 0) {
+            $message .= " Se generaron {$totalGenerated} cartas de pago.";
+        }
+        if ($totalRestored > 0) {
+            $message .= " Se restauraron {$totalRestored} cartas de pago.";
+        }
+        
+        session()->flash('message', $message);
         
         $this->showAddPlayerModal = false;
         $this->searchAvailablePlayer = '';

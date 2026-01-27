@@ -273,3 +273,160 @@ if (!function_exists('dl_var_export')) {
 		else echo $export;
 	}
 }
+
+if (!function_exists('generatePlayerPayments')) {
+	/**
+	 * Generate payment orders for a player when assigned to a team
+	 * This function checks if payments already exist (including soft deleted ones)
+	 * and restores them if they were deleted, or creates new ones if they don't exist.
+	 * 
+	 * @param \App\Models\Player $player The player to generate payments for
+	 * @param \App\Models\Team $team The team the player is being assigned to
+	 * @param int $sportsSchoolId The sports school ID
+	 * @param int $userId The user ID creating the payments
+	 * @return array Array with 'generated' count, 'restored' count and 'skipped' count
+	 */
+	function generatePlayerPayments($player, $team, $sportsSchoolId, $userId)
+	{
+		$generatedCount = 0;
+		$restoredCount = 0;
+		$skippedCount = 0;
+
+		// Load team payments if not already loaded
+		if (!$team->relationLoaded('payments')) {
+			$team->load('payments');
+		}
+
+		// If team has no payments, nothing to generate
+		if ($team->payments->isEmpty()) {
+			return ['generated' => 0, 'restored' => 0, 'skipped' => 0];
+		}
+
+		// Calculate total discounts for the player
+		$totalDiscount = 0;
+		$discountPercentage = 0;
+		
+		if ($player->descEnt) {
+			$totalDiscount += floatval($player->descEnt);
+		}
+		
+		if ($player->descPerc) {
+			$discountPercentage = floatval($player->descPerc);
+		}
+
+		// Total number of payments to divide the discount
+		$totalPayments = $team->payments->count();
+		
+		// Calculate discount per payment
+		$discountPerPayment = $totalPayments > 0 ? $totalDiscount / $totalPayments : 0;
+
+		// Process each payment from the team
+		foreach ($team->payments as $payment) {
+			// Check if player already paid this quota (cuota) in this season - regardless of team
+			$existsPaidQuota = \App\Models\PaymentPlayer::where('player_id', $player->id)
+				->where('cuota', $payment->cuota)
+				->whereNull('deleted_at')
+				->where('state', 1)
+				->whereHas('paymentTeam', function($query) use ($team) {
+					$query->where('season_id', $team->season_id);
+				})
+				->exists();
+
+			if ($existsPaidQuota) {
+				// Skip if this quota is already paid in this season
+				$skippedCount++;
+				continue;
+			}
+
+			// Check if this payment already exists and is paid (state = 1)
+			$existsPaid = \App\Models\PaymentPlayer::where('player_id', $player->id)
+				->where('payment_id', $payment->id)
+				->whereNull('deleted_at')
+				->where('state', 1)
+				->exists();
+
+			if ($existsPaid) {
+				// Skip if already paid
+				$skippedCount++;
+				continue;
+			}
+
+			// Check if this active payment already exists (not soft deleted)
+			$existsActive = \App\Models\PaymentPlayer::where('player_id', $player->id)
+				->where('payment_id', $payment->id)
+				->whereNull('deleted_at')
+				->exists();
+
+			if ($existsActive) {
+				$skippedCount++;
+				continue;
+			}
+
+			// Check if there's a soft deleted payment to restore
+			$deletedPayment = \App\Models\PaymentPlayer::where('player_id', $player->id)
+				->where('payment_id', $payment->id)
+				->whereNotNull('deleted_at')
+				->first();
+
+			if ($deletedPayment) {
+				// Restore the deleted payment
+				$deletedPayment->deleted_at = null;
+				$deletedPayment->state = 0; // Back to pending
+				$deletedPayment->payment_date = null;
+				$deletedPayment->payment_order = null;
+				$deletedPayment->payment_auth = null;
+				$deletedPayment->payment_type = null;
+				$deletedPayment->updated_user = $userId;
+				$deletedPayment->save();
+				$restoredCount++;
+				continue;
+			}
+
+			// Generate payment code
+			$code = \App\Models\PaymentCodeSequentials::getCode();
+
+			// Calculate original amount and with discount
+			$amountOriginal = floatval($payment->amount);
+			$amountWithDiscount = $amountOriginal;
+
+			// Apply discount in euros (divided among all quotas)
+			if ($discountPerPayment > 0) {
+				$amountWithDiscount -= $discountPerPayment;
+			}
+
+			// Apply percentage discount
+			if ($discountPercentage > 0) {
+				$percentageDiscount = ($amountOriginal * $discountPercentage) / 100;
+				$amountWithDiscount -= $percentageDiscount;
+			}
+
+			// Ensure amount is not negative
+			$amountWithDiscount = max(0, $amountWithDiscount);
+
+			// Calculate discounts applied to this quota
+			$descEntApplied = $discountPerPayment;
+			$descPercApplied = $discountPercentage;
+
+			// Create payment order for the player
+			\App\Models\PaymentPlayer::create([
+				'player_id' => $player->id,
+				'payment_id' => $payment->id,
+				'sports_school_id' => $sportsSchoolId,
+				'code' => $code,
+				'state' => 0, // Pending
+				'cuota' => $payment->cuota,
+				'price' => $team->price, // Team enrollment price
+				'amount_original' => $amountOriginal,
+				'amount' => $amountWithDiscount,
+				'descEnt' => $descEntApplied,
+				'descPerc' => $descPercApplied,
+				'created_user' => $userId,
+			]);
+
+			$generatedCount++;
+		}
+
+		return ['generated' => $generatedCount, 'restored' => $restoredCount, 'skipped' => $skippedCount];
+	}
+}
+
