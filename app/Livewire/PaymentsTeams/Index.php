@@ -5,6 +5,7 @@ namespace App\Livewire\PaymentsTeams;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\PaymentTeam;
+use App\Models\PaymentPlayer;
 use App\Models\Season;
 use App\Models\Team;
 use App\Classes\PdfFile;
@@ -21,8 +22,13 @@ class Index extends Component
     public $showDeleteConfirm = false;
     public $showDeleteSingleModal = false;
     public $teamToDelete = null;
+    public $deletablePaymentsSingle = [];
+    public $nonDeletablePaymentsSingle = [];
     public $showEditModal = false;
     public $showEditPreview = false;
+    public $showPaymentDetailsModal = false;
+    public $selectedPaymentDetails = null;
+    public $paymentDetailsTab = 'paid';
     public $selectedSeasonId = '';
     public $modalTeams = [];
     public $selectedTeamIds = [];
@@ -326,6 +332,9 @@ class Index extends Component
                 continue; // Saltar equipos sin precio
             }
 
+            // Obtener el número de jugadores del equipo
+            $playersCount = $team->players()->count();
+
             $teamPayments = [];
 
             for ($i = 1; $i <= $this->numPlazos; $i++) {
@@ -337,12 +346,14 @@ class Index extends Component
                     'price' => $team->price,
                     'date_start' => $this->plazos[$i]['date_start'],
                     'date_end' => $this->plazos[$i]['date_end'],
+                    'players_count' => $playersCount, // Número de jugadores
                 ];
             }
 
             $this->previewData[] = [
                 'team' => $team,
                 'payments' => $teamPayments,
+                'players_count' => $playersCount, // Número de jugadores del equipo
             ];
         }
 
@@ -366,19 +377,52 @@ class Index extends Component
 
         // Obtener los equipos seleccionados con sus pagos
         $teams = Team::with(['payments' => function($query) use ($userSchoolId) {
-                $query->where('sports_school_id', $userSchoolId);
+                $query->where('sports_school_id', $userSchoolId)
+                    ->with('paymentPlayers')
+                    ->orderBy('cuota');
             }])
             ->whereIn('id', $this->selectedTeamsToDelete)
             ->get();
 
+        $hasNonDeletablePayments = false;
+
         foreach ($teams as $team) {
             if ($team->payments->count() > 0) {
-                $this->deletePreviewData[] = [
-                    'team' => $team,
-                    'payments' => $team->payments,
-                    'total' => $team->payments->sum('amount')
-                ];
+                $deletablePayments = [];
+                $nonDeletablePayments = [];
+
+                foreach ($team->payments as $payment) {
+                    $paymentData = [
+                        'payment' => $payment,
+                        'is_active' => $payment->isActive(),
+                        'has_paid_payments' => $payment->hasPaidPayments(),
+                        'can_delete' => $payment->canBeDeleted(),
+                        'players_count' => $payment->paymentPlayers->count(),
+                        'paid_players_count' => $payment->paymentPlayers()->where('state', 1)->count(),
+                    ];
+
+                    if ($payment->canBeDeleted()) {
+                        $deletablePayments[] = $paymentData;
+                    } else {
+                        $nonDeletablePayments[] = $paymentData;
+                        $hasNonDeletablePayments = true;
+                    }
+                }
+
+                if (count($deletablePayments) > 0 || count($nonDeletablePayments) > 0) {
+                    $this->deletePreviewData[] = [
+                        'team' => $team,
+                        'deletable_payments' => $deletablePayments,
+                        'non_deletable_payments' => $nonDeletablePayments,
+                        'total_deletable' => collect($deletablePayments)->sum(fn($p) => $p['payment']->amount),
+                    ];
+                }
             }
+        }
+
+        if (empty($this->deletePreviewData)) {
+            session()->flash('error', 'Los equipos seleccionados no tienen pagos.');
+            return;
         }
 
         $this->showDeleteModal = true;
@@ -401,24 +445,52 @@ class Index extends Component
     {
         try {
             $userSchoolId = auth()->user()->sports_school_id;
-            $deletedCount = 0;
+            $deletedPaymentsCount = 0;
+            $deletedPlayersPaymentsCount = 0;
+            $skippedCount = 0;
 
             foreach ($this->selectedTeamsToDelete as $teamId) {
-                $deleted = PaymentTeam::where('team_id', $teamId)
+                $payments = PaymentTeam::where('team_id', $teamId)
                     ->where('sports_school_id', $userSchoolId)
-                    ->delete();
+                    ->with('paymentPlayers')
+                    ->get();
                 
-                $deletedCount += $deleted;
+                foreach ($payments as $payment) {
+                    if ($payment->canBeDeleted()) {
+                        // Primero eliminar los pagos de jugadores asociados
+                        $playersDeleted = \App\Models\PaymentPlayer::where('payment_id', $payment->id)
+                            ->where('sports_school_id', $userSchoolId)
+                            ->delete();
+                        
+                        $deletedPlayersPaymentsCount += $playersDeleted;
+                        
+                        // Luego eliminar el pago del equipo
+                        $payment->delete();
+                        $deletedPaymentsCount++;
+                    } else {
+                        $skippedCount++;
+                    }
+                }
             }
 
             $teamsCount = count($this->selectedTeamsToDelete);
-            session()->flash('message', "Se eliminaron correctamente {$deletedCount} pagos de {$teamsCount} " . ($teamsCount == 1 ? 'equipo' : 'equipos') . ".");
+            $message = "Se eliminaron correctamente {$deletedPaymentsCount} cuotas de equipos";
+            
+            if ($deletedPlayersPaymentsCount > 0) {
+                $message .= " y {$deletedPlayersPaymentsCount} pagos de jugadores";
+            }
+            
+            if ($skippedCount > 0) {
+                $message .= ". {$skippedCount} cuotas no se pudieron eliminar porque están en vigor o tienen pagos realizados";
+            }
+            
+            $this->dispatch('toast-notification', message: $message . '.', type: 'success');
             
             $this->selectedTeamsToDelete = [];
             $this->closeDeleteModal();
             
         } catch (\Exception $e) {
-            session()->flash('error', 'Error al eliminar los pagos: ' . $e->getMessage());
+            $this->dispatch('toast-notification', message: 'Error al eliminar los pagos: ' . $e->getMessage(), type: 'error');
         }
     }
 
@@ -432,16 +504,16 @@ class Index extends Component
                 ->first();
 
             if (!$payment) {
-                session()->flash('error', 'Pago no encontrado o no tienes permisos para eliminarlo.');
+                $this->dispatch('toast-notification', message: 'Pago no encontrado o no tienes permisos para eliminarlo.', type: 'error');
                 return;
             }
 
             $payment->delete();
 
-            session()->flash('message', 'Pago eliminado correctamente.');
+            $this->dispatch('toast-notification', message: 'Pago eliminado correctamente.', type: 'success');
             
         } catch (\Exception $e) {
-            session()->flash('error', 'Error al eliminar el pago: ' . $e->getMessage());
+            $this->dispatch('toast-notification', message: 'Error al eliminar el pago: ' . $e->getMessage(), type: 'error');
         }
     }
 
@@ -450,13 +522,36 @@ class Index extends Component
         $userSchoolId = auth()->user()->sports_school_id;
         
         $this->teamToDelete = Team::with(['payments' => function($query) use ($userSchoolId) {
-                $query->where('sports_school_id', $userSchoolId)->orderBy('cuota');
+                $query->where('sports_school_id', $userSchoolId)
+                    ->with('paymentPlayers')
+                    ->orderBy('cuota');
             }, 'season', 'section'])
             ->find($teamId);
 
         if (!$this->teamToDelete || $this->teamToDelete->payments->isEmpty()) {
-            session()->flash('error', 'No se encontraron pagos para eliminar.');
+            $this->dispatch('toast-notification', message: 'No se encontraron pagos para eliminar.', type: 'error');
             return;
+        }
+
+        // Inicializar arrays de pagos
+        $this->deletablePaymentsSingle = [];
+        $this->nonDeletablePaymentsSingle = [];
+
+        foreach ($this->teamToDelete->payments as $payment) {
+            $paymentInfo = [
+                'payment' => $payment,
+                'is_active' => $payment->isActive(),
+                'has_paid_payments' => $payment->hasPaidPayments(),
+                'can_delete' => $payment->canBeDeleted(),
+                'players_count' => $payment->paymentPlayers->count(),
+                'paid_players_count' => $payment->paymentPlayers()->where('state', 1)->count(),
+            ];
+
+            if ($payment->canBeDeleted()) {
+                $this->deletablePaymentsSingle[] = $paymentInfo;
+            } else {
+                $this->nonDeletablePaymentsSingle[] = $paymentInfo;
+            }
         }
 
         $this->showDeleteSingleModal = true;
@@ -466,6 +561,8 @@ class Index extends Component
     {
         $this->showDeleteSingleModal = false;
         $this->teamToDelete = null;
+        $this->deletablePaymentsSingle = [];
+        $this->nonDeletablePaymentsSingle = [];
     }
 
     public function confirmDeleteSingleTeam()
@@ -477,21 +574,56 @@ class Index extends Component
             }
 
             $userSchoolId = auth()->user()->sports_school_id;
+            $deletedPaymentsCount = 0;
+            $deletedPlayersPaymentsCount = 0;
+            $skippedCount = 0;
             
-            $deletedCount = PaymentTeam::where('team_id', $this->teamToDelete->id)
+            $payments = PaymentTeam::where('team_id', $this->teamToDelete->id)
                 ->where('sports_school_id', $userSchoolId)
-                ->delete();
+                ->with('paymentPlayers')
+                ->get();
 
-            if ($deletedCount > 0) {
-                session()->flash('message', "Se eliminaron correctamente {$deletedCount} " . ($deletedCount == 1 ? 'pago' : 'pagos') . " del equipo {$this->teamToDelete->team}.");
+            foreach ($payments as $payment) {
+                if ($payment->canBeDeleted()) {
+                    // Primero eliminar los pagos de jugadores asociados
+                    $playersDeleted = \App\Models\PaymentPlayer::where('payment_id', $payment->id)
+                        ->where('sports_school_id', $userSchoolId)
+                        ->delete();
+                    
+                    $deletedPlayersPaymentsCount += $playersDeleted;
+                    
+                    // Luego eliminar el pago del equipo
+                    $payment->delete();
+                    $deletedPaymentsCount++;
+                } else {
+                    $skippedCount++;
+                }
+            }
+
+            if ($deletedPaymentsCount > 0) {
+                $message = "Se eliminaron correctamente {$deletedPaymentsCount} " . ($deletedPaymentsCount == 1 ? 'cuota' : 'cuotas') . " del equipo {$this->teamToDelete->team}";
+                
+                if ($deletedPlayersPaymentsCount > 0) {
+                    $message .= " y {$deletedPlayersPaymentsCount} pagos de jugadores";
+                }
+                
+                if ($skippedCount > 0) {
+                    $message .= ". {$skippedCount} cuotas no se eliminaron porque están en vigor o tienen pagos realizados";
+                }
+                
+                $this->dispatch('toast-notification', message: $message . '.', type: 'success');
             } else {
-                session()->flash('error', 'No se encontraron pagos para eliminar.');
+                if ($skippedCount > 0) {
+                    $this->dispatch('toast-notification', message: "No se pudo eliminar ninguna cuota porque todas están en vigor o tienen pagos realizados.", type: 'error');
+                } else {
+                    $this->dispatch('toast-notification', message: 'No se encontraron pagos para eliminar.', type: 'error');
+                }
             }
 
             $this->closeDeleteSingleModal();
             
         } catch (\Exception $e) {
-            session()->flash('error', 'Error al eliminar los pagos: ' . $e->getMessage());
+            $this->dispatch('toast-notification', message: 'Error al eliminar los pagos: ' . $e->getMessage(), type: 'error');
         }
     }
 
@@ -509,6 +641,20 @@ class Index extends Component
             return;
         }
 
+        // Verificar si hay al menos una cuota editable (futura)
+        $hasEditablePayments = false;
+        foreach ($team->payments as $payment) {
+            if ($payment->canBeEdited()) {
+                $hasEditablePayments = true;
+                break;
+            }
+        }
+
+        if (!$hasEditablePayments) {
+            session()->flash('error', 'No hay cuotas futuras para editar. Todas las cuotas están en vigor o han caducado.');
+            return;
+        }
+
         $this->editingTeamId = $teamId;
         $this->editingTeam = $team;
         $this->editNumPlazos = $team->payments->count();
@@ -521,6 +667,9 @@ class Index extends Component
                 'payment_id' => $payment->id,
                 'date_start' => $payment->date_start->format('d/m/Y'),
                 'date_end' => $payment->date_end->format('d/m/Y'),
+                'can_edit' => $payment->canBeEdited(),
+                'is_active' => $payment->isActive(),
+                'is_expired' => $payment->date_end < now(),
             ];
         }
 
@@ -556,10 +705,11 @@ class Index extends Component
 
     public function generateEditPreview()
     {
-        // Validar que todas las fechas estén configuradas
+        // Validar que todas las fechas editables estén configuradas
         foreach ($this->editPlazos as $plazo) {
-            if (empty($plazo['date_start']) || empty($plazo['date_end'])) {
-                session()->flash('error', 'Por favor, configure todas las fechas de los plazos.');
+            $canEdit = $plazo['can_edit'] ?? true;
+            if ($canEdit && (empty($plazo['date_start']) || empty($plazo['date_end']))) {
+                session()->flash('error', 'Por favor, configure todas las fechas de los plazos editables.');
                 return;
             }
         }
@@ -576,6 +726,9 @@ class Index extends Component
                 'price' => $team->price,
                 'date_start' => $this->editPlazos[$i]['date_start'],
                 'date_end' => $this->editPlazos[$i]['date_end'],
+                'can_edit' => $this->editPlazos[$i]['can_edit'] ?? true,
+                'is_active' => $this->editPlazos[$i]['is_active'] ?? false,
+                'is_expired' => $this->editPlazos[$i]['is_expired'] ?? false,
             ];
         }
 
@@ -593,58 +746,120 @@ class Index extends Component
             $userSchoolId = auth()->user()->sports_school_id;
             $userId = auth()->user()->id;
             
-            // Validar que todas las fechas estén configuradas
-            foreach ($this->editPlazos as $plazo) {
-                if (empty($plazo['date_start']) || empty($plazo['date_end'])) {
-                    session()->flash('error', 'Por favor, configure todas las fechas de los plazos.');
+            // Validar que todas las fechas editables estén configuradas
+            foreach ($this->editPlazos as $index => $plazo) {
+                $canEdit = $plazo['can_edit'] ?? true;
+                if ($canEdit && (empty($plazo['date_start']) || empty($plazo['date_end']))) {
+                    session()->flash('error', 'Por favor, configure todas las fechas de los plazos editables.');
                     return;
                 }
             }
 
-            // Eliminar todos los pagos anteriores del equipo
-            PaymentTeam::where('team_id', $this->editingTeamId)
-                ->where('sports_school_id', $userSchoolId)
-                ->delete();
-
-            // Crear los nuevos pagos con el nuevo número de plazos
-            $team = $this->editingTeam;
-            $pricePerInstallment = $team->price / $this->editNumPlazos;
-            $totalSaved = 0;
-
-            for ($i = 1; $i <= $this->editNumPlazos; $i++) {
-                // Convertir fechas de dd/mm/YYYY a Y-m-d
-                $dateStart = $this->editPlazos[$i]['date_start'];
-                $dateEnd = $this->editPlazos[$i]['date_end'];
+            // Solo actualizar las cuotas que se pueden editar (futuras)
+            $updatedCount = 0;
+            
+            foreach ($this->editPlazos as $index => $plazo) {
+                $canEdit = $plazo['can_edit'] ?? true;
                 
-                // Convertir formato
-                $dateStartParts = explode('/', $dateStart);
-                $dateEndParts = explode('/', $dateEnd);
-                
-                $formattedDateStart = $dateStartParts[2] . '-' . $dateStartParts[1] . '-' . $dateStartParts[0];
-                $formattedDateEnd = $dateEndParts[2] . '-' . $dateEndParts[1] . '-' . $dateEndParts[0];
+                // Solo actualizar si la cuota es editable
+                if ($canEdit && isset($plazo['payment_id'])) {
+                    $paymentId = $plazo['payment_id'];
+                    
+                    // Convertir fechas de dd/mm/YYYY a Y-m-d
+                    $dateStart = $plazo['date_start'];
+                    $dateEnd = $plazo['date_end'];
+                    
+                    $dateStartParts = explode('/', $dateStart);
+                    $dateEndParts = explode('/', $dateEnd);
+                    
+                    $formattedDateStart = $dateStartParts[2] . '-' . $dateStartParts[1] . '-' . $dateStartParts[0];
+                    $formattedDateEnd = $dateEndParts[2] . '-' . $dateEndParts[1] . '-' . $dateEndParts[0];
 
-                PaymentTeam::create([
-                    'team_id' => $team->id,
-                    'season_id' => $team->season_id,
-                    'sports_school_id' => $userSchoolId,
-                    'description' => "Matrícula {$team->team} - Cuota {$i}/{$this->editNumPlazos}",
-                    'price' => $team->price,
-                    'cuota' => $i,
-                    'amount' => round($pricePerInstallment, 2),
-                    'date_start' => $formattedDateStart,
-                    'date_end' => $formattedDateEnd,
-                    'created_user' => $userId,
-                    'updated_user' => $userId,
-                ]);
-                $totalSaved++;
+                    // Actualizar el pago del equipo
+                    $payment = PaymentTeam::where('id', $paymentId)
+                        ->where('sports_school_id', $userSchoolId)
+                        ->first();
+                    
+                    if ($payment) {
+                        $payment->update([
+                            'date_start' => $formattedDateStart,
+                            'date_end' => $formattedDateEnd,
+                            'updated_user' => $userId,
+                        ]);
+                        
+                        $updatedCount++;
+                    }
+                }
             }
 
-            session()->flash('message', "Se actualizaron correctamente {$totalSaved} pagos del equipo.");
+            if ($updatedCount > 0) {
+                $message = "Se actualizaron correctamente {$updatedCount} " . ($updatedCount == 1 ? 'cuota' : 'cuotas') . " del equipo.";
+                $this->dispatch('toast-notification', message: $message, type: 'success');
+            } else {
+                $this->dispatch('toast-notification', message: 'No se realizaron cambios en las cuotas.', type: 'success');
+            }
+            
             $this->closeEditModal();
+            $this->dispatch('modal-closed');
             
         } catch (\Exception $e) {
-            session()->flash('error', 'Error al actualizar los pagos: ' . $e->getMessage());
+            $this->dispatch('toast-notification', message: 'Error al actualizar los pagos: ' . $e->getMessage(), type: 'error');
+            $this->closeEditModal();
         }
+    }
+
+    public function openPaymentDetailsModal($paymentId)
+    {
+        try {
+            $userSchoolId = auth()->user()->sports_school_id;
+            
+            // Cargar el pago con todas las relaciones necesarias
+            $payment = PaymentTeam::with(['paymentPlayers.player', 'team'])
+                ->where('id', $paymentId)
+                ->where('sports_school_id', $userSchoolId)
+                ->first();
+
+            if (!$payment) {
+                session()->flash('error', 'No se encontró el pago.');
+                return;
+            }
+
+            // Filtrar jugadores pagados e impagados desde la colección ya cargada
+            $paidPlayers = $payment->paymentPlayers->filter(function($pp) {
+                return $pp->state == 1;
+            })->sortByDesc('payment_date')->values();
+
+            $unpaidPlayers = $payment->paymentPlayers->filter(function($pp) {
+                return $pp->state != 1;
+            })->sortByDesc('created_at')->values();
+
+            $this->selectedPaymentDetails = [
+                'payment' => $payment,
+                'team' => $payment->team,
+                'total' => $payment->paymentPlayers->count(),
+                'paid' => $paidPlayers->count(),
+                'unpaid' => $unpaidPlayers->count(),
+                'paidPlayers' => $paidPlayers,
+                'unpaidPlayers' => $unpaidPlayers,
+            ];
+
+            $this->paymentDetailsTab = 'paid';
+            $this->showPaymentDetailsModal = true;
+            
+        } catch (\Exception $e) {
+            \Log::error('Error al cargar detalles de pago: ' . $e->getMessage(), [
+                'payment_id' => $paymentId,
+                'trace' => $e->getTraceAsString()
+            ]);
+            session()->flash('error', 'Error al cargar los detalles: ' . $e->getMessage());
+        }
+    }
+
+    public function closePaymentDetailsModal()
+    {
+        $this->showPaymentDetailsModal = false;
+        $this->selectedPaymentDetails = null;
+        $this->paymentDetailsTab = 'paid';
     }
 
 
@@ -667,7 +882,7 @@ class Index extends Component
                 
                 // Crear los nuevos pagos
                 foreach ($data['payments'] as $payment) {
-                    PaymentTeam::create([
+                    $paymentTeam = PaymentTeam::create([
                         'team_id' => $team->id,
                         'season_id' => $this->selectedSeasonId,
                         'sports_school_id' => $userSchoolId,
@@ -680,6 +895,25 @@ class Index extends Component
                         'created_user' => $userId,
                         'updated_user' => $userId,
                     ]);
+                    
+                    // Crear pagos para cada jugador del equipo
+                    $players = $team->players; // Obtener jugadores del equipo
+                    foreach ($players as $player) {
+                        PaymentPlayer::create([
+                            'player_id' => $player->id,
+                            'payment_id' => $paymentTeam->id,
+                            'sports_school_id' => $userSchoolId,
+                            'cuota' => $payment['cuota'],
+                            'price' => $payment['price'],
+                            'amount' => $payment['amount'],
+                            'amount_original' => $payment['amount'],
+                            'state' => 0, // Estado pendiente
+                            'descEnt' => 0,
+                            'descPerc' => 0,
+                            'created_user' => $userId,
+                            'updated_user' => $userId,
+                        ]);
+                    }
                     
                     $totalSaved++;
                 }
@@ -696,41 +930,7 @@ class Index extends Component
         }
     }
 
-    public function render()
-    {
-        $userSchoolId = auth()->user()->sports_school_id;
-        
-        // Get teams with payment info
-        $teams = Team::with(['category', 'season', 'section', 'payments'])
-            ->whereHas('season', function ($query) use ($userSchoolId) {
-                $query->where('sports_school_id', $userSchoolId);
-            })
-            ->when($this->search, function ($query) {
-                $query->where('team', 'like', '%' . $this->search . '%');
-            })
-            ->when($this->seasonFilter, function ($query) {
-                $query->where('season_id', $this->seasonFilter);
-            })
-            ->withCount('payments')
-            ->orderBy('team')
-            ->get();
-
-        $seasons = Season::where('sports_school_id', $userSchoolId)
-            ->orderBy('from_year', 'desc')
-            ->get();
-
-        $activeSeason = Season::where('sports_school_id', $userSchoolId)
-            ->where('start_date', '<=', now())
-            ->where('end_date', '>=', now())
-            ->orderBy('created_at', 'desc')
-            ->first();
-
-        return view('livewire.payments-teams.index', [
-            'teams' => $teams,
-            'seasons' => $seasons,
-            'activeSeason' => $activeSeason,
-        ]);
-    }
+    
 
     public function printPayments()
     {
@@ -785,5 +985,51 @@ class Index extends Component
             fn () => print($content),
             $pdf->getFileName()
         );
+    }
+
+    public function render()
+    {
+        $userSchoolId = auth()->user()->sports_school_id;
+        
+        // Get teams with payment info
+        $teams = Team::with(['category', 'season', 'section', 'payments.paymentPlayers'])
+            ->whereHas('season', function ($query) use ($userSchoolId) {
+                $query->where('sports_school_id', $userSchoolId);
+            })
+            ->when($this->search, function ($query) {
+                $query->where('team', 'like', '%' . $this->search . '%');
+            })
+            ->when($this->seasonFilter, function ($query) {
+                $query->where('season_id', $this->seasonFilter);
+            })
+            ->withCount('payments')
+            ->orderBy('team')
+            ->get();
+
+        $seasons = Season::where('sports_school_id', $userSchoolId)
+            ->orderBy('from_year', 'desc')
+            ->get();
+
+        $activeSeason = Season::where('sports_school_id', $userSchoolId)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        // Verificar si la temporada seleccionada es la activa
+        $isActiveSeason = $activeSeason && $this->seasonFilter == $activeSeason->id;
+
+        // Contar equipos que pueden generar cuotas pero no las tienen
+        $teamsPendingPayments = $teams->filter(function($team) {
+            return $team->price && $team->price > 0 && $team->payments_count == 0;
+        });
+
+        return view('livewire.payments-teams.index', [
+            'teams' => $teams,
+            'seasons' => $seasons,
+            'activeSeason' => $activeSeason,
+            'isActiveSeason' => $isActiveSeason,
+            'teamsPendingPayments' => $teamsPendingPayments,
+        ]);
     }
 }
