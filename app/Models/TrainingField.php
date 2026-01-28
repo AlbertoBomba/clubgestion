@@ -109,4 +109,12 @@ class TrainingField extends Model
             default => $this->surface_type,
         };
     }
+
+    /**
+     * Verificar si el campo tiene entrenamientos programados
+     */
+    public function hasTrainingSchedules(): bool
+    {
+        return $this->schedules()->exists();
+    }
 }

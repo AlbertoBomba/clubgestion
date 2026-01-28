@@ -19,6 +19,8 @@ class Index extends Component
     
     // Modal properties
     public $showModal = false;
+    public $showDeleteModal = false;
+    public $fieldToDelete = null;
     public $fieldId = null;
     public $name = '';
     public $field_type = 'futbol_11';
@@ -148,12 +150,25 @@ class Index extends Component
         $this->closeModal();
     }
 
-    public function delete($fieldId)
+    public function confirmDelete($fieldId)
     {
-        $field = TrainingField::findOrFail($fieldId);
-        $field->delete();
+        $this->fieldToDelete = TrainingField::findOrFail($fieldId);
+        $this->showDeleteModal = true;
+    }
 
-        session()->flash('message', 'Campo eliminado correctamente.');
+    public function delete()
+    {
+        if ($this->fieldToDelete) {
+            $this->fieldToDelete->delete();
+            session()->flash('message', 'Campo eliminado correctamente.');
+            $this->closeDeleteModal();
+        }
+    }
+
+    public function closeDeleteModal()
+    {
+        $this->showDeleteModal = false;
+        $this->fieldToDelete = null;
     }
 
     public function closeModal()
@@ -192,6 +207,7 @@ class Index extends Component
                 $query->where('season_id', $activeSeason->id);
             })
             ->with(['sections', 'season'])
+            ->withCount('schedules')
             ->when($this->search, function ($query) {
                 $query->where(function($q) {
                     $q->where('name', 'like', '%' . $this->search . '%')

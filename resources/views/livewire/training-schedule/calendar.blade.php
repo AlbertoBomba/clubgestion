@@ -16,14 +16,14 @@
     <div class="mb-6 flex justify-between items-center">
         <div class="flex items-center space-x-4">
             <h3 class="text-lg font-semibold text-gray-900">Planificación de Entrenamientos</h3>
-            @if($activeSeason)
+            {{-- @if($activeSeason)
                 <span class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
                     {{ $activeSeason->season }} en curso
                 </span>
-            @endif
+            @endif --}}
         </div>
         
         <!-- Filtros -->
@@ -42,9 +42,14 @@
             <!-- Filtro de temporada -->
             <div class="w-64">
                 <label class="block text-xs font-medium text-gray-700 mb-1">Temporada</label>
-                <select wire:model.live="seasonFilter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                <select wire:model.live="seasonFilter" disabled class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm bg-gray-100 cursor-not-allowed">
                     @foreach($seasons as $season)
-                        <option value="{{ $season->id }}">{{ $season->season }}</option>
+                        <option value="{{ $season->id }}">
+                            {{ $season->season }}
+                            @if($activeSeason && $season->id === $activeSeason->id)
+                                🟢 (Temporada en curso)
+                            @endif
+                        </option>
                     @endforeach
                 </select>
             </div>
