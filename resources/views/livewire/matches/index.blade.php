@@ -20,19 +20,21 @@
         </div>
         
         <div class="flex gap-3">
-            <a href="{{ route('matches.create') }}" class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 hover:-translate-y-1 bg-blue-600 hover:bg-blue-700">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-                Nuevo Partido
-            </a>
+            @if($isActiveSeason)
+                <a href="{{ route('matches.create') }}" class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 hover:-translate-y-1 bg-blue-600 hover:bg-blue-700">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Nuevo Partido
+                </a>
+            @endif
         </div>
     </div>
 
-    <div class="card-modern bg-white-pure rounded-b-2xl shadow-xl border border-primary/10 overflow-hidden">
+    <div class="bg-white-pure rounded-b-2xl shadow-xl border border-primary/10 overflow-hidden">
         <!-- Header with Search and Filters -->
         <div class="p-6 border-b border-gray-100">
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -47,7 +49,12 @@
                         class="block w-full px-3 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
                         <option value="">Todas las temporadas</option>
                         @foreach($seasons as $season)
-                            <option value="{{ $season->id }}">{{ $season->season }}</option>
+                            <option value="{{ $season->id }}">
+                                {{ $season->season }}
+                                @if($activeSeason && $season->id === $activeSeason->id)
+                                    🟢 (Temporada en curso)
+                                @endif
+                            </option>
                         @endforeach
                     </select>
                 </div>
@@ -60,22 +67,12 @@
                         @endforeach
                     </select>
                 </div>
-                <div>
-                    <input wire:model.live="dateFrom" type="date" 
-                        class="block w-full px-3 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
-                        placeholder="Fecha desde">
-                </div>
-                <div>
-                    <input wire:model.live="dateTo" type="date" 
-                        class="block w-full px-3 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
-                        placeholder="Fecha hasta">
-                </div>
             </div>
         </div>
 
         <!-- Matches Table -->
-        <div class="overflow-x-auto max-h-[calc(100vh-400px)] overflow-y-auto">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+        <div class="overflow-x-auto">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
                 @forelse($matches as $match)
                     <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-primary/30 hover:-translate-y-1">
                         <!-- Header Card con fecha y temporada -->
@@ -88,18 +85,28 @@
                                     <span class="text-sm font-bold text-titanium">{{ $match->date->format('d/m/Y') }}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    @if($match->goals_team !== null && $match->goals_oponent !== null)
+                                    @php
+                                        // Verificar si el partido ya se jugó
+                                        $matchDateTime = $match->date;
+                                        if ($match->hour_match) {
+                                            $matchDateTime = \Carbon\Carbon::parse($match->date->format('Y-m-d') . ' ' . $match->hour_match->format('H:i:s'));
+                                        }
+                                        $matchHasPassed = $matchDateTime->isPast();
+                                        $goalsTeam = $match->goals_team ?? 0;
+                                        $goalsOponent = $match->goals_oponent ?? 0;
+                                    @endphp
+                                    @if($matchHasPassed)
                                         <!-- Resultado en miniatura en el header -->
                                         <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold text-sm shadow-sm
-                                            {{ $match->goals_team > $match->goals_oponent ? 'bg-green-500 text-white' : 
-                                               ($match->goals_team < $match->goals_oponent ? 'bg-red-500 text-white' : 'bg-gray-500 text-white') }}">
-                                            <span>{{ $match->goals_team }}</span>
+                                            {{ $goalsTeam > $goalsOponent ? 'bg-green-500 text-white' : 
+                                               ($goalsTeam < $goalsOponent ? 'bg-red-500 text-white' : 'bg-gray-500 text-white') }}">
+                                            <span>{{ $goalsTeam }}</span>
                                             <span class="text-xs opacity-90">-</span>
-                                            <span>{{ $match->goals_oponent }}</span>
+                                            <span>{{ $goalsOponent }}</span>
                                         </div>
                                     @else
                                         <span class="text-xs px-2 py-1 bg-gray-100 text-gray-500 rounded-full font-medium">
-                                            Sin resultado
+                                            Por jugar
                                         </span>
                                     @endif
                                     <span class="text-xs px-2 py-1 bg-white rounded-full text-gray-600 font-medium">{{ $match->season->season }}</span>
@@ -131,7 +138,7 @@
                                     <div class="flex-1 text-center">
                                         <div class="flex justify-center mb-3">
                                             @if($match->sportsSchool && $match->sportsSchool->logo)
-                                                <img src="{{ asset('storage/' . $match->sportsSchool->logo) }}" alt="{{ $match->sportsSchool->sports_school }}" class="w-16 h-16 rounded-full object-cover border-3 border-blue-500/30 shadow-md">
+                                                <img src="{{ asset('storage/' . $match->sportsSchool->logo) }}" alt="{{ $match->sportsSchool->sports_school }}" class="w-16 h-16 rounded-lg object-cover border-3 border-blue-500/30 shadow-md">
                                             @else
                                                 <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/30 flex items-center justify-center border-3 border-blue-500/30 shadow-md">
                                                     <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
@@ -157,29 +164,39 @@
 
                                     <!-- Marcador / VS -->
                                     <div class="flex flex-col items-center justify-center px-4">
-                                        @if($match->goals_team !== null && $match->goals_oponent !== null)
+                                        @php
+                                            // Verificar si el partido ya se jugó
+                                            $matchDateTime = $match->date;
+                                            if ($match->hour_match) {
+                                                $matchDateTime = \Carbon\Carbon::parse($match->date->format('Y-m-d') . ' ' . $match->hour_match->format('H:i:s'));
+                                            }
+                                            $matchHasPassed = $matchDateTime->isPast();
+                                            $goalsTeam = $match->goals_team ?? 0;
+                                            $goalsOponent = $match->goals_oponent ?? 0;
+                                        @endphp
+                                        @if($matchHasPassed)
                                             <!-- Resultado final -->
                                             <div class="flex items-center gap-3 mb-2">
                                                 <div class="text-center">
-                                                    <div class="text-3xl font-black {{ $match->goals_team > $match->goals_oponent ? 'text-green-600' : ($match->goals_team < $match->goals_oponent ? 'text-red-600' : 'text-gray-600') }}">
-                                                        {{ $match->goals_team }}
+                                                    <div class="text-3xl font-black {{ $goalsTeam > $goalsOponent ? 'text-green-600' : ($goalsTeam < $goalsOponent ? 'text-red-600' : 'text-gray-600') }}">
+                                                        {{ $goalsTeam }}
                                                     </div>
                                                 </div>
                                                 <div class="text-2xl font-bold text-gray-400">-</div>
                                                 <div class="text-center">
-                                                    <div class="text-3xl font-black {{ $match->goals_oponent > $match->goals_team ? 'text-green-600' : ($match->goals_oponent < $match->goals_team ? 'text-red-600' : 'text-gray-600') }}">
-                                                        {{ $match->goals_oponent }}
+                                                    <div class="text-3xl font-black {{ $goalsOponent > $goalsTeam ? 'text-green-600' : ($goalsOponent < $goalsTeam ? 'text-red-600' : 'text-gray-600') }}">
+                                                        {{ $goalsOponent }}
                                                     </div>
                                                 </div>
                                             </div>
                                             <span class="text-xs px-3 py-1 rounded-full font-bold
-                                                {{ $match->goals_team > $match->goals_oponent ? 'bg-green-100 text-green-700' : 
-                                                   ($match->goals_team < $match->goals_oponent ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700') }}">
-                                                {{ $match->goals_team > $match->goals_oponent ? 'Victoria' : 
-                                                   ($match->goals_team < $match->goals_oponent ? 'Derrota' : 'Empate') }}
+                                                {{ $goalsTeam > $goalsOponent ? 'bg-green-100 text-green-700' : 
+                                                   ($goalsTeam < $goalsOponent ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700') }}">
+                                                {{ $goalsTeam > $goalsOponent ? 'Victoria' : 
+                                                   ($goalsTeam < $goalsOponent ? 'Derrota' : 'Empate') }}
                                             </span>
                                         @else
-                                            <!-- Partido sin jugar -->
+                                            <!-- Partido por jugar -->
                                             <div class="text-center">
                                                 <div class="text-xl font-black text-gray-400">VS</div>
                                                 <span class="text-xs text-gray-500 mt-1 block">Por jugar</span>
@@ -191,7 +208,7 @@
                                     <div class="flex-1 text-center">
                                         <div class="flex justify-center mb-3">
                                             @if($match->escudo_team_oponent)
-                                                <img src="{{ asset('storage/' . $match->escudo_team_oponent) }}" alt="{{ $match->opponent }}" class="w-16 h-16 rounded-full object-cover border-3 border-red-500/30 shadow-md">
+                                                <img src="{{ asset('storage/' . $match->escudo_team_oponent) }}" alt="{{ $match->opponent }}" class="w-16 h-16 rounded-lg object-cover border-3 border-red-500/30 shadow-md">
                                             @else
                                                 <div class="w-16 h-16 rounded-full bg-gradient-to-br from-red-500/20 to-red-600/30 flex items-center justify-center border-3 border-red-500/30 shadow-md">
                                                     <svg class="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
@@ -210,7 +227,7 @@
                                     <div class="flex-1 text-center">
                                         <div class="flex justify-center mb-3">
                                             @if($match->escudo_team_oponent)
-                                                <img src="{{ asset('storage/' . $match->escudo_team_oponent) }}" alt="{{ $match->opponent }}" class="w-16 h-16 rounded-full object-cover border-3 border-red-500/30 shadow-md">
+                                                <img src="{{ asset('storage/' . $match->escudo_team_oponent) }}" alt="{{ $match->opponent }}" class="w-16 h-16 rounded-lg object-cover border-3 border-red-500/30 shadow-md">
                                             @else
                                                 <div class="w-16 h-16 rounded-full bg-gradient-to-br from-red-500/20 to-red-600/30 flex items-center justify-center border-3 border-red-500/30 shadow-md">
                                                     <svg class="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
@@ -225,29 +242,39 @@
 
                                     <!-- Marcador / VS -->
                                     <div class="flex flex-col items-center justify-center px-4">
-                                        @if($match->goals_team !== null && $match->goals_oponent !== null)
+                                        @php
+                                            // Verificar si el partido ya se jugó
+                                            $matchDateTime = $match->date;
+                                            if ($match->hour_match) {
+                                                $matchDateTime = \Carbon\Carbon::parse($match->date->format('Y-m-d') . ' ' . $match->hour_match->format('H:i:s'));
+                                            }
+                                            $matchHasPassed = $matchDateTime->isPast();
+                                            $goalsTeam = $match->goals_team ?? 0;
+                                            $goalsOponent = $match->goals_oponent ?? 0;
+                                        @endphp
+                                        @if($matchHasPassed)
                                             <!-- Resultado final -->
                                             <div class="flex items-center gap-3 mb-2">
                                                 <div class="text-center">
-                                                    <div class="text-3xl font-black {{ $match->goals_oponent > $match->goals_team ? 'text-red-600' : ($match->goals_oponent < $match->goals_team ? 'text-green-600' : 'text-gray-600') }}">
-                                                        {{ $match->goals_oponent }}
+                                                    <div class="text-3xl font-black {{ $goalsOponent > $goalsTeam ? 'text-red-600' : ($goalsOponent < $goalsTeam ? 'text-green-600' : 'text-gray-600') }}">
+                                                        {{ $goalsOponent }}
                                                     </div>
                                                 </div>
                                                 <div class="text-2xl font-bold text-gray-400">-</div>
                                                 <div class="text-center">
-                                                    <div class="text-3xl font-black {{ $match->goals_team > $match->goals_oponent ? 'text-green-600' : ($match->goals_team < $match->goals_oponent ? 'text-red-600' : 'text-gray-600') }}">
-                                                        {{ $match->goals_team }}
+                                                    <div class="text-3xl font-black {{ $goalsTeam > $goalsOponent ? 'text-green-600' : ($goalsTeam < $goalsOponent ? 'text-red-600' : 'text-gray-600') }}">
+                                                        {{ $goalsTeam }}
                                                     </div>
                                                 </div>
                                             </div>
                                             <span class="text-xs px-3 py-1 rounded-full font-bold
-                                                {{ $match->goals_team > $match->goals_oponent ? 'bg-green-100 text-green-700' : 
-                                                   ($match->goals_team < $match->goals_oponent ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700') }}">
-                                                {{ $match->goals_team > $match->goals_oponent ? 'Victoria' : 
-                                                   ($match->goals_team < $match->goals_oponent ? 'Derrota' : 'Empate') }}
+                                                {{ $goalsTeam > $goalsOponent ? 'bg-green-100 text-green-700' : 
+                                                   ($goalsTeam < $goalsOponent ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700') }}">
+                                                {{ $goalsTeam > $goalsOponent ? 'Victoria' : 
+                                                   ($goalsTeam < $goalsOponent ? 'Derrota' : 'Empate') }}
                                             </span>
                                         @else
-                                            <!-- Partido sin jugar -->
+                                            <!-- Partido por jugar -->
                                             <div class="text-center">
                                                 <div class="text-xl font-black text-gray-400">VS</div>
                                                 <span class="text-xs text-gray-500 mt-1 block">Por jugar</span>
@@ -259,7 +286,7 @@
                                     <div class="flex-1 text-center">
                                         <div class="flex justify-center mb-3">
                                             @if($match->sportsSchool && $match->sportsSchool->logo)
-                                                <img src="{{ asset('storage/' . $match->sportsSchool->logo) }}" alt="{{ $match->sportsSchool->sports_school }}" class="w-16 h-16 rounded-full object-cover border-3 border-blue-500/30 shadow-md">
+                                                <img src="{{ asset('storage/' . $match->sportsSchool->logo) }}" alt="{{ $match->sportsSchool->sports_school }}" class="w-16 h-16 rounded-lg object-cover border-3 border-blue-500/30 shadow-md">
                                             @else
                                                 <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/30 flex items-center justify-center border-3 border-blue-500/30 shadow-md">
                                                     <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">

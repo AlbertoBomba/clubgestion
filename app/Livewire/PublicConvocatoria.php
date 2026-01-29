@@ -26,6 +26,11 @@ class PublicConvocatoria extends Component
             ->with(['team.season.sportsSchool', 'season'])
             ->firstOrFail();
 
+        // Verificar si el token ha expirado (solo si tiene fecha de expiración)
+        if ($match->share_expires_at && $match->isShareTokenExpired()) {
+            abort(410, 'Este enlace ha expirado. Los enlaces de convocatoria tienen una validez de 48 horas. Solicita al entrenador que genere uno nuevo.');
+        }
+
         $this->matchId = $match->id;
         $this->token = $token;
     }

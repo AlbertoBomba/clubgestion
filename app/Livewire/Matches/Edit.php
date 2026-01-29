@@ -170,7 +170,8 @@ class Edit extends Component
         }
 
         if (!in_array($playerId, $this->calledPlayers)) {
-            $this->calledPlayers[] = $playerId;
+            // Añadir al inicio del array para que aparezca primero (LIFO)
+            array_unshift($this->calledPlayers, $playerId);
             $this->notCalledPlayers = array_diff($this->notCalledPlayers, [$playerId]);
             
             // Clear reason when adding player
@@ -182,6 +183,18 @@ class Edit extends Component
             if (isset($this->notCalledPlayerReasons[$playerId])) {
                 unset($this->notCalledPlayerReasons[$playerId]);
             }
+            
+            // Guardar inmediatamente en la base de datos
+            $this->match->players()->attach($playerId, [
+                'created_user' => auth()->user()->id,
+                'updated_user' => auth()->user()->id,
+                'reason_not_called' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            
+            // Refrescar match para obtener datos actualizados
+            $this->match = $this->match->fresh(['players', 'notCalledPlayers']);
         }
     }
 
@@ -199,6 +212,12 @@ class Edit extends Component
         if (!in_array($playerId, $this->notCalledPlayers)) {
             $this->notCalledPlayers[] = $playerId;
         }
+        
+        // Eliminar de la base de datos inmediatamente
+        $this->match->players()->detach($playerId);
+        
+        // Refrescar match
+        $this->match = $this->match->fresh(['players', 'notCalledPlayers']);
     }
     
     public function markAsNotCalled($playerId, $reason = '')
@@ -219,6 +238,23 @@ class Edit extends Component
         
         // Always add to notCalledPlayerReasons (even with empty reason)
         $this->notCalledPlayerReasons[$playerId] = $reason;
+        
+        // Eliminar de jugadores convocados si existe
+        $this->match->players()->detach($playerId);
+        
+        // Guardar en jugadores no convocados
+        $this->match->notCalledPlayers()->syncWithoutDetaching([
+            $playerId => [
+                'reason' => $reason ?: null,
+                'created_user' => auth()->user()->id,
+                'updated_user' => auth()->user()->id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        ]);
+        
+        // Refrescar match
+        $this->match = $this->match->fresh(['players', 'notCalledPlayers']);
     }
     
     public function removeFromNotCalled($playerId)
@@ -232,6 +268,12 @@ class Edit extends Component
         if (!in_array($playerId, $this->notCalledPlayers)) {
             $this->notCalledPlayers[] = $playerId;
         }
+        
+        // Eliminar de jugadores no convocados en la base de datos
+        $this->match->notCalledPlayers()->detach($playerId);
+        
+        // Refrescar match
+        $this->match = $this->match->fresh(['players', 'notCalledPlayers']);
     }
     
     public function toggleCard($playerId, $cardType)
@@ -450,8 +492,32 @@ class Edit extends Component
         
         $this->match->notCalledPlayers()->sync($notCalledSyncData);
 
-        session()->flash('message', 'Partido actualizado correctamente.');
-        return redirect()->route('matches.index');
+        session()->flash('message', 'Partido modificado con éxito.');
+        
+        // Refresh match data
+        $this->match = $this->match->fresh(['players', 'notCalledPlayers']);
+        
+        // Reload called players
+        $calledPlayerIds = [];
+        foreach ($this->match->players as $player) {
+            $calledPlayerIds[] = $player->id;
+            if ($player->pivot->reason_not_called) {
+                $this->playerReasons[$player->id] = $player->pivot->reason_not_called;
+            }
+        }
+        $this->calledPlayers = $calledPlayerIds;
+        
+        // Reload not called players with their reasons
+        $this->notCalledPlayerReasons = [];
+        foreach ($this->match->notCalledPlayers as $player) {
+            $this->notCalledPlayerReasons[$player->id] = $player->pivot->reason ?? '';
+        }
+        
+        // Reload team players
+        $this->loadTeamPlayers();
+        
+        // Dispatch event to notify changes were saved
+        $this->dispatch('changes-saved');
     }
 
     public function printPDF()
@@ -484,12 +550,11 @@ class Edit extends Component
 
     public function generateShareLink()
     {
-        if (!$this->match->share_token) {
-            $this->match->generateShareToken();
-        }
+        // Siempre generar un nuevo token con 48 horas de validez
+        $this->match->generateShareToken();
         
         session()->flash('share_link', $this->match->getPublicUrl());
-        session()->flash('message', 'Enlace generado correctamente. Copia el enlace para compartir con los jugadores.');
+        session()->flash('message', 'Enlace generado correctamente. Este enlace será válido durante 48 horas.');
     }
 
     public function viewPublicConvocatoria()

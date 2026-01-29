@@ -15,14 +15,12 @@ class Index extends Component
     public $search = '';
     public $seasonFilter = '';
     public $teamFilter = '';
-    public $dateFrom = '';
-    public $dateTo = '';
     public $sortField = 'date';
     public $sortDirection = 'desc';
     public $confirmingDeletion = false;
     public $matchToDelete = null;
 
-    protected $queryString = ['search', 'seasonFilter', 'teamFilter', 'dateFrom', 'dateTo', 'sortField', 'sortDirection'];
+    protected $queryString = ['search', 'seasonFilter', 'teamFilter', 'sortField', 'sortDirection'];
 
     public function mount()
     {
@@ -51,16 +49,6 @@ class Index extends Component
     }
 
     public function updatingTeamFilter()
-    {
-        $this->resetPage();
-    }
-
-    public function updatingDateFrom()
-    {
-        $this->resetPage();
-    }
-
-    public function updatingDateTo()
     {
         $this->resetPage();
     }
@@ -116,13 +104,8 @@ class Index extends Component
             ->when($this->teamFilter, function ($query) {
                 $query->where('team_id', $this->teamFilter);
             })
-            ->when($this->dateFrom, function ($query) {
-                $query->whereDate('date', '>=', $this->dateFrom);
-            })
-            ->when($this->dateTo, function ($query) {
-                $query->whereDate('date', '<=', $this->dateTo);
-            })
-            ->orderBy($this->sortField, $this->sortDirection)
+            ->orderBy('date', 'desc')
+            ->orderBy('hour_match', 'desc')
             ->paginate(15);
 
         $seasons = Season::where('sports_school_id', auth()->user()->sports_school_id)
@@ -138,10 +121,21 @@ class Index extends Component
             ->orderBy('team')
             ->get();
 
+        // Get active season
+        $activeSeason = Season::where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        $isActiveSeason = $activeSeason ? true : false;
+
         return view('livewire.matches.index', [
             'matches' => $matches,
             'seasons' => $seasons,
             'teams' => $teams,
+            'activeSeason' => $activeSeason,
+            'isActiveSeason' => $isActiveSeason,
         ]);
     }
 }

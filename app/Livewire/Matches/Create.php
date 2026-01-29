@@ -138,7 +138,7 @@ class Create extends Component
         $match->players()->sync($syncData);
 
         session()->flash('message', 'Partido creado correctamente.');
-        return redirect()->route('matches.index');
+        return redirect()->route('matches.edit', $match->id);
     }
 
     public function render()

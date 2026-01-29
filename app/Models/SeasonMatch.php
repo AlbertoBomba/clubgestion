@@ -31,6 +31,7 @@ class SeasonMatch extends Model
         'lineup',
         'football_type',
         'share_token',
+        'share_expires_at',
         'created_user',
         'updated_user',
     ];
@@ -40,6 +41,7 @@ class SeasonMatch extends Model
         'hour_match' => 'datetime:H:i',
         'hour_meeting' => 'datetime:H:i',
         'lineup' => 'array',
+        'share_expires_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -93,9 +95,20 @@ class SeasonMatch extends Model
         } while (self::where('share_token', $token)->exists());
 
         $this->share_token = $token;
+        $this->share_expires_at = now()->addHours(48);
         $this->save();
 
         return $token;
+    }
+
+    // Check if share token is expired
+    public function isShareTokenExpired()
+    {
+        if (!$this->share_token || !$this->share_expires_at) {
+            return true;
+        }
+        
+        return now()->greaterThan($this->share_expires_at);
     }
 
     // Get public URL
