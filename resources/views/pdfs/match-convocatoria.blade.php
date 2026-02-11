@@ -6,333 +6,150 @@
     <style>
         body {
             font-family: Arial, Helvetica, sans-serif;
-            margin: 0;
-            padding: 8px;
-            background: linear-gradient(135deg, #e3f2fd 0%, #c5cae9 100%);
+            margin: 20px;
+            padding: 0;
+            background: white;
         }
         
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        
-        .header-box {
-            background: linear-gradient(90deg, #2196f3 0%, #3f51b5 100%);
-            padding: 25px;
+        .header {
             text-align: center;
-            margin-bottom: 12px;
-            border-radius: 12px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 15px;
         }
         
-        .logo-container {
-            margin-bottom: 12px;
-        }
-        
-        .logo-img {
-            width: 75px;
-            height: 75px;
-            background-color: white;
-            border: 3px solid white;
-            padding: 4px;
-            display: inline-block;
-            border-radius: 50%;
-        }
-        
-        .club-name {
-            color: white;
-            font-size: 18px;
-            font-weight: bold;
-            margin: 10px 0 5px 0;
-            letter-spacing: 1px;
-        }
-        
-        .team-name {
-            color: white;
-            font-size: 16px;
-            font-weight: normal;
+        .header h1 {
             margin: 5px 0;
-            opacity: 0.9;
+            font-size: 20px;
+            font-weight: bold;
         }
         
-        .counter-badge {
-            background-color: rgba(255,255,255,0.15);
-            color: white;
-            padding: 12px 20px;
+        .header p {
+            margin: 3px 0;
+            font-size: 12px;
+        }
+        
+        .info-section {
+            margin-bottom: 20px;
+            font-size: 11px;
+        }
+        
+        .info-section p {
+            margin: 4px 0;
+        }
+        
+        .info-label {
+            font-weight: bold;
             display: inline-block;
-            margin-top: 15px;
-            border-radius: 12px;
-        }
-        
-        .counter-badge-num {
-            font-size: 48px;
-            font-weight: bold;
-            margin: 0;
-        }
-        
-        .counter-badge-text {
-            font-size: 10px;
-            letter-spacing: 2px;
-            margin: 0;
-        }
-        
-        .info-box {
-            background-color: white;
-            padding: 18px 20px;
-            margin-bottom: 12px;
-            border-left: 5px solid #ec407a;
-            border-radius: 0 8px 8px 0;
-        }
-        
-        .info-title {
-            color: #424242;
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .info-row td {
-            padding: 8px 12px 8px 0;
-            font-size: 10px;
-        }
-        
-        .label {
-            font-weight: bold;
-            color: #757575;
-        }
-        
-        .value {
-            color: #212121;
-            font-weight: bold;
-        }
-        
-        .players-header {
-            background-color: white;
-            padding: 15px 20px;
-            margin-bottom: 8px;
-            border-radius: 8px;
-            border-bottom: 3px solid #66bb6a;
+            width: 120px;
         }
         
         .players-title {
-            color: #424242;
-            font-size: 16px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin: 0;
-            display: inline-block;
-        }
-        
-        .players-count {
-            background-color: #66bb6a;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 16px;
-            font-weight: bold;
-            float: right;
-        }
-        
-        .player-cell {
-            width: 33.33%;
-            padding: 6px;
-            text-align: center;
-        }
-        
-        .player-box {
-            background: linear-gradient(135deg, #fafafa 0%, #eeeeee 100%);
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            height: 240px;
-            position: relative;
-            border-radius: 12px;
-        }
-        
-        .photo-box {
-            width: 100%;
-            height: 160px;
-            background-color: #f5f5f5;
-            margin: 0 auto 12px;
-            position: relative;
-            overflow: hidden;
-            border-radius: 8px;
-        }
-        
-        .photo-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-        
-        .photo-placeholder {
-            background: linear-gradient(135deg, #42a5f5 0%, #5c6bc0 100%);
-            width: 100%;
-            height: 100%;
-            color: white;
-            font-size: 55px;
-            font-weight: bold;
-            text-align: center;
-            line-height: 160px;
-            border-radius: 8px;
-        }
-        
-        .number-badge {
-            position: absolute;
-            top: 18px;
-            right: 18px;
-            background-color: #2196f3;
-            color: white;
-            font-weight: bold;
-            padding: 6px 12px;
             font-size: 14px;
-            border-radius: 8px;
-        }
-        
-        .position-text {
-            color: #2196f3;
-            font-size: 9px;
             font-weight: bold;
-            margin: 0 0 4px 0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 5px;
         }
         
-        .name-text {
-            color: #212121;
-            font-size: 12px;
+        .players-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .players-table th {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+            font-size: 11px;
             font-weight: bold;
-            margin: 0;
-            line-height: 1.4;
-            text-transform: uppercase;
         }
         
-        .footer-box {
-            background-color: white;
-            padding: 12px;
+        .players-table td {
+            border: 1px solid #000;
+            padding: 12px 8px;
+            font-size: 11px;
+        }
+        
+        .player-number {
+            width: 40px;
             text-align: center;
-            margin-top: 12px;
-            border-radius: 8px;
         }
         
-        .footer-text {
+        .player-name {
+            width: 60%;
+        }
+        
+        .player-signature {
+            width: 40%;
+            height: 40px;
+        }
+        
+        .footer {
             font-size: 9px;
-            color: #757575;
-            margin: 0;
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
         }
     </style>
 </head>
 <body>
     <!-- HEADER -->
-    <div class="header-box">
-        @if(auth()->user()->sportsSchool && auth()->user()->sportsSchool->logo)
-        <div class="logo-container">
-            <img class="logo-img" src="{{ public_path('storage/' . auth()->user()->sportsSchool->logo) }}" alt="Escudo">
-        </div>
-        @endif
+    <div class="header">
         @if(auth()->user()->sportsSchool)
-        <p class="club-name">{{ strtoupper(auth()->user()->sportsSchool->name) }}</p>
+        <h1>{{ strtoupper(auth()->user()->sportsSchool->name) }}</h1>
         @endif
-        <p class="team-name">{{ $data['team']->team ?? 'EQUIPO' }}@if($data['team']->category) - {{ $data['team']->category->name }}@endif</p>
-        <div class="counter-badge">
-            <p class="counter-badge-num">{{ count($data['calledPlayers']) }}</p>
-            <p class="counter-badge-text">CONVOCADOS</p>
-        </div>
+        <p><strong>{{ $data['team']->team ?? 'EQUIPO' }}@if($data['team']->category) - {{ strtoupper($data['team']->category->name) }}@endif</strong></p>
+        <p>CONVOCATORIA DE PARTIDO {{ strtoupper($data['match']->opponent) }}</p>
     </div>
     
-    <!-- INFO BOX -->
-    <div class="info-box">
-        <p class="info-title">Información del Partido</p>
-        <table>
-            <tr class="info-row">
-                <td class="label" width="15%">Fecha:</td>
-                <td class="value" width="35%">{{ \Carbon\Carbon::parse($data['match']->date)->locale('es')->isoFormat('dddd, D [de] MMMM, YYYY') }}</td>
-                <td class="label" width="15%">VS Rival:</td>
-                <td class="value" width="35%">{{ $data['match']->opponent }}</td>
-            </tr>
-            @if($data['match']->hour_match || $data['match']->hour_meeting)
-            <tr class="info-row">
-                @if($data['match']->hour_match)
-                <td class="label">Hora Partido:</td>
-                <td class="value">{{ \Carbon\Carbon::parse($data['match']->hour_match)->format('H:i') }} h</td>
-                @else
-                <td colspan="2"></td>
-                @endif
-                @if($data['match']->hour_meeting)
-                <td class="label">Citación:</td>
-                <td class="value">{{ \Carbon\Carbon::parse($data['match']->hour_meeting)->format('H:i') }} h</td>
-                @else
-                <td colspan="2"></td>
-                @endif
-            </tr>
-            @endif
-            @if($data['match']->site)
-            <tr class="info-row">
-                <td class="label">Lugar:</td>
-                <td class="value" colspan="3">{{ $data['match']->site }}</td>
-            </tr>
-            @endif
-            @if($data['match']->observations)
-            <tr class="info-row">
-                <td class="label">Observaciones:</td>
-                <td class="value" colspan="3">{{ $data['match']->observations }}</td>
-            </tr>
-            @endif
-        </table>
+    <!-- INFORMACIÓN DEL PARTIDO -->
+    <div class="info-section">
+        <p><span class="info-label">RIVAL:</span> {{ strtoupper($data['match']->opponent) }}</p>
+        <p><span class="info-label">FECHA:</span> {{ strtoupper(\Carbon\Carbon::parse($data['match']->date)->locale('es')->isoFormat('dddd, D [de] MMMM, YYYY')) }}</p>
+        @if($data['match']->hour_match)
+        <p><span class="info-label">HORA DEL PARTIDO:</span> {{ \Carbon\Carbon::parse($data['match']->hour_match)->format('H:i') }} H</p>
+        @endif
+        @if($data['match']->hour_meeting)
+        <p><span class="info-label">HORA DE CITACIÓN:</span> {{ \Carbon\Carbon::parse($data['match']->hour_meeting)->format('H:i') }} H</p>
+        @endif
+        @if($data['match']->site)
+        <p><span class="info-label">LUGAR:</span> {{ strtoupper($data['match']->site) }}</p>
+        @endif
+        @if($data['match']->observations)
+        <p><span class="info-label">OBSERVACIONES:</span> {{ strtoupper($data['match']->observations) }}</p>
+        @endif
     </div>
     
-    <!-- PLAYERS HEADER -->
-    <div class="players-header">
-        <span class="players-title">Jugadores Convocados</span>
-        <span class="players-count">{{ count($data['calledPlayers']) }}</span>
-    </div>
+    <!-- TABLA DE JUGADORES -->
+    <div class="players-title">JUGADORES CONVOCADOS ({{ count($data['calledPlayers']) }})</div>
     
-    <!-- PLAYERS GRID (3 columnas) -->
-    <table>
-        @php
-            $chunks = $data['calledPlayers']->chunk(3);
-        @endphp
-        @foreach($chunks as $rowIndex => $playersRow)
-        <tr>
-            @foreach($playersRow as $colIndex => $player)
-            <td class="player-cell" valign="top">
-                <div class="player-box">
-                    <div class="photo-box">
-                        @if($player->player_photo)
-                            <img src="{{ public_path('storage/' . $player->player_photo) }}" alt="{{ $player->name }}">
-                        @else
-                            <div class="photo-placeholder">{{ substr($player->name, 0, 1) }}{{ substr($player->surname, 0, 1) }}</div>
-                        @endif
-                    </div>
-                    @if($player->shirt_number)
-                    <div class="number-badge">{{ $player->shirt_number }}</div>
-                    @endif
-                    @if($player->position)
-                    <p class="position-text">{{ strtoupper($player->position) }}</p>
-                    @endif
-                    <p class="name-text">{{ strtoupper($player->name) }}</p>
-                    <p class="name-text">{{ strtoupper($player->surname) }}</p>
-                </div>
-            </td>
+    <table class="players-table">
+        <thead>
+            <tr>
+                <th class="player-number">Nº</th>
+                <th class="player-name">NOMBRE DEL JUGADOR</th>
+                <th class="player-signature">FIRMA</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($data['calledPlayers'] as $index => $player)
+            <tr>
+                <td class="player-number">{{ $index + 1 }}</td>
+                <td class="player-name">{{ strtoupper($player->name) }} {{ strtoupper($player->surname) }}</td>
+                <td class="player-signature"></td>
+            </tr>
             @endforeach
-            @php
-                $remaining = 3 - count($playersRow);
-            @endphp
-            @for($i = 0; $i < $remaining; $i++)
-            <td class="player-cell"></td>
-            @endfor
-        </tr>
-        @endforeach
+        </tbody>
     </table>
     
     <!-- FOOTER -->
-    <div class="footer-box">
-        <p class="footer-text">
-            Esta convocatoria es de carácter privado y confidencial
-            @if(auth()->user()->sportsSchool) - {{ auth()->user()->sportsSchool->name }}@endif
-            - Temporada {{ $data['match']->season->season ?? '' }}
+    <div class="footer">
+        <p>
+            ESTA CONVOCATORIA ES DE CARÁCTER PRIVADO Y CONFIDENCIAL
+            @if(auth()->user()->sportsSchool) - {{ strtoupper(auth()->user()->sportsSchool->name) }}@endif
+            - TEMPORADA {{ strtoupper($data['match']->season->season ?? '') }}
         </p>
     </div>
 </body>

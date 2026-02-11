@@ -32,6 +32,9 @@ class SeasonMatch extends Model
         'football_type',
         'share_token',
         'share_expires_at',
+        'published',
+        'matchday',
+        'web_description',
         'created_user',
         'updated_user',
     ];
@@ -41,6 +44,8 @@ class SeasonMatch extends Model
         'hour_match' => 'datetime:H:i',
         'hour_meeting' => 'datetime:H:i',
         'lineup' => 'array',
+        'published' => 'boolean',
+        'matchday' => 'integer',
         'share_expires_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',

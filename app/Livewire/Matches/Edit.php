@@ -28,6 +28,9 @@ class Edit extends Component
     public $goals_oponent = '';
     public $escudo_team_oponent = '';
     public $sites = '';
+    public $published = false;
+    public $matchday = '';
+    public $web_description = '';
     public $newEscudoTeamOponent = null; // Temporary file upload
     
     // Convocatoria - dos columnas
@@ -87,6 +90,9 @@ class Edit extends Component
         'goals_oponent' => 'nullable|integer|min:0',
         'escudo_team_oponent' => 'nullable|string|max:255',
         'sites' => 'nullable|in:home,away',
+        'published' => 'boolean',
+        'matchday' => 'nullable|integer|min:1',
+        'web_description' => 'nullable|string',
         'newEscudoTeamOponent' => 'nullable|image|max:2048',
         'footballType' => 'required|in:7,8,11',
     ];
@@ -115,6 +121,9 @@ class Edit extends Component
         $this->formation = $match->formation ?? '';
         $this->lineup = $match->lineup ?? [];
         $this->footballType = $match->football_type ?? 11;
+        $this->published = $match->published ?? false;
+        $this->matchday = $match->matchday ?? '';
+        $this->web_description = $match->web_description ?? '';
         
         // Load called players with their reasons
         $calledPlayerIds = [];
@@ -443,6 +452,7 @@ class Edit extends Component
             // Store new file
             $escudoPath = $this->newEscudoTeamOponent->store('escudos', 'public');
         }
+       
 
         $this->match->update([
             'season_id' => $this->season_id,
@@ -461,6 +471,9 @@ class Edit extends Component
             'formation' => $this->formation ?: null,
             'lineup' => $this->lineup ?: null,
             'football_type' => $this->footballType,
+            'published' => $this->published,
+            'matchday' => $this->matchday ?: null,
+            'web_description' => $this->web_description ?: null,
             'updated_user' => auth()->user()->id,
         ]);
 
@@ -526,7 +539,7 @@ class Edit extends Component
         $match = SeasonMatch::findOrFail($this->match->id);
         
         $pdf = new PdfFile();
-        $pdf->file_name = 'convocatoria_' . $match->id;
+        $pdf->file_name = 'convocatoria_' . $match->opponent;
         $pdf->templates[0] = 'pdfs.match-convocatoria';
         
         // Get called players with full details

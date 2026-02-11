@@ -15,6 +15,29 @@
      "
      @input.window="hasUnsavedChanges = true"
      @change.window="hasUnsavedChanges = true">
+
+    <!-- Trix Editor CSS and JS -->
+    <link rel="stylesheet" href="https://unpkg.com/trix@2.0.8/dist/trix.css">
+    <script src="https://unpkg.com/trix@2.0.8/dist/trix.umd.min.js"></script>
+    
+    <style>
+        /* Personalizar el editor Trix */
+        trix-editor {
+            border: 1px solid #d1d5db;
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            min-height: 150px;
+            font-size: 0.875rem;
+        }
+        trix-editor:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+        trix-toolbar {
+            border-radius: 0.75rem 0.75rem 0 0;
+        }
+    </style>
      
     <!-- Alerta emergente temporal (se auto-oculta) -->
     <div x-show="showWarning" 
@@ -81,7 +104,7 @@
     <div class="space-y-6 bg-white-pure rounded-2xl shadow-xl border border-primary/10 overflow-hidden p-3 sm:p-6">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-gray-100 pb-4">
             <div class="flex items-center gap-2 overflow-hidden">
-                <a href="{{ route('matches.index') }}" class="font-bold text-lg sm:text-2xl text-primary hover:text-night-blue transition-colors leading-tight whitespace-nowrap">
+                <a href="" class="font-bold text-lg sm:text-2xl text-primary hover:text-night-blue transition-colors leading-tight whitespace-nowrap">
                     {{ __('Partidos') }}
                 </a>
                 <span class="text-lg sm:text-2xl text-gray-400 font-bold">/</span>
@@ -102,19 +125,19 @@
                     <svg class="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
                     </svg>
-                    <span class="hidden sm:inline">Compartir</span>
+                    <span class="hidden sm:inline">Compartir convocatoria</span>
                 </button>
                 <button wire:click="printPDF" type="button" class="inline-flex items-center px-3 py-2 sm:px-4 bg-green-600 text-white rounded-xl font-semibold text-xs sm:text-sm hover:bg-green-700 transition-colors whitespace-nowrap">
                     <svg class="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                     </svg>
-                    <span class="hidden sm:inline">Imprimir PDF</span>
+                    <span class="hidden sm:inline">Imprimir convocatoria</span>
                 </button>
                 <a href="{{ route('matches.index') }}" class="inline-flex items-center px-3 py-2 sm:px-4 bg-silver/30 text-titanium rounded-xl font-semibold text-xs sm:text-sm hover:bg-silver/50 transition-colors whitespace-nowrap">
                     <svg class="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
-                    <span class="hidden sm:inline">Cancelar</span>
+                    <span class="hidden sm:inline">Salir</span>
                 </a>
                 <button type="submit" form="match-form" wire:loading.attr="disabled" wire:target="update" class="inline-flex items-center px-3 py-2 sm:px-4 rounded-xl text-white font-semibold text-xs sm:text-sm shadow-lg hover:shadow-xl transition-all bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed whitespace-nowrap">
                     <svg wire:loading.remove wire:target="update" class="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -179,20 +202,8 @@
                         Datos del Partido
                     </h3>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div class="form-group">
-                            <label class="block text-sm font-semibold text-titanium mb-2">Temporada *</label>
-                            <select wire:model.live="season_id" 
-                                class="block w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                                <option value="">Selecciona temporada</option>
-                                @foreach($seasons as $season)
-                                    <option value="{{ $season->id }}">{{ $season->season }}</option>
-                                @endforeach
-                            </select>
-                            @error('season_id') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div class="form-group">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-12 gap-4">
+                        <div class="form-group md:col-span-2 lg:col-span-2">
                             <label class="block text-sm font-semibold text-titanium mb-2">Equipo *</label>
                             <select wire:model.live="team_id" 
                                 class="block w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
@@ -204,7 +215,7 @@
                             @error('team_id') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
 
-                        <div class="form-group">
+                        <div class="form-group md:col-span-1 lg:col-span-2">
                             <label class="block text-sm font-semibold text-titanium mb-2">Rival *</label>
                             <input wire:model="opponent" type="text" 
                                 class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
@@ -212,7 +223,28 @@
                             @error('opponent') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
 
-                        <div class="form-group">
+                        <div class="form-group sm:col-span-2 md:col-span-3 lg:col-span-2">
+                            <label class="block text-sm font-semibold text-titanium mb-2">Escudo del Rival</label>
+                            <div class="flex items-start gap-2">
+                                <div class="flex-1">
+                                    <input wire:model="newEscudoTeamOponent" type="file" accept="image/*"
+                                        class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                                    @error('newEscudoTeamOponent') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                </div>
+                                @if($escudo_team_oponent)
+                                    <div class="flex-shrink-0">
+                                        <img src="{{ asset('storage/' . $escudo_team_oponent) }}" alt="Escudo" class="w-10 h-10 object-contain border border-gray-200 rounded p-1">
+                                    </div>
+                                @endif
+                                @if($newEscudoTeamOponent)
+                                    <div class="flex-shrink-0">
+                                        <img src="{{ $newEscudoTeamOponent->temporaryUrl() }}" alt="Nuevo" class="w-10 h-10 object-contain border border-green-500 rounded p-1">
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="form-group md:col-span-1 lg:col-span-2">
                             <label class="block text-sm font-semibold text-titanium mb-2">Fecha *</label>
                             <input wire:model="date" type="date" 
                                 class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
@@ -220,99 +252,131 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="block text-sm font-semibold text-titanium mb-2">Hora del Partido</label>
+                            <label class="block text-sm font-semibold text-titanium mb-2">Hora Partido</label>
                             <input wire:model="hour_match" type="time" 
                                 class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
                             @error('hour_match') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="form-group">
-                            <label class="block text-sm font-semibold text-titanium mb-2">Hora de Citación</label>
+                            <label class="block text-sm font-semibold text-titanium mb-2">Hora Citación</label>
                             <input wire:model="hour_meeting" type="time" 
                                 class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
                             @error('hour_meeting') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
 
-                        <div class="form-group md:col-span-2">
+                        <div class="form-group sm:col-span-2 md:col-span-2 lg:col-span-2">
                             <label class="block text-sm font-semibold text-titanium mb-2">Lugar</label>
                             <input wire:model="site" type="text" 
                                 class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
                                 placeholder="Ej: Estadio Municipal">
                             @error('site') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
+                    </div>
 
-                        <div class="form-group lg:col-span-3">
-                            <label class="block text-sm font-semibold text-titanium mb-2">Observaciones</label>
-                            <textarea wire:model="observations" rows="3"
-                                class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
-                                placeholder="Observaciones generales del partido"></textarea>
-                            @error('observations') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div class="form-group lg:col-span-3">
-                            <label class="block text-sm font-semibold text-titanium mb-2">Descripción y Estadísticas del Partido</label>
-                            <textarea wire:model="match_description" rows="5"
-                                class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
-                                placeholder="Descripción detallada del desarrollo del partido, estadísticas, jugadas destacadas, etc."></textarea>
-                            @error('match_description') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                        </div>
-
+                    <!-- Resultado del Partido y Publicación Web en la misma fila -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
                         <!-- Resultado del Partido -->
-                        <div class="form-group lg:col-span-3">
+                        <div>
                             <h4 class="text-md font-semibold text-titanium mb-3 pb-2 border-b border-silver/30">Resultado del Partido</h4>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="block text-sm font-semibold text-titanium mb-2">Goles Propios</label>
-                            <input wire:model="goals_team" type="number" min="0"
-                                class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
-                                placeholder="0">
-                            @error('goals_team') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div class="form-group">
-                            <label class="block text-sm font-semibold text-titanium mb-2">Goles Rival</label>
-                            <input wire:model="goals_oponent" type="number" min="0"
-                                class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
-                                placeholder="0">
-                            @error('goals_oponent') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div class="form-group">
-                            <label class="block text-sm font-semibold text-titanium mb-2">Local / Visitante</label>
-                            <select wire:model="sites"
-                                class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                                <option value="">Selecciona</option>
-                                <option value="home">Local (Casa)</option>
-                                <option value="away">Visitante (Fuera)</option>
-                            </select>
-                            @error('sites') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div class="form-group lg:col-span-3">
-                            <label class="block text-sm font-semibold text-titanium mb-2">Escudo del Equipo Rival</label>
-                            <div class="flex items-start gap-4">
-                                <div class="flex-1">
-                                    <input wire:model="newEscudoTeamOponent" type="file" accept="image/*"
-                                        class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                                    @error('newEscudoTeamOponent') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                                    <p class="text-xs text-gray-500 mt-1">Formatos: JPG, PNG. Máximo 2MB</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div class="form-group">
+                                    <label class="block text-sm font-semibold text-titanium mb-2">Goles Propios</label>
+                                    <input wire:model="goals_team" type="number" min="0"
+                                        class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
+                                        placeholder="0">
+                                    @error('goals_team') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                                 </div>
-                                @if($escudo_team_oponent)
-                                    <div class="flex-shrink-0">
-                                        <img src="{{ asset('storage/' . $escudo_team_oponent) }}" alt="Escudo actual" class="w-16 h-16 object-contain border border-gray-200 rounded-lg p-1">
-                                        <p class="text-xs text-gray-500 text-center mt-1">Actual</p>
+
+                                <div class="form-group">
+                                    <label class="block text-sm font-semibold text-titanium mb-2">Goles Rival</label>
+                                    <input wire:model="goals_oponent" type="number" min="0"
+                                        class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
+                                        placeholder="0">
+                                    @error('goals_oponent') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="block text-sm font-semibold text-titanium mb-2">Local / Visitante</label>
+                                    <select wire:model="sites"
+                                        class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                                        <option value="">Selecciona</option>
+                                        <option value="home">Local (Casa)</option>
+                                        <option value="away">Visitante (Fuera)</option>
+                                    </select>
+                                    @error('sites') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                            <!-- Observaciones y Descripción -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                                <div class="form-group">
+                                    <label class="block text-sm font-semibold text-titanium mb-2">Observaciones </label>
+                                    <textarea wire:model="observations" rows="5"
+                                        class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
+                                        placeholder="Observaciones generales del partido"></textarea>
+                                    @error('observations') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="block text-sm font-semibold text-titanium mb-2">Nota interno entrenador</label>
+                                    <textarea wire:model="match_description" rows="5"
+                                        class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
+                                        placeholder="Descripción detallada del desarrollo del partido, estadísticas, jugadas destacadas, etc."></textarea>
+                                    @error('match_description') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Publicación Web -->
+                        <div class="bg-blue-50/30 rounded-xl p-4 border border-blue-100">
+                            <h4 class="text-md font-semibold text-titanium mb-3 pb-2 border-b border-blue-200">Publicación Web</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="form-group">
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input wire:model="published" type="checkbox" 
+                                            class="w-5 h-5 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
+                                        <span class="text-sm font-semibold text-titanium">Publicar en Web</span>
+                                    </label>
+                                    <p class="text-xs text-gray-500 mt-1">Marcar para que sea visible en la web pública</p>
+                                    @error('published') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="block text-sm font-semibold text-titanium mb-2">Jornada</label>
+                                    <input wire:model="matchday" type="number" min="1"
+                                        class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
+                                        placeholder="Ej: 1">
+                                    @error('matchday') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div class="form-group sm:col-span-2">
+                                    <label class="block text-sm font-semibold text-titanium mb-2">Descripción Web</label>
+                                    <div wire:ignore>
+                                        <input id="trix-web-description-{{ $match->id }}" 
+                                               type="hidden" 
+                                               value="{{ $web_description }}">
+                                        <trix-editor 
+                                            input="trix-web-description-{{ $match->id }}" 
+                                            placeholder="Descripción del partido para mostrar en la web pública. Puedes dar formato al texto usando la barra de herramientas."
+                                            class="text-black-deep"
+                                            x-data
+                                            x-init="
+                                                let trixEditor = $el;
+                                                let hiddenInput = document.getElementById('trix-web-description-{{ $match->id }}');
+                                                
+                                                trixEditor.addEventListener('trix-change', function(e) {
+                                                    @this.set('web_description', hiddenInput.value);
+                                                });
+                                            "></trix-editor>
                                     </div>
-                                @endif
-                                @if($newEscudoTeamOponent)
-                                    <div class="flex-shrink-0">
-                                        <img src="{{ $newEscudoTeamOponent->temporaryUrl() }}" alt="Nueva imagen" class="w-16 h-16 object-contain border border-green-500 rounded-lg p-1">
-                                        <p class="text-xs text-green-600 text-center mt-1">Nueva</p>
-                                    </div>
-                                @endif
+                                    <p class="text-xs text-gray-500 mt-1">Usa la barra de herramientas para dar formato: negrita, cursiva, listas, enlaces, etc.</p>
+                                    @error('web_description') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                </div>
                             </div>
                         </div>
                     </div>
+
+                    
                 </div>
 
                 <!-- Convocatoria - Dos Columnas -->
@@ -591,74 +655,77 @@
                     </div>
 
                     @if($formation && isset($availableFormations[$footballType][$formation]))
-                        <!-- Campo de Fútbol -->
-                        <div class="relative bg-gradient-to-b from-green-600 to-green-700 rounded-2xl p-6 shadow-2xl overflow-visible" style="min-height: 700px;">
+                        <!-- Contenedor Campo + Banquillo -->
+                        <div class="flex flex-col lg:flex-row gap-4 lg:gap-6">
+                            <!-- Campo de Fútbol (80% en desktop) -->
+                            <div class="w-full lg:w-4/5">
+                                <div class="relative bg-gradient-to-b from-green-600 to-green-700 rounded-2xl p-3 sm:p-4 md:p-6 shadow-2xl overflow-visible" style="min-height: 500px;">
                             <!-- Líneas del campo -->
-                            <div class="absolute inset-6 border-4 border-white/30 rounded-xl">
+                            <div class="absolute inset-3 sm:inset-4 md:inset-6 border-2 sm:border-3 md:border-4 border-white/30 rounded-xl">
                                 <!-- Línea central -->
                                 <div class="absolute top-0 left-1/2 w-0.5 h-full bg-white/30 -translate-x-1/2"></div>
                                 <!-- Círculo central -->
-                                <div class="absolute top-1/2 left-1/2 w-24 h-24 border-4 border-white/30 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
-                                <div class="absolute top-1/2 left-1/2 w-2 h-2 bg-white rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+                                <div class="absolute top-1/2 left-1/2 w-12 h-12 sm:w-16 sm:h-16 md:w-24 md:h-24 border-2 sm:border-3 md:border-4 border-white/30 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+                                <div class="absolute top-1/2 left-1/2 w-1 h-1 sm:w-1.5 sm:h-1.5 md:w-2 md:h-2 bg-white rounded-full -translate-x-1/2 -translate-y-1/2"></div>
                                 
                                 <!-- Áreas -->
-                                <div class="absolute top-0 left-1/2 w-48 h-20 border-4 border-white/30 border-t-0 -translate-x-1/2"></div>
-                                <div class="absolute bottom-0 left-1/2 w-48 h-20 border-4 border-white/30 border-b-0 -translate-x-1/2"></div>
+                                <div class="absolute top-0 left-1/2 w-24 sm:w-32 md:w-48 h-10 sm:h-14 md:h-20 border-2 sm:border-3 md:border-4 border-white/30 border-t-0 -translate-x-1/2"></div>
+                                <div class="absolute bottom-0 left-1/2 w-24 sm:w-32 md:w-48 h-10 sm:h-14 md:h-20 border-2 sm:border-3 md:border-4 border-white/30 border-b-0 -translate-x-1/2"></div>
                             </div>
 
                             <!-- Jugadores por líneas -->
-                            <div class="relative h-full flex flex-col justify-between py-12 px-8" style="min-height: 650px;">
+                            <div class="relative h-full flex flex-col justify-between py-6 px-2 sm:py-8 sm:px-4 md:py-12 md:px-8" style="min-height: 450px;">
                                 @php
                                     $lines = $availableFormations[$footballType][$formation]['lines'];
                                     $lineCount = count($lines);
                                 @endphp
 
                                 @foreach($lines as $lineIndex => $playersInLine)
-                                    <div class="flex justify-center items-center gap-4" style="flex: 1;">
+                                    <div class="flex justify-center items-center gap-1 sm:gap-2 md:gap-4" style="flex: 1;">
                                         @for($positionIndex = 0; $positionIndex < $playersInLine; $positionIndex++)
                                             @php
                                                 $playerId = $lineup[$lineIndex][$positionIndex] ?? null;
                                                 $player = $playerId ? $calledPlayersData->firstWhere('id', $playerId) : null;
                                             @endphp
                                             
-                                            <div class="relative group" style="flex: 1; max-width: 140px;">
+                                            <div class="relative group w-full max-w-[60px] sm:max-w-[90px] md:max-w-[110px] lg:max-w-[140px]">
                                                 @if($player)
                                                     <!-- Jugador asignado -->
                                                     <div class="relative">
-                                                        <div class="w-24 h-24 mx-auto bg-white rounded-full shadow-2xl border-4 border-blue-500 overflow-hidden transition-all group-hover:scale-110 cursor-pointer">
+                                                        <div class="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 mx-auto bg-white rounded-full shadow-2xl border-2 sm:border-3 md:border-4 border-blue-500 overflow-hidden transition-all group-hover:scale-110 cursor-pointer">
                                                             @if($player->player_photo)
                                                                 <img src="{{ asset('storage/' . $player->player_photo) }}" alt="{{ $player->name }}" class="w-full h-full object-cover">
                                                             @else
                                                                 <div class="w-full h-full flex items-center justify-center bg-blue-100">
-                                                                    <span class="text-blue-600 font-bold text-2xl">{{ substr($player->name, 0, 1) }}{{ substr($player->surname, 0, 1) }}</span>
+                                                                    <span class="text-blue-600 font-bold text-xs sm:text-sm md:text-lg lg:text-2xl">{{ substr($player->name, 0, 1) }}{{ substr($player->surname, 0, 1) }}</span>
                                                                 </div>
                                                             @endif
                                                         </div>
                                                         <div class="mt-2 text-center">
-                                                            <p class="text-white text-sm font-bold drop-shadow-lg line-clamp-1">{{ $player->surname }}</p>
+                                                            <p class="text-white text-[10px] sm:text-xs md:text-sm font-bold drop-shadow-lg line-clamp-1">{{ $player->name }} {{ $player->surname }}</p>
                                                             @if($player->position)
-                                                                <p class="text-white/80 text-xs drop-shadow">{{ $player->position }}</p>
+                                                                <p class="text-white/80 text-[8px] sm:text-[10px] md:text-xs drop-shadow hidden sm:block">{{ $player->position }}</p>
                                                             @endif
                                                             
                                                             <!-- Tarjetas en alineación -->
                                                             @if($player->pivot->card_yellow1 || $player->pivot->card_yellow2 || $player->pivot->card_red)
-                                                                <div class="flex justify-center gap-1 mt-1">
+                                                                <div class="flex justify-center gap-0.5 sm:gap-1 mt-1">
                                                                     @if($player->pivot->card_yellow1)
-                                                                        <div class="w-3 h-4 bg-yellow-400 rounded-sm shadow-md border border-yellow-500"></div>
+                                                                        <div class="w-2 h-2.5 sm:w-2.5 sm:h-3 md:w-3 md:h-4 bg-yellow-400 rounded-sm shadow-md border border-yellow-500"></div>
                                                                     @endif
                                                                     @if($player->pivot->card_yellow2)
-                                                                        <div class="w-3 h-4 bg-yellow-400 rounded-sm shadow-md border border-yellow-500"></div>
+                                                                        <div class="w-2 h-2.5 sm:w-2.5 sm:h-3 md:w-3 md:h-4 bg-yellow-400 rounded-sm shadow-md border border-yellow-500"></div>
                                                                     @endif
                                                                     @if($player->pivot->card_red)
-                                                                        <div class="w-3 h-4 bg-red-600 rounded-sm shadow-md border border-red-700"></div>
+                                                                        <div class="w-2 h-2.5 sm:w-2.5 sm:h-3 md:w-3 md:h-4 bg-red-600 rounded-sm shadow-md border border-red-700"></div>
                                                                     @endif
                                                                 </div>
                                                             @endif
                                                         </div>
                                                         <!-- Botón eliminar -->
                                                         <button type="button" wire:click="removeFromLineup({{ $player->id }})"
-                                                            class="absolute top-0 right-2 w-7 h-7 bg-red-500 hover:bg-red-600 rounded-full text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            class="absolute -top-1 -right-1 sm:top-0 sm:right-2 w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 bg-red-500 hover:bg-red-600 rounded-full text-white shadow-lg opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                                             </svg>
                                                         </button>
@@ -669,12 +736,12 @@
                                                         <button type="button" 
                                                             x-ref="button"
                                                             @click="open = !open" @click.away="open = false"
-                                                            class="w-24 h-24 mx-auto bg-white/20 border-4 border-white/50 border-dashed rounded-full shadow-lg hover:bg-white/30 hover:border-white transition-all flex items-center justify-center cursor-pointer">
-                                                            <svg class="w-12 h-12 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            class="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 mx-auto bg-white/20 border-2 sm:border-3 md:border-4 border-white/50 border-dashed rounded-full shadow-lg hover:bg-white/30 hover:border-white transition-all flex items-center justify-center cursor-pointer">
+                                                            <svg class="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                                                             </svg>
                                                         </button>
-                                                        <p class="text-white/60 text-sm text-center mt-2">Posición {{ $positionIndex + 1 }}</p>
+                                                        <p class="text-white/60 text-[10px] sm:text-xs md:text-sm text-center mt-1 sm:mt-2">Pos {{ $positionIndex + 1 }}</p>
                                                         
                                                         <!-- Dropdown de jugadores -->
                                                         <div x-show="open" 
@@ -682,7 +749,7 @@
                                                              x-transition:enter-start="opacity-0 scale-95"
                                                              x-transition:enter-end="opacity-100 scale-100"
                                                              x-anchor.bottom-start="$refs.button"
-                                                             class="fixed z-[9999] w-64 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden"
+                                                             class="fixed z-[9999] w-56 sm:w-64 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden"
                                                              style="max-height: 320px;">
                                                             <div class="p-2">
                                                                 <p class="text-xs font-semibold text-gray-500 px-2 py-1">Selecciona un jugador:</p>
@@ -756,15 +823,83 @@
                                     Jugadores en el campo: {{ $totalInLineup }} / {{ $footballType }}
                                 </p>
                             </div>
+                                </div>
+
+                                @if($totalInLineup < $footballType)
+                                    <div class="mt-4 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+                                        <p class="text-yellow-700 text-sm">Faltan {{ $footballType - $totalInLineup }} jugadores por añadir a la alineación</p>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <!-- Banquillo (20% en desktop) -->
+                            @php
+                                $benchPlayers = [];
+                                $lineupPlayerIds = [];
+                                foreach($lineup as $positions) {
+                                    foreach($positions as $playerId) {
+                                        $lineupPlayerIds[] = $playerId;
+                                    }
+                                }
+                                foreach($calledPlayersData as $player) {
+                                    if(!in_array($player->id, $lineupPlayerIds)) {
+                                        $benchPlayers[] = $player;
+                                    }
+                                }
+                            @endphp
+
+                            @if(count($benchPlayers) > 0)
+                            <div class="hidden lg:block w-full lg:w-1/5">
+                                <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-4 shadow-lg h-full">
+                                    <h4 class="text-base font-semibold text-titanium flex items-center border-b border-silver/30 pb-2 mb-4">
+                                        <svg class="w-4 h-4 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                        </svg>
+                                        <span class="text-sm">Banquillo ({{ count($benchPlayers) }})</span>
+                                    </h4>
+                                    
+                                    <div class="grid grid-cols-2 gap-2 overflow-y-auto" style="max-height: 600px;">
+                                        @foreach($benchPlayers as $player)
+                                            <div class="flex flex-col items-center group bg-white rounded-xl p-2 shadow-sm hover:shadow-md transition-all">
+                                                <div class="w-12 h-12 bg-white rounded-full shadow-lg border-2 border-gray-400 overflow-hidden transition-all group-hover:scale-110 cursor-pointer mb-1">
+                                                    @if($player->player_photo)
+                                                        <img src="{{ asset('storage/' . $player->player_photo) }}" alt="{{ $player->name }}" class="w-full h-full object-cover">
+                                                    @else
+                                                        <div class="w-full h-full flex items-center justify-center bg-gray-100">
+                                                            <span class="text-gray-600 font-bold text-xs">{{ substr($player->name, 0, 1) }}{{ substr($player->surname, 0, 1) }}</span>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                                <div class="text-center w-full">
+                                                    <p class="text-titanium text-[10px] font-bold line-clamp-2 leading-tight">{{ $player->name }} {{ $player->surname }}</p>
+                                                    @if($player->position)
+                                                        <p class="text-gray-500 text-[8px] mt-0.5">{{ $player->position }}</p>
+                                                    @endif
+                                                    
+                                                    <!-- Tarjetas en banquillo -->
+                                                    @if($player->pivot->card_yellow1 || $player->pivot->card_yellow2 || $player->pivot->card_red)
+                                                        <div class="flex justify-center gap-0.5 mt-0.5">
+                                                            @if($player->pivot->card_yellow1)
+                                                                <div class="w-1.5 h-2 bg-yellow-400 rounded-sm shadow-sm border border-yellow-500"></div>
+                                                            @endif
+                                                            @if($player->pivot->card_yellow2)
+                                                                <div class="w-1.5 h-2 bg-yellow-400 rounded-sm shadow-sm border border-yellow-500"></div>
+                                                            @endif
+                                                            @if($player->pivot->card_red)
+                                                                <div class="w-1.5 h-2 bg-red-600 rounded-sm shadow-sm border border-red-700"></div>
+                                                            @endif
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
                         </div>
 
-                        @if($totalInLineup < $footballType)
-                            <div class="mt-4 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
-                                <p class="text-yellow-700 text-sm">Faltan {{ $footballType - $totalInLineup }} jugadores por añadir a la alineación</p>
-                            </div>
-                        @endif
-
-                        <!-- Banquillo -->
+                        <!-- Banquillo versión móvil (oculto en desktop) -->
                         @php
                             $benchPlayers = [];
                             $lineupPlayerIds = [];
@@ -781,7 +916,7 @@
                         @endphp
 
                         @if(count($benchPlayers) > 0)
-                        <div class="mt-8">
+                        <div class="mt-8 lg:hidden">
                             <h4 class="text-lg font-semibold text-titanium flex items-center border-b border-silver/30 pb-3 mb-6">
                                 <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
@@ -803,7 +938,7 @@
                                                 @endif
                                             </div>
                                             <div class="mt-2 text-center">
-                                                <p class="text-titanium text-sm font-bold line-clamp-1 max-w-[100px]">{{ $player->surname }}</p>
+                                                <p class="text-titanium text-sm font-bold line-clamp-1 max-w-[100px]">{{ $player->name }} {{ $player->surname }}</p>
                                                 @if($player->position)
                                                     <p class="text-gray-500 text-xs">{{ $player->position }}</p>
                                                 @endif
