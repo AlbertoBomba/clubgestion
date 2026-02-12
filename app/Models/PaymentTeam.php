@@ -32,7 +32,7 @@ class PaymentTeam extends Model
         'price' => 'decimal:2',
     ];
 
-    // Relationships
+    // Relaciones
     public function team()
     {
         return $this->belongsTo(Team::class);

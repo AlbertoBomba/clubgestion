@@ -185,7 +185,7 @@ class Create extends Component
             ]);
         }
 
-        // Sync sections
+        // Sincronizar secciones
         if (!empty($this->selectedSections)) {
             $player->sections()->attach($this->selectedSections, [
                 'created_user' => auth()->id(),

@@ -29,6 +29,7 @@ class Edit extends Component
     public $gender = 'mixto';
     public $price = null;
     public $federate = false;
+    public $published = false;
     public $hasChanges = false;
     
     // Gestión de jugadores
@@ -106,6 +107,7 @@ class Edit extends Component
     private $originalGender;
     private $originalPrice;
     private $originalFederate;
+    private $originalPublished;
     private $originalCategoryId;
     private $originalSeasonId;
     private $originalSectionId;
@@ -118,6 +120,7 @@ class Edit extends Component
             'description' => 'nullable|string|max:255',
             'price' => 'nullable|numeric|min:0',
             'federate' => 'boolean',
+            'published' => 'boolean',
             'category_id' => 'required|exists:categories,id',
             'season_id' => 'required|exists:seasons,id',
             'section_id' => 'required|exists:sections,id',
@@ -142,6 +145,7 @@ class Edit extends Component
         $this->gender = $team->gender;
         $this->price = $team->price;
         $this->federate = $team->federate;
+        $this->published = $team->published;
         
         // Cargar entrenadores actuales del equipo
         $this->selectedCoaches = $team->coaches->pluck('id')->toArray();
@@ -152,6 +156,7 @@ class Edit extends Component
         $this->originalGender = $this->gender;
         $this->originalPrice = $this->price;
         $this->originalFederate = $this->federate;
+        $this->originalPublished = $this->published;
         $this->originalCategoryId = $this->category_id;
         $this->originalSeasonId = $this->season_id;
         $this->originalSectionId = $this->section_id;
@@ -224,6 +229,7 @@ class Edit extends Component
             $this->gender !== $this->originalGender ||
             $this->price !== $this->originalPrice ||
             $this->federate !== $this->originalFederate ||
+            $this->published !== $this->originalPublished ||
             $this->category_id !== $this->originalCategoryId ||
             $this->season_id !== $this->originalSeasonId ||
             $this->section_id !== $this->originalSectionId;
@@ -239,6 +245,7 @@ class Edit extends Component
             'gender' => $this->gender,
             'price' => $this->price,
             'federate' => $this->federate,
+            'published' => $this->published,
             'category_id' => $this->category_id,
             'season_id' => $this->season_id,
             'section_id' => $this->section_id,
@@ -268,6 +275,7 @@ class Edit extends Component
         $this->originalGender = $this->gender;
         $this->originalPrice = $this->price;
         $this->originalFederate = $this->federate;
+        $this->originalPublished = $this->published;
         $this->originalCategoryId = $this->category_id;
         $this->originalSeasonId = $this->season_id;
         $this->originalSectionId = $this->section_id;

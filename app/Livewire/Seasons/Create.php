@@ -19,7 +19,7 @@ class Create extends Component
 
     public function mount()
     {
-        // Set default end_date to June 30 of next year
+        // Establecer end_date predeterminada al 30 de junio del próximo año
         $this->end_date = now()->addYear()->month(6)->day(30)->format('Y-m-d');
     }
 

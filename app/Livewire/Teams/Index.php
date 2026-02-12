@@ -57,7 +57,7 @@ class Index extends Component
 
     public function mount()
     {
-        // Check if there's a team to highlight from session
+        // Verificar si hay un equipo para resaltar desde la sesión
         if (session()->has('highlightTeam')) {
             $this->highlightTeam = session('highlightTeam');
         }
@@ -118,9 +118,9 @@ class Index extends Component
 
     public function updatedPrice($value)
     {
-        // Handle different decimal separator formats
+        // Manejar diferentes formatos de separador decimal
         if ($value) {
-            // Remove spaces
+            // Eliminar espacios
             $cleanValue = str_replace(' ', '', $value);
             
             // Detect format: if there's both dot and comma, determine which is decimal separator

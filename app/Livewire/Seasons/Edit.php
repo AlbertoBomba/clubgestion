@@ -153,7 +153,7 @@ class Edit extends Component
             'updated_user' => auth()->id(),
         ]);
 
-        // Sync sections with prices
+        // Sincronizar secciones con precios
         $syncData = [];
         foreach ($this->selectedSections as $sectionId) {
             $price = $this->sectionPrices[$sectionId] ?? 0;

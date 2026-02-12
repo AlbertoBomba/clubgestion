@@ -41,7 +41,7 @@ class Create extends Component
 
     public function mount()
     {
-        // Set default season to active season
+        // Establecer temporada predeterminada a temporada activa
         $activeSeason = Season::where('sports_school_id', auth()->user()->sports_school_id)
             ->where('start_date', '<=', now())
             ->where('end_date', '>=', now())

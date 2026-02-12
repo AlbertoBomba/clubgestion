@@ -35,6 +35,7 @@ class SeasonMatch extends Model
         'published',
         'matchday',
         'web_description',
+        'match_images',
         'created_user',
         'updated_user',
     ];
@@ -44,6 +45,7 @@ class SeasonMatch extends Model
         'hour_match' => 'datetime:H:i',
         'hour_meeting' => 'datetime:H:i',
         'lineup' => 'array',
+        'match_images' => 'array',
         'published' => 'boolean',
         'matchday' => 'integer',
         'share_expires_at' => 'datetime',
@@ -52,7 +54,7 @@ class SeasonMatch extends Model
         'deleted_at' => 'datetime',
     ];
 
-    // Relationships
+    // Relaciones
     public function season()
     {
         return $this->belongsTo(Season::class);
@@ -92,7 +94,7 @@ class SeasonMatch extends Model
         return $this->belongsTo(User::class, 'updated_user');
     }
 
-    // Generate unique share token
+    // Generar token único para compartir
     public function generateShareToken()
     {
         do {
@@ -106,7 +108,7 @@ class SeasonMatch extends Model
         return $token;
     }
 
-    // Check if share token is expired
+    // Verificar si el token para compartir ha expirado
     public function isShareTokenExpired()
     {
         if (!$this->share_token || !$this->share_expires_at) {
@@ -116,7 +118,7 @@ class SeasonMatch extends Model
         return now()->greaterThan($this->share_expires_at);
     }
 
-    // Get public URL
+    // Obtener URL pública
     public function getPublicUrl()
     {
         if (!$this->share_token) {

@@ -21,6 +21,7 @@ class SportsSchool extends Model
         'postal_code',
         'phone',
         'email',
+        'domain',
         'contact_person',
         'logo',
         'is_active',

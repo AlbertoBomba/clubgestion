@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario de Partidos - Tu Club</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📅 Calendario de Partidos</h1>
+        
+        <!-- ========================================
+             PASO 1: CONFIGURAR URL DEL PORTAL
+             ======================================== 
+             IMPORTANTE: Reemplaza 'https://tu-portal.com' con la URL real
+             de tu servidor portal donde está alojada la API
+        -->
+        <script>
+            window.CLUB_PORTAL_API_URL = 'https://vaed.es';
+        </script>
+        
+        <!-- ========================================
+             PASO 2: CONTENEDOR DEL WIDGET
+             ======================================== 
+             Aquí se renderizarán los partidos automáticamente
+             
+             Opciones disponibles (data-*):
+             - data-limit: Número de partidos a mostrar (default: 10)
+             - data-team-id: ID de equipo específico (opcional)
+             - data-upcoming: "true" para solo partidos futuros (opcional)
+             - data-past: "true" para solo partidos pasados (opcional)
+             - data-show-team-filter: "false" para ocultar filtro (default: true)
+             - data-show-logo: "false" para ocultar logo (default: true)
+        -->
+        <div id="club-matches" 
+             data-limit="10"
+             data-show-team-filter="true"
+             data-show-logo="true">
+        </div>
+        
+        <!-- ========================================
+             PASO 3: CARGAR EL WIDGET
+             ======================================== 
+             IMPORTANTE: Usa la misma URL del portal configurada arriba
+        -->
+        <script src="https://vaed.es/widget/matches.js"></script>
+    </div>
+</body>
+</html>

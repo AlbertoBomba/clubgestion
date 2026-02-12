@@ -29,7 +29,7 @@ class InscriptionTeam extends Model
         'price' => 'decimal:2',
     ];
 
-    // Relationships
+    // Relaciones
     public function season()
     {
         return $this->belongsTo(Season::class);

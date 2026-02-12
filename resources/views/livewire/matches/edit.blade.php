@@ -215,6 +215,14 @@
                             @error('team_id') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
 
+                        <div class="form-group max-w-[100px]">
+                            <label class="block text-sm font-semibold text-titanium mb-2">Jornada</label>
+                            <input wire:model="matchday" type="number" min="1"
+                                class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
+                                placeholder="Ej: 1">
+                            @error('matchday') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                        </div>
+
                         <div class="form-group md:col-span-1 lg:col-span-2">
                             <label class="block text-sm font-semibold text-titanium mb-2">Rival *</label>
                             <input wire:model="opponent" type="text" 
@@ -244,7 +252,7 @@
                             </div>
                         </div>
 
-                        <div class="form-group md:col-span-1 lg:col-span-2">
+                        <div class="form-group">
                             <label class="block text-sm font-semibold text-titanium mb-2">Fecha *</label>
                             <input wire:model="date" type="date" 
                                 class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
@@ -274,12 +282,12 @@
                         </div>
                     </div>
 
-                    <!-- Resultado del Partido y Publicación Web en la misma fila -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                    <!-- Resultado del Partido, Observaciones y Nota Interna en la misma fila -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
                         <!-- Resultado del Partido -->
-                        <div>
-                            <h4 class="text-md font-semibold text-titanium mb-3 pb-2 border-b border-silver/30">Resultado del Partido</h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-gray-50/50 rounded-xl p-4 border border-gray-200">
+                            <h4 class="text-md font-semibold text-titanium mb-3 pb-2 border-b border-gray-300">Resultado del Partido</h4>
+                            <div class="grid grid-cols-1 gap-4">
                                 <div class="form-group">
                                     <label class="block text-sm font-semibold text-titanium mb-2">Goles Propios</label>
                                     <input wire:model="goals_team" type="number" min="0"
@@ -307,76 +315,150 @@
                                     @error('sites') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                                 </div>
                             </div>
-                            <!-- Observaciones y Descripción -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                                <div class="form-group">
-                                    <label class="block text-sm font-semibold text-titanium mb-2">Observaciones </label>
-                                    <textarea wire:model="observations" rows="5"
-                                        class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
-                                        placeholder="Observaciones generales del partido"></textarea>
-                                    @error('observations') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                                </div>
+                        </div>
 
-                                <div class="form-group">
-                                    <label class="block text-sm font-semibold text-titanium mb-2">Nota interno entrenador</label>
-                                    <textarea wire:model="match_description" rows="5"
-                                        class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
-                                        placeholder="Descripción detallada del desarrollo del partido, estadísticas, jugadas destacadas, etc."></textarea>
-                                    @error('match_description') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                                </div>
+                        <!-- Observaciones -->
+                        <div class="bg-gray-50/50 rounded-xl p-4 border border-gray-200">
+                            <h4 class="text-md font-semibold text-titanium mb-3 pb-2 border-b border-gray-300">Observaciones</h4>
+                            <div class="form-group">
+                                <textarea wire:model="observations" rows="11"
+                                    class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm resize-none"
+                                    placeholder="Observaciones generales del partido"></textarea>
+                                @error('observations') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                             </div>
                         </div>
 
-                        <!-- Publicación Web -->
-                        <div class="bg-blue-50/30 rounded-xl p-4 border border-blue-100">
-                            <h4 class="text-md font-semibold text-titanium mb-3 pb-2 border-b border-blue-200">Publicación Web</h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div class="form-group">
-                                    <label class="flex items-center space-x-2 cursor-pointer">
-                                        <input wire:model="published" type="checkbox" 
-                                            class="w-5 h-5 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
-                                        <span class="text-sm font-semibold text-titanium">Publicar en Web</span>
-                                    </label>
-                                    <p class="text-xs text-gray-500 mt-1">Marcar para que sea visible en la web pública</p>
-                                    @error('published') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="block text-sm font-semibold text-titanium mb-2">Jornada</label>
-                                    <input wire:model="matchday" type="number" min="1"
-                                        class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
-                                        placeholder="Ej: 1">
-                                    @error('matchday') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                                </div>
-
-                                <div class="form-group sm:col-span-2">
-                                    <label class="block text-sm font-semibold text-titanium mb-2">Descripción Web</label>
-                                    <div wire:ignore>
-                                        <input id="trix-web-description-{{ $match->id }}" 
-                                               type="hidden" 
-                                               value="{{ $web_description }}">
-                                        <trix-editor 
-                                            input="trix-web-description-{{ $match->id }}" 
-                                            placeholder="Descripción del partido para mostrar en la web pública. Puedes dar formato al texto usando la barra de herramientas."
-                                            class="text-black-deep"
-                                            x-data
-                                            x-init="
-                                                let trixEditor = $el;
-                                                let hiddenInput = document.getElementById('trix-web-description-{{ $match->id }}');
-                                                
-                                                trixEditor.addEventListener('trix-change', function(e) {
-                                                    @this.set('web_description', hiddenInput.value);
-                                                });
-                                            "></trix-editor>
-                                    </div>
-                                    <p class="text-xs text-gray-500 mt-1">Usa la barra de herramientas para dar formato: negrita, cursiva, listas, enlaces, etc.</p>
-                                    @error('web_description') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                                </div>
+                        <!-- Nota interno entrenador -->
+                        <div class="bg-gray-50/50 rounded-xl p-4 border border-gray-200">
+                            <h4 class="text-md font-semibold text-titanium mb-3 pb-2 border-b border-gray-300">Nota Interno Entrenador</h4>
+                            <div class="form-group">
+                                <textarea wire:model="match_description" rows="11"
+                                    class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm resize-none"
+                                    placeholder="Descripción detallada del desarrollo del partido, estadísticas, jugadas destacadas, etc."></textarea>
+                                @error('match_description') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                             </div>
                         </div>
                     </div>
 
-                    
+                    <!-- Publicación en Web Pública -->
+                    <div class="mt-8">
+                        <h3 class="text-lg font-semibold text-titanium mb-4 pb-3 border-b border-blue-300 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                            </svg>
+                            Publicación en Web Pública
+                        </h3>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Publicación y Descripción Web -->
+                            <div class="bg-blue-50/30 rounded-xl p-6 border border-blue-200">
+                                <div class="space-y-4">
+                                    <div class="form-group">
+                                        <label class="flex items-center space-x-3 cursor-pointer group">
+                                            <input wire:model="published" type="checkbox" 
+                                                class="w-6 h-6 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
+                                            <span class="text-base font-bold text-titanium group-hover:text-primary transition-colors">Publicar en Web</span>
+                                        </label>
+                                        <p class="text-xs text-gray-600 mt-2 ml-9">Marcar para que el partido sea visible en la web pública</p>
+                                        @error('published') <span class="text-red-500 text-xs mt-1 ml-9">{{ $message }}</span> @enderror
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="block text-sm font-semibold text-titanium mb-2">Descripción Web Pública</label>
+                                        <div wire:ignore>
+                                            <input id="trix-web-description-{{ $match->id }}" 
+                                                   type="hidden" 
+                                                   value="{{ $web_description }}">
+                                            <trix-editor 
+                                                input="trix-web-description-{{ $match->id }}" 
+                                                placeholder="Descripción del partido para mostrar en la web pública. Puedes dar formato al texto usando la barra de herramientas."
+                                                class="text-black-deep"
+                                                x-data
+                                                x-init="
+                                                    let trixEditor = $el;
+                                                    let hiddenInput = document.getElementById('trix-web-description-{{ $match->id }}');
+                                                    
+                                                    trixEditor.addEventListener('trix-change', function(e) {
+                                                        @this.set('web_description', hiddenInput.value);
+                                                    });
+                                                "></trix-editor>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">Usa la barra de herramientas para dar formato: negrita, cursiva, listas, enlaces, etc.</p>
+                                        @error('web_description') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Galería de Imágenes -->
+                            <div class="bg-purple-50/30 rounded-xl p-6 border border-purple-200">
+                                <h4 class="text-sm font-bold text-titanium mb-4 flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    Galería de Imágenes
+                                </h4>
+                                
+                                <!-- Upload Section -->
+                                <div class="mb-4">
+                                    <label class="block text-xs font-semibold text-titanium mb-2">Subir Imágenes</label>
+                                    <input wire:model="newMatchImages" type="file" accept="image/*" multiple
+                                        class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-black-deep text-xs bg-white">
+                                    <p class="text-xs text-gray-500 mt-1">Máximo 5MB por imagen</p>
+                                    @error('newMatchImages.*') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                    
+                                    @if($newMatchImages)
+                                        <div class="mt-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg">
+                                            <div class="flex items-center gap-2">
+                                                <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                                <div class="flex-1">
+                                                    <p class="text-xs text-green-800 font-bold">{{ count($newMatchImages) }} imagen(es) lista(s)</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                                
+                                <!-- Gallery Grid Compact -->
+                                @if($matchImages && count($matchImages) > 0)
+                                    <div>
+                                        <label class="block text-xs font-semibold text-titanium mb-2">Guardadas ({{ count($matchImages) }})</label>
+                                        <div class="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto">
+                                            @foreach($matchImages as $index => $image)
+                                                <div wire:key="match-image-{{ $index }}" class="group relative bg-white rounded-lg overflow-hidden border-2 border-gray-200 hover:border-purple-500 transition-colors">
+                                                    <div class="aspect-square">
+                                                        <img src="{{ asset('storage/' . $image) }}" 
+                                                             alt="Imagen {{ $index + 1 }}" 
+                                                             class="w-full h-full object-cover">
+                                                    </div>
+                                                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all flex items-center justify-center">
+                                                        <button type="button" 
+                                                            wire:click="deleteMatchImage({{ $index }})" 
+                                                            wire:confirm="¿Eliminar esta imagen?"
+                                                            class="opacity-0 group-hover:opacity-100 bg-red-600 hover:bg-red-700 text-white rounded-full p-1.5 transition-all"
+                                                            title="Eliminar">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="text-center py-8 bg-white rounded-lg border-2 border-dashed border-gray-300">
+                                        <svg class="w-12 h-12 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
+                                        <p class="text-gray-500 text-xs font-semibold">Sin imágenes</p>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- Convocatoria - Dos Columnas -->

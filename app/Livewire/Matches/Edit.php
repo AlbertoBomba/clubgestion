@@ -31,7 +31,11 @@ class Edit extends Component
     public $published = false;
     public $matchday = '';
     public $web_description = '';
-    public $newEscudoTeamOponent = null; // Temporary file upload
+    public $newEscudoTeamOponent = null; // Archivo temporal de subida
+    
+    // Imágenes del partido
+    public $matchImages = [];
+    public $newMatchImages = [];
     
     // Convocatoria - dos columnas
     public $calledPlayers = []; // Jugadores convocados (columna derecha)
@@ -42,7 +46,7 @@ class Edit extends Component
     public $maxPlayers = 25;
     
     // Formación y alineación táctica
-    public $footballType = 11; // 7, 8 o 11
+    public $footballType = 11; // 7, 8 u 11
     public $formation = '';
     public $lineup = [];
     public $availableFormations = [
@@ -95,11 +99,12 @@ class Edit extends Component
         'web_description' => 'nullable|string',
         'newEscudoTeamOponent' => 'nullable|image|max:2048',
         'footballType' => 'required|in:7,8,11',
+        'newMatchImages.*' => 'nullable|image|max:5120',
     ];
 
     public function mount(SeasonMatch $match)
     {
-        // Verify the match belongs to the user's sports school
+        // Verificar que el partido pertenece a la escuela deportiva del usuario
         if ($match->sports_school_id != auth()->user()->sports_school_id) {
             abort(403);
         }
@@ -124,8 +129,9 @@ class Edit extends Component
         $this->published = $match->published ?? false;
         $this->matchday = $match->matchday ?? '';
         $this->web_description = $match->web_description ?? '';
+        $this->matchImages = $match->match_images ?? [];
         
-        // Load called players with their reasons
+        // Cargar jugadores convocados con sus razones
         $calledPlayerIds = [];
         foreach ($match->players as $player) {
             $calledPlayerIds[] = $player->id;
@@ -135,12 +141,12 @@ class Edit extends Component
         }
         $this->calledPlayers = $calledPlayerIds;
         
-        // Load not called players with their reasons
+        // Cargar jugadores no convocados con sus razones
         foreach ($match->notCalledPlayers as $player) {
             $this->notCalledPlayerReasons[$player->id] = $player->pivot->reason ?? '';
         }
         
-        // Load all team players to separate called/not called
+        // Cargar todos los jugadores del equipo para separar convocados/no convocados
         $this->loadTeamPlayers();
     }
 
@@ -159,7 +165,7 @@ class Edit extends Component
 
     public function updatedSeasonId()
     {
-        // Reset team when season changes
+        // Reiniciar equipo cuando cambia la temporada
         $this->team_id = '';
         $this->calledPlayers = [];
         $this->notCalledPlayers = [];
@@ -188,7 +194,7 @@ class Edit extends Component
                 unset($this->playerReasons[$playerId]);
             }
             
-            // Clear not called reason when adding player
+            // Limpiar razón de no convocado al añadir jugador
             if (isset($this->notCalledPlayerReasons[$playerId])) {
                 unset($this->notCalledPlayerReasons[$playerId]);
             }
@@ -202,7 +208,7 @@ class Edit extends Component
                 'updated_at' => now(),
             ]);
             
-            // Refrescar match para obtener datos actualizados
+            // Refrescar partido para obtener datos actualizados
             $this->match = $this->match->fresh(['players', 'notCalledPlayers']);
         }
     }
@@ -225,7 +231,7 @@ class Edit extends Component
         // Eliminar de la base de datos inmediatamente
         $this->match->players()->detach($playerId);
         
-        // Refrescar match
+        // Refrescar partido
         $this->match = $this->match->fresh(['players', 'notCalledPlayers']);
     }
     
@@ -239,13 +245,13 @@ class Edit extends Component
             return;
         }
         
-        // Remove from called players if exists
+        // Eliminar de jugadores convocados si existe
         $this->calledPlayers = array_diff($this->calledPlayers, [$playerId]);
         
-        // Remove from available players
+        // Eliminar de jugadores disponibles
         $this->notCalledPlayers = array_diff($this->notCalledPlayers, [$playerId]);
         
-        // Always add to notCalledPlayerReasons (even with empty reason)
+        // Siempre añadir a razones de no convocados (incluso con razón vacía)
         $this->notCalledPlayerReasons[$playerId] = $reason;
         
         // Eliminar de jugadores convocados si existe
@@ -262,18 +268,18 @@ class Edit extends Component
             ]
         ]);
         
-        // Refrescar match
+        // Refrescar partido
         $this->match = $this->match->fresh(['players', 'notCalledPlayers']);
     }
     
     public function removeFromNotCalled($playerId)
     {
-        // Remove reason
+        // Eliminar razón
         if (isset($this->notCalledPlayerReasons[$playerId])) {
             unset($this->notCalledPlayerReasons[$playerId]);
         }
         
-        // Add back to available players
+        // Añadir de vuelta a jugadores disponibles
         if (!in_array($playerId, $this->notCalledPlayers)) {
             $this->notCalledPlayers[] = $playerId;
         }
@@ -281,13 +287,13 @@ class Edit extends Component
         // Eliminar de jugadores no convocados en la base de datos
         $this->match->notCalledPlayers()->detach($playerId);
         
-        // Refrescar match
+        // Refrescar partido
         $this->match = $this->match->fresh(['players', 'notCalledPlayers']);
     }
     
     public function toggleCard($playerId, $cardType)
     {
-        // Load current card status from database
+        // Cargar estado actual de tarjetas desde la base de datos
         $player = $this->match->players()->where('player_id', $playerId)->first();
         
         if (!$player) {
@@ -296,7 +302,7 @@ class Edit extends Component
         
         $currentValue = $player->pivot->$cardType ?? false;
         
-        // If toggling red card, remove yellow cards
+        // Si se activa tarjeta roja, eliminar tarjetas amarillas
         if ($cardType === 'card_red' && !$currentValue) {
             $this->match->players()->updateExistingPivot($playerId, [
                 'card_yellow1' => false,
@@ -305,7 +311,7 @@ class Edit extends Component
                 'updated_at' => now(),
             ]);
         }
-        // If toggling second yellow, auto-add red card
+        // Si se activa segunda amarilla, añadir automáticamente tarjeta roja
         elseif ($cardType === 'card_yellow2' && !$currentValue) {
             $this->match->players()->updateExistingPivot($playerId, [
                 'card_yellow2' => true,
@@ -313,7 +319,7 @@ class Edit extends Component
                 'updated_at' => now(),
             ]);
         }
-        // Normal toggle
+        // Alternar normal
         else {
             $this->match->players()->updateExistingPivot($playerId, [
                 $cardType => !$currentValue,
@@ -321,31 +327,31 @@ class Edit extends Component
             ]);
         }
         
-        // Refresh match to get updated pivot data
+        // Refrescar partido para obtener datos actualizados del pivot
         $this->match->refresh();
     }
     
     public function updatedFootballType()
     {
-        // Reset formation and lineup when football type changes
+        // Reiniciar formación y alineación cuando cambia el tipo de fútbol
         $this->formation = '';
         $this->lineup = [];
     }
     
     public function updatedFormation()
     {
-        // Reset lineup when formation changes
+        // Reiniciar alineación cuando cambia la formación
         $this->lineup = [];
     }
     
     public function addToLineup($playerId, $lineIndex, $positionIndex)
     {
-        // Initialize lineup structure if empty
+        // Inicializar estructura de alineación si está vacía
         if (empty($this->lineup)) {
             $this->lineup = [];
         }
         
-        // Remove player from any previous position
+        // Eliminar jugador de cualquier posición anterior
         foreach ($this->lineup as $line => $positions) {
             foreach ($positions as $pos => $pid) {
                 if ($pid == $playerId) {
@@ -354,7 +360,7 @@ class Edit extends Component
             }
         }
         
-        // Add player to new position
+        // Añadir jugador a nueva posición
         if (!isset($this->lineup[$lineIndex])) {
             $this->lineup[$lineIndex] = [];
         }
@@ -442,17 +448,25 @@ class Edit extends Component
     {
         $this->validate();
 
-        // Handle file upload for escudo
+        // Manejar subida de archivo para escudo
         $escudoPath = $this->escudo_team_oponent;
         if ($this->newEscudoTeamOponent) {
-            // Delete old file if exists
+            // Eliminar archivo antiguo si existe
             if ($this->escudo_team_oponent && \Storage::disk('public')->exists($this->escudo_team_oponent)) {
                 \Storage::disk('public')->delete($this->escudo_team_oponent);
             }
-            // Store new file
+            // Guardar nuevo archivo
             $escudoPath = $this->newEscudoTeamOponent->store('escudos', 'public');
         }
-       
+        
+        // Manejar subida de imágenes del partido
+        if ($this->newMatchImages) {
+            foreach ($this->newMatchImages as $image) {
+                $path = $image->store('match-images', 'public');
+                $this->matchImages[] = $path;
+            }
+            $this->newMatchImages = [];
+        }
 
         $this->match->update([
             'season_id' => $this->season_id,
@@ -474,10 +488,22 @@ class Edit extends Component
             'published' => $this->published,
             'matchday' => $this->matchday ?: null,
             'web_description' => $this->web_description ?: null,
+            'match_images' => $this->matchImages ?: null,
             'updated_user' => auth()->user()->id,
         ]);
 
-        // Sync ONLY called players
+        // Si se publica el partido, asegurar que el equipo también está publicado
+        if ($this->published) {
+            $team = Team::find($this->team_id);
+            if ($team && !$team->published) {
+                $team->update([
+                    'published' => true,
+                    'updated_user' => auth()->user()->id,
+                ]);
+            }
+        }
+
+        // Sincronizar SOLO jugadores convocados
         $syncData = [];
         foreach ($this->calledPlayers as $playerId) {
             $syncData[$playerId] = [
@@ -491,7 +517,7 @@ class Edit extends Component
         
         $this->match->players()->sync($syncData);
 
-        // Sync not called players with their reasons
+        // Sincronizar jugadores no convocados con sus razones
         $notCalledSyncData = [];
         foreach ($this->notCalledPlayerReasons as $playerId => $reason) {
             $notCalledSyncData[$playerId] = [
@@ -507,10 +533,10 @@ class Edit extends Component
 
         session()->flash('message', 'Partido modificado con éxito.');
         
-        // Refresh match data
+        // Refrescar datos del partido
         $this->match = $this->match->fresh(['players', 'notCalledPlayers']);
         
-        // Reload called players
+        // Recargar jugadores convocados
         $calledPlayerIds = [];
         foreach ($this->match->players as $player) {
             $calledPlayerIds[] = $player->id;
@@ -520,29 +546,53 @@ class Edit extends Component
         }
         $this->calledPlayers = $calledPlayerIds;
         
-        // Reload not called players with their reasons
+        // Recargar jugadores no convocados con sus razones
         $this->notCalledPlayerReasons = [];
         foreach ($this->match->notCalledPlayers as $player) {
             $this->notCalledPlayerReasons[$player->id] = $player->pivot->reason ?? '';
         }
         
-        // Reload team players
+        // Recargar jugadores del equipo
         $this->loadTeamPlayers();
         
-        // Dispatch event to notify changes were saved
+        // Despachar evento para notificar que los cambios fueron guardados
         $this->dispatch('changes-saved');
+    }
+    
+    public function deleteMatchImage($index)
+    {
+        if (isset($this->matchImages[$index])) {
+            $imagePath = $this->matchImages[$index];
+            
+            // Eliminar archivo del almacenamiento
+            if (\Storage::disk('public')->exists($imagePath)) {
+                \Storage::disk('public')->delete($imagePath);
+            }
+            
+            // Eliminar del array
+            unset($this->matchImages[$index]);
+            $this->matchImages = array_values($this->matchImages); // Reindexar array
+            
+            // Actualizar base de datos
+            $this->match->update([
+                'match_images' => $this->matchImages ?: null,
+                'updated_user' => auth()->user()->id,
+            ]);
+            
+            session()->flash('message', 'Imagen eliminada con éxito.');
+        }
     }
 
     public function printPDF()
     {
-        // Reload match to ensure fresh data
+        // Recargar partido para asegurar datos actualizados
         $match = SeasonMatch::findOrFail($this->match->id);
         
         $pdf = new PdfFile();
         $pdf->file_name = 'convocatoria_' . $match->opponent;
         $pdf->templates[0] = 'pdfs.match-convocatoria';
         
-        // Get called players with full details
+        // Obtener jugadores convocados con detalles completos
         $calledPlayers = Player::whereIn('id', $this->calledPlayers)
             ->orderBy('surname')
             ->orderBy('name')
@@ -550,7 +600,7 @@ class Edit extends Component
         
         $team = Team::find($this->team_id);
         
-        // Use single 'data' key so length() returns 1
+        // Usar clave única 'data' para que length() devuelva 1
         $pdf->records = ['data' => compact('match', 'calledPlayers', 'team')];
 
         $content = $pdf->generateFromTemplate($pdf->templates[0]);
@@ -595,7 +645,7 @@ class Edit extends Component
             ->orderBy('team')
             ->get();
         
-        // Get all teams for external player modal (excluding current team)
+        // Obtener todos los equipos para modal de jugador externo (excluyendo equipo actual)
         $allTeams = Team::whereHas('season', function ($query) {
                 $query->where('sports_school_id', auth()->user()->sports_school_id);
             })
@@ -604,7 +654,7 @@ class Edit extends Component
             ->orderBy('team')
             ->get();
 
-        // Get players for called column with pivot data
+        // Obtener jugadores para columna de convocados con datos pivot
         $calledPlayersData = $this->match->players()
             ->whereIn('player_id', $this->calledPlayers)
             ->wherePivot('reason_not_called', null)
@@ -612,14 +662,14 @@ class Edit extends Component
             ->orderBy('name')
             ->get();
             
-        // Get players for available column (notCalledPlayers)
+        // Obtener jugadores para columna de disponibles (notCalledPlayers)
         $availablePlayersData = Player::whereIn('id', $this->notCalledPlayers)
             ->select('id', 'name', 'surname', 'player_photo', 'position', 'sports_school_id')
             ->orderBy('surname')
             ->orderBy('name')
             ->get();
         
-        // Get players for not called with reason column
+        // Obtener jugadores para columna de no convocados con razón
         $notCalledWithReasonIds = array_keys($this->notCalledPlayerReasons);
         $notCalledPlayersData = Player::whereIn('id', $notCalledWithReasonIds)
             ->select('id', 'name', 'surname', 'player_photo', 'position', 'sports_school_id')

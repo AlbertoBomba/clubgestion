@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejemplo de Widget de Partidos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .widget-container {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .instructions {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+        
+        .instructions h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .instructions code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        .instructions pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+        
+        .instructions pre code {
+            background: transparent;
+            padding: 0;
+            color: #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏆 Calendario de Partidos</h1>
+            <p>Widget de integración para webs de escuelas deportivas</p>
+        </header>
+        
+        <div class="widget-container">
+            <div class="instructions">
+                <h3>📋 Instrucciones de uso</h3>
+                <p>Para integrar este widget en tu web, copia y pega este código HTML:</p>
+                <pre><code>&lt;!-- 1. Configurar URL del portal (IMPORTANTE) --&gt;
+&lt;script&gt;
+    window.CLUB_PORTAL_API_URL = 'https://https://vaed.es';
+&lt;/script&gt;
+
+&lt;!-- 2. Contenedor del widget --&gt;
+&lt;div id="club-matches" 
+     data-limit="10"
+     data-show-team-filter="true"
+     data-show-logo="true"&gt;
+&lt;/div&gt;
+
+&lt;!-- 3. Script del widget --&gt;
+&lt;script src="https://vaed.es/widget/matches.js"&gt;&lt;/script&gt;</code></pre>
+                
+                <p style="margin-top: 15px;"><strong>⚠️ Importante:</strong> Reemplaza <code>https://vaed.es</code> con la URL real de tu servidor portal donde está alojada la API de Laravel.</p>
+            </div>
+            
+            <!-- Widget se renderiza aquí -->
+            <div id="club-matches" 
+                 data-limit="10"
+                 data-show-team-filter="true"
+                 data-show-logo="true">
+            </div>
+        </div>
+    </div>
+    
+    <!-- Configurar URL del portal API -->
+    <script>
+        // Para pruebas locales
+        window.CLUB_PORTAL_API_URL = window.location.origin;
+    </script>
+    
+    <!-- Cargar el widget -->
+    <script>
+        // Actualiza esta URL con tu dominio real
+        const widgetScript = document.createElement('script');
+        widgetScript.src = window.location.origin + '/widget/matches.js';
+        document.body.appendChild(widgetScript);
+    </script>
+</body>
+</html>

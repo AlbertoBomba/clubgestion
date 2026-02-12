@@ -17,6 +17,7 @@ class Team extends Model
         'gender',
         'price',
         'federate',
+        'published',
         'category_id',
         'season_id',
         'section_id',
@@ -29,9 +30,10 @@ class Team extends Model
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
         'federate' => 'boolean',
+        'published' => 'boolean',
     ];
 
-    // Relationships
+    // Relaciones
     public function category()
     {
         return $this->belongsTo(Category::class);
