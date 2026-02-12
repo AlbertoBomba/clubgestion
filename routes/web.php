@@ -62,6 +62,11 @@ Route::middleware([
             return view('sports-schools.edit', compact('school'));
         })->name('sports-schools.edit');
 
+        // Logs de API
+        Route::get('/api-logs', function () {
+            return view('api-logs.index');
+        })->name('api-logs.index');
+
         // Gestión de Usuarios de Escuelas
         Route::get('/school-users', function () {
             return view('school-users.index');

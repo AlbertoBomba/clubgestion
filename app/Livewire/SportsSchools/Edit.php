@@ -105,6 +105,54 @@ class Edit extends Component
         return redirect()->route('sports-schools.index');
     }
 
+    /**
+     * Generar una nueva API key
+     */
+    public function generateApiKey()
+    {
+        $apiKey = $this->school->generateApiKey();
+        session()->flash('api_key_generated', $apiKey);
+        session()->flash('message', 'API Key generada correctamente. Cópiala ahora, no se volverá a mostrar.');
+        
+        // Refrescar el componente
+        $this->school = $this->school->fresh();
+        return redirect()->route('sports-schools.edit', $this->school);
+    }
+
+    /**
+     * Regenerar API key existente
+     */
+    public function regenerateApiKey()
+    {
+        $apiKey = $this->school->regenerateApiKey();
+        session()->flash('api_key_generated', $apiKey);
+        session()->flash('message', 'API Key regenerada correctamente. La anterior ha sido invalidada.');
+        
+        // Refrescar el componente
+        $this->school = $this->school->fresh();
+        return redirect()->route('sports-schools.edit', $this->school);
+    }
+
+    /**
+     * Habilitar API
+     */
+    public function enableApi()
+    {
+        $this->school->enableApi();
+        session()->flash('message', 'API habilitada correctamente.');
+        $this->school = $this->school->fresh();
+    }
+
+    /**
+     * Deshabilitar API
+     */
+    public function disableApi()
+    {
+        $this->school->disableApi();
+        session()->flash('message', 'API deshabilitada correctamente.');
+        $this->school = $this->school->fresh();
+    }
+
     public function render()
     {
         return view('livewire.sports-schools.edit');

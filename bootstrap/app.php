@@ -15,6 +15,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\HandleImpersonation::class,
         ]);
+
+        // Registrar alias para middlewares de API
+        $middleware->alias([
+            'api.key' => \App\Http\Middleware\ValidateApiKey::class,
+            'api.rate' => \App\Http\Middleware\ApiRateLimiter::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Personalizar página 404

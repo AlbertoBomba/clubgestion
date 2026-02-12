@@ -25,10 +25,18 @@ class SportsSchool extends Model
         'contact_person',
         'logo',
         'is_active',
+        'api_key',
+        'api_key_generated_at',
+        'api_requests_count',
+        'last_api_request_at',
+        'api_enabled',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'api_enabled' => 'boolean',
+        'api_key_generated_at' => 'datetime',
+        'last_api_request_at' => 'datetime',
     ];
 
     // Boot method para generar slug automáticamente
@@ -95,5 +103,62 @@ class SportsSchool extends Model
     public function brands()
     {
         return $this->belongsToMany(Brand::class, 'sports_schools_brand', 'sports_school_id', 'brand_id');
+    }
+
+    /**
+     * Generar una nueva API key
+     */
+    public function generateApiKey(): string
+    {
+        $apiKey = 'sk_' . bin2hex(random_bytes(30));
+        
+        $this->update([
+            'api_key' => $apiKey,
+            'api_key_generated_at' => now(),
+            'api_enabled' => true,
+        ]);
+
+        return $apiKey;
+    }
+
+    /**
+     * Regenerar API key existente
+     */
+    public function regenerateApiKey(): string
+    {
+        return $this->generateApiKey();
+    }
+
+    /**
+     * Registrar una petición API
+     */
+    public function logApiRequest(): void
+    {
+        $this->increment('api_requests_count');
+        $this->update(['last_api_request_at' => now()]);
+    }
+
+    /**
+     * Verificar si la API está habilitada
+     */
+    public function isApiEnabled(): bool
+    {
+        return $this->api_enabled && !empty($this->api_key);
+    }
+
+    /**
+     * Deshabilitar acceso API
+     */
+    public function disableApi(): void
+    {
+        $this->update(['api_enabled' => false]);
+    }
+
+    /**
+     * Habilitar acceso API
+     */
+    public function enableApi(): void
+    {
+        $this->update(['api_enabled' => true]);
     }
 }

@@ -846,8 +846,29 @@
             return result.data;
         }
         
+        // Verificar si el partido ya se ha jugado
+        hasMatchBeenPlayed(match) {
+            if (!match.date) return false;
+            
+            const now = new Date();
+            const matchDate = new Date(match.date);
+            
+            // Si hay hora del partido, usarla para la comparación
+            if (match.hour_match) {
+                const [hours, minutes] = match.hour_match.split(':');
+                matchDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+            } else {
+                // Si no hay hora, considerar que el partido es al final del día
+                matchDate.setHours(23, 59, 59, 999);
+            }
+            
+            // El partido se ha jugado si la fecha/hora es anterior a ahora
+            return matchDate < now;
+        }
+        
         renderModalContent(match) {
             const hasResult = match.goals_team !== null && match.goals_oponent !== null;
+            const matchPlayed = this.hasMatchBeenPlayed(match);
             
             // Team logo (escuela)
             const teamLogoHtml = this.schoolLogo 
@@ -912,10 +933,13 @@
                 });
             }
             
-            // Lineup
+            // Lineup - Solo mostrar si el partido ya se ha jugado
             let lineupHtml = '';
-            if (match.formation && match.lineup && match.lineup.starters && match.lineup.starters.length > 0) {
+            if (matchPlayed && match.formation && match.lineup && match.lineup.starters && match.lineup.starters.length > 0) {
                 lineupHtml = this.renderLineup(match.formation, match.lineup);
+            } else if (!matchPlayed && match.lineup && (match.lineup.starters || match.lineup.bench)) {
+                // Si el partido no se ha jugado, mostrar solo la lista de convocados
+                lineupHtml = this.renderConvocatoria(match.lineup);
             }
             
             return this.templateManager.get('modal-content', {
@@ -985,6 +1009,50 @@
             }
             
             return lineupSectionHtml + benchHtml;
+        }
+        
+        renderConvocatoria(lineup) {
+            // Mostrar solo la lista de jugadores convocados (sin alineación táctica)
+            let convocatoriaHtml = `
+                <div style="margin-top: 24px; padding: 20px; background: #f8fafc; border-radius: 12px;">
+                    <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 700; color: #333; text-align: center;">
+                        📋 Convocatoria
+                    </h3>
+                    <p style="text-align: center; color: #666; font-size: 14px; margin-bottom: 20px;">
+                        La alineación se mostrará después del partido
+                    </p>
+            `;
+            
+            // Todos los jugadores convocados (titulares + suplentes)
+            const allPlayers = [...(lineup.starters || []), ...(lineup.bench || [])];
+            
+            if (allPlayers.length > 0) {
+                convocatoriaHtml += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px;">';
+                
+                allPlayers.forEach(player => {
+                    const playerImage = player.player_photo 
+                        ? `<img src="${player.player_photo}" alt="${player.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`
+                        : `<div style="width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 20px;">${(player.name || 'J').charAt(0).toUpperCase()}</div>`;
+                    
+                    convocatoriaHtml += `
+                        <div style="text-align: center;">
+                            <div style="width: 60px; height: 60px; margin: 0 auto 8px; border: 2px solid #e0e0e0; border-radius: 50%; overflow: hidden;">
+                                ${playerImage}
+                            </div>
+                            <div style="font-weight: 600; font-size: 13px; color: #333; margin-bottom: 2px;">${player.name || 'Jugador'}</div>
+                            ${player.number ? `<div style="font-size: 11px; color: #666;">#${player.number}</div>` : ''}
+                        </div>
+                    `;
+                });
+                
+                convocatoriaHtml += '</div>';
+            } else {
+                convocatoriaHtml += '<p style="text-align: center; color: #999; font-style: italic;">No hay jugadores convocados</p>';
+            }
+            
+            convocatoriaHtml += '</div>';
+            
+            return convocatoriaHtml;
         }
         
         getFormationPositions(formation) {

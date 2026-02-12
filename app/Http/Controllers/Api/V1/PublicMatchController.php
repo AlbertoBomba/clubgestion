@@ -6,12 +6,46 @@ use App\Http\Controllers\Controller;
 use App\Models\SeasonMatch;
 use App\Models\SportsSchool;
 use App\Models\Player;
+use App\Models\ApiLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class PublicMatchController extends Controller
 {
+    /**
+     * Registrar log de API de forma asíncrona
+     */
+    private function logApiRequest(Request $request, ?SportsSchool $sportsSchool, int $statusCode, ?string $errorMessage = null): void
+    {
+        try {
+            $startTime = defined('LARAVEL_START') ? LARAVEL_START : microtime(true);
+            $responseTime = (int)((microtime(true) - $startTime) * 1000);
+
+            // Registrar después de enviar la respuesta
+            register_shutdown_function(function () use ($request, $sportsSchool, $statusCode, $responseTime, $errorMessage) {
+                try {
+                    ApiLog::logRequest(
+                        sportsSchoolId: $sportsSchool?->id,
+                        endpoint: $request->path(),
+                        method: $request->method(),
+                        statusCode: $statusCode,
+                        ipAddress: $request->ip(),
+                        userAgent: $request->userAgent(),
+                        referer: $request->headers->get('referer'),
+                        requestParams: $request->query->count() > 0 ? $request->query->all() : null,
+                        responseTime: $responseTime,
+                        errorMessage: $errorMessage
+                    );
+                } catch (\Exception $e) {
+                    // Silenciosamente ignorar errores de logging
+                }
+            });
+        } catch (\Exception $e) {
+            // Silenciosamente ignorar errores de logging
+        }
+    }
+
     /**
      * Obtener partidos públicos de una escuela deportiva por dominio
      */
@@ -30,6 +64,7 @@ class PublicMatchController extends Controller
         
         // Validar que se proporciona el dominio
         if (!$domain) {
+            $this->logApiRequest($request, null, 400, 'Domain parameter is required');
             return response()->json([
                 'success' => false,
                 'message' => 'Domain parameter is required',
@@ -47,6 +82,7 @@ class PublicMatchController extends Controller
         });
         
         if (!$sportsSchool) {
+            $this->logApiRequest($request, null, 404, 'Sports school not found for this domain');
             return response()->json([
                 'success' => false,
                 'message' => 'Sports school not found for this domain',
@@ -60,6 +96,7 @@ class PublicMatchController extends Controller
             $refererHost = preg_replace('/^www\./', '', $refererHost);
             
             if ($refererHost !== $domain) {
+                $this->logApiRequest($request, $sportsSchool, 403, 'Unauthorized domain');
                 return response()->json([
                     'success' => false,
                     'message' => 'Unauthorized domain',
@@ -67,13 +104,14 @@ class PublicMatchController extends Controller
             }
         }
         
-        // Check if there's an active season
+        // Verificar si hay una temporada activa
         $activeSeason = \App\Models\Season::where('sports_school_id', $sportsSchool->id)
             ->where('start_date', '<=', now())
             ->where('end_date', '>=', now())
             ->first();
         
         if (!$activeSeason) {
+            $this->logApiRequest($request, $sportsSchool, 200);
             return response()->json([
                 'success' => false,
                 'message' => 'El club no tiene ninguna temporada activa',
@@ -155,6 +193,7 @@ class PublicMatchController extends Controller
             ];
         });
         
+        $this->logApiRequest($request, $sportsSchool, 200);
         return response()->json([
             'success' => true,
             'data' => $data,
@@ -183,8 +222,7 @@ class PublicMatchController extends Controller
             }
         }
         
-        if (!$domain) {
-            return response()->json([
+        if (!$domain) {            $this->logApiRequest($request, null, 400, 'Domain parameter is required');            return response()->json([
                 'success' => false,
                 'message' => 'Domain parameter is required',
             ], 400);
@@ -197,19 +235,21 @@ class PublicMatchController extends Controller
             ->first();
         
         if (!$sportsSchool) {
+            $this->logApiRequest($request, null, 404, 'Sports school not found for this domain');
             return response()->json([
                 'success' => false,
                 'message' => 'Sports school not found for this domain',
             ], 404);
         }
         
-        // Check if there's an active season
+        // Verificar si hay una temporada activa
         $activeSeason = \App\Models\Season::where('sports_school_id', $sportsSchool->id)
             ->where('start_date', '<=', now())
             ->where('end_date', '>=', now())
             ->first();
         
         if (!$activeSeason) {
+            $this->logApiRequest($request, $sportsSchool, 200);
             return response()->json([
                 'success' => true,
                 'data' => [],
@@ -229,6 +269,7 @@ class PublicMatchController extends Controller
                 ];
             });
         
+        $this->logApiRequest($request, $sportsSchool, 200);
         return response()->json([
             'success' => true,
             'data' => $teams,
@@ -251,19 +292,21 @@ class PublicMatchController extends Controller
         }
         
         if (!$domain) {
+            $this->logApiRequest($request, null, 400, 'Domain parameter is required');
             return response()->json([
                 'success' => false,
                 'message' => 'Domain parameter is required',
             ], 400);
         }
         
-        $domain = preg_replace('/^www\./', '', $domain);
+        $domain = preg_replace('/^www\\./', '', $domain);
         
         $sportsSchool = SportsSchool::where('domain', $domain)
             ->orWhere('domain', 'www.' . $domain)
             ->first();
         
         if (!$sportsSchool) {
+            $this->logApiRequest($request, null, 404, 'Sports school not found for this domain');
             return response()->json([
                 'success' => false,
                 'message' => 'Sports school not found for this domain',
@@ -281,6 +324,7 @@ class PublicMatchController extends Controller
             ->first();
         
         if (!$match) {
+            $this->logApiRequest($request, $sportsSchool, 404, 'Match not found');
             return response()->json([
                 'success' => false,
                 'message' => 'Match not found',
@@ -388,6 +432,7 @@ class PublicMatchController extends Controller
             ] : null,
         ];
         
+        $this->logApiRequest($request, $sportsSchool, 200);
         return response()->json([
             'success' => true,
             'data' => $data,
