@@ -24,6 +24,8 @@ class SportsSchool extends Model
         'domain',
         'contact_person',
         'logo',
+        'primary_color',
+        'secondary_color',
         'is_active',
         'api_key',
         'api_key_generated_at',

@@ -67,6 +67,55 @@
                         Subiendo imagen...
                     </div>
                 </div>
+
+                <!-- Colores de la Escuela -->
+                <div>
+                    <h3 class="text-base font-semibold text-gray-900 flex items-center mb-3">
+                        <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
+                        </svg>
+                        Colores de Identidad
+                    </h3>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="primary_color" class="block text-sm font-semibold text-gray-700 mb-1">Color Principal</label>
+                            <div class="flex items-center space-x-2">
+                                <input wire:model.live="primary_color" type="color" id="primary_color"
+                                    class="h-10 w-16 border border-gray-300 rounded-lg cursor-pointer">
+                                <input wire:model.live="primary_color" type="text" placeholder="#1E40AF"
+                                    class="input-field flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
+                            </div>
+                            @error('primary_color') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div>
+                            <label for="secondary_color" class="block text-sm font-semibold text-gray-700 mb-1">Color Secundario</label>
+                            <div class="flex items-center space-x-2">
+                                <input wire:model.live="secondary_color" type="color" id="secondary_color"
+                                    class="h-10 w-16 border border-gray-300 rounded-lg cursor-pointer">
+                                <input wire:model.live="secondary_color" type="text" placeholder="#10B981"
+                                    class="input-field flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
+                            </div>
+                            @error('secondary_color') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                    
+                    <!-- Vista previa de los colores -->
+                    <div class="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <p class="text-xs font-semibold text-gray-600 mb-2">Vista previa:</p>
+                        <div class="flex space-x-2">
+                            <div class="flex-1 h-12 rounded-lg border-2 border-gray-300 flex items-center justify-center text-xs font-semibold text-white shadow-sm"
+                                style="background-color: {{ $primary_color }}">
+                                Principal
+                            </div>
+                            <div class="flex-1 h-12 rounded-lg border-2 border-gray-300 flex items-center justify-center text-xs font-semibold text-white shadow-sm"
+                                style="background-color: {{ $secondary_color }}">
+                                Secundario
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="space-y-3">

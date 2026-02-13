@@ -430,3 +430,78 @@ if (!function_exists('generatePlayerPayments')) {
 	}
 }
 
+// ==========================================
+// TENANT HELPERS
+// ==========================================
+
+if (!function_exists('tenantService')) {
+	/**
+	 * Get the tenant service instance
+	 */
+	function tenantService(): \App\Services\TenantService
+	{
+		return app('tenant');
+	}
+}
+
+if (!function_exists('currentSchool')) {
+	/**
+	 * Get the current sports school
+	 */
+	function currentSchool(): ?\App\Models\SportsSchool
+	{
+		return tenantService()->getCurrentSchool();
+	}
+}
+
+if (!function_exists('currentSchoolId')) {
+	/**
+	 * Get the current sports school ID
+	 */
+	function currentSchoolId(): ?int
+	{
+		return tenantService()->getCurrentSchoolId();
+	}
+}
+
+if (!function_exists('tenantConfig')) {
+	/**
+	 * Get tenant configuration value
+	 */
+	function tenantConfig(string $key, $default = null)
+	{
+		return tenantService()->getConfig($key, $default);
+	}
+}
+
+if (!function_exists('tenantLogo')) {
+	/**
+	 * Get the tenant logo URL
+	 */
+	function tenantLogo(): ?string
+	{
+		$school = currentSchool();
+		return $school?->logo ? asset('storage/' . $school->logo) : null;
+	}
+}
+
+if (!function_exists('tenantName')) {
+	/**
+	 * Get the tenant name
+	 */
+	function tenantName(): string
+	{
+		return currentSchool()?->name ?? config('app.name');
+	}
+}
+
+if (!function_exists('isTenantContext')) {
+	/**
+	 * Check if we're in a tenant context
+	 */
+	function isTenantContext(): bool
+	{
+		return tenantService()->hasCurrentSchool();
+	}
+}
+

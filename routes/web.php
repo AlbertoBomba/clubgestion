@@ -4,6 +4,12 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\EnsureMasterRole;
 use App\Http\Middleware\EnsureSchoolUser;
 use App\Http\Controllers\ImpersonateController;
+use App\Http\Controllers\WebClubs\TenantHomeController;
+use App\Livewire\PublicConvocatoria;
+use App\Livewire\WebClubs\Home as WebClubsHome;
+use App\Livewire\WebClubs\About as WebClubsAbout;
+use App\Livewire\WebClubs\Contact as WebClubsContact;
+use App\Livewire\WebClubs\PlayerRegistration as WebClubsPlayerRegistration;
 use App\Models\SportsSchool;
 use App\Models\User;
 use App\Models\Category;
@@ -16,14 +22,20 @@ use App\Models\TrainingSession;
 use App\Livewire\TrainingSessions\Index as TrainingSessionsIndex;
 use App\Livewire\TrainingSessions\Create as TrainingSessionsCreate;
 use App\Livewire\TrainingSessions\Edit as TrainingSessionsEdit;
-use App\Livewire\PublicConvocatoria;
 
 // Public routes
 Route::get('/convocatoria/{token}', PublicConvocatoria::class)->name('public.convocatoria');
 
-Route::get('/', function () {
-    return view('home');
-});
+// Ruta principal - usa TenantHomeController que maneja automáticamente tenant vs no-tenant
+Route::get('/', [TenantHomeController::class, 'index'])->name('home');
+
+// Ruta específica para clubs (tenant)
+Route::get('/club', WebClubsHome::class)->name('webclubs.home');
+
+// Tenant Public Routes
+Route::get('/sobre-nosotros', WebClubsAbout::class)->name('webclubs.about');
+Route::get('/contacto', WebClubsContact::class)->name('webclubs.contact');
+Route::get('/inscripcion', WebClubsPlayerRegistration::class)->name('webclubs.registration');
 
 // Legal Pages
 Route::get('/privacy', function () {

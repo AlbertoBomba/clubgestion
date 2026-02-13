@@ -24,6 +24,8 @@ class Create extends Component
     public $contact_person = '';
     public $is_active = true;
     public $logo;
+    public $primary_color = '#1E40AF'; // Azul por defecto
+    public $secondary_color = '#10B981'; // Verde por defecto
 
     protected $rules = [
         'name' => 'required|string|max:255',
@@ -37,6 +39,8 @@ class Create extends Component
         'contact_person' => 'nullable|string|max:255',
         'is_active' => 'boolean',
         'logo' => 'nullable|image|max:2048',
+        'primary_color' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
+        'secondary_color' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
     ];
 
     public function save()
@@ -55,6 +59,8 @@ class Create extends Component
             'email' => $this->email,
             'contact_person' => $this->contact_person,
             'is_active' => $this->is_active,
+            'primary_color' => $this->primary_color,
+            'secondary_color' => $this->secondary_color,
         ];
 
         

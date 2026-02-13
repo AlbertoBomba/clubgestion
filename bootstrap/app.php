@@ -13,13 +13,15 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
+            \App\Http\Middleware\IdentifyTenant::class,
             \App\Http\Middleware\HandleImpersonation::class,
         ]);
 
-        // Registrar alias para middlewares de API
+        // Registrar alias para middlewares de API y tenant
         $middleware->alias([
             'api.key' => \App\Http\Middleware\ValidateApiKey::class,
             'api.rate' => \App\Http\Middleware\ApiRateLimiter::class,
+            'tenant' => \App\Http\Middleware\IdentifyTenant::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

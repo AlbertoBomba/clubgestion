@@ -26,6 +26,8 @@ class Edit extends Component
     public $is_active;
     public $logo;
     public $currentLogo;
+    public $primary_color;
+    public $secondary_color;
 
     protected $rules = [
         'name' => 'required|string|max:255',
@@ -39,6 +41,8 @@ class Edit extends Component
         'contact_person' => 'nullable|string|max:255',
         'is_active' => 'boolean',
         'logo' => 'nullable|image|max:2048', // Max 2MB
+        'primary_color' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
+        'secondary_color' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
     ];
 
     public function mount(SportsSchool $school)
@@ -53,6 +57,8 @@ class Edit extends Component
         $this->phone = $school->phone;
         $this->email = $school->email;
         $this->contact_person = $school->contact_person;
+        $this->primary_color = $school->primary_color ?? '#1E40AF';
+        $this->secondary_color = $school->secondary_color ?? '#10B981';
         $this->is_active = $school->is_active;
         $this->currentLogo = $school->logo;
     }
@@ -83,6 +89,8 @@ class Edit extends Component
             'email' => $this->email,
             'contact_person' => $this->contact_person,
             'is_active' => $this->is_active,
+            'primary_color' => $this->primary_color,
+            'secondary_color' => $this->secondary_color,
         ];
 
         // Handle logo upload
