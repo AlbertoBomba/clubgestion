@@ -18,6 +18,8 @@ class Home extends Component
     public $activeSeason;
     public $upcomingMatches;
     public $recentResults;
+    public $primaryColor;
+    public $secondaryColor;
     
     // Filtros
     public $searchTeam = '';
@@ -30,6 +32,10 @@ class Home extends Component
         if (!$this->school) {
             abort(404, 'Escuela no encontrada');
         }
+
+        // Cargar colores de la escuela
+        $this->primaryColor = $this->school->primary_color ?? '#1E40AF';
+        $this->secondaryColor = $this->school->secondary_color ?? '#10B981';
 
         // Obtener la temporada activa
         $this->activeSeason = Season::where('sports_school_id', $this->school->id)
@@ -97,15 +103,18 @@ class Home extends Component
             ->get();
         
         // Obtener últimos resultados (partidos finalizados con resultado)
+        // Incluye partidos con resultado 0-0, 1-0, etc. (cualquier resultado >= 0)
         $this->recentResults = SeasonMatch::where('sports_school_id', $this->school->id)
             ->where('published', true)
             ->where('date', '<', Carbon::today())
-            ->whereNotNull('goals_team')
-            ->whereNotNull('goals_oponent')
+            ->where('date', '>=', Carbon::today()->subDays(80))
             ->with(['team.category', 'season'])
             ->orderBy('date', 'desc')
-            ->take(3)
+            ->take(6)
             ->get();
+        
+       
+            
     }
     
     public function updatedSearchTeam()
