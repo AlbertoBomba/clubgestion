@@ -492,13 +492,10 @@
                             @endphp
                             
                             <div class="bg-white rounded-2xl shadow-lg shadow-gray-200/50 overflow-hidden group cursor-pointer hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border"  wire:key="result-{{ $result->id }}" data-aos="fade-up" data-aos-delay="{{ $index * 100 }}">
-                                <!-- Imagen con overlay degradado -->
-                                <div class="relative h-48 overflow-hidden">
-                                    <img src="{{ $backgroundImage }}" alt="{{ $result->team ? $result->team->team : tenantName() }} vs {{ $result->opponent }}" 
-                                         class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-                                    
-                                    <!-- Badge del resultado sobre la imagen -->
-                                    <div class="absolute top-3 right-3">
+                                <!-- Contenido del card -->
+                                <div class="p-4">
+                                    <!-- Badge del resultado -->
+                                    <div class="mb-4 text-center">
                                         @if($resultInfo['type'] === 'Victoria')
                                             <span class="bg-green-500 text-white text-[9px] font-bold px-3 py-1.5 uppercase tracking-wider inline-block rounded-full shadow-lg">
                                                 Victoria
@@ -514,68 +511,68 @@
                                         @endif
                                     </div>
                                     
-                                    <!-- Marcador sobre la imagen -->
-                                    <div class="absolute bottom-3 left-3 right-3">
-                                        <div class="flex items-center justify-center gap-3">
-                                            @if($result->sites === 'home')
-                                                <!-- Escuela en casa (goles izquierda) -->
-                                                <div class="text-4xl font-black text-white bg-black rounded-lg px-4 py-2 shadow-lg" style="border: 1px solid {{ $secondaryColor }};">
-                                                    {{ $goalsTeam }}
-                                                </div>
-                                                <div class="text-xs font-bold text-white/70 uppercase bg-black rounded-lg px-1 py-1 shadow-lg">-</div>
-                                                <div class="text-4xl font-black text-white bg-black rounded-lg px-4 py-2 shadow-lg" style="border: 1px solid {{ $secondaryColor }};">
-                                                    {{ $goalsOponent }}
-                                                </div>
-                                            @else
-                                                <!-- Escuela fuera (goles derecha) -->
-                                                <div class="text-4xl font-black text-white bg-black rounded-lg px-4 py-2 shadow-lg" style="border: 1px solid {{ $secondaryColor }};">
-                                                    {{ $goalsOponent }}
-                                                </div>
-                                                <div class="text-xs font-bold text-white/70 uppercase bg-black rounded-lg px-1 py-1 shadow-lg">-</div>
-                                                <div class="text-4xl font-black text-white bg-black rounded-lg px-4 py-2 shadow-lg" style="border: 1px solid {{ $secondaryColor }};">
-                                                    {{ $goalsTeam }}
-                                                </div>
-                                            @endif
+                                    <!-- Nombre de la escuela -->
+                                    <div class="text-center mb-3">
+                                        <div class="text-lg font-bold text-gray-900 leading-tight">
+                                            {{ $result->team ? $result->team->team : tenantName() }}
                                         </div>
                                     </div>
-                                </div>
-                                
-                                <!-- Contenido del card -->
-                                <div class="p-4">
+                                    
                                     <!-- Escudos de los equipos -->
-                                    <div class="flex items-center justify-center gap-2 mb-3">
+                                    <div class="flex items-center justify-center gap-3 mb-4">
                                         @if($result->sites === 'home')
                                             <!-- Escuela juega en casa (izquierda) -->
-                                            <div class="w-12 h-12 bg-gray-50 rounded-full p-1.5 shadow-md">
+                                            <div class="w-16 h-16 bg-gray-50 rounded-full p-2 shadow-md">
                                                 <img src="{{ tenantLogo() }}" alt="{{ tenantName() }}" class="w-full h-full object-contain">
                                             </div>
-                                            <div class="text-gray-400 font-bold text-xs">VS</div>
+                                            <div class="text-gray-400 font-bold text-sm">VS</div>
                                             @if($result->escudo_team_oponent)
-                                                <div class="w-12 h-12 bg-gray-50 rounded-full p-1.5 shadow-md">
+                                                <div class="w-16 h-16 bg-gray-50 rounded-full p-2 shadow-md">
                                                     <img src="{{ Storage::url($result->escudo_team_oponent) }}" alt="{{ $result->opponent }}" class="w-full h-full object-contain">
                                                 </div>
                                             @endif
                                         @else
                                             <!-- Escuela juega fuera (derecha), oponente en izquierda -->
                                             @if($result->escudo_team_oponent)
-                                                <div class="w-12 h-12 bg-gray-50 rounded-full p-1.5 shadow-md">
+                                                <div class="w-16 h-16 bg-gray-50 rounded-full p-2 shadow-md">
                                                     <img src="{{ Storage::url($result->escudo_team_oponent) }}" alt="{{ $result->opponent }}" class="w-full h-full object-contain">
                                                 </div>
                                             @endif
-                                            <div class="text-gray-400 font-bold text-xs">VS</div>
-                                            <div class="w-12 h-12 bg-gray-50 rounded-full p-1.5 shadow-md">
+                                            <div class="text-gray-400 font-bold text-sm">VS</div>
+                                            <div class="w-16 h-16 bg-gray-50 rounded-full p-2 shadow-md">
                                                 <img src="{{ tenantLogo() }}" alt="{{ tenantName() }}" class="w-full h-full object-contain">
                                             </div>
                                         @endif
                                     </div>
                                     
-                                    <!-- Equipos -->
-                                    <div class="text-center mb-3">
-                                        <div class="text-sm font-bold text-gray-900 leading-tight mb-1">
-                                            {{ $result->team ? $result->team->team : tenantName() }}
+                                    <!-- Marcador de goles -->
+                                    <div class="mb-4">
+                                        <div class="flex items-center justify-center gap-2">
+                                            @if($result->sites === 'home')
+                                                <!-- Escuela en casa (goles izquierda) -->
+                                                <div class="text-4xl font-black rounded-lg px-4 py-2 shadow-lg" style="background: linear-gradient(135deg, {{ $primaryColor }}, {{ $secondaryColor }}); color: white; border: 2px solid {{ $secondaryColor }};">
+                                                    {{ $goalsTeam }}
+                                                </div>
+                                                <div class="text-lg font-bold text-gray-400 uppercase">-</div>
+                                                <div class="text-4xl font-black text-gray-900 bg-gray-100 rounded-lg px-4 py-2 shadow-lg border-2 border-gray-300">
+                                                    {{ $goalsOponent }}
+                                                </div>
+                                            @else
+                                                <!-- Escuela fuera (goles derecha) -->
+                                                <div class="text-4xl font-black text-gray-900 bg-gray-100 rounded-lg px-4 py-2 shadow-lg border-2 border-gray-300">
+                                                    {{ $goalsOponent }}
+                                                </div>
+                                                <div class="text-lg font-bold text-gray-400 uppercase">-</div>
+                                                <div class="text-4xl font-black rounded-lg px-4 py-2 shadow-lg" style="background: linear-gradient(135deg, {{ $primaryColor }}, {{ $secondaryColor }}); color: white; border: 2px solid {{ $secondaryColor }};">
+                                                    {{ $goalsTeam }}
+                                                </div>
+                                            @endif
                                         </div>
-                                        <div class="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">VS</div>
-                                        <div class="text-sm font-bold text-gray-900 leading-tight mt-1">
+                                    </div>
+                                    
+                                    <!-- Nombre del oponente -->
+                                    <div class="text-center mb-4">
+                                        <div class="text-lg font-bold text-gray-900 leading-tight">
                                             {{ $result->opponent }}
                                         </div>
                                     </div>
@@ -636,6 +633,7 @@
     </section>
 
     <!-- Nuestros Patrocinadores -->
+    @if($sponsors && $sponsors->count() > 0)
     <section class="py-40  relative overflow-hidden">
         <!-- Nombre de la escuela de fondo con palabras desordenadas -->
         <div class="absolute inset-0 pointer-events-none">
@@ -666,74 +664,32 @@
             @endforeach
         </div>
         
-        <div class="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+        <div class="w-full px-6 lg:px-12 relative z-10">
             <h2 class="text-sm md:text-base lg:text-lg uppercase tracking-[0.2em] text-gray-500 font-semibold mb-5 text-center" data-aos="fade-up">[03] Colaboradores principales</h2>
             <h3 class="section-title text-6xl md:text-8xl lg:text-9xl font-bold mb-20 text-gray-900 text-center" data-aos="fade-up">¡¡Gracias!!</h3>
             
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
-                <!-- Patrocinador 1 -->
-                <div class="bg-white border border-gray-200 p-12 flex items-center justify-center hover:border-primary transition-all duration-300 rounded-2xl" data-aos="fade-up" data-aos-delay="100">
-                    <div class="text-center">
-                        <div class="text-5xl font-extrabold text-gray-200 mb-3">LOGO</div>
-                        <div class="text-[11px] uppercase tracking-[0.15em] text-gray-400 font-semibold">Patrocinador</div>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
+                @foreach($sponsors as $index => $sponsor)
+                    <div class="bg-white border border-gray-200 p-8 flex items-center justify-center hover:border-primary transition-all duration-300 rounded-2xl group" data-aos="fade-up" data-aos-delay="{{ ($index + 1) * 100 }}">
+                        @if($sponsor->logo)
+                            <a href="{{ $sponsor->web ?: '#' }}" target="{{ $sponsor->web ? '_blank' : '_self' }}" class="block w-full h-full flex items-center justify-center">
+                                <img src="{{ asset('storage/' . $sponsor->logo) }}" alt="{{ $sponsor->name }}" class="max-w-full max-h-32 object-contain group-hover:scale-105 transition-transform duration-300">
+                            </a>
+                        @else
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-gray-800 mb-2">{{ $sponsor->name }}</div>
+                                @if($sponsor->web)
+                                    <a href="{{ $sponsor->web }}" target="_blank" class="text-xs text-primary hover:underline flex items-center justify-center">
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                        </svg>
+                                        Visitar web
+                                    </a>
+                                @endif
+                            </div>
+                        @endif
                     </div>
-                </div>
-                
-                <!-- Patrocinador 2 -->
-                <div class="bg-white border border-gray-200 p-12 flex items-center justify-center hover:border-primary transition-all duration-300 rounded-2xl" data-aos="fade-up" data-aos-delay="200">
-                    <div class="text-center">
-                        <div class="text-5xl font-extrabold text-gray-200 mb-3">LOGO</div>
-                        <div class="text-[11px] uppercase tracking-[0.15em] text-gray-400 font-semibold">Patrocinador</div>
-                    </div>
-                </div>
-                
-                <!-- Patrocinador 3 -->
-                <div class="bg-white border border-gray-200 p-12 flex items-center justify-center hover:border-primary transition-all duration-300 rounded-2xl" data-aos="fade-up" data-aos-delay="300">
-                    <div class="text-center">
-                        <div class="text-5xl font-extrabold text-gray-200 mb-3">LOGO</div>
-                        <div class="text-[11px] uppercase tracking-[0.15em] text-gray-400 font-semibold">Patrocinador</div>
-                    </div>
-                </div>
-                
-                <!-- Patrocinador 4 -->
-                <div class="bg-white border border-gray-200 p-12 flex items-center justify-center hover:border-primary transition-all duration-300 rounded-2xl" data-aos="fade-up" data-aos-delay="400">
-                    <div class="text-center">
-                        <div class="text-5xl font-extrabold text-gray-200 mb-3">LOGO</div>
-                        <div class="text-[11px] uppercase tracking-[0.15em] text-gray-400 font-semibold">Patrocinador</div>
-                    </div>
-                </div>
-                
-                <!-- Patrocinador 5 -->
-                <div class="bg-white border border-gray-200 p-12 flex items-center justify-center hover:border-primary transition-all duration-300 rounded-2xl" data-aos="fade-up" data-aos-delay="500">
-                    <div class="text-center">
-                        <div class="text-5xl font-extrabold text-gray-200 mb-3">LOGO</div>
-                        <div class="text-[11px] uppercase tracking-[0.15em] text-gray-400 font-semibold">Patrocinador</div>
-                    </div>
-                </div>
-                
-                <!-- Patrocinador 6 -->
-                <div class="bg-white border border-gray-200 p-12 flex items-center justify-center hover:border-primary transition-all duration-300 rounded-2xl" data-aos="fade-up" data-aos-delay="600">
-                    <div class="text-center">
-                        <div class="text-5xl font-extrabold text-gray-200 mb-3">LOGO</div>
-                        <div class="text-[11px] uppercase tracking-[0.15em] text-gray-400 font-semibold">Patrocinador</div>
-                    </div>
-                </div>
-                
-                <!-- Patrocinador 7 -->
-                <div class="bg-white border border-gray-200 p-12 flex items-center justify-center hover:border-primary transition-all duration-300 rounded-2xl" data-aos="fade-up" data-aos-delay="700">
-                    <div class="text-center">
-                        <div class="text-5xl font-extrabold text-gray-200 mb-3">LOGO</div>
-                        <div class="text-[11px] uppercase tracking-[0.15em] text-gray-400 font-semibold">Patrocinador</div>
-                    </div>
-                </div>
-                
-                <!-- Patrocinador 8 -->
-                <div class="bg-white border border-gray-200 p-12 flex items-center justify-center hover:border-primary transition-all duration-300 rounded-2xl" data-aos="fade-up" data-aos-delay="800">
-                    <div class="text-center">
-                        <div class="text-5xl font-extrabold text-gray-200 mb-3">LOGO</div>
-                        <div class="text-[11px] uppercase tracking-[0.15em] text-gray-400 font-semibold">Patrocinador</div>
-                    </div>
-                </div>
+                @endforeach
             </div>
             
             <div class="text-center mt-20" data-aos="fade-up">
@@ -744,6 +700,7 @@
             </div>
         </div>
     </section>
+    @endif
 
     <!-- Sección de Socios/Membresía -->
     <section class="py-40 bg-primary text-white">

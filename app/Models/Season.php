@@ -70,4 +70,14 @@ class Season extends Model
     {
         return $this->hasMany(Team::class);
     }
+
+    /**
+     * Scope para obtener la temporada en curso
+     */
+    public function scopeCurrent($query)
+    {
+        $today = now()->toDateString();
+        return $query->where('start_date', '<=', $today)
+                    ->where('end_date', '>=', $today);
+    }
 }

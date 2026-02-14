@@ -304,5 +304,10 @@ Route::middleware([
         Route::get('/matches/{match}/edit', function (App\Models\SeasonMatch $match) {
             return view('matches.edit', compact('match'));
         })->name('matches.edit');
+
+        // Gestión de Patrocinadores
+        Route::get('/sponsors', function () {
+            return view('sponsors.index');
+        })->name('sponsors.index');
     });
 });

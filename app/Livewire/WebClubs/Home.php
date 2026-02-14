@@ -6,6 +6,7 @@ use App\Models\SeasonMatch;
 use App\Models\Season;
 use App\Models\Team;
 use App\Models\Player;
+use App\Models\Sponsor;
 use Livewire\Component;
 use Carbon\Carbon;
 
@@ -20,6 +21,7 @@ class Home extends Component
     public $recentResults;
     public $primaryColor;
     public $secondaryColor;
+    public $sponsors;
     
     // Filtros
     public $searchTeam = '';
@@ -69,6 +71,17 @@ class Home extends Component
             ->where('role', 'coach')
             ->where('is_active', true)
             ->count();
+        
+        // Cargar patrocinadores publicados de la temporada actual
+        if ($this->activeSeason) {
+            $this->sponsors = Sponsor::where('sports_school_id', $this->school->id)
+                ->where('season_id', $this->activeSeason->id)
+                ->where('published', true)
+                ->orderBy('order', 'asc')
+                ->get();
+        } else {
+            $this->sponsors = collect();
+        }
         
         // Cargar partidos y resultados
         $this->loadMatches();

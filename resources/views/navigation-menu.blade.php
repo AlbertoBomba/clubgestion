@@ -921,6 +921,42 @@
                 </div>
                 @endif
 
+                @if(auth()->user()->hasAnyRole(['master', 'school_admin']))
+                <!-- Menú: Gestión Web -->
+                <div class="space-y-1">
+                    <button @click="openMenu = openMenu === 'gestion_web' ? null : 'gestion_web'" 
+                            class="flex items-center justify-between w-full px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200"
+                            :class="{'bg-primary/10 text-primary font-semibold': openMenu === 'gestion_web'}">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                            </svg>
+                            <span>Gestión Web</span>
+                        </div>
+                        <svg class="w-4 h-4 transition-transform duration-200" 
+                             :class="{'rotate-180': openMenu === 'gestion_web'}"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    
+                    <div x-show="openMenu === 'gestion_web'" 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 transform -translate-y-2"
+                         x-transition:enter-end="opacity-100 transform translate-y-0"
+                         class="pl-4 space-y-1">
+                        <a href="{{ route('sponsors.index') }}" 
+                           @click="sidebarOpen = false"
+                           class="flex items-center px-4 py-2 text-sm text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('sponsors.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            Gestión de Patrocinadores
+                        </a>
+                    </div>
+                </div>
+                @endif
+
                 @if(auth()->user()->hasRole('master') && !auth()->user()->sportsSchool)
                 <a href="{{ route('sections.index') }}" 
                    @click="sidebarOpen = false"
