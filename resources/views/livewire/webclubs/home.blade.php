@@ -113,6 +113,11 @@
             will-change: transform;
         }
     </style>
+
+    {{-- Etiquetas Meta Personalizadas --}}
+    {{-- <meta name="keywords" content="fútbol, club deportivo, partidos, resultados">
+    <meta property="og:image" content="{{ asset('images/home-banner.jpg') }}"> --}}
+    
     @endpush
 
     <!-- Hero Carousel Section -->

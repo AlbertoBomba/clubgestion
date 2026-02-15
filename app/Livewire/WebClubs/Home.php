@@ -174,6 +174,14 @@ class Home extends Component
 
     public function render()
     {
+        // ejemplo meter etiquetas meta personalizadas para SEO
+        // return view('livewire.webclubs.home')->layout('livewire.webclubs.layouts.app', [
+        //      'title' => 'Inicio - ' . tenantName(),
+        //      'description' => 'Bienvenido al club deportivo ' . tenantName(),
+        //      'keywords' => 'fútbol, club, equipos, partidos',
+        //      'ogImage' => asset('images/home-og.jpg'),
+        // ]);
+
         return view('livewire.webclubs.home')
             ->layout('livewire.webclubs.layouts.app', [
                 'title' => tenantName() . ' - Inicio'
