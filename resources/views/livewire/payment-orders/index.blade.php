@@ -25,6 +25,12 @@
                 @endif
             </div>
             <div class="flex items-center gap-3">
+                <button wire:click="exportExcel" class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-300 hover:-translate-y-1 bg-green-600 hover:bg-green-700">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Descargar Excel
+                </button>
                 @if($activeSeason && $hasPlayersWithoutPayments)
                     <div class="relative group">
                         <button wire:click="generatePaymentOrders" 
@@ -88,7 +94,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                 </div>
-                <input wire:model.live="search" type="text" placeholder="Buscar jugadores..." 
+                <input wire:model.live="search" type="text" placeholder="jugador, tutor, DNI o código de pago" 
                     class="block w-full pl-10 pr-3 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep placeholder-gray-400 text-sm">
             </div>
             
@@ -108,11 +114,11 @@
             </div>
             
             <div>
-                <select wire:model.live="categoryFilter" 
+                <select wire:model.live="teamFilter" 
                     class="block w-full px-3 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                    <option value="">Todas las categorías</option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category->id }}">{{ $category->category }}</option>
+                    <option value="">Todos los equipos</option>
+                    @foreach($teams as $team)
+                        <option value="{{ $team->id }}">{{ $team->team }}</option>
                     @endforeach
                 </select>
             </div>
@@ -121,18 +127,24 @@
                 <select wire:model.live="cuotaFilter" 
                     class="block w-full px-3 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
                     <option value="">Todas las cuotas</option>
-                    <option value="1">Primera cuota</option>
-                    <option value="2">Segunda cuota</option>
-                    <option value="3">Tercera cuota</option>
-                    <option value="4">Cuarta cuota</option>
-                    <option value="5">Quinta cuota</option>
-                    <option value="6">Sexta cuota</option>
-                    <option value="7">Séptima cuota</option>
-                    <option value="8">Octava cuota</option>
-                    <option value="9">Novena cuota</option>
-                    <option value="10">Décima cuota</option>
-                    <option value="11">Undécima cuota</option>
-                    <option value="12">Duodécima cuota</option>
+                    @for($i = 1; $i <= $maxCuotas; $i++)
+                        <option value="{{ $i }}">
+                            @if($i == 1) Primera cuota
+                            @elseif($i == 2) Segunda cuota
+                            @elseif($i == 3) Tercera cuota
+                            @elseif($i == 4) Cuarta cuota
+                            @elseif($i == 5) Quinta cuota
+                            @elseif($i == 6) Sexta cuota
+                            @elseif($i == 7) Séptima cuota
+                            @elseif($i == 8) Octava cuota
+                            @elseif($i == 9) Novena cuota
+                            @elseif($i == 10) Décima cuota
+                            @elseif($i == 11) Undécima cuota
+                            @elseif($i == 12) Duodécima cuota
+                            @else Cuota {{ $i }}
+                            @endif
+                        </option>
+                    @endfor
                 </select>
             </div>
 
@@ -448,18 +460,24 @@
                                             <select wire:model="stateChangeCuota" 
                                                 class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                                 <option value="">-- Selecciona una cuota --</option>
-                                                <option value="1">Primera cuota</option>
-                                                <option value="2">Segunda cuota</option>
-                                                <option value="3">Tercera cuota</option>
-                                                <option value="4">Cuarta cuota</option>
-                                                <option value="5">Quinta cuota</option>
-                                                <option value="6">Sexta cuota</option>
-                                                <option value="7">Séptima cuota</option>
-                                                <option value="8">Octava cuota</option>
-                                                <option value="9">Novena cuota</option>
-                                                <option value="10">Décima cuota</option>
-                                                <option value="11">Undécima cuota</option>
-                                                <option value="12">Duodécima cuota</option>
+                                                @for($i = 1; $i <= $maxCuotas; $i++)
+                                                    <option value="{{ $i }}">
+                                                        @if($i == 1) Primera cuota
+                                                        @elseif($i == 2) Segunda cuota
+                                                        @elseif($i == 3) Tercera cuota
+                                                        @elseif($i == 4) Cuarta cuota
+                                                        @elseif($i == 5) Quinta cuota
+                                                        @elseif($i == 6) Sexta cuota
+                                                        @elseif($i == 7) Séptima cuota
+                                                        @elseif($i == 8) Octava cuota
+                                                        @elseif($i == 9) Novena cuota
+                                                        @elseif($i == 10) Décima cuota
+                                                        @elseif($i == 11) Undécima cuota
+                                                        @elseif($i == 12) Duodécima cuota
+                                                        @else Cuota {{ $i }}
+                                                        @endif
+                                                    </option>
+                                                @endfor
                                             </select>
                                         </div>
 

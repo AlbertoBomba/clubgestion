@@ -11,6 +11,7 @@ use App\Models\PaymentTeam;
 use App\Models\PaymentPlayer;
 use App\Models\PaymentCodeSequentials;
 use Illuminate\Support\Facades\DB;
+use App\Classes\ExcelFile;
 
 class Index extends Component
 {
@@ -18,7 +19,7 @@ class Index extends Component
 
     public $search = '';
     public $seasonFilter = '';
-    public $categoryFilter = '';
+    public $teamFilter = '';
     public $cuotaFilter = '';
     public $pendingPaymentsOnly = true;
     public $showDeleteModal = false;
@@ -46,7 +47,7 @@ class Index extends Component
         // Recuperar filtros de sesión
         $this->search = session('paymentOrders.search', '');
         $this->seasonFilter = session('paymentOrders.seasonFilter', $activeSeason ? $activeSeason->id : '');
-        $this->categoryFilter = session('paymentOrders.categoryFilter', '');
+        $this->teamFilter = session('paymentOrders.teamFilter', '');
         $this->cuotaFilter = session('paymentOrders.cuotaFilter', '');
         $this->pendingPaymentsOnly = session('paymentOrders.pendingPaymentsOnly', true);
     }
@@ -54,7 +55,7 @@ class Index extends Component
     public function updated($property)
     {
         // Guardar filtros en sesión cuando cambien
-        if (in_array($property, ['search', 'seasonFilter', 'categoryFilter', 'cuotaFilter', 'pendingPaymentsOnly'])) {
+        if (in_array($property, ['search', 'seasonFilter', 'teamFilter', 'cuotaFilter', 'pendingPaymentsOnly'])) {
             session(['paymentOrders.' . $property => $this->$property]);
         }
         
@@ -85,7 +86,7 @@ class Index extends Component
         $this->resetPage();
     }
 
-    public function updatingCategoryFilter()
+    public function updatingTeamFilter()
     {
         $this->resetPage();
     }
@@ -470,15 +471,18 @@ class Index extends Component
         // Obtener jugadores con sus pagos
         $players = $this->getPlayersQuery()->paginate(20);
 
-        // Obtener temporadas y categorías para los filtros
+        // Obtener temporadas y equipos para los filtros
         $seasons = Season::orderBy('from_year', 'desc')->get();
         
-        $categories = \App\Models\Category::when($this->seasonFilter, function($query) {
-                $query->whereHas('teams', function($q) {
-                    $q->where('season_id', $this->seasonFilter);
-                });
+        $sportsSchoolId = auth()->user()->sports_school_id;
+        $teams = Team::whereHas('season', function($query) use ($sportsSchoolId) {
+                $query->where('sports_school_id', $sportsSchoolId);
             })
-            ->orderBy('category')
+            ->when($this->seasonFilter, function($query) {
+                $query->where('season_id', $this->seasonFilter);
+            })
+            ->with('category')
+            ->orderBy('team')
             ->get();
 
         // Verificar si hay jugadores sin cartas de pago en la temporada activa
@@ -502,18 +506,43 @@ class Index extends Component
                 ->exists();
         }
 
+        // Obtener el número máximo de cuotas de la temporada seleccionada
+        $maxCuotas = 12; // Por defecto
+        if ($this->seasonFilter) {
+            $selectedSeason = Season::find($this->seasonFilter);
+            $maxCuotas = $selectedSeason && $selectedSeason->cuota ? $selectedSeason->cuota : 12;
+        } elseif ($activeSeason && $activeSeason->cuota) {
+            $maxCuotas = $activeSeason->cuota;
+        }
+
         return view('livewire.payment-orders.index', [
             'players' => $players,
             'seasons' => $seasons,
-            'categories' => $categories,
+            'teams' => $teams,
             'activeSeason' => $activeSeason,
             'hasPlayersWithoutPayments' => $hasPlayersWithoutPayments,
+            'maxCuotas' => $maxCuotas,
         ]);
     }
     
     private function getPlayersQuery()
     {
-        return Player::with(['paymentPlayers.paymentTeam', 'teams.category', 'teams.season'])
+        // Construir el eager loading condicional para paymentPlayers
+        $paymentPlayersQuery = function($query) {
+            if ($this->cuotaFilter) {
+                $query->where('cuota', $this->cuotaFilter);
+            }
+            if ($this->pendingPaymentsOnly) {
+                $query->where('state', 0);
+            }
+        };
+
+        return Player::with([
+                'paymentPlayers' => $paymentPlayersQuery, 
+                'paymentPlayers.paymentTeam', 
+                'teams.category', 
+                'teams.season'
+            ])
             ->when($this->search, function($query) {
                 // Dividir la búsqueda en términos individuales
                 $searchTerms = array_filter(explode(' ', trim($this->search)));
@@ -526,6 +555,7 @@ class Index extends Component
                                  ->orWhere('nametutor', 'like', '%' . $term . '%')
                                  ->orWhere('surnametutor', 'like', '%' . $term . '%')
                                  ->orWhere('dni', 'like', '%' . $term . '%')
+                                 ->orWhere('dnitutor', 'like', '%' . $term . '%')
                                  ->orWhereHas('paymentPlayers', function($paymentQ) use ($term) {
                                      $paymentQ->where('code', 'like', '%' . $term . '%');
                                  });
@@ -538,19 +568,20 @@ class Index extends Component
                     $q->where('season_id', $this->seasonFilter);
                 });
             })
-            ->when($this->categoryFilter, function($query) {
+            ->when($this->teamFilter, function($query) {
                 $query->whereHas('teams', function($q) {
-                    $q->where('category_id', $this->categoryFilter);
+                    $q->where('teams.id', $this->teamFilter);
                 });
             })
-            ->when($this->pendingPaymentsOnly, function($query) {
+            // Aplicar filtros de pagos: si hay cuotaFilter o pendingPaymentsOnly, aplicarlos juntos
+            ->when($this->pendingPaymentsOnly || $this->cuotaFilter, function($query) {
                 $query->whereHas('paymentPlayers', function($q) {
-                    $q->where('state', 0);
-                });
-            })
-            ->when($this->cuotaFilter, function($query) {
-                $query->whereHas('paymentPlayers', function($q) {
-                    $q->where('cuota', $this->cuotaFilter);
+                    if ($this->pendingPaymentsOnly) {
+                        $q->where('state', 0);
+                    }
+                    if ($this->cuotaFilter) {
+                        $q->where('cuota', $this->cuotaFilter);
+                    }
                 });
             })
             ->orderBy('name')
@@ -593,5 +624,160 @@ class Index extends Component
         );
 
         return $highlightedText;
+    }
+
+    public function exportExcel()
+    {
+        // Obtener los jugadores con sus pagos usando la misma query que la vista
+        $query = $this->getPlayersQuery()->get();
+
+        // Preparar los datos para exportar
+        $records = [];
+        foreach ($query as $player) {
+            foreach ($player->paymentPlayers->sortBy('cuota') as $payment) {
+                $dateStart = $payment->paymentTeam ? \Carbon\Carbon::parse($payment->paymentTeam->date_start) : null;
+                $dateEnd = $payment->paymentTeam ? \Carbon\Carbon::parse($payment->paymentTeam->date_end) : null;
+                
+                // Determinar el estado de la cuota
+                $now = now();
+                if ($payment->state == 1) {
+                    $status = 'Pagada';
+                } elseif ($payment->state == 2) {
+                    $status = 'Lesión';
+                } elseif ($payment->state == 3) {
+                    $status = 'Baja Jugador';
+                } elseif ($dateEnd && $now->isAfter($dateEnd)) {
+                    $status = 'Impagada';
+                } elseif ($dateStart && $dateEnd && $now->between($dateStart, $dateEnd)) {
+                    $status = 'En plazo';
+                } elseif ($dateStart && $now->isBefore($dateStart)) {
+                    $status = 'No ejecutada';
+                } else {
+                    $status = 'Pendiente';
+                }
+
+                $records[] = (object)[
+                    'player_name' => trim(($player->name ?? '') . ' ' . ($player->surname ?? '')),
+                    'player_dni' => $player->dni,
+                    'tutor_name' => trim(($player->nametutor ?? '') . ' ' . ($player->surnametutor ?? '')),
+                    'tutor_dni' => $player->dnitutor,
+                    'phone' => $player->phone1 ?? $player->phone2 ?? '',
+                    'team' => $player->teams->first()->team ?? '-',
+                    'season' => $player->teams->first()->season->season ?? '-',
+                    'code' => $payment->code,
+                    'cuota' => 'Cuota ' . $payment->cuota,
+                    'status' => $status,
+                    'amount_original' => number_format($payment->amount_original, 2, ',', '.') . ' €',
+                    'amount' => number_format($payment->amount, 2, ',', '.') . ' €',
+                    'descEnt' => $payment->descEnt ? number_format($payment->descEnt, 2, ',', '.') . ' €' : '-',
+                    'descPerc' => $payment->descPerc ? $payment->descPerc . '%' : '-',
+                    'date_start' => $dateStart ? $dateStart->format('d/m/Y') : '-',
+                    'date_end' => $dateEnd ? $dateEnd->format('d/m/Y') : '-',
+                    'payment_date' => $payment->payment_date ? \Carbon\Carbon::parse($payment->payment_date)->format('d/m/Y') : '-',
+                ];
+            }
+        }
+
+        // Crear el archivo Excel manualmente
+        $excel = new ExcelFile(
+            Player::class,
+            [],
+            [
+                'player_name' => [
+                    'title' => 'Jugador',
+                    'value' => '$record->player_name',
+                    'type' => 'eval'
+                ],
+                'player_dni' => [
+                    'title' => 'DNI Jugador',
+                    'value' => '$record->player_dni',
+                    'type' => 'eval'
+                ],
+                'tutor_name' => [
+                    'title' => 'Tutor',
+                    'value' => '$record->tutor_name',
+                    'type' => 'eval'
+                ],
+                'tutor_dni' => [
+                    'title' => 'DNI Tutor',
+                    'value' => '$record->tutor_dni',
+                    'type' => 'eval'
+                ],
+                'phone' => [
+                    'title' => 'Teléfono',
+                    'value' => '$record->phone',
+                    'type' => 'eval'
+                ],
+                'team' => [
+                    'title' => 'Equipo',
+                    'value' => '$record->team',
+                    'type' => 'eval'
+                ],
+                'season' => [
+                    'title' => 'Temporada',
+                    'value' => '$record->season',
+                    'type' => 'eval'
+                ],
+                'code' => [
+                    'title' => 'Código de Pago',
+                    'value' => '$record->code',
+                    'type' => 'eval'
+                ],
+                'cuota' => [
+                    'title' => 'Cuota',
+                    'value' => '$record->cuota',
+                    'type' => 'eval'
+                ],
+                'status' => [
+                    'title' => 'Estado',
+                    'value' => '$record->status',
+                    'type' => 'eval'
+                ],
+                'amount_original' => [
+                    'title' => 'Importe Original',
+                    'value' => '$record->amount_original',
+                    'type' => 'eval'
+                ],
+                'amount' => [
+                    'title' => 'Importe con Descuento',
+                    'value' => '$record->amount',
+                    'type' => 'eval'
+                ],
+                'descEnt' => [
+                    'title' => 'Descuento (€)',
+                    'value' => '$record->descEnt',
+                    'type' => 'eval'
+                ],
+                'descPerc' => [
+                    'title' => 'Descuento (%)',
+                    'value' => '$record->descPerc',
+                    'type' => 'eval'
+                ],
+                'date_start' => [
+                    'title' => 'Fecha Inicio',
+                    'value' => '$record->date_start',
+                    'type' => 'eval'
+                ],
+                'date_end' => [
+                    'title' => 'Fecha Fin',
+                    'value' => '$record->date_end',
+                    'type' => 'eval'
+                ],
+                'payment_date' => [
+                    'title' => 'Fecha de Pago',
+                    'value' => '$record->payment_date',
+                    'type' => 'eval'
+                ],
+            ],
+            'Cartas de Pago',
+            [],
+            [],
+            collect($records)
+        );
+
+        return response()->streamDownload(
+            fn () => print($excel->generate()),
+            'Cartas_de_Pago_' . now()->format('Y-m-d_His') . '.xlsx'
+        );
     }
 }
