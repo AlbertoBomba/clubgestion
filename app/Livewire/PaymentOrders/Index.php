@@ -34,6 +34,8 @@ class Index extends Component
     public $stateChangeCuota = '';
     public $stateChangeNewState = '';
 
+    protected $queryString = ['search'];
+
     public function mount()
     {
         // Obtener la temporada activa
@@ -479,11 +481,33 @@ class Index extends Component
             ->orderBy('category')
             ->get();
 
+        // Verificar si hay jugadores sin cartas de pago en la temporada activa
+        $hasPlayersWithoutPayments = false;
+        if ($activeSeason) {
+            $sportsSchoolId = auth()->user()->sports_school_id;
+            $hasPlayersWithoutPayments = Player::whereHas('teams', function($query) use ($activeSeason, $sportsSchoolId) {
+                    $query->where('season_id', $activeSeason->id)
+                        ->whereHas('season', function ($q) use ($sportsSchoolId) {
+                            $q->where('sports_school_id', $sportsSchoolId);
+                        })
+                        ->whereHas('payments'); // Solo equipos con pagos configurados
+                })
+                ->whereDoesntHave('paymentPlayers', function($query) use ($activeSeason) {
+                    $query->whereHas('paymentTeam', function($q) use ($activeSeason) {
+                        $q->whereHas('team', function($teamQuery) use ($activeSeason) {
+                            $teamQuery->where('season_id', $activeSeason->id);
+                        });
+                    });
+                })
+                ->exists();
+        }
+
         return view('livewire.payment-orders.index', [
             'players' => $players,
             'seasons' => $seasons,
             'categories' => $categories,
             'activeSeason' => $activeSeason,
+            'hasPlayersWithoutPayments' => $hasPlayersWithoutPayments,
         ]);
     }
     
@@ -491,13 +515,22 @@ class Index extends Component
     {
         return Player::with(['paymentPlayers.paymentTeam', 'teams.category', 'teams.season'])
             ->when($this->search, function($query) {
-                $query->where(function($q) {
-                    $q->where('name', 'like', '%' . $this->search . '%')
-                      ->orWhere('surname', 'like', '%' . $this->search . '%')
-                      ->orWhere('dni', 'like', '%' . $this->search . '%')
-                      ->orWhereHas('paymentPlayers', function($subQ) {
-                          $subQ->where('code', 'like', '%' . $this->search . '%');
-                      });
+                // Dividir la búsqueda en términos individuales
+                $searchTerms = array_filter(explode(' ', trim($this->search)));
+                
+                $query->where(function($q) use ($searchTerms) {
+                    foreach ($searchTerms as $term) {
+                        $q->orWhere(function($subQ) use ($term) {
+                            $subQ->where('name', 'like', '%' . $term . '%')
+                                 ->orWhere('surname', 'like', '%' . $term . '%')
+                                 ->orWhere('nametutor', 'like', '%' . $term . '%')
+                                 ->orWhere('surnametutor', 'like', '%' . $term . '%')
+                                 ->orWhere('dni', 'like', '%' . $term . '%')
+                                 ->orWhereHas('paymentPlayers', function($paymentQ) use ($term) {
+                                     $paymentQ->where('code', 'like', '%' . $term . '%');
+                                 });
+                        });
+                    }
                 });
             })
             ->when($this->seasonFilter, function($query) {
@@ -522,5 +555,43 @@ class Index extends Component
             })
             ->orderBy('name')
             ->orderBy('surname');
+    }
+
+    public function highlightText($text, $searchTerms = null)
+    {
+        if (empty($text)) {
+            return '';
+        }
+
+        // Si no se pasan términos, usar los del componente
+        if ($searchTerms === null) {
+            if (empty($this->search)) {
+                return e($text);
+            }
+            $searchTerms = array_filter(explode(' ', trim($this->search)));
+        }
+
+        if (empty($searchTerms)) {
+            return e($text);
+        }
+
+        // Escapar el texto original
+        $highlightedText = e($text);
+
+        // Crear un patrón único para todos los términos a la vez
+        $patterns = array_map(function($term) {
+            return preg_quote($term, '/');
+        }, $searchTerms);
+        
+        $pattern = '/\b(' . implode('|', $patterns) . ')/iu';
+
+        // Resaltar todos los términos en una sola pasada
+        $highlightedText = preg_replace(
+            $pattern,
+            '<mark class="bg-yellow-200 font-semibold">$1</mark>',
+            $highlightedText
+        );
+
+        return $highlightedText;
     }
 }

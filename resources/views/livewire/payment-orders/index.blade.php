@@ -25,20 +25,49 @@
                 @endif
             </div>
             <div class="flex items-center gap-3">
-                <button wire:click="generatePaymentOrders" 
-                    wire:loading.attr="disabled"
-                    wire:target="generatePaymentOrders"
-                    class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-lg font-semibold text-sm text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-50">
-                    <svg wire:loading.remove wire:target="generatePaymentOrders" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    <svg wire:loading wire:target="generatePaymentOrders" class="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span wire:loading.remove wire:target="generatePaymentOrders">Generar Cartas de Pago</span>
-                    <span wire:loading wire:target="generatePaymentOrders">Generando...</span>
-                </button>
+                @if($activeSeason && $hasPlayersWithoutPayments)
+                    <div class="relative group">
+                        <button wire:click="generatePaymentOrders" 
+                            wire:loading.attr="disabled"
+                            wire:target="generatePaymentOrders"
+                            class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-lg font-semibold text-sm text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-50">
+                            <svg wire:loading.remove wire:target="generatePaymentOrders" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            <svg wire:loading wire:target="generatePaymentOrders" class="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span wire:loading.remove wire:target="generatePaymentOrders">Generar Cartas de Pago</span>
+                            <span wire:loading wire:target="generatePaymentOrders">Generando...</span>
+                        </button>
+                        
+                        <!-- Badge de alerta parpadeante -->
+                        <div class="absolute -top-2 -right-2 animate-pulse">
+                            <div class="relative flex items-center justify-center">
+                                <span class="flex h-6 w-6 relative">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-6 w-6 bg-red-500 items-center justify-center">
+                                        <svg class="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Tooltip con mensaje -->
+                        <div class="absolute top-full right-0 mt-2 hidden group-hover:block z-50 w-64">
+                            <div class="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-lg">
+                                <div class="absolute bottom-full right-4 -mb-1">
+                                    <div class="border-8 border-transparent border-b-gray-900"></div>
+                                </div>
+                                <p class="font-semibold">⚠️ Hay cartas de pago sin generar</p>
+                                <p class="mt-1 text-gray-300">Haz clic para generar las cartas de pago pendientes</p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
                 
                 {{-- @if($activeSeason)
                     <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-green-600 text-white shadow-md">
@@ -174,7 +203,7 @@
                                         </div>
                                     @endif
                                     <div>
-                                        <div class="text-sm font-semibold text-black-deep">{{ $player->name }} {{ $player->surname }}</div>
+                                        <div class="text-sm font-semibold text-black-deep">{!! $this->highlightText(trim(($player->name ?? '') . ' ' . ($player->surname ?? ''))) !!}</div>
                                         @if($player->dbirth)
                                             <div class="text-xs text-gray-500">{{ $player->dbirth->age }} años</div>
                                         @endif
@@ -182,12 +211,18 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4">
+                                @php
+                                    $tutorName = trim(($player->nametutor ?? '') . ' ' . ($player->surnametutor ?? ''));
+                                @endphp
                                 <div class="text-sm text-gray-900">
-                                    {{ $player->nametutor ? $player->nametutor . ' ' . ($player->surnametutor ?? '') : '-' }}
+                                    {!! !empty($tutorName) ? $this->highlightText($tutorName) : '-' !!}
                                 </div>
                             </td>
                             <td class="px-6 py-4">
-                                <div class="text-sm text-gray-900">{{ $player->phone1 ?? $player->phone2 ?? '-' }}</div>
+                                @php
+                                    $phone = $player->phone1 ?? $player->phone2 ?? '';
+                                @endphp
+                                <div class="text-sm text-gray-900">{!! !empty($phone) ? $this->highlightText($phone) : '-' !!}</div>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="text-sm text-gray-900">{{ $player->teams->first()->team ?? '-' }}</div>
@@ -197,7 +232,7 @@
                                     <div class="flex flex-col gap-1">
                                         @foreach($player->paymentPlayers->sortBy('cuota') as $payment)
                                             <span class="text-xs font-mono text-gray-700 bg-gray-50 px-2 py-1 rounded border border-gray-200">
-                                                C{{ $payment->cuota }}: {{ $payment->code }}
+                                                C{{ $payment->cuota }}: {!! $this->highlightText($payment->code) !!}
                                             </span>
                                         @endforeach
                                     </div>
