@@ -13,6 +13,17 @@
             </div>
         @endif
 
+        @if (session()->has('warning'))
+            <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 8000)" class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg">
+                <div class="flex">
+                    <svg class="w-5 h-5 text-yellow-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <p class="text-sm text-yellow-700 font-medium">{{ session('warning') }}</p>
+                </div>
+            </div>
+        @endif
+
         <!-- Header -->
         <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
             <div>
@@ -25,6 +36,12 @@
                 @endif
             </div>
             <div class="flex items-center gap-3">
+                <button wire:click="openTransferModal" class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-300 hover:-translate-y-1 bg-purple-600 hover:bg-purple-700">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    Marcar Transferencias
+                </button>
                 <button wire:click="exportExcel" class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-300 hover:-translate-y-1 bg-green-600 hover:bg-green-700">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -244,7 +261,7 @@
                                     <div class="flex flex-col gap-1">
                                         @foreach($player->paymentPlayers->sortBy('cuota') as $payment)
                                             <span class="text-xs font-mono text-gray-700 bg-gray-50 px-2 py-1 rounded border border-gray-200">
-                                                C{{ $payment->cuota }}: {!! $this->highlightText($payment->code) !!}
+                                                <span class="text-gray-400 mr-1">#{{ $payment->id }}</span> C{{ $payment->cuota }}: {!! $this->highlightText($payment->code) !!}
                                             </span>
                                         @endforeach
                                     </div>
@@ -305,7 +322,7 @@
                                                         <svg class="w-3.5 h-3.5 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
                                                             {!! $icon !!}
                                                         </svg>
-                                                        {{ $payment->cuota }} - {{ $statusText }}
+                                                        <span class="opacity-60 mr-1">#{{ $payment->id }}</span> {{ $payment->cuota }} - {{ $statusText }}
                                                     </span>
                                                     @if($dateStart && $dateEnd)
                                                         <span class="text-xs {{ str_replace('800', '700', $textColor) }} font-normal">
@@ -530,6 +547,425 @@
                         <button wire:click="closeStateChangeModal" 
                             type="button" 
                             class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Modal de transferencias -->
+    @if($showTransferModal)
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" wire:click="closeTransferModal"></div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div class="relative inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-[95vw] sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start w-full">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-purple-100 sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                                    Marcar pagos por transferencia
+                                </h3>
+                                <div class="mt-4">
+                                    <p class="text-sm text-gray-500 mb-4">
+                                        Busca pagos pendientes por código de pago, nombre del jugador, apellido del jugador o nombre del tutor.
+                                    </p>
+                                    
+                                    @php
+                                        // Detectar si hay resultados de búsqueda rápida o Excel
+                                        $hasQuickSearchResults = collect($transferResults)->where('from_quick_search', true)->count() > 0;
+                                        $hasExcelResults = collect($transferResults)->filter(function($result) {
+                                            return !isset($result['from_quick_search']) || $result['from_quick_search'] !== true;
+                                        })->count() > 0;
+                                    @endphp
+                                    
+                                    {{-- Botón para cambiar de modo si hay resultados --}}
+                                    @if($hasQuickSearchResults || $hasExcelResults)
+                                        <div class="mb-4 flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                            <p class="text-sm text-blue-800">
+                                                @if($hasQuickSearchResults)
+                                                    📋 Mostrando resultados de <strong>Búsqueda Rápida</strong>
+                                                @else
+                                                    📁 Mostrando resultados de <strong>Importación Excel</strong>
+                                                @endif
+                                            </p>
+                                            <button wire:click="clearTransferResults" 
+                                                class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors duration-200 font-semibold">
+                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                                Limpiar y cambiar modo
+                                            </button>
+                                        </div>
+                                    @endif
+                                    
+                                    <!-- Búsqueda rápida (solo mostrar si NO hay resultados de Excel) -->
+                                    @if(!$hasExcelResults)
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Búsqueda rápida</label>
+                                            <div class="flex gap-2">
+                                                <input wire:model="transferSearch" 
+                                                    type="text" 
+                                                    placeholder="Código, nombre del jugador o tutor..."
+                                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                                    wire:keydown.enter="searchTransfers">
+                                                <button wire:click="searchTransfers" 
+                                                    class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 text-sm font-semibold">
+                                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                                    </svg>
+                                                    Buscar
+                                                </button>
+                                            </div>
+                                            <p class="text-xs text-gray-500 mt-2">
+                                                ℹ️ En la búsqueda rápida solo puedes seleccionar un pago para marcar como pagado.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    @endif
+
+                                    <!-- Resultados de búsqueda (visible para ambos modos) -->
+                                    @if(count($transferResults) > 0)
+                                            @php
+                                                $withMatch = collect($transferResults)->where('no_match', false)->count();
+                                                $withoutMatch = collect($transferResults)->where('no_match', true)->count();
+                                                $duplicates = collect($transferResults)->where('duplicate_cell', true)->count();
+                                            @endphp
+                                            
+                                            @if($withoutMatch > 0 || $duplicates > 0)
+                                                <div class="mb-4 bg-orange-50 border border-orange-200 rounded-lg p-4">
+                                                    <div class="flex items-start">
+                                                        <svg class="w-5 h-5 text-orange-500 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                        <div>
+                                                            <h4 class="text-sm font-semibold text-orange-800">Resumen de importación</h4>
+                                                            <p class="mt-1 text-sm text-orange-700">
+                                                                <span class="font-bold text-green-700">{{ $withMatch - $duplicates }}</span> {{ ($withMatch - $duplicates) === 1 ? 'pendiente' : 'pendientes' }}
+                                                                @if($duplicates > 0)
+                                                                     • <span class="font-bold text-orange-700">{{ $duplicates }}</span> {{ $duplicates === 1 ? 'duplicado' : 'duplicados' }}
+                                                                @endif
+                                                                @if($withoutMatch > 0)
+                                                                     • <span class="font-bold text-red-700">{{ $withoutMatch }}</span> {{ $withoutMatch === 1 ? 'sin coincidencia' : 'sin coincidencias' }}
+                                                                @endif
+                                                            </p>
+                                                            <p class="mt-1 text-xs text-orange-600">
+                                                                @if($duplicates > 0)
+                                                                    Los pagos duplicados (misma celda Excel) están en <span class="bg-orange-100 px-1 rounded">naranja</span> - selecciona manualmente solo uno de cada grupo.
+                                                                @endif
+                                                                @if($duplicates > 0 && $withoutMatch > 0)
+                                                                    <br>
+                                                                @endif
+                                                                
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                            
+                                            <div class="border border-gray-200 rounded-lg overflow-hidden">
+                                                <div class="max-h-96 overflow-y-auto">
+                                                    <table class="min-w-full divide-y divide-gray-200">
+                                                        <thead class="bg-gray-50 sticky top-0">
+                                                            <tr>
+                                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Selección</th>
+                                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Código</th>
+                                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jugador</th>
+                                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tutor</th>
+                                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
+                                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cuota</th>
+                                                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Importe</th>
+                                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Celda Excel</th>
+                                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contenido Celda</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody class="bg-white divide-y divide-gray-200">
+                                                            @foreach($transferResults as $result)
+                                                                @php
+                                                                    $isDuplicate = isset($result['duplicate_cell']) && $result['duplicate_cell'];
+                                                                    $isNoMatch = isset($result['no_match']) && $result['no_match'];
+                                                                    $isFromQuickSearch = isset($result['from_quick_search']) && $result['from_quick_search'];
+                                                                    
+                                                                    $rowClass = $isNoMatch 
+                                                                        ? 'bg-red-50 hover:bg-red-100' 
+                                                                        : ($isDuplicate ? 'bg-orange-50 hover:bg-orange-100 border-l-4 border-orange-400' : 'hover:bg-gray-50');
+                                                                @endphp
+                                                                <tr class="{{ $rowClass }}">
+                                                                    <td class="px-4 py-3">
+                                                                        @if($isNoMatch)
+                                                                            <span class="text-red-500 font-bold">✕</span>
+                                                                        @elseif($isFromQuickSearch)
+                                                                            {{-- Radio button para búsqueda rápida (solo uno seleccionable) --}}
+                                                                            <input type="radio" 
+                                                                                wire:model="selectedQuickSearchPayment" 
+                                                                                value="{{ $result['id'] }}"
+                                                                                class="w-4 h-4 text-purple-600 border-gray-300 focus:ring-purple-500">
+                                                                        @else
+                                                                            {{-- Checkbox para importación Excel (múltiples seleccionables) --}}
+                                                                            <div class="flex items-center gap-1">
+                                                                                <input type="checkbox" 
+                                                                                    wire:model="selectedTransferPayments" 
+                                                                                    value="{{ $result['id'] }}"
+                                                                                    class="w-4 h-4 {{ $isDuplicate ? 'text-orange-600' : 'text-purple-600' }} border-gray-300 rounded focus:ring-{{ $isDuplicate ? 'orange' : 'purple' }}-500">
+                                                                                @if($isDuplicate)
+                                                                                    <span class="text-orange-500 text-sm" title="Celda duplicada - selecciona solo uno">⚠</span>
+                                                                                @endif
+                                                                            </div>
+                                                                        @endif
+                                                                    </td>
+                                                                    <td class="px-4 py-3 text-sm font-mono {{ $isNoMatch ? 'text-gray-500' : 'text-gray-900' }}">
+                                                                        {!! $this->highlightTransferText($result['code'], $result['search_term']) !!}
+                                                                    </td>
+                                                                    <td class="px-4 py-3 text-sm">
+                                                                        <div class="flex items-center gap-2">
+                                                                            <span class="{{ $isNoMatch ? 'font-semibold text-red-600' : ($isDuplicate ? 'text-orange-900' : 'text-gray-900') }}">
+                                                                                {!! $this->highlightTransferText($result['player_name'], $result['search_term']) !!}
+                                                                            </span>
+                                                                            @if($isDuplicate)
+                                                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-orange-100 text-orange-800 border border-orange-300">
+                                                                                    ⚠ DUPLICADO ({{ $result['duplicate_count'] }} coincidencias en {{ $result['excel_cell'] }})
+                                                                                </span>
+                                                                            @endif
+                                                                        </div>
+                                                                    </td>
+                                                                    <td class="px-4 py-3 text-sm {{ $isNoMatch ? 'text-gray-500' : 'text-gray-600' }}">
+                                                                        {!! $this->highlightTransferText($result['tutor_name'], $result['search_term']) !!}
+                                                                    </td>
+                                                                    <td class="px-4 py-3 text-sm {{ $isNoMatch ? 'text-gray-500' : 'text-gray-700' }}">
+                                                                        {{ $result['team'] ?? '-' }}
+                                                                    </td>
+                                                                    <td class="px-4 py-3 text-sm {{ $isNoMatch ? 'text-gray-500' : 'text-gray-900' }}">
+                                                                        {{ $result['cuota'] !== '-' ? 'Cuota ' . $result['cuota'] : '-' }}
+                                                                    </td>
+                                                                    <td class="px-4 py-3 text-sm text-right font-semibold {{ $isNoMatch ? 'text-gray-500' : 'text-gray-900' }}">
+                                                                        {{ $result['amount'] !== '-' ? number_format($result['amount'], 2, ',', '.') . ' €' : '-' }}
+                                                                    </td>
+                                                                    <td class="px-4 py-3">
+                                                                        @if(isset($result['excel_cell']))
+                                                                            <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-mono font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300">
+                                                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                                                    <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                                                                                </svg>
+                                                                                {{ $result['excel_cell'] }}
+                                                                            </span>
+                                                                        @else
+                                                                            <span class="text-xs text-gray-400">-</span>
+                                                                        @endif
+                                                                    </td>
+                                                                    <td class="px-4 py-3 text-sm text-gray-700">
+                                                                        @if(isset($result['excel_cell_content']))
+                                                                            <div class="break-words min-w-[200px] max-w-md">
+                                                                                {!! $this->highlightTransferText($result['excel_cell_content'], $result['search_term']) !!}
+                                                                            </div>
+                                                                        @else
+                                                                            <span class="text-xs text-gray-400">-</span>
+                                                                        @endif
+                                                                    </td>
+                                                                </tr>
+                                                            @endforeach
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                @if(count($selectedTransferPayments) > 0)
+                                                    <div class="bg-purple-50 px-4 py-3 border-t border-purple-200">
+                                                        <p class="text-sm text-purple-700 font-semibold">
+                                                            {{ count($selectedTransferPayments) }} {{ count($selectedTransferPayments) === 1 ? 'pago seleccionado' : 'pagos seleccionados' }}
+                                                        </p>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @elseif(!empty($transferSearch) && count($transferResults) === 0)
+                                            <div class="text-center py-8 px-4 bg-gray-50 rounded-lg">
+                                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                                <p class="mt-2 text-sm text-gray-500">No se encontraron pagos pendientes con ese criterio</p>
+                                            </div>
+                                        @endif
+
+                                        <!-- Importación Excel (solo mostrar si NO hay resultados de búsqueda rápida) -->
+                                        @if(!$hasQuickSearchResults)
+                                        <div class="mt-6 pt-6 border-t border-gray-200">
+                                            <div class="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                                                <div class="flex items-start">
+                                                    <svg class="w-8 h-8 text-purple-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                                    </svg>
+                                                    <div class="flex-1">
+                                                        <p class="text-sm font-semibold text-purple-900 mb-2">Importación masiva de códigos de pago desde Excel</p>
+                                                        <p class="text-xs text-purple-700 mb-3">
+                                                            Sube un archivo Excel con códigos de pago (7-10 dígitos). El sistema detecta códigos incluso si están pegados a palabras (ej: "PAGO2612244P").
+                                                        </p>
+                                                        <div class="bg-blue-100 border border-blue-300 rounded px-3 py-2 mb-3">
+                                                            <p class="text-xs text-blue-800">
+                                                                <strong>ℹ️ Importante:</strong> Solo se buscan códigos de pago numéricos. No se procesan nombres, apellidos ni DNIs.
+                                                            </p>
+                                                        </div>
+                                                        <div class="flex gap-2">
+                                                            <input type="file" 
+                                                                wire:model="excelFile" 
+                                                                accept=".xlsx,.xls,.csv"
+                                                                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700 file:cursor-pointer">
+                                                            <button wire:click="importExcelTransfers" 
+                                                                wire:loading.attr="disabled"
+                                                                wire:target="excelFile,importExcelTransfers"
+                                                                :disabled="!$wire.excelFile"
+                                                                class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
+                                                                <svg wire:loading.remove wire:target="importExcelTransfers" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                                                </svg>
+                                                                <svg wire:loading wire:target="importExcelTransfers" class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
+                                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                </svg>
+                                                                <span wire:loading.remove wire:target="importExcelTransfers">Procesar</span>
+                                                                <span wire:loading wire:target="importExcelTransfers">Procesando...</span>
+                                                            </button>
+                                                        </div>
+                                                        <div wire:loading wire:target="excelFile" class="mt-2 text-xs text-purple-600">
+                                                            Subiendo archivo...
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button wire:click="markTransfersAsPaid" 
+                            type="button" 
+                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-purple-600 text-base font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            Marcar como Pagado
+                        </button>
+                        <button wire:click="closeTransferModal" 
+                            type="button" 
+                            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Modal de confirmación de transferencias -->
+    @if($showTransferConfirmModal)
+        <div class="fixed z-50 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                
+                <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-purple-100 sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left flex-1">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                                    Confirmar Pagos por Transferencia
+                                </h3>
+                                <div class="mt-4">
+                                    <p class="text-sm text-gray-500 mb-4">
+                                        Estás a punto de marcar <span class="font-bold text-purple-600">{{ count($paymentsToMarkPreview) }} {{ count($paymentsToMarkPreview) === 1 ? 'pago' : 'pagos' }}</span> como pagado(s) por transferencia. 
+                                        Revisa la lista antes de confirmar:
+                                    </p>
+                                    
+                                    <div class="mt-4 border border-gray-200 rounded-lg overflow-hidden">
+                                        <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                                            <table class="min-w-full divide-y divide-gray-200">
+                                                <thead class="bg-gray-50 sticky top-0">
+                                                    <tr>
+                                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
+                                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jugador</th>
+                                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tutor</th>
+                                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Equipo</th>
+                                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cuota</th>
+                                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Descuento</th>
+                                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Importe</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="bg-white divide-y divide-gray-200">
+                                                    @foreach($paymentsToMarkPreview as $payment)
+                                                        <tr class="hover:bg-gray-50">
+                                                            <td class="px-4 py-3 text-sm font-mono text-gray-900">{{ $payment['code'] }}</td>
+                                                            <td class="px-4 py-3 text-sm text-gray-900">{{ $payment['player_name'] }}</td>
+                                                            <td class="px-4 py-3 text-sm text-gray-600">{{ $payment['tutor_name'] }}</td>
+                                                            <td class="px-4 py-3 text-sm text-gray-700">{{ $payment['team'] }}</td>
+                                                            <td class="px-4 py-3 text-sm text-gray-900">Cuota {{ $payment['cuota'] }}</td>
+                                                            <td class="px-4 py-3 text-sm text-center">
+                                                                @if($payment['descEnt'] > 0 || $payment['descPerc'] > 0)
+                                                                    <div class="flex flex-col items-center">
+                                                                        @if($payment['descEnt'] > 0)
+                                                                            <span class="text-orange-600 font-medium">{{ number_format($payment['descEnt'], 2, ',', '.') }} €</span>
+                                                                        @endif
+                                                                        @if($payment['descPerc'] > 0)
+                                                                            <span class="text-orange-600 font-medium">{{ number_format($payment['descPerc'], 2, ',', '.') }}%</span>
+                                                                        @endif
+                                                                    </div>
+                                                                @else
+                                                                    <span class="text-gray-400">-</span>
+                                                                @endif
+                                                            </td>
+                                                            <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900">{{ number_format($payment['amount'], 2, ',', '.') }} €</td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                                <tfoot class="bg-gray-50 border-t-2 border-gray-300">
+                                                    <tr>
+                                                        <td colspan="6" class="px-4 py-3 text-sm font-bold text-gray-900 text-right">TOTAL:</td>
+                                                        <td class="px-4 py-3 text-sm font-bold text-right text-purple-600">
+                                                            {{ number_format(collect($paymentsToMarkPreview)->sum('amount'), 2, ',', '.') }} €
+                                                        </td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-4 bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                                        <div class="flex">
+                                            <div class="flex-shrink-0">
+                                                <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                                </svg>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm text-yellow-700">
+                                                    <strong>Atención:</strong> Esta acción marcará estos pagos como pagados por transferencia y no se puede deshacer fácilmente.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button wire:click="confirmMarkTransfersAsPaid" 
+                            type="button" 
+                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-purple-600 text-base font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Confirmar y Marcar como Pagado
+                        </button>
+                        <button wire:click="closeTransferConfirmModal" 
+                            type="button" 
+                            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                             Cancelar
                         </button>
                     </div>

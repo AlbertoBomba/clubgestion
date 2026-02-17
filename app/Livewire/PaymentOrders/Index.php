@@ -4,18 +4,22 @@ namespace App\Livewire\PaymentOrders;
 
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 use App\Models\Player;
 use App\Models\Season;
 use App\Models\Team;
 use App\Models\PaymentTeam;
 use App\Models\PaymentPlayer;
 use App\Models\PaymentCodeSequentials;
+use App\Models\ExcelImportRow;
 use Illuminate\Support\Facades\DB;
 use App\Classes\ExcelFile;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class Index extends Component
 {
     use WithPagination;
+    use WithFileUploads;
 
     public $search = '';
     public $seasonFilter = '';
@@ -34,6 +38,18 @@ class Index extends Component
     public $showStateChangeModal = false;
     public $stateChangeCuota = '';
     public $stateChangeNewState = '';
+    
+    // Modal de transferencias
+    public $showTransferModal = false;
+    public $transferSearch = '';
+    public $transferResults = [];
+    public $selectedTransferPayments = []; // Para importación Excel (múltiples)
+    public $selectedQuickSearchPayment = null; // Para búsqueda rápida (único)
+    public $excelFile = null;
+    
+    // Modal de confirmación de transferencias
+    public $showTransferConfirmModal = false;
+    public $paymentsToMarkPreview = [];
 
     protected $queryString = ['search'];
 
@@ -268,6 +284,498 @@ class Index extends Component
         $this->showStateChangeModal = false;
         $this->stateChangeCuota = '';
         $this->stateChangeNewState = '';
+    }
+    
+    public function openTransferModal()
+    {
+        $this->transferSearch = '';
+        $this->transferResults = [];
+        $this->selectedTransferPayments = [];
+        $this->selectedQuickSearchPayment = null;
+        $this->excelFile = null;
+        $this->showTransferModal = true;
+    }
+    
+    public function closeTransferModal()
+    {
+        $this->showTransferModal = false;
+        $this->transferSearch = '';
+        $this->transferResults = [];
+        $this->selectedTransferPayments = [];
+        $this->selectedQuickSearchPayment = null;
+        $this->excelFile = null;
+    }
+    
+    public function clearTransferResults()
+    {
+        $this->transferSearch = '';
+        $this->transferResults = [];
+        $this->selectedTransferPayments = [];
+        $this->selectedQuickSearchPayment = null;
+        $this->excelFile = null;
+    }
+    
+    public function searchTransfers()
+    {
+        $this->transferResults = [];
+        
+        if (empty($this->transferSearch)) {
+            return;
+        }
+        
+        $sportsSchoolId = auth()->user()->sports_school_id;
+        $searchTerm = trim($this->transferSearch);
+        
+        // Dividir el término de búsqueda en palabras individuales
+        $searchWords = array_filter(explode(' ', $searchTerm));
+        
+        // Buscar pagos pendientes por código, nombre jugador, apellido jugador y nombre tutor
+        $payments = PaymentPlayer::with(['player', 'paymentTeam'])
+            ->where('sports_school_id', $sportsSchoolId)
+            ->where('state', 0) // Solo pendientes
+            ->where(function($query) use ($searchTerm, $searchWords) {
+                // Buscar por código (cadena completa)
+                $query->where('code', 'like', '%' . $searchTerm . '%')
+                    // Buscar por palabras individuales en jugador/tutor
+                    ->orWhereHas('player', function($q) use ($searchWords, $searchTerm) {
+                        $q->where(function($subQ) use ($searchWords) {
+                            // Buscar cada palabra en los campos individuales
+                            foreach ($searchWords as $word) {
+                                $subQ->orWhere('name', 'like', '%' . $word . '%')
+                                     ->orWhere('surname', 'like', '%' . $word . '%')
+                                     ->orWhere('nametutor', 'like', '%' . $word . '%')
+                                     ->orWhere('surnametutor', 'like', '%' . $word . '%');
+                            }
+                        })->orWhere(function($concatQ) use ($searchTerm) {
+                            // También buscar la cadena completa en concatenaciones
+                            $concatQ->orWhereRaw("CONCAT(name, ' ', surname) LIKE ?", ['%' . $searchTerm . '%'])
+                                    ->orWhereRaw("CONCAT(nametutor, ' ', surnametutor) LIKE ?", ['%' . $searchTerm . '%']);
+                        });
+                    });
+            })
+            ->orderBy('cuota')
+            ->get();
+        
+        $this->transferResults = $payments->map(function($payment) {
+            return [
+                'id' => $payment->id,
+                'code' => $payment->code,
+                'player_name' => $payment->player ? trim(trim($payment->player->name) . ' ' . trim($payment->player->surname)) : '-',
+                'player_dni' => $payment->player->dni ?? '-',
+                'tutor_name' => $payment->player ? trim(trim($payment->player->nametutor) . ' ' . trim($payment->player->surnametutor)) : '-',
+                'cuota' => $payment->cuota,
+                'amount' => $payment->amount,
+                'team' => $payment->player->teams->first()->team ?? '-',
+                'search_term' => $this->transferSearch,
+                'from_quick_search' => true, // Marcar que viene de búsqueda rápida
+            ];
+        })->toArray();
+    }
+    
+    public function highlightTransferText($text, $searchTerm)
+    {
+        if (empty($text) || empty($searchTerm)) {
+            return e($text);
+        }
+        
+        // Escapar el texto primero
+        $escapedText = e($text);
+        
+        // Dividir términos de búsqueda por comas O espacios
+        $searchTerms = [];
+        if (strpos($searchTerm, ',') !== false) {
+            // Si hay comas, dividir por comas
+            $searchTerms = array_map('trim', explode(',', $searchTerm));
+        } else {
+            // Si no hay comas, dividir por espacios (para búsqueda rápida)
+            $searchTerms = array_filter(explode(' ', trim($searchTerm)));
+        }
+        
+        if (empty($searchTerms)) {
+            return $escapedText;
+        }
+        
+        // Crear un patrón regex con todas las palabras usando alternancia (|)
+        // Esto evita que las etiquetas HTML de un reemplazo interfieran con otro
+        $patterns = array_map(function($term) {
+            return preg_quote($term, '/');
+        }, $searchTerms);
+        
+        $pattern = '/(' . implode('|', $patterns) . ')/iu';
+        
+        // Hacer todos los reemplazos en una sola pasada
+        $escapedText = preg_replace(
+            $pattern,
+            '<mark class="bg-yellow-200 font-semibold px-1 rounded">$1</mark>',
+            $escapedText
+        );
+        
+        return $escapedText;
+    }
+    
+    public function markTransfersAsPaid()
+    {
+        // Determinar si viene de búsqueda rápida o Excel
+        $paymentIds = [];
+        if (!empty($this->selectedQuickSearchPayment)) {
+            $paymentIds = [$this->selectedQuickSearchPayment];
+        } elseif (!empty($this->selectedTransferPayments)) {
+            $paymentIds = $this->selectedTransferPayments;
+        }
+        
+        if (empty($paymentIds)) {
+            session()->flash('error', 'Debes seleccionar al menos un pago.');
+            return;
+        }
+        
+        // Cargar los datos de los pagos seleccionados para previsualización
+        $this->paymentsToMarkPreview = PaymentPlayer::with(['player.teams'])
+            ->whereIn('id', $paymentIds)
+            ->where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('state', 0) // Solo los pendientes
+            ->get()
+            ->map(function($payment) {
+                return [
+                    'id' => $payment->id,
+                    'code' => $payment->code,
+                    'player_name' => $payment->player ? trim(trim($payment->player->name) . ' ' . trim($payment->player->surname)) : '-',
+                    'tutor_name' => $payment->player ? trim(trim($payment->player->nametutor) . ' ' . trim($payment->player->surnametutor)) : '-',
+                    'team' => $payment->player->teams->first()->team ?? '-',
+                    'cuota' => $payment->cuota,
+                    'amount' => $payment->amount,
+                    'descEnt' => $payment->descEnt ?? 0,
+                    'descPerc' => $payment->descPerc ?? 0,
+                ];
+            })
+            ->toArray();
+        
+        if (empty($this->paymentsToMarkPreview)) {
+            session()->flash('error', 'No se encontraron pagos pendientes para actualizar.');
+            return;
+        }
+        
+        // Mostrar modal de confirmación
+        $this->showTransferConfirmModal = true;
+    }
+    
+    public function confirmMarkTransfersAsPaid()
+    {
+        // Determinar si viene de búsqueda rápida o Excel
+        $paymentIds = [];
+        if (!empty($this->selectedQuickSearchPayment)) {
+            $paymentIds = [$this->selectedQuickSearchPayment];
+        } elseif (!empty($this->selectedTransferPayments)) {
+            $paymentIds = $this->selectedTransferPayments;
+        }
+        
+        if (empty($paymentIds)) {
+            session()->flash('error', 'Debes seleccionar al menos un pago.');
+            $this->closeTransferConfirmModal();
+            return;
+        }
+        
+        try {
+            DB::beginTransaction();
+            
+            $sportsSchoolId = auth()->user()->sports_school_id;
+            
+            $updated = PaymentPlayer::whereIn('id', $paymentIds)
+                ->where('sports_school_id', $sportsSchoolId)
+                ->where('state', 0) // Solo actualizar los que están pendientes
+                ->update([
+                    'state' => 1, // Pagado
+                    'payment_date' => now(),
+                    'payment_type' => 'Transferencia',
+                    'updated_user' => auth()->user()->id,
+                ]);
+            
+            // Registrar las filas procesadas exitosamente (solo para importación Excel)
+            if ($updated > 0 && !empty($this->selectedTransferPayments)) {
+                foreach ($this->transferResults as $result) {
+                    // Solo registrar los que fueron seleccionados y no tienen errores
+                    if (in_array($result['id'], $paymentIds) && 
+                        isset($result['row_hash']) && 
+                        !isset($result['no_match'])) {
+                        
+                        // Verificar si no existe ya el registro (por si acaso)
+                        if (!ExcelImportRow::isRowProcessed($result['row_hash'], $sportsSchoolId)) {
+                            ExcelImportRow::registerRow($result['row_hash'], $sportsSchoolId, $result['id']);
+                        }
+                    }
+                }
+            }
+            
+            DB::commit();
+            
+            $this->closeTransferConfirmModal();
+            $this->closeTransferModal();
+            $this->resetPage();
+            
+            if ($updated > 0) {
+                session()->flash('message', "Se marcaron correctamente {$updated} " . 
+                    ($updated == 1 ? 'pago' : 'pagos') . " como pagado(s) por transferencia.");
+            } else {
+                session()->flash('error', 'No se encontraron pagos pendientes para actualizar.');
+            }
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            session()->flash('error', 'Error al marcar los pagos: ' . $e->getMessage());
+            $this->closeTransferConfirmModal();
+            $this->closeTransferModal();
+        }
+    }
+    
+    public function closeTransferConfirmModal()
+    {
+        $this->showTransferConfirmModal = false;
+        $this->paymentsToMarkPreview = [];
+    }
+    
+    public function importExcelTransfers()
+    {
+        // Limpiar selección de búsqueda rápida
+        $this->selectedQuickSearchPayment = null;
+        
+        $this->validate([
+            'excelFile' => 'required|file|mimes:xlsx,xls,csv|max:10240', // 10MB max
+        ], [
+            'excelFile.required' => 'Debes seleccionar un archivo Excel.',
+            'excelFile.mimes' => 'El archivo debe ser de tipo Excel (xlsx, xls o csv).',
+            'excelFile.max' => 'El archivo no debe superar los 10MB.',
+        ]);
+        
+        try {
+            $sportsSchoolId = auth()->user()->sports_school_id;
+            $filePath = $this->excelFile->getRealPath();
+            
+            // Leer el archivo Excel
+            $spreadsheet = IOFactory::load($filePath);
+            $worksheet = $spreadsheet->getActiveSheet();
+            $rows = $worksheet->toArray();
+            
+            $results = [];
+            $processedCount = 0;
+            $foundPaymentIds = []; // Para evitar duplicados
+            $skippedRows = 0; // Contador de filas ya procesadas
+            
+            // Procesar cada fila
+            foreach ($rows as $rowIndex => $row) {
+                // Saltar filas vacías
+                if (empty(array_filter($row))) {
+                    continue;
+                }
+                
+                // Calcular hash de la fila para verificar si ya fue procesada
+                $rowHash = ExcelImportRow::generateRowHash($row);
+                
+                // Verificar si esta fila ya fue procesada anteriormente
+                if (ExcelImportRow::isRowProcessed($rowHash, $sportsSchoolId)) {
+                    $skippedRows++;
+                    continue;
+                }
+                
+                // Concatenar toda la fila para análisis
+                $rowText = implode(' ', array_filter($row, function($value) {
+                    return !empty(trim($value));
+                }));
+                
+                // Concatenar fila separada por "/" para mostrar si no hay coincidencia
+                $rowDescription = implode(' / ', array_filter(array_map('trim', $row), function($value) {
+                    return !empty($value);
+                }));
+                
+                $foundInThisRow = false;
+                
+                // ===== PASO 1: BUSCAR POR CÓDIGO (PRIORIDAD MÁXIMA) =====
+                // Extraer códigos de pago (7-10 dígitos + letra opcional)
+                // Permite códigos pegados a palabras (ej: "PAGO2612244P")
+                preg_match_all('/(?<!\d)\d{7,10}[A-Z]?(?!\d)/i', $rowText, $codeMatches);
+                $extractedCodes = array_unique(array_map('strtoupper', $codeMatches[0]));
+                
+                if (!empty($extractedCodes)) {
+                    foreach ($extractedCodes as $code) {
+                        // Buscar pagos por código EXACTO (solo pendientes)
+                        $payments = PaymentPlayer::with(['player.teams'])
+                            ->where('sports_school_id', $sportsSchoolId)
+                            ->where('code', $code)
+                            ->where('state', 0)
+                            ->get();
+                        
+                        if ($payments->count() > 0) {
+                            $foundInThisRow = true;
+                            
+                            // Encontrar la celda que contiene este código
+                            $cellReference = 'A' . ($rowIndex + 1);
+                            $cellContent = $rowText;
+                            
+                            foreach ($row as $colIndex => $cellValue) {
+                                if (empty($cellValue)) continue;
+                                $cellValue = trim($cellValue);
+                                
+                                if (stripos($cellValue, $code) !== false) {
+                                    $cellReference = $this->getColumnLetter($colIndex) . ($rowIndex + 1);
+                                    $cellContent = $cellValue;
+                                    break;
+                                }
+                            }
+                            
+                            // Agregar cada pago encontrado
+                            foreach ($payments as $payment) {
+                                if (!in_array($payment->id, $foundPaymentIds)) {
+                                    $foundPaymentIds[] = $payment->id;
+                                    
+                                    // Todos los pagos encontrados están pendientes
+                                    $this->selectedTransferPayments[] = $payment->id;
+                                    
+                                    $results[] = [
+                                        'id' => $payment->id,
+                                        'code' => $payment->code,
+                                        'player_name' => $payment->player ? trim(trim($payment->player->name) . ' ' . trim($payment->player->surname)) : '-',
+                                        'player_dni' => $payment->player->dni ?? '-',
+                                        'tutor_name' => $payment->player ? trim(trim($payment->player->nametutor) . ' ' . trim($payment->player->surnametutor)) : '-',
+                                        'cuota' => $payment->cuota,
+                                        'amount' => $payment->amount,
+                                        'team' => $payment->player->teams->first()->team ?? '-',
+                                        'search_term' => $code,
+                                        'excel_cell' => $cellReference,
+                                        'excel_cell_content' => $cellContent,
+                                        'no_match' => false,
+                                        'row_hash' => $rowHash,
+                                    ];
+                                    $processedCount++;
+                                }
+                            }
+                            
+                            break; // Solo procesar el primer código encontrado en la fila
+                        }
+                    }
+                }
+                
+                // Si no se encontró ninguna coincidencia en esta fila, registrarla como "sin coincidencia"
+                if (!$foundInThisRow) {
+                    // Encontrar la primera celda no vacía
+                    $firstCellRef = 'A' . ($rowIndex + 1);
+                    $firstCellContent = $rowDescription;
+                    
+                    foreach ($row as $colIndex => $cellValue) {
+                        if (!empty(trim($cellValue))) {
+                            $firstCellRef = $this->getColumnLetter($colIndex) . ($rowIndex + 1);
+                            break;
+                        }
+                    }
+                    
+                    $results[] = [
+                        'id' => null,
+                        'code' => '-',
+                        'player_name' => '-',
+                        'player_dni' => '-',
+                        'tutor_name' => '-',
+                        'cuota' => '-',
+                        'amount' => '-',
+                        'team' => '-',
+                        'search_term' => '',
+                        'excel_cell' => $firstCellRef,
+                        'excel_cell_content' => $firstCellContent,
+                        'no_match' => true,
+                        'row_hash' => $rowHash,
+                    ];
+                }
+            }
+            
+            // ===== DETECTAR DUPLICADOS POR CELDA EXCEL =====
+            // Agrupar resultados por celda Excel (solo los que tienen coincidencia)
+            $resultsByCell = [];
+            foreach ($results as $index => $result) {
+                if (!isset($result['no_match']) || !$result['no_match']) {
+                    $cell = $result['excel_cell'];
+                    if (!isset($resultsByCell[$cell])) {
+                        $resultsByCell[$cell] = [];
+                    }
+                    $resultsByCell[$cell][] = $index;
+                }
+            }
+            
+            // Marcar como duplicados las celdas con múltiples pagos
+            $duplicateCount = 0;
+            foreach ($resultsByCell as $cell => $indices) {
+                if (count($indices) > 1) {
+                    // Esta celda tiene múltiples pagos
+                    foreach ($indices as $index) {
+                        $results[$index]['duplicate_cell'] = true;
+                        $results[$index]['duplicate_count'] = count($indices);
+                        
+                        // Remover de selección automática
+                        $paymentId = $results[$index]['id'];
+                        $key = array_search($paymentId, $this->selectedTransferPayments);
+                        if ($key !== false) {
+                            unset($this->selectedTransferPayments[$key]);
+                        }
+                    }
+                    $duplicateCount += count($indices);
+                }
+            }
+            
+            // Contar filas sin coincidencia
+            $withoutMatch = 0;
+            foreach ($results as $result) {
+                if (isset($result['no_match']) && $result['no_match']) {
+                    $withoutMatch++;
+                }
+            }
+            
+            // Limpiar el archivo
+            $this->excelFile = null;
+            
+            if (count($results) > 0) {
+                $this->transferResults = $results;
+                
+                // Construir mensaje
+                $message = "";
+                
+                if ($processedCount > 0) {
+                    $message = "Se encontraron {$processedCount} códigos de pago pendientes en el archivo Excel.";
+                }
+                
+                if ($withoutMatch > 0) {
+                    if (!empty($message)) $message .= " ";
+                    $message .= "⚠ {$withoutMatch} " . ($withoutMatch === 1 ? 'fila sin coincidencia' : 'filas sin coincidencias') . " (marcadas en rojo).";
+                }
+                
+                if ($skippedRows > 0) {
+                    $message .= " Se omitieron {$skippedRows} " . ($skippedRows == 1 ? 'fila ya procesada' : 'filas ya procesadas') . ".";
+                }
+                
+                if ($duplicateCount > 0) {
+                    session()->flash('warning', $message . " ADVERTENCIA: {$duplicateCount} códigos tienen la misma celda Excel (marcados en naranja). Selecciona manualmente solo uno de cada grupo.");
+                } elseif ($processedCount > 0) {
+                    session()->flash('message', $message);
+                } else {
+                    // Solo hay filas sin coincidencia
+                    session()->flash('info', $message);
+                }
+            } else {
+                if ($skippedRows > 0) {
+                    session()->flash('message', "Todas las filas del archivo Excel ya fueron procesadas anteriormente ({$skippedRows} " . ($skippedRows == 1 ? 'fila omitida' : 'filas omitidas') . "). Solo se buscan códigos de pago en el Excel.");
+                } else {
+                    session()->flash('info', 'No se encontraron códigos de pago pendientes en el archivo Excel. NOTA: La búsqueda detecta códigos de 7-10 dígitos (ej: "2612244P") incluso si están pegados a palabras (ej: "PAGO2612244P").');
+                }
+            }
+            
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error al procesar el archivo Excel: ' . $e->getMessage());
+            $this->excelFile = null;
+        }
+    }
+    
+    private function getColumnLetter($colIndex)
+    {
+        $letter = '';
+        while ($colIndex >= 0) {
+            $letter = chr($colIndex % 26 + 65) . $letter;
+            $colIndex = floor($colIndex / 26) - 1;
+        }
+        return $letter;
     }
     
     public function bulkUpdateState()
@@ -529,6 +1037,9 @@ class Index extends Component
     {
         // Construir el eager loading condicional para paymentPlayers
         $paymentPlayersQuery = function($query) {
+            // Excluir explícitamente los pagos soft deleted
+            $query->whereNull('deleted_at');
+            
             if ($this->cuotaFilter) {
                 $query->where('cuota', $this->cuotaFilter);
             }
