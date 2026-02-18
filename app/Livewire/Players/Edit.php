@@ -777,6 +777,19 @@ class Edit extends Component
     {
         $this->validate();
 
+        // Validar que no se modifiquen descuentos si existen cartas de pago
+        if ($this->hasPaymentOrders) {
+            $originalDescEnt = $this->playerModel->descEnt;
+            $originalDescPerc = $this->playerModel->descPerc;
+            $newDescEnt = $this->descEnt ? floatval(str_replace(',', '.', $this->descEnt)) : null;
+            $newDescPerc = $this->descPerc ? floatval(str_replace(',', '.', $this->descPerc)) : null;
+
+            if ($originalDescEnt != $newDescEnt || $originalDescPerc != $newDescPerc) {
+                session()->flash('error', 'No se pueden modificar los descuentos porque el jugador ya tiene cartas de pago generadas. Elimina primero las cartas de pago si necesitas cambiar los descuentos.');
+                return;
+            }
+        }
+
         $data = [
             'name' => $this->name,
             'surname' => $this->surname,
@@ -1028,5 +1041,15 @@ class Edit extends Component
             'playerTeam' => $playerTeam,
             'availableSizes' => $availableSizes
         ]);
+    }
+
+    /**
+     * Computed property para verificar si el jugador tiene cartas de pago generadas
+     */
+    public function getHasPaymentOrdersProperty()
+    {
+        return $this->playerModel->paymentPlayers()
+            ->where('sports_school_id', auth()->user()->sports_school_id)
+            ->exists();
     }
 }

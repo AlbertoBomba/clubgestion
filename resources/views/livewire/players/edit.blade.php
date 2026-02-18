@@ -137,19 +137,33 @@
                             <div class="form-group">
                                 <label class="block text-sm font-semibold text-titanium mb-2">Tipo de Descuento</label>
                                 <select wire:model.live="discountType" 
-                                    class="block w-64 px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                                    {{ $this->hasPaymentOrders ? 'disabled' : '' }}
+                                    class="block w-64 px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm {{ $this->hasPaymentOrders ? 'bg-gray-100 cursor-not-allowed opacity-60' : '' }}">
                                     <option value="ninguno">Sin descuento</option>
                                     <option value="cantidad">Descuento en cantidad (€)</option>
                                     <option value="porcentaje">Descuento en porcentaje (%)</option>
                                 </select>
                                 @error('discountType') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                
+                                @if($this->hasPaymentOrders)
+                                    <div class="mt-2 flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                        <svg class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        <div>
+                                            <p class="text-xs font-semibold text-yellow-800">No se pueden modificar descuentos</p>
+                                            <p class="text-xs text-yellow-700 mt-1">Este jugador ya tiene cartas de pago generadas. Elimina las cartas de pago primero si necesitas cambiar los descuentos.</p>
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
 
                             @if($discountType === 'cantidad')
                                 <div class="form-group">
                                     <label class="block text-sm font-semibold text-titanium mb-2">Cantidad (€)</label>
                                     <input wire:model.live="descEnt" type="text" onfocus="this.select()"
-                                        class="w-32 px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
+                                        {{ $this->hasPaymentOrders ? 'disabled' : '' }}
+                                        class="w-32 px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm {{ $this->hasPaymentOrders ? 'bg-gray-100 cursor-not-allowed opacity-60' : '' }}"
                                         placeholder="0,00">
                                     @error('descEnt') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                                 </div>
@@ -159,7 +173,8 @@
                                 <div class="form-group">
                                     <label class="block text-sm font-semibold text-titanium mb-2">Porcentaje (%)</label>
                                     <input wire:model.live="descPerc" type="text" onfocus="this.select()"
-                                        class="w-32 px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm"
+                                        {{ $this->hasPaymentOrders ? 'disabled' : '' }}
+                                        class="w-32 px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm {{ $this->hasPaymentOrders ? 'bg-gray-100 cursor-not-allowed opacity-60' : '' }}"
                                         placeholder="0,00">
                                     @error('descPerc') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                                 </div>
@@ -249,8 +264,8 @@
                     
                 </div>
 
-                <!-- Datos del Tutor y Contacto -->
                 <div>
+                    @if($playerModel->active)
                     <!-- Equipo del Jugador -->
                     <div class="mb-8">
                         @if($playerTeam)
@@ -311,6 +326,7 @@
                             </div>
                         @endif
                     </div>
+                    @endif
 
                     @if(!$this->isAdult)
                     <h3 class="text-lg font-semibold text-titanium flex items-center border-b border-silver/30 pb-3 mb-4">

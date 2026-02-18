@@ -50,19 +50,20 @@
                 </button>
                 @if($activeSeason && $hasPlayersWithoutPayments)
                     <div class="relative group">
-                        <button wire:click="generatePaymentOrders" 
+                        <button wire:click="prepareGeneratePaymentOrders" 
                             wire:loading.attr="disabled"
-                            wire:target="generatePaymentOrders"
+                            wire:target="prepareGeneratePaymentOrders,confirmGeneratePaymentOrders"
                             class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-lg font-semibold text-sm text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-50">
-                            <svg wire:loading.remove wire:target="generatePaymentOrders" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg wire:loading.remove wire:target="prepareGeneratePaymentOrders,confirmGeneratePaymentOrders" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                             </svg>
-                            <svg wire:loading wire:target="generatePaymentOrders" class="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
+                            <svg wire:loading wire:target="prepareGeneratePaymentOrders,confirmGeneratePaymentOrders" class="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
-                            <span wire:loading.remove wire:target="generatePaymentOrders">Generar Cartas de Pago</span>
-                            <span wire:loading wire:target="generatePaymentOrders">Generando...</span>
+                            <span wire:loading.remove wire:target="prepareGeneratePaymentOrders,confirmGeneratePaymentOrders">Generar Cartas de Pago</span>
+                            <span wire:loading wire:target="confirmGeneratePaymentOrders">Generando...</span>
+                            <span wire:loading wire:target="prepareGeneratePaymentOrders">Calculando...</span>
                         </button>
                         
                         <!-- Badge de alerta parpadeante -->
@@ -503,10 +504,9 @@
                                             <select wire:model="stateChangeNewState" 
                                                 class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                                 <option value="">-- Selecciona un estado --</option>
-                                                <option value="0">Pendiente de pago</option>
-                                                <option value="1">Pagado</option>
-                                                <option value="2">Lesión</option>
-                                                <option value="3">Baja Jugador</option>
+                                                @foreach(config('constants.states_payment_orders') as $label => $value)
+                                                    <option value="{{ $value }}">{{ $label }}</option>
+                                                @endforeach
                                             </select>
                                         </div>
                                     </div>
@@ -964,6 +964,104 @@
                             Confirmar y Marcar como Pagado
                         </button>
                         <button wire:click="closeTransferConfirmModal" 
+                            type="button" 
+                            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Modal de confirmación de generación de cartas de pago -->
+    @if($showGenerateConfirmModal)
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" wire:click="closeGenerateConfirmModal"></div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div class="relative inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                                    Confirmar generación de cartas de pago
+                                </h3>
+                                <div class="mt-4">
+                                    <p class="text-sm text-gray-500 mb-4">
+                                        Se van a generar las siguientes cartas de pago:
+                                    </p>
+                                    
+                                    <div class="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4 mb-4">
+                                        <div class="space-y-3">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center">
+                                                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-green-500 flex items-center justify-center">
+                                                        <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                                        </svg>
+                                                    </div>
+                                                    <div class="ml-3">
+                                                        <p class="text-xs text-gray-600 font-medium">Total de cartas</p>
+                                                        <p class="text-2xl font-bold text-green-700">{{ $previewGenerateCount }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="border-t border-green-200 pt-3 space-y-2">
+                                                <div class="flex items-center justify-between text-sm">
+                                                    <span class="flex items-center text-gray-700">
+                                                        <svg class="h-5 w-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                                        </svg>
+                                                        <span class="font-medium">Jugadores:</span>
+                                                    </span>
+                                                    <span class="font-semibold text-green-700">{{ $previewPlayersCount }}</span>
+                                                </div>
+                                                <div class="flex items-center justify-between text-sm">
+                                                    <span class="flex items-center text-gray-700">
+                                                        <svg class="h-5 w-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                                        </svg>
+                                                        <span class="font-medium">Equipos:</span>
+                                                    </span>
+                                                    <span class="font-semibold text-green-700">{{ $previewTeamsCount }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-3 bg-blue-50 border-l-4 border-blue-500 rounded">
+                                        <p class="text-xs text-blue-700">
+                                            <strong>Nota:</strong> Esta acción creará las cartas de pago para todos los jugadores que no tengan generadas sus cuotas en la temporada activa.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button wire:click="confirmGeneratePaymentOrders" 
+                            type="button" 
+                            wire:loading.attr="disabled"
+                            wire:target="confirmGeneratePaymentOrders"
+                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50">
+                            <svg wire:loading.remove wire:target="confirmGeneratePaymentOrders" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <svg wire:loading wire:target="confirmGeneratePaymentOrders" class="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span wire:loading.remove wire:target="confirmGeneratePaymentOrders">Confirmar y Generar</span>
+                            <span wire:loading wire:target="confirmGeneratePaymentOrders">Generando...</span>
+                        </button>
+                        <button wire:click="closeGenerateConfirmModal" 
                             type="button" 
                             class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                             Cancelar

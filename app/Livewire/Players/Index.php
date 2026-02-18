@@ -48,6 +48,9 @@ class Index extends Component
     public $paymentsPaid = [];
     public $selectedPaymentsToDelete = [];
     public $selectedPaymentsToCreate = [];
+    public $inactivePlayersExcluded = [];
+    public $showPlayerViewModal = false;
+    public $playerToView = null;
 
     protected $queryString = ['search', 'dniFilter', 'matriculaFilter', 'seasonFilter', 'teamFilter', 'withoutTeam', 'sortField', 'sortDirection'];
 
@@ -260,12 +263,35 @@ class Index extends Component
                 \Storage::disk('public')->delete($player->player_photo);
             }
             
+            // Marcar como eliminadas las relaciones con temporadas (soft delete en tabla pivote seasons_players)
+            DB::table('seasons_players')
+                ->where('player_id', $player->id)
+                ->whereNull('deleted_at')
+                ->update(['deleted_at' => now()]);
+            
             $player->delete();
             session()->flash('message', 'Jugador eliminado correctamente.');
         }
         
         $this->confirmingDeletion = false;
         $this->playerToDelete = null;
+    }
+
+    public function viewPlayer($playerId)
+    {
+        $player = Player::with(['teams.category', 'seasons'])
+            ->find($playerId);
+        
+        if ($player && $player->sports_school_id === auth()->user()->sports_school_id) {
+            $this->playerToView = $player;
+            $this->showPlayerViewModal = true;
+        }
+    }
+
+    public function closePlayerViewModal()
+    {
+        $this->showPlayerViewModal = false;
+        $this->playerToView = null;
     }
 
     public function confirmDeactivation()
@@ -629,12 +655,50 @@ class Index extends Component
 
     public function changeTeam()
     {
+        // Inicializar array de jugadores inactivos excluidos
+        $this->inactivePlayersExcluded = [];
+        
         $this->validate([
             'newTeamId' => 'required|exists:teams,id',
         ], [
             'newTeamId.required' => 'Debes seleccionar un equipo.',
             'newTeamId.exists' => 'El equipo seleccionado no es válido.',
         ]);
+
+        // Verificar si hay jugadores inactivos seleccionados
+        $inactivePlayers = [];
+        foreach ($this->selectedPlayers as $playerId) {
+            $player = Player::find($playerId);
+            if ($player && $player->sports_school_id === auth()->user()->sports_school_id && !$player->active) {
+                $inactivePlayers[] = [
+                    'id' => $player->id,
+                    'name' => $player->name . ' ' . $player->surname,
+                    'photo' => $player->player_photo,
+                    'dni' => $player->dni,
+                ];
+            }
+        }
+
+        // Guardar jugadores inactivos para mostrar en la previsualización
+        $this->inactivePlayersExcluded = $inactivePlayers;
+        
+        // Si hay jugadores inactivos, filtrarlos y avisar
+        if (count($inactivePlayers) > 0) {
+            $playersList = implode(', ', array_column($inactivePlayers, 'name'));
+            
+            // Si todos son inactivos, mostrar error y detener
+            if (count($inactivePlayers) === count($this->selectedPlayers)) {
+                session()->flash('error', 'No se puede cambiar de equipo a jugadores inactivos: ' . $playersList . '. Debes activarlos primero.');
+                $this->confirmingTeamChange = false;
+                return;
+            }
+            
+            // Filtrar los jugadores inactivos
+            $this->selectedPlayers = collect($this->selectedPlayers)->filter(function($playerId) {
+                $player = Player::find($playerId);
+                return $player && $player->active;
+            })->values()->toArray();
+        }
 
         // Verificar si algún jugador ya está en el equipo seleccionado
         $playersAlreadyInTeam = [];
@@ -688,6 +752,17 @@ class Index extends Component
     public function confirmPaymentsAction()
     {
         $this->regeneratePayments();
+    }
+
+    public function closePreviewModal()
+    {
+        $this->showPreviewModal = false;
+        $this->paymentsToDelete = [];
+        $this->paymentsToCreate = [];
+        $this->paymentsPaid = [];
+        $this->selectedPaymentsToDelete = [];
+        $this->selectedPaymentsToCreate = [];
+        $this->inactivePlayersExcluded = [];
     }
 
     private function preparePaymentsRegeneration()
@@ -880,6 +955,12 @@ class Index extends Component
         }
 
         $this->showPreviewModal = false;
+        $this->paymentsToDelete = [];
+        $this->paymentsToCreate = [];
+        $this->paymentsPaid = [];
+        $this->selectedPaymentsToDelete = [];
+        $this->selectedPaymentsToCreate = [];
+        $this->inactivePlayersExcluded = [];
         $this->dispatch('modal-closed');
     }
 
@@ -997,104 +1078,9 @@ class Index extends Component
 
     private function generatePlayerPaymentsForTeam($player, $team)
     {
-        $generatedCount = 0;
-        $sportsSchoolId = auth()->user()->sports_school_id;
-
-        // Calcular descuentos totales del jugador
-        $totalDiscount = 0;
-        $discountPercentage = 0;
+        $result = generatePlayerPayments($player, $team, auth()->user()->sports_school_id, auth()->id());
         
-        if ($player->descEnt) {
-            $totalDiscount += floatval($player->descEnt);
-        }
-        
-        if ($player->descPerc) {
-            $discountPercentage = floatval($player->descPerc);
-        }
-
-        // Número total de pagos para dividir el descuento
-        $totalPayments = $team->payments->count();
-        
-        // Calcular descuento por cuota
-        $discountPerPayment = $totalPayments > 0 ? $totalDiscount / $totalPayments : 0;
-
-        // Procesar cada pago del equipo
-        foreach ($team->payments as $payment) {
-            // Verificar si existe un pago activo (no eliminado)
-            $existsActive = PaymentPlayer::where('player_id', $player->id)
-                ->where('payment_id', $payment->id)
-                ->whereNull('deleted_at')
-                ->exists();
-
-            if ($existsActive) {
-                continue;
-            }
-
-            // Verificar si existe un pago eliminado (soft deleted) para restaurarlo
-            $deletedPayment = PaymentPlayer::where('player_id', $player->id)
-                ->where('payment_id', $payment->id)
-                ->whereNotNull('deleted_at')
-                ->first();
-
-            if ($deletedPayment) {
-                // Restaurar el pago eliminado
-                $deletedPayment->deleted_at = null;
-                $deletedPayment->state = 0; // Volver a pendiente
-                $deletedPayment->payment_date = null;
-                $deletedPayment->payment_order = null;
-                $deletedPayment->payment_auth = null;
-                $deletedPayment->payment_type = null;
-                $deletedPayment->updated_user = auth()->id();
-                $deletedPayment->save();
-                $generatedCount++;
-                continue;
-            }
-
-            // Generar código de pago
-            $code = PaymentCodeSequentials::getCode();
-
-            // Calcular importe original y con descuento
-            $amountOriginal = floatval($payment->amount);
-            $amountWithDiscount = $amountOriginal;
-
-            // Aplicar descuento en euros (dividido entre todas las cuotas)
-            if ($discountPerPayment > 0) {
-                $amountWithDiscount -= $discountPerPayment;
-            }
-
-            // Aplicar descuento en porcentaje
-            if ($discountPercentage > 0) {
-                $percentageDiscount = ($amountOriginal * $discountPercentage) / 100;
-                $amountWithDiscount -= $percentageDiscount;
-            }
-
-            // Asegurar que el importe no sea negativo
-            $amountWithDiscount = max(0, $amountWithDiscount);
-
-            // Calcular descuentos aplicados a esta cuota
-            $descEntApplied = $discountPerPayment;
-            $descPercApplied = $discountPercentage;
-
-            // Crear orden de pago para el jugador
-            PaymentPlayer::create([
-                'player_id' => $player->id,
-                'payment_id' => $payment->id,
-                'sports_school_id' => $sportsSchoolId,
-                'code' => $code,
-                'state' => 0, // Pendiente
-                'cuota' => $payment->cuota,
-                'price' => $team->price, // Precio de matrícula del equipo
-                'amount_original' => $amountOriginal,
-                'amount' => $amountWithDiscount,
-                'descEnt' => $descEntApplied,
-                'descPerc' => $descPercApplied,
-                'created_user' => auth()->id(),
-            ]);
-
-            $generatedCount++;
-        }
-
-        return ['generated' => $generatedCount];
+        return ['generated' => $result['generated'] + $result['restored']];
     }
 
     public function toggleAllPaymentsToCreate($checked)
@@ -1167,6 +1153,7 @@ class Index extends Component
         $this->paymentsToDelete = [];
         $this->paymentsToCreate = [];
         $this->paymentsPaid = [];
+        $this->inactivePlayersExcluded = [];
     }
 
     public function getHasActivePlayersProperty()

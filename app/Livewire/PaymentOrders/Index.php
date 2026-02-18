@@ -50,6 +50,12 @@ class Index extends Component
     // Modal de confirmación de transferencias
     public $showTransferConfirmModal = false;
     public $paymentsToMarkPreview = [];
+    
+    // Modal de confirmación de generación de cartas de pago
+    public $showGenerateConfirmModal = false;
+    public $previewGenerateCount = 0;
+    public $previewTeamsCount = 0;
+    public $previewPlayersCount = 0;
 
     protected $queryString = ['search'];
 
@@ -110,6 +116,113 @@ class Index extends Component
     public function updatingCuotaFilter()
     {
         $this->resetPage();
+    }
+
+    public function prepareGeneratePaymentOrders()
+    {
+        try {
+            // Obtener temporada activa
+            $activeSeason = Season::where('start_date', '<=', now())
+                ->where('end_date', '>=', now())
+                ->first();
+
+            if (!$activeSeason) {
+                session()->flash('error', 'No hay temporada activa configurada.');
+                return;
+            }
+
+            $sportsSchoolId = auth()->user()->sports_school_id;
+            $totalPaymentsToGenerate = 0;
+            $teamsWithPayments = 0;
+            $playersToGenerate = [];
+
+            // Obtener equipos de la temporada activa con pagos configurados
+            $teams = Team::where('season_id', $activeSeason->id)
+                ->whereHas('season', function ($query) use ($sportsSchoolId) {
+                    $query->where('sports_school_id', $sportsSchoolId);
+                })
+                ->with(['players', 'payments'])
+                ->get();
+
+            $teamsWithInvalidPayments = [];
+
+            foreach ($teams as $team) {
+                // Verificar que el equipo tenga pagos configurados
+                if ($team->payments->isEmpty()) {
+                    continue;
+                }
+
+                $teamHasPlayers = false;
+
+                // Verificar que los pagos tengan cuotas configuradas
+                foreach ($team->payments as $payment) {
+                    if (empty($payment->cuota) || $payment->cuota <= 0) {
+                        $teamsWithInvalidPayments[] = $team->team ?? 'Sin nombre';
+                        continue 2; // Saltar al siguiente equipo
+                    }
+                }
+
+                // Contar jugadores del equipo que necesitan pagos
+                foreach ($team->players as $player) {
+                    // Verificar cuántas cuotas del equipo no están generadas para este jugador
+                    foreach ($team->payments as $payment) {
+                        // Verificar si ya existe este pago para el jugador
+                        $exists = PaymentPlayer::where('player_id', $player->id)
+                            ->where('payment_id', $payment->id)
+                            ->where('sports_school_id', $sportsSchoolId)
+                            ->exists();
+                        
+                        if (!$exists) {
+                            $totalPaymentsToGenerate++;
+                            if (!in_array($player->id, $playersToGenerate)) {
+                                $playersToGenerate[] = $player->id;
+                            }
+                            $teamHasPlayers = true;
+                        }
+                    }
+                }
+
+                if ($teamHasPlayers) {
+                    $teamsWithPayments++;
+                }
+            }
+            
+            if (!empty($teamsWithInvalidPayments)) {
+                $teamsList = implode(', ', array_unique($teamsWithInvalidPayments));
+                session()->flash('error', "Los siguientes equipos tienen pagos sin número de cuotas configurado: {$teamsList}. Por favor, configura el número de cuotas en cada pago del equipo.");
+                return;
+            }
+            
+            if ($totalPaymentsToGenerate === 0) {
+                session()->flash('error', 'No hay cartas de pago nuevas para generar. Todas las cartas ya están generadas para los equipos con pagos configurados.');
+                return;
+            }
+            
+            // Guardar datos de preview
+            $this->previewGenerateCount = $totalPaymentsToGenerate;
+            $this->previewTeamsCount = $teamsWithPayments;
+            $this->previewPlayersCount = count($playersToGenerate);
+            
+            // Mostrar modal de confirmación
+            $this->showGenerateConfirmModal = true;
+
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error al calcular las cartas de pago: ' . $e->getMessage());
+        }
+    }
+
+    public function confirmGeneratePaymentOrders()
+    {
+        $this->showGenerateConfirmModal = false;
+        $this->generatePaymentOrders();
+    }
+
+    public function closeGenerateConfirmModal()
+    {
+        $this->showGenerateConfirmModal = false;
+        $this->previewGenerateCount = 0;
+        $this->previewTeamsCount = 0;
+        $this->previewPlayersCount = 0;
     }
 
     public function generatePaymentOrders()
@@ -212,7 +325,7 @@ class Index extends Component
                 return;
             }
 
-            $result = $this->generatePlayerPayments($player, $team, $sportsSchoolId);
+            $result = $this->generatePlayerPayments($player, $team, $sportsSchoolId, auth()->id());
             $generatedCount = $result['generated'];
             $skippedCount = $result['skipped'];
 
@@ -860,107 +973,11 @@ class Index extends Component
 
     private function generatePlayerPayments($player, $team, $sportsSchoolId)
     {
-        $generatedCount = 0;
-        $skippedCount = 0;
-
-        // Calcular descuentos totales del jugador
-        $totalDiscount = 0;
-        $discountPercentage = 0;
+        $result = generatePlayerPayments($player, $team, $sportsSchoolId, auth()->id());
         
-        if ($player->descEnt) {
-            $totalDiscount += floatval($player->descEnt);
-        }
-        
-        if ($player->descPerc) {
-            $discountPercentage = floatval($player->descPerc);
-        }
-
-        // Número total de pagos para dividir el descuento
-        $totalPayments = $team->payments->count();
-        
-        // Calcular descuento por cuota
-        $discountPerPayment = $totalPayments > 0 ? $totalDiscount / $totalPayments : 0;
-
-        // Procesar cada pago del equipo
-        foreach ($team->payments as $payment) {
-            // Verificar si existe un pago activo (no eliminado)
-            $existsActive = PaymentPlayer::where('player_id', $player->id)
-                ->where('payment_id', $payment->id)
-                ->whereNull('deleted_at')
-                ->exists();
-
-            if ($existsActive) {
-                $skippedCount++;
-                continue;
-            }
-
-            // Verificar si existe un pago eliminado (soft deleted) para restaurarlo
-            $deletedPayment = PaymentPlayer::where('player_id', $player->id)
-                ->where('payment_id', $payment->id)
-                ->whereNotNull('deleted_at')
-                ->first();
-
-            if ($deletedPayment) {
-                // Restaurar el pago eliminado
-                $deletedPayment->deleted_at = null;
-                $deletedPayment->state = 0; // Volver a pendiente
-                $deletedPayment->payment_date = null;
-                $deletedPayment->payment_order = null;
-                $deletedPayment->payment_auth = null;
-                $deletedPayment->payment_type = null;
-                $deletedPayment->updated_user = auth()->id();
-                $deletedPayment->save();
-                $generatedCount++;
-                continue;
-            }
-
-            // Generar código de pago
-            $code = PaymentCodeSequentials::getCode();
-
-            // Calcular importe original y con descuento
-            $amountOriginal = floatval($payment->amount);
-            $amountWithDiscount = $amountOriginal;
-
-            // Aplicar descuento en euros (dividido entre todas las cuotas)
-            if ($discountPerPayment > 0) {
-                $amountWithDiscount -= $discountPerPayment;
-            }
-
-            // Aplicar descuento en porcentaje
-            if ($discountPercentage > 0) {
-                $percentageDiscount = ($amountOriginal * $discountPercentage) / 100;
-                $amountWithDiscount -= $percentageDiscount;
-            }
-
-            // Asegurar que el importe no sea negativo
-            $amountWithDiscount = max(0, $amountWithDiscount);
-
-            // Calcular descuentos aplicados a esta cuota
-            $descEntApplied = $discountPerPayment;
-            $descPercApplied = $discountPercentage;
-
-            // Crear orden de pago para el jugador
-            PaymentPlayer::create([
-                'player_id' => $player->id,
-                'payment_id' => $payment->id,
-                'sports_school_id' => $sportsSchoolId,
-                'code' => $code,
-                'state' => 0, // Pendiente
-                'cuota' => $payment->cuota,
-                'price' => $team->price, // Precio de matrícula del equipo
-                'amount_original' => $amountOriginal, // Importe original sin descuento
-                'amount' => $amountWithDiscount, // Importe con descuento aplicado
-                'descEnt' => $descEntApplied, // Descuento en euros aplicado a esta cuota
-                'descPerc' => $descPercApplied, // Descuento en porcentaje aplicado
-                'created_user' => auth()->id(),
-            ]);
-
-            $generatedCount++;
-        }
-
         return [
-            'generated' => $generatedCount,
-            'skipped' => $skippedCount,
+            'generated' => $result['generated'] + $result['restored'],
+            'skipped' => $result['skipped'],
         ];
     }
 
@@ -1075,8 +1092,19 @@ class Index extends Component
                 });
             })
             ->when($this->seasonFilter, function($query) {
-                $query->whereHas('teams', function($q) {
-                    $q->where('season_id', $this->seasonFilter);
+                // Mostrar jugadores que TENGAN EQUIPO en la temporada O que TENGAN CARTAS DE PAGO de esa temporada
+                // Esto permite ver jugadores con pagos aunque no tengan equipo actualmente
+                $query->where(function($q) {
+                    $q->whereHas('teams', function($teamQ) {
+                        $teamQ->where('season_id', $this->seasonFilter);
+                    })
+                    ->orWhereHas('paymentPlayers', function($paymentQ) {
+                        $paymentQ->whereHas('paymentTeam', function($teamPaymentQ) {
+                            $teamPaymentQ->whereHas('team', function($teamQ) {
+                                $teamQ->where('season_id', $this->seasonFilter);
+                            });
+                        });
+                    });
                 });
             })
             ->when($this->teamFilter, function($query) {
@@ -1087,6 +1115,8 @@ class Index extends Component
             // Aplicar filtros de pagos: si hay cuotaFilter o pendingPaymentsOnly, aplicarlos juntos
             ->when($this->pendingPaymentsOnly || $this->cuotaFilter, function($query) {
                 $query->whereHas('paymentPlayers', function($q) {
+                    // Excluir pagos soft deleted
+                    $q->whereNull('deleted_at');
                     if ($this->pendingPaymentsOnly) {
                         $q->where('state', 0);
                     }
@@ -1095,6 +1125,8 @@ class Index extends Component
                     }
                 });
             })
+            // Asegurar que se muestren TODOS los jugadores con cartas de pago, independientemente de active
+            // (no aplicar filtro por active para permitir ver jugadores inactivos con pagos)
             ->orderBy('name')
             ->orderBy('surname');
     }

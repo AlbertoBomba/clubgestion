@@ -197,10 +197,9 @@
                                             <label class="block text-sm font-semibold text-gray-700 mb-2">Cambiar Estado</label>
                                             <select wire:change="updatePaymentState({{ $payment->id }}, $event.target.value)" 
                                                 class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
-                                                <option value="0" {{ $payment->state == 0 ? 'selected' : '' }}>Pendiente de pago</option>
-                                                <option value="1" {{ $payment->state == 1 ? 'selected' : '' }}>Pagado</option>
-                                                <option value="2" {{ $payment->state == 2 ? 'selected' : '' }}>Lesión</option>
-                                                <option value="3" {{ $payment->state == 3 ? 'selected' : '' }}>Baja Jugador</option>
+                                                @foreach(config('constants.states_payment_orders') as $label => $value)
+                                                    <option value="{{ $value }}" {{ $payment->state == $value ? 'selected' : '' }}>{{ $label }}</option>
+                                                @endforeach
                                             </select>
                                         </div>
                                         @if($payment->state == 0)

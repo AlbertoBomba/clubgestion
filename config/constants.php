@@ -1,7 +1,7 @@
 <?php
 
 return [
-    
+    // categorias de competicion y formacion basica
     'categories' => [
         1 => ['category'=>'Chupetin-baby', 'description'=>'niños de 4 a 5 años','from_age'=>4,'to_age'=>5,'modality'=>'Formación básica'],
         2 => ['category'=>'Pre-benjamín', 'description'=>'niños de 6 a 7 años','from_age'=>6,'to_age'=>7,'modality'=>'Formación básica'],
@@ -12,4 +12,16 @@ return [
         7 => ['category'=>'Juvenil', 'description'=>'jóvenes de 16 a 17 años','from_age'=>16,'to_age'=>17,'modality'=>'Competición'],
         8 => ['category'=>'Senior', 'description'=>'mayores de 18 años','from_age'=>18,'to_age'=>100,'modality'=>'Competición'],
     ],
+
+
+    'states_payment_orders' => [
+        'Pendiente' => 0,
+        'Pagado' => 1,
+        'Lesion' => 2,
+        'Baja' => 3,
+        'Cancelado' => 4,
+        'Abonada' => 5,
+    ],
+     
+
 ];
