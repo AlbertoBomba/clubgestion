@@ -22,9 +22,16 @@ class Show extends Component
     public ?int $activeCategoryId = null;
 
     // ------------------------------------------------------------------
-    // Tab state
+    // Setup panel toggle
     // ------------------------------------------------------------------
-    public string $activeTab = 'overview'; // overview | phases | teams | matches | standings
+    public bool $showSetup = false;
+
+    // ------------------------------------------------------------------
+    // Inline score editing
+    // ------------------------------------------------------------------
+    public ?int  $editingScoreId   = null;
+    public string $quick_home_score = '';
+    public string $quick_away_score = '';
 
     // ------------------------------------------------------------------
     // Category modal
@@ -78,6 +85,14 @@ class Show extends Component
     public string $match_notes       = '';
 
     // ------------------------------------------------------------------
+    // Generate matches modal
+    // ------------------------------------------------------------------
+    public bool   $showGenerateModal   = false;
+    public ?int   $generate_phase_id   = null;
+    public int    $generate_legs       = 1;
+    public bool   $generate_clear      = false;
+
+    // ------------------------------------------------------------------
     // Delete confirms
     // ------------------------------------------------------------------
     public bool  $confirmingCategoryDelete = false;
@@ -108,7 +123,7 @@ class Show extends Component
     public function selectCategory(int $id): void
     {
         $this->activeCategoryId = $id;
-        $this->activeTab        = 'overview';
+        $this->editingScoreId   = null;
     }
 
     // ==================================================================
@@ -436,6 +451,163 @@ class Show extends Component
     }
 
     // ==================================================================
+    // Generate matches (random draw)
+    // ==================================================================
+
+    public function openGenerateMatchesModal(): void
+    {
+        $this->reset(['generate_phase_id', 'generate_clear']);
+        $this->generate_legs = 1;
+        $this->showGenerateModal = true;
+    }
+
+    public function generateMatches(): void
+    {
+        $this->validate([
+            'generate_phase_id' => 'required|exists:tournament_phases,id',
+            'generate_legs'     => 'required|in:1,2',
+        ]);
+
+        $phase = TournamentPhase::findOrFail($this->generate_phase_id);
+        abort_unless($phase->tournament_id === $this->tournament->id, 403);
+
+        if ($this->generate_clear) {
+            TournamentMatch::where('phase_id', $phase->id)->delete();
+        }
+
+        $teamsQuery = TournamentTeam::where('tournament_id', $this->tournament->id);
+        $categoryId = $phase->tournament_category_id ?? $this->activeCategoryId;
+        if ($categoryId) {
+            $teamsQuery->where('tournament_category_id', $categoryId);
+        }
+
+        $teams = $teamsQuery->get()->shuffle()->values();
+
+        if ($teams->count() < 2) {
+            session()->flash('error', 'Se necesitan al menos 2 equipos para generar partidos.');
+            $this->showGenerateModal = false;
+            return;
+        }
+
+        $user        = auth()->id();
+        $matchNumber = TournamentMatch::where('phase_id', $phase->id)->max('match_number') ?? 0;
+        $count       = 0;
+        $legs        = (int) $this->generate_legs;
+
+        if (in_array($phase->type, ['knockout', 'double_elimination'])) {
+            // Bracket: 1º vs último, 2º vs penúltimo...
+            for ($i = 0; $i < intdiv($teams->count(), 2); $i++) {
+                $matchNumber++;
+                TournamentMatch::create([
+                    'tournament_id'          => $this->tournament->id,
+                    'tournament_category_id' => $categoryId,
+                    'phase_id'               => $phase->id,
+                    'home_team_id'           => $teams[$i]->id,
+                    'away_team_id'           => $teams[$teams->count() - 1 - $i]->id,
+                    'round'                  => 1,
+                    'match_number'           => $matchNumber,
+                    'status'                 => 'scheduled',
+                    'created_user'           => $user,
+                ]);
+                $count++;
+            }
+        } elseif ($phase->type === 'group') {
+            // Round-robin completo de todos los equipos juntos (berger).
+            // El group_label de cada equipo se usa para la clasificación pero
+            // no limita los enfrentamientos del calendario.
+            $rounds = $this->buildRoundRobin($teams->all(), $legs);
+            foreach ($rounds as $round => $pairs) {
+                foreach ($pairs as [$home, $away]) {
+                    $matchNumber++;
+                    TournamentMatch::create([
+                        'tournament_id'          => $this->tournament->id,
+                        'tournament_category_id' => $categoryId,
+                        'phase_id'               => $phase->id,
+                        'home_team_id'           => $home->id,
+                        'away_team_id'           => $away->id,
+                        'round'                  => $round,
+                        'match_number'           => $matchNumber,
+                        'status'                 => 'scheduled',
+                        'created_user'           => $user,
+                    ]);
+                    $count++;
+                }
+            }
+        } else {
+            // Liga / suizo: round-robin completo con algoritmo berger
+            $rounds = $this->buildRoundRobin($teams->all(), $legs);
+            foreach ($rounds as $round => $pairs) {
+                foreach ($pairs as [$home, $away]) {
+                    $matchNumber++;
+                    TournamentMatch::create([
+                        'tournament_id'          => $this->tournament->id,
+                        'tournament_category_id' => $categoryId,
+                        'phase_id'               => $phase->id,
+                        'home_team_id'           => $home->id,
+                        'away_team_id'           => $away->id,
+                        'round'                  => $round,
+                        'match_number'           => $matchNumber,
+                        'status'                 => 'scheduled',
+                        'created_user'           => $user,
+                    ]);
+                    $count++;
+                }
+            }
+        }
+
+        $this->showGenerateModal = false;
+        $this->tournament->refresh();
+        $teamCount  = $teams->count();
+        $n          = $teamCount % 2 === 0 ? $teamCount : $teamCount + 1;
+        $roundCount = ($n - 1) * $legs;
+        session()->flash('message', "{$count} partidos generados en {$roundCount} jornadas ({$teamCount} equipos).");
+    }
+
+    /**
+     * Algoritmo berger (circle method) para calendarios de liga.
+     * Devuelve [ jornada => [ [local, visitante], ... ] ]
+     * Para n impar añade un bye fantasma que se descarta.
+     */
+    private function buildRoundRobin(array $teamList, int $legs): array
+    {
+        $n = count($teamList);
+        if ($n % 2 !== 0) {
+            $teamList[] = null; // bye
+            $n++;
+        }
+
+        $half     = $n / 2;
+        $fixed    = $teamList[0];
+        $rotating = array_slice($teamList, 1);
+        $rounds   = [];
+
+        for ($round = 1; $round <= $n - 1; $round++) {
+            $circle = array_merge([$fixed], $rotating);
+            $pairs  = [];
+            for ($i = 0; $i < $half; $i++) {
+                $home = $circle[$i];
+                $away = $circle[$n - 1 - $i];
+                if ($home !== null && $away !== null) {
+                    // Alternar local/visitante por ronda para equilibrar
+                    $pairs[] = $round % 2 === 0 ? [$away, $home] : [$home, $away];
+                }
+            }
+            $rounds[$round] = $pairs;
+            // Rotación: el último elemento pasa al principio del array giratorio
+            array_unshift($rotating, array_pop($rotating));
+        }
+
+        // Segunda vuelta: los mismos emparejamientos con local/visitante invertidos
+        if ($legs === 2) {
+            for ($round = 1; $round <= $n - 1; $round++) {
+                $rounds[$round + ($n - 1)] = array_map(fn($p) => [$p[1], $p[0]], $rounds[$round]);
+            }
+        }
+
+        return $rounds;
+    }
+
+    // ==================================================================
     // Standings recalculation
     // ==================================================================
 
@@ -551,6 +723,56 @@ class Show extends Component
     }
 
     // ==================================================================
+    // Inline score editing
+    // ==================================================================
+
+    public function startEditScore(int $matchId): void
+    {
+        $match = TournamentMatch::findOrFail($matchId);
+        abort_unless($match->tournament_id === $this->tournament->id, 403);
+        $this->editingScoreId   = $matchId;
+        $this->quick_home_score = $match->home_score !== null ? (string) $match->home_score : '';
+        $this->quick_away_score = $match->away_score !== null ? (string) $match->away_score : '';
+    }
+
+    public function cancelEditScore(): void
+    {
+        $this->editingScoreId   = null;
+        $this->quick_home_score = '';
+        $this->quick_away_score = '';
+    }
+
+    public function saveQuickScore(): void
+    {
+        $this->validate([
+            'quick_home_score' => 'required|integer|min:0',
+            'quick_away_score' => 'required|integer|min:0',
+        ]);
+
+        $match = TournamentMatch::findOrFail($this->editingScoreId);
+        abort_unless($match->tournament_id === $this->tournament->id, 403);
+
+        $match->update([
+            'home_score'   => (int) $this->quick_home_score,
+            'away_score'   => (int) $this->quick_away_score,
+            'status'       => 'completed',
+            'played_at'    => $match->played_at ?? now(),
+            'updated_user' => auth()->id(),
+        ]);
+
+        $this->editingScoreId   = null;
+        $this->quick_home_score = '';
+        $this->quick_away_score = '';
+
+        // Auto-recalculate standings for league/group phases
+        if ($match->phase && in_array($match->phase->type, ['league', 'group'])) {
+            $this->recalculateStandings($match->phase_id);
+        }
+
+        $this->tournament->refresh();
+    }
+
+    // ==================================================================
     // Render
     // ==================================================================
 
@@ -579,10 +801,11 @@ class Show extends Component
         $matches = $this->activeCategoryId
             ? TournamentMatch::where('tournament_category_id', $this->activeCategoryId)
                 ->with(['phase', 'homeTeam.team', 'awayTeam.team'])
+                ->orderByRaw('scheduled_at IS NULL ASC')
+                ->orderBy('scheduled_at')
                 ->orderBy('phase_id')
                 ->orderBy('round')
                 ->orderBy('match_number')
-                ->orderBy('scheduled_at')
                 ->get()
             : collect();
 
