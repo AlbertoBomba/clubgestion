@@ -305,6 +305,23 @@ Route::middleware([
             return view('matches.edit', compact('match'));
         })->name('matches.edit');
 
+        // Gestión de Torneos
+        Route::get('/tournaments', function () {
+            return view('tournaments.index');
+        })->name('tournaments.index');
+
+        Route::get('/tournaments/create', function () {
+            return view('tournaments.create');
+        })->name('tournaments.create');
+
+        Route::get('/tournaments/{tournament}/edit', function (App\Models\Tournament $tournament) {
+            return view('tournaments.edit', compact('tournament'));
+        })->name('tournaments.edit');
+
+        Route::get('/tournaments/{tournament}', function (App\Models\Tournament $tournament) {
+            return view('tournaments.show', compact('tournament'));
+        })->name('tournaments.show');
+
         // Gestión de Patrocinadores
         Route::get('/sponsors', function () {
             return view('sponsors.index');
