@@ -79,6 +79,8 @@ class Index extends Component
             ->when($this->seasonFilter, fn ($q) => $q->where('season_id', $this->seasonFilter))
             ->withCount('tournamentTeams')
             ->withCount('phases')
+            ->withCount('matches')
+            ->withCount(['matches as completed_matches_count' => fn ($q) => $q->where('status', 'completed')])
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate(12);
 
