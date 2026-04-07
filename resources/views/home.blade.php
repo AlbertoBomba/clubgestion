@@ -103,49 +103,258 @@
             .mockup-shadow {
                 filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.5));
             }
+
+            /* ===== Hero Slider ===== */
+            html, body { overflow-x: hidden; }
+            .hero-slider-wrapper {
+                position: relative;
+                overflow: hidden;
+                width: 100%;
+            }
+            .hero-slides-track {
+                display: flex;
+                width: 100%;
+                transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+                will-change: transform;
+            }
+            .hero-slide {
+                width: 100%;
+                min-width: 100%;
+                flex-shrink: 0;
+                position: relative;
+                box-sizing: border-box;
+                overflow: hidden;
+            }
+            .hero-slide-bg {
+                position: absolute;
+                inset: 0;
+                z-index: 0;
+            }
+            .hero-slide-bg img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            .hero-slide {
+                min-height: 100vh;
+                min-height: 100svh;
+                display: flex;
+                align-items: center;
+                padding-top: 60px;
+            }
+            .hero-slider-btn {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                z-index: 40;
+                background: rgba(255,255,255,0.15);
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+                border: 1px solid rgba(255,255,255,0.3);
+                color: white;
+                width: 52px;
+                height: 52px;
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s ease;
+            }
+            .hero-slider-btn:hover {
+                background: rgba(255,255,255,0.3);
+                transform: translateY(-50%) scale(1.1);
+            }
+            .hero-slider-btn.prev { left: 20px; }
+            .hero-slider-btn.next { right: 20px; }
+            .hero-slider-dots {
+                position: absolute;
+                bottom: 55px;
+                left: 50%;
+                transform: translateX(-50%);
+                display: flex;
+                gap: 10px;
+                z-index: 40;
+            }
+            .hero-dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: rgba(255,255,255,0.4);
+                cursor: pointer;
+                transition: all 0.3s ease;
+                border: none;
+                padding: 0;
+            }
+            .hero-dot.active {
+                background: white;
+                width: 28px;
+                border-radius: 5px;
+            }
+            @media (max-width: 768px) {
+                .hero-slider-btn { width: 36px; height: 36px; }
+                .hero-slider-btn.prev { left: 8px; }
+                .hero-slider-btn.next { right: 8px; }
+                .hero-slider-dots { bottom: 12px; gap: 8px; }
+                .hero-dot { width: 8px; height: 8px; }
+                .hero-dot.active { width: 22px; }
+                .hero-decorative-mobile-hide { display: none !important; }
+            }
+            @media (max-width: 480px) {
+                .hero-slider-btn { width: 32px; height: 32px; }
+                .hero-slider-btn.prev { left: 4px; }
+                .hero-slider-btn.next { right: 4px; }
+            }
+
+            /* ===== Navbar (Adidas-style) ===== */
+            .vs-nav {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 100;
+                background: #fff;
+                border-bottom: 1px solid #e5e5e5;
+                transition: box-shadow 0.3s;
+            }
+            .vs-nav.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,0.08); }
+            .vs-nav-inner {
+                max-width: 1440px;
+                margin: 0 auto;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 24px;
+                height: 60px;
+            }
+            .vs-nav-logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                text-decoration: none;
+                color: #000;
+            }
+            .vs-nav-logo img { height: 36px; }
+            .vs-nav-logo span { font-size: 20px; font-weight: 900; letter-spacing: -0.5px; text-transform: uppercase; }
+            .vs-nav-links { display: flex; gap: 28px; align-items: center; }
+            .vs-nav-links a {
+                color: #000;
+                text-decoration: none;
+                font-size: 14px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                padding: 6px 0;
+                border-bottom: 3px solid transparent;
+                transition: border-color 0.2s;
+            }
+            .vs-nav-links a:hover { border-bottom-color: #000; }
+            .vs-nav-actions { display: flex; align-items: center; gap: 12px; }
+            .vs-nav-actions a {
+                color: #000;
+                text-decoration: none;
+                font-size: 13px;
+                font-weight: 700;
+                padding: 8px 20px;
+                transition: all 0.2s;
+            }
+            .vs-btn-dark {
+                background: #000 !important;
+                color: #fff !important;
+                font-weight: 700 !important;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                font-size: 13px !important;
+            }
+            .vs-btn-dark:hover { background: #333 !important; }
+            .vs-nav-toggle { display: none; background: none; border: none; cursor: pointer; padding: 8px; }
+            .vs-nav-mobile-auth { display: none; }
+            @media (max-width: 768px) {
+                .vs-nav-links { display: none; }
+                .vs-nav-toggle { display: block; }
+                .vs-nav-links.open {
+                    display: flex;
+                    flex-direction: column;
+                    position: absolute;
+                    top: 60px;
+                    left: 0;
+                    right: 0;
+                    background: #fff;
+                    padding: 16px 24px;
+                    border-bottom: 1px solid #e5e5e5;
+                    gap: 0;
+                    z-index: 99;
+                }
+                .vs-nav-links.open a { padding: 14px 0; border-bottom: 1px solid #f0f0f0; }
+                .vs-nav-links.open .vs-nav-mobile-auth {
+                    display: block;
+                    background: #000;
+                    color: #fff !important;
+                    text-align: center;
+                    padding: 16px 24px !important;
+                    margin-top: 14px;
+                    border-bottom: none !important;
+                    border-radius: 8px;
+                    font-weight: 700;
+                    font-size: 15px !important;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+                .vs-nav-actions { display: none; }
+            }
         </style>
     </head>
     <body class="bg-gray-50 text-gray-800">
         <!-- Navigation -->
-        <nav class="bg-white shadow-sm fixed w-full top-0 z-50">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center h-16">
-                    <div class="flex items-center gap-2 sm:gap-3">
-                        <img src="{{ asset('images/logos/logo_vaed.png') }}" alt="{{ config('app.name', 'Vaed-APP') }}" class="h-10 sm:h-12 md:h-14">
-                        <span class="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">VaedSaas</span>
-                    </div>
-                    @if (Route::has('login'))
-                        <div class="flex items-center gap-2 sm:gap-4">
-                            @auth
-                                <a href="{{ url('/dashboard') }}" 
-                                   class="px-3 py-2 sm:px-4 md:px-6 text-sm sm:text-base bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-200 font-medium">
-                                    Dashboard
-                                </a>
-                            @else
-                                <a href="{{ route('login') }}" 
-                                   class="px-3 py-2 sm:px-4 md:px-6 text-sm sm:text-base bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-200 font-medium">
-                                    <span class="hidden sm:inline">Iniciar Sesión</span>
-                                    <span class="sm:hidden">Iniciar sesión</span>
-                                </a>
-                            @endauth
-                        </div>
-                    @endif
+        <nav class="vs-nav" id="vsNav">
+            <div class="vs-nav-inner">
+                <a href="{{ route('home') }}" class="vs-nav-logo">
+                    <img src="{{ asset('images/logos/logo_vaed.png') }}" alt="{{ config('app.name', 'Vaed-APP') }}">
+                    <span>VaedSaas</span>
+                </a>
+
+                <button class="vs-nav-toggle" id="navToggle" aria-label="Abrir menú">
+                    <svg width="24" height="24" fill="none" stroke="#000" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path d="M3 6h18M3 12h18M3 18h18"/>
+                    </svg>
+                </button>
+
+                <div class="vs-nav-links" id="navLinks">
+                    <a href="{{ route('vaed-sport.home') }}">VAED Sport</a>
+                    <a href="#por-que-gratis">¿Por qué Gratis?</a>
+                    <a href="#contacto">Contacto</a>
+                    @auth
+                        <a href="{{ url('/dashboard') }}" class="vs-nav-mobile-auth">Dashboard</a>
+                    @else
+                        <a href="{{ route('login') }}" class="vs-nav-mobile-auth">Iniciar Sesión</a>
+                    @endauth
+                </div>
+
+                <div class="vs-nav-actions">
+                    @auth
+                        <a href="{{ url('/dashboard') }}" class="vs-btn-dark">Dashboard</a>
+                    @else
+                        <a href="{{ route('login') }}" class="vs-btn-dark">Iniciar Sesión</a>
+                    @endauth
                 </div>
             </div>
         </nav>
 
-        <!-- Hero Fullscreen Section -->
-        <section class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden flex items-center">
+        <!-- Hero Fullscreen Slider -->
+        <div class="hero-slider-wrapper" id="heroSlider">
+        <div class="hero-slides-track" id="heroSlidesTrack">
+
+        <!-- Slide 1: Gestión deportiva -->
+        <div class="hero-slide" style="background:#0f172a;">
             <!-- Background Image with Overlay -->
-            <div class="absolute inset-0">
+            <div class="hero-slide-bg">
                 <img src="{{ asset('images/public/personal-trainer-sports-outfit-takes-notes-clipboard-city-park-area-training-exercising-endurance-healthy-lifestyle-concept-outdoor.jpg') }}" 
-                     alt="Football Team" 
-                     class="w-full h-full object-cover">
+                     alt="Football Team">
                 <div class="absolute inset-0 bg-gradient-to-r from-blue-900/95 via-blue-900/90 to-blue-900/70"></div>
             </div>
             
             <!-- Decorative Diagonal Stripes (Left Side) -->
-            <div class="absolute left-0 top-0 bottom-0 w-12 opacity-30">
+            <div class="absolute left-0 top-0 bottom-0 w-12 opacity-30 hero-decorative-mobile-hide">
                 <div class="absolute top-16 left-0 w-8 h-20 bg-white/20 transform -skew-y-12"></div>
                 <div class="absolute top-40 left-0 w-8 h-16 bg-white/15 transform -skew-y-12"></div>
                 <div class="absolute top-60 left-0 w-8 h-24 bg-white/20 transform -skew-y-12"></div>
@@ -153,66 +362,68 @@
             </div>
             
             <!-- Decorative Triangles (Bottom Right) -->
-            <div class="absolute bottom-8 right-8 grid grid-cols-8 gap-4 opacity-40">
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-            </div>
-            <div class="absolute bottom-16 right-8 grid grid-cols-8 gap-4 opacity-40">
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-            </div>
-            <div class="absolute bottom-24 right-8 grid grid-cols-8 gap-4 opacity-40">
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                <div class="w-2 h-2 bg-white transform rotate-45"></div>
+            <div class="hero-decorative-mobile-hide">
+                <div class="absolute bottom-8 right-8 grid grid-cols-8 gap-4 opacity-40">
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                </div>
+                <div class="absolute bottom-16 right-8 grid grid-cols-8 gap-4 opacity-40">
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                </div>
+                <div class="absolute bottom-24 right-8 grid grid-cols-8 gap-4 opacity-40">
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
+                </div>
             </div>
             
-            <div class="relative z-10 w-full px-4 sm:px-6 lg:px-8 py-20">
+            <div class="relative z-10 w-full px-5 sm:px-6 lg:px-8 py-6 sm:py-16 lg:py-20">
                 <div class="max-w-7xl mx-auto">
-                    <div class="grid lg:grid-cols-2 gap-12 items-center min-h-[calc(100vh-10rem)]">
+                    <div class="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center lg:min-h-[calc(100vh-10rem)]">
                         <!-- Left Content -->
-                        <div class="text-white animate-slide-in-left">
-                            <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
-                                La gestión deportivo educativa del fútbol amateur, al alcance de todos.
-                            </h1>
+                        <div class="text-white">
+                            <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
+                               Solución integrada para la gestión de tu club.
+                            </h2>
                             
-                            <p class="text-sm sm:text-base lg:text-lg text-gray-200 mb-6 sm:mb-8 leading-relaxed max-w-xl">
+                            <p class="text-sm sm:text-base lg:text-lg text-gray-200 mb-5 sm:mb-8 leading-relaxed max-w-xl">
                                 Como dirigente de club o como entrenador, la gestión deportivo educativa y la comunicación interna de tu equipo amateur.
                             </p>
                             
-                            <div class="flex flex-col sm:flex-row gap-4">
+                            <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
                                
                                     <a href="#contacto" 
-                                       class="px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-200 font-semibold text-base shadow-lg hover:shadow-xl transform hover:scale-105 text-center">
-                                        Registrar mi equipo
+                                       class="px-6 sm:px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-200 font-semibold text-sm sm:text-base shadow-lg hover:shadow-xl transform hover:scale-105 text-center">
+                                        ¿Qué es VaedSaas?
                                     </a>
                                     <a href="#por-que-gratis" 
-                                       class="px-8 py-3 bg-white bg-opacity-10 backdrop-blur-sm text-white rounded-lg hover:bg-opacity-20 transition duration-200 font-semibold text-base border border-white text-center">
-                                       ¿Porque VaedSaas es gratis?
+                                       class="px-6 sm:px-8 py-3 bg-white bg-opacity-10 backdrop-blur-sm text-white rounded-lg hover:bg-opacity-20 transition duration-200 font-semibold text-sm sm:text-base border border-white text-center">
+                                       ¿Por qué VaedSaas es gratis?
                                     </a>
                                 
                             </div>
                         </div>
                         
                         <!-- Right Content - Interactive Mockup -->
-                        <div class="relative animate-slide-in-right hidden lg:block min-h-[600px]">
+                        <div class="relative hidden lg:block lg:min-h-[600px]">
                             <!-- Central Phone Mockup -->
                             <div class="relative mx-auto animate-float max-w-[280px] z-20">
                                 <div class="bg-black rounded-[2.5rem] p-2 shadow-2xl">
@@ -332,19 +543,117 @@
             </div>
             
             <!-- Scroll Indicator -->
-            <div class="absolute bottom-12 left-1/2 transform -translate-x-1/2 animate-bounce z-30">
+            <div class="absolute bottom-14 left-1/2 transform -translate-x-1/2 animate-bounce z-30 hidden lg:block">
                 <svg class="w-8 h-8 text-white opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                 </svg>
             </div>
-        </section>
+        </div>
+        <!-- /Slide 1 -->
+
+        <!-- Slide 2: Ropa deportiva personalizada -->
+        <div class="hero-slide" style="background:#1e1b4b;">
+            <!-- Background Image with Overlay -->
+            <div class="hero-slide-bg">
+                <img src="{{ asset('images/public/conjuntocdpuebla.jpg') }}"
+                     alt="Ropa deportiva personalizada">
+                <div class="absolute inset-0" style="background: linear-gradient(135deg, rgba(30,27,75,0.62) 0%, rgba(45,42,122,0.55) 50%, rgba(30,27,75,0.60) 100%);"></div>
+            </div>
+
+            <!-- Decorative Diagonal Stripes -->
+            <div class="absolute left-0 top-0 bottom-0 w-12 opacity-30 hero-decorative-mobile-hide">
+                <div class="absolute top-16 left-0 w-8 h-20 transform -skew-y-12" style="background:rgba(167,139,250,0.3);"></div>
+                <div class="absolute top-40 left-0 w-8 h-16 transform -skew-y-12" style="background:rgba(167,139,250,0.2);"></div>
+                <div class="absolute top-60 left-0 w-8 h-24 transform -skew-y-12" style="background:rgba(167,139,250,0.3);"></div>
+                <div class="absolute top-96 left-0 w-8 h-20 transform -skew-y-12" style="background:rgba(167,139,250,0.2);"></div>
+            </div>
+
+            <!-- Decorative dots -->
+            <div class="hero-decorative-mobile-hide">
+                <div class="absolute bottom-8 right-8 grid grid-cols-8 gap-4 opacity-40">
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div><div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div><div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div><div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div><div class="w-2 h-2 bg-white transform rotate-45"></div>
+                </div>
+                <div class="absolute bottom-16 right-8 grid grid-cols-8 gap-4 opacity-40">
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div><div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div><div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div><div class="w-2 h-2 bg-white transform rotate-45"></div>
+                    <div class="w-2 h-2 bg-white transform rotate-45"></div><div class="w-2 h-2 bg-white transform rotate-45"></div>
+                </div>
+            </div>
+
+            <div class="relative z-10 w-full px-5 sm:px-6 lg:px-8 py-6 sm:py-16 lg:py-20">
+                <div class="max-w-7xl mx-auto">
+                    <div class="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center lg:min-h-[calc(100vh-10rem)]">
+
+                        <!-- Left Content -->
+                        <div class="text-white">
+                            <div class="inline-block px-3 sm:px-4 py-1.5 sm:py-2 rounded-full font-semibold text-xs sm:text-sm mb-4 sm:mb-6 uppercase tracking-widest border" style="background:rgba(139,92,246,0.2);color:#c4b5fd;border-color:rgba(139,92,246,0.3);">
+                                Tienda de Ropa Personalizada
+                            </div>
+                            <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
+                                Viste a tu equipo<br><span style="color:#c4b5fd;">con tu identidad.</span>
+                            </h2>
+                            <p class="text-sm sm:text-base lg:text-lg text-gray-200 mb-5 sm:mb-8 leading-relaxed max-w-xl">
+                                Camisetas, mochilas, chándales y más, todos personalizados con el logo de tu club.
+                                Tu club no gestiona nada y gana automáticamente entre un
+                                <strong style="color:#a78bfa;">5-10% de cada venta</strong>.
+                                Cero esfuerzo, ingresos reales.
+                            </p>
+                            <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                                <a href="{{ route('vaed-sport.home') }}"
+                                   class="px-6 sm:px-8 py-3 text-white rounded-lg transition duration-200 font-semibold text-sm sm:text-base shadow-lg hover:shadow-xl transform hover:scale-105 text-center"
+                                   style="background:#7c3aed;">
+                                    Ver Catálogo VAED Sport
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Right Content - Product Cards -->
+                        <div class="relative hidden lg:block lg:min-h-[600px]">
+
+                          
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scroll Indicator -->
+            <div class="absolute bottom-14 left-1/2 transform -translate-x-1/2 animate-bounce z-30 hidden lg:block">
+                <svg class="w-8 h-8 text-white opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                </svg>
+            </div>
+        </div>
+        <!-- /Slide 2 -->
+
+        </div><!-- /hero-slides-track -->
+
+        <!-- Slider Controls: Arrows -->
+        <button class="hero-slider-btn prev" id="heroPrevBtn" aria-label="Diapositiva anterior">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <button class="hero-slider-btn next" id="heroNextBtn" aria-label="Diapositiva siguiente">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+        </button>
+
+        <!-- Slider Dots -->
+        <div class="hero-slider-dots">
+            <button class="hero-dot active" data-index="0" aria-label="Diapositiva 1"></button>
+            <button class="hero-dot" data-index="1" aria-label="Diapositiva 2"></button>
+        </div>
+
+        </div><!-- /hero-slider-wrapper -->
 
         <!-- Integrated Solution Section -->
         <section class="bg-gray-50 py-12 sm:py-16 md:py-20 px-4">
             <div class="max-w-7xl mx-auto">
-                <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 text-center mb-10 sm:mb-16 md:mb-20 px-4">
-                   Solución integrada para la gestión de tu club.
-                </h2>
+                <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 text-center mb-10 sm:mb-16 md:mb-20 px-4">
+                   La gestión deportivo educativa del fútbol amateur, al alcance de todos.
+                </h1>
 
                 <div class="grid lg:grid-cols-2 gap-8 sm:gap-12 md:gap-16 items-center">
                     <!-- Left Side: Image and Chart -->
@@ -613,8 +922,8 @@
                             </div>
                             
                             <!-- Main image card -->
-                            <div class="bg-white rounded-2xl shadow-2xl overflow-hidden border-4 border-blue-400">
-                                <img src="{{ asset('images/public/soccer-ball-blurred-kids-soccer-team-with-coach-field.jpg') }}" 
+                            <div class="bg-white rounded-2xl shadow-2xl overflow-hidden border-4 border-black">
+                                <img src="{{ asset('images/public/prototipe-cdpuebla.png') }}" 
                                      alt="Gestión de club deportivo" 
                                      class="w-full h-96 object-cover">
                             </div>
@@ -655,27 +964,18 @@
                     <!-- Right Side: Content -->
                     <div class="lg:pl-8">
                         <h3 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6">
-                            ¿Gestionas tu club?
+                            Venta de ropa personalizada, porque cada clubs tiene su identidad.
                         </h3>
                         
                         <p class="text-base sm:text-lg text-gray-700 leading-relaxed mb-4 sm:mb-6">
-                            Un club de deporte amateur impulsa los vínculos sociales, pero también representa un tiempo de gestión considerable: 3800 horas de trabajo voluntario por año y por club. Haz que todo el club sea más eficiente con VaedSaas.
+                            Buscamos la eficiencia en el tramite de pedidos, para que el club no tenga que preocuparse por nada. Nosotros nos encargamos de todo el proceso, desde la personalización con el logo del club hasta la entrega. El club solo recibe ingresos pasivos por cada venta realizada, sin tener que gestionar stock, envíos o atención al cliente.
                         </p>
-                        
-                        {{-- <a href="#" class="inline-block text-green-600 font-semibold hover:text-green-700 mb-8 text-lg">
-                            Más información →
-                        </a> --}}
-                        
-                        {{-- <div class="flex flex-col sm:flex-row gap-4">
-                            <a href="{{ route('register') }}" 
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <a href="{{ route('vaed-sport.home') }}" 
                                class="px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-200 font-semibold text-base shadow-lg hover:shadow-xl transform hover:scale-105 text-center">
-                                Registrar mi club
+                                VAED Sport - Catálogo de productos
                             </a>
-                            <a href="#" 
-                               class="px-8 py-3 bg-white text-green-600 border-2 border-green-500 rounded-lg hover:bg-green-50 transition duration-200 font-semibold text-base text-center">
-                                Explorar SportEasy
-                            </a>
-                        </div> --}}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -698,7 +998,7 @@
                             Creemos en crear una <span class="font-bold text-green-600">sinergia donde ambos ganamos</span>. VaedSaas vende productos deportivos a través de tu club, y esta es nuestra forma de monetizar la plataforma.
                         </p>
                         <p class="text-lg text-gray-700 leading-relaxed mb-4">
-                            Por cada venta realizada, tu club recibe automáticamente entre un <span class="font-bold text-green-600 text-xl">10% y 15%</span> como saldo acumulable que podrás solicitar en cualquier momento.
+                            Por cada venta realizada, tu club recibe automáticamente entre un <span class="font-bold text-green-600 text-xl">5% y 10%</span> como saldo acumulable que podrás solicitar en cualquier momento.
                         </p>
                         <p class="text-lg text-gray-700 leading-relaxed">
                             Lo mejor: <span class="font-bold">tu club no gestiona nada</span>. VaedSaas tramita el pedido, lo personaliza con el logo de tu club y lo envía directamente. Cero preocupaciones, solo ganancias.
@@ -843,7 +1143,7 @@
                             </div>
                             <h4 class="text-xl font-bold text-gray-900 mb-3">Tu Club Gana</h4>
                             <p class="text-gray-700 leading-relaxed">
-                                El <span class="font-bold text-green-600">10-15%</span> de cada venta se acumula automáticamente en tu saldo. Retíralo cuando quieras
+                                El <span class="font-bold text-green-600">5-10%</span> de cada venta se acumula automáticamente en tu saldo. Retíralo cuando quieras
                             </p>
                         </div>
                     </div>
@@ -1291,11 +1591,11 @@
         </section>
 
         <!-- Carousel de Escudos de Equipos -->
-        {{-- @php
+        @php
             $schools = \App\Models\SportsSchool::whereNotNull('logo')->where('logo', '!=', '')->get();
-        @endphp --}}
+        @endphp
         
-        {{-- @if($schools->count() > 0)
+        @if($schools->count() > 0)
         <section class="py-16 px-4 bg-gray-50 overflow-hidden">
             <div class="max-w-full mx-auto">
                 <h2 class="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-12">
@@ -1332,7 +1632,7 @@
                 </div>
             </div>
         </section>
-        @endif --}}
+        @endif
 
         <!-- Footer -->
         <footer class="bg-gray-900 text-white py-12 px-4">
@@ -1391,5 +1691,98 @@
 
         <!-- Cookie Consent Banner -->
         <x-cookie-consent />
+
+        <script>
+            (function () {
+                var track = document.getElementById('heroSlidesTrack');
+                var slides = track ? track.querySelectorAll('.hero-slide') : [];
+                var dots = document.querySelectorAll('.hero-dot');
+                var prevBtn = document.getElementById('heroPrevBtn');
+                var nextBtn = document.getElementById('heroNextBtn');
+                var current = 0;
+                var total = 2;
+                var autoTimer = null;
+                var userInteracted = false;
+                var isAnimating = false;
+
+                // Equalize slide heights so the track doesn't jump
+                function equalizeHeights() {
+                    if (slides.length < 2 || !track) return;
+                    // Reset
+                    for (var i = 0; i < slides.length; i++) slides[i].style.height = '';
+                    track.style.height = '';
+                    // Measure
+                    var maxH = 0;
+                    for (var i = 0; i < slides.length; i++) {
+                        var h = slides[i].scrollHeight;
+                        if (h > maxH) maxH = h;
+                    }
+                    // Apply uniform height to track and slides
+                    track.style.height = maxH + 'px';
+                    for (var i = 0; i < slides.length; i++) slides[i].style.height = maxH + 'px';
+                }
+
+                function goTo(index) {
+                    if (isAnimating) return;
+                    var next = ((index % total) + total) % total;
+                    if (next === current) return;
+                    isAnimating = true;
+                    current = next;
+                    track.style.transform = 'translateX(-' + (current * 100) + '%)';
+                    dots.forEach(function (d, i) { d.classList.toggle('active', i === current); });
+                    setTimeout(function () { isAnimating = false; }, 750);
+                }
+
+                function stopAuto() {
+                    if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+                }
+
+                function startAuto() {
+                    stopAuto();
+                    autoTimer = setInterval(function () { goTo(current + 1); }, 12000);
+                }
+
+                if (prevBtn) prevBtn.addEventListener('click', function () { stopAuto(); userInteracted = true; goTo(current - 1); });
+                if (nextBtn) nextBtn.addEventListener('click', function () { stopAuto(); userInteracted = true; goTo(current + 1); });
+                dots.forEach(function (d, i) {
+                    d.addEventListener('click', function () { stopAuto(); userInteracted = true; goTo(i); });
+                });
+
+                // Touch / swipe
+                var touchStartX = 0;
+                if (track) {
+                    track.addEventListener('touchstart', function (e) { touchStartX = e.touches[0].clientX; stopAuto(); }, { passive: true });
+                    track.addEventListener('touchend', function (e) {
+                        var diff = touchStartX - e.changedTouches[0].clientX;
+                        if (Math.abs(diff) > 50) { userInteracted = true; goTo(diff > 0 ? current + 1 : current - 1); }
+                    }, { passive: true });
+                }
+
+                startAuto();
+                // Equalize after fonts/images load, and on resize/orientation
+                equalizeHeights();
+                window.addEventListener('load', equalizeHeights);
+                window.addEventListener('resize', equalizeHeights);
+            })();
+        </script>
+
+        <!-- Navbar scroll shadow + mobile toggle -->
+        <script>
+            (function() {
+                var nav = document.getElementById('vsNav');
+                var toggle = document.getElementById('navToggle');
+                var links = document.getElementById('navLinks');
+                if (nav) {
+                    window.addEventListener('scroll', function() {
+                        nav.classList.toggle('scrolled', window.scrollY > 10);
+                    });
+                }
+                if (toggle && links) {
+                    toggle.addEventListener('click', function() {
+                        links.classList.toggle('open');
+                    });
+                }
+            })();
+        </script>
     </body>
 </html>

@@ -29,6 +29,11 @@ Route::get('/convocatoria/{token}', PublicConvocatoria::class)->name('public.con
 // Ruta principal - usa TenantHomeController que maneja automáticamente tenant vs no-tenant
 Route::get('/', [TenantHomeController::class, 'index'])->name('home');
 
+// Vaed Sport - Tienda de ropa deportiva personalizada
+Route::get('/vaed-sport', function () {
+    return view('vaed-sport-home');
+})->name('vaed-sport.home');
+
 // Ruta específica para clubs (tenant)
 Route::get('/club', WebClubsHome::class)->name('webclubs.home');
 
