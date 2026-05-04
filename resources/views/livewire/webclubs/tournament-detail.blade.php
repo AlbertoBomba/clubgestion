@@ -51,7 +51,7 @@
                                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                     </svg>
-                                    <span>{{ $tournament->start_date->locale('es')->translatedFormat('d M Y') }}@if($tournament->end_date) — {{ $tournament->end_date->locale('es')->translatedFormat('d M Y') }}@endif</span>
+                                    <span>{{ $tournament->start_date->locale('es')->translatedFormat('d M Y') }}@if($tournament->end_date) ï¿½ {{ $tournament->end_date->locale('es')->translatedFormat('d M Y') }}@endif</span>
                                 </div>
                             @endif
                             @if($tournament->location)
@@ -83,7 +83,7 @@
                                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                     </svg>
-                                    <span>Inscripción: {{ number_format($tournament->registration_fee, 2, ',', '.') }} €</span>
+                                    <span>Inscripciï¿½n: {{ number_format($tournament->registration_fee, 2, ',', '.') }} ï¿½</span>
                                 </div>
                             @endif
                             @if($tournament->max_players_per_team)
@@ -91,7 +91,7 @@
                                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                     </svg>
-                                    <span>Máx. {{ $tournament->max_players_per_team }} jugadores/equipo</span>
+                                    <span>Mï¿½x. {{ $tournament->max_players_per_team }} jugadores/equipo</span>
                                 </div>
                             @endif
                             @if($tournament->min_age)
@@ -99,7 +99,7 @@
                                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                                     </svg>
-                                    <span>Edad mínima: {{ $tournament->min_age }} años</span>
+                                    <span>Edad mï¿½nima: {{ $tournament->min_age }} aï¿½os</span>
                                 </div>
                             @endif
                             @if($tournament->player_registration_deadline)
@@ -233,7 +233,7 @@
                                                                 </div>
                                                                 <div class="text-gray-400 text-xs">{{ $match->scheduled_at->format('H:i') }}</div>
                                                             @else
-                                                                <div class="text-gray-200 text-xs">—</div>
+                                                                <div class="text-gray-200 text-xs">ï¿½</div>
                                                             @endif
                                                         </div>
 
@@ -347,7 +347,7 @@
                                                             @endif
                                                         </td>
                                                         <td class="px-3 sm:px-5 py-3">
-                                                            <span class="text-gray-900 font-semibold text-xs sm:text-sm">{{ $standing->tournamentTeam?->displayName() ?? '—' }}</span>
+                                                            <span class="text-gray-900 font-semibold text-xs sm:text-sm">{{ $standing->tournamentTeam?->displayName() ?? 'ï¿½' }}</span>
                                                         </td>
                                                         <td class="px-2 sm:px-3 py-3 text-center text-gray-500 text-xs sm:text-sm">{{ $standing->played }}</td>
                                                         <td class="px-2 sm:px-3 py-3 text-center text-green-600 font-semibold text-xs sm:text-sm">{{ $standing->won }}</td>
