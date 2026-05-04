@@ -15,6 +15,11 @@ class TournamentTeam extends Model
         'team_id',
         'name_override',
         'external_team',
+        'logo',
+        'contact_name',
+        'contact_phone',
+        'email',
+        'password',
         'status',
         'seed',
         'group_label',
@@ -26,6 +31,8 @@ class TournamentTeam extends Model
         'created_at'    => 'datetime',
         'updated_at'    => 'datetime',
     ];
+
+    protected $hidden = ['password'];
 
     // ──────────────────────────────────────── Helpers
     public static function statuses(): array

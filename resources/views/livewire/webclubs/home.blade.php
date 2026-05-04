@@ -123,59 +123,106 @@
     <!-- Hero Carousel Section -->
     <div class="swiper heroSwiper h-screen w-full">
         <div class="swiper-wrapper">
-            <!-- Slide 1 -->
-            <div class="swiper-slide relative">
-                <div class="absolute inset-0 bg-primary"></div>
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <div class="text-center text-white px-6 z-10 max-w-6xl">
-                        <h1 class="hero-title text-7xl md:text-8xl lg:text-[10rem] font-bold mb-10" data-aos="fade-up">
-                            {{ tenantName() }}
-                        </h1>
-                        <p class="text-xl md:text-3xl font-light mb-14 tracking-widest uppercase" data-aos="fade-up" data-aos-delay="200">
-                            Formando Campeones
-                        </p>
-                        <a href="{{ route('webclubs.registration') }}" class="btn-rounded bg-primary text-white px-14 py-4 font-semibold text-[13px] uppercase tracking-[0.15em] inline-block" data-aos="fade-up" data-aos-delay="400">
-                            Únete Ahora
-                        </a>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Slide 2 -->
-            <div class="swiper-slide relative">
-                <div class="absolute inset-0 bg-secondary"></div>
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <div class="text-center text-white px-6 z-10 max-w-6xl">
-                        <h1 class="hero-title text-7xl md:text-8xl lg:text-[10rem] font-bold mb-10" data-aos="fade-up">
-                            EXCELENCIA
-                        </h1>
-                        <p class="text-xl md:text-3xl font-light mb-14 tracking-widest uppercase" data-aos="fade-up" data-aos-delay="200">
-                            En Cada Entrenamiento
-                        </p>
-                        <a href="{{ route('webclubs.about') }}" class="btn-rounded bg-white text-primary px-14 py-4 font-semibold text-[13px] uppercase tracking-[0.15em] inline-block" data-aos="fade-up" data-aos-delay="400">
-                            Conoce Más
-                        </a>
-                    </div>
-                </div>
-            </div>
+            @if($heroSlides && $heroSlides->count() > 0)
+                {{-- Slides gestionados desde el panel de administración --}}
+                @foreach($heroSlides as $slide)
+                    <div class="swiper-slide relative" wire:key="hero-slide-{{ $slide->id }}">
+                        {{-- Fondo: vídeo, imagen o color --}}
+                        @if($slide->media_path && $slide->media_type === 'video')
+                            <video
+                                class="absolute inset-0 w-full h-full object-cover"
+                                src="{{ Storage::url($slide->media_path) }}"
+                                autoplay muted loop playsinline>
+                            </video>
+                            <div class="absolute inset-0 bg-black/40"></div>
+                        @elseif($slide->media_path && $slide->media_type === 'image')
+                            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                                 style="background-image: url('{{ Storage::url($slide->media_path) }}')">
+                            </div>
+                            <div class="absolute inset-0 bg-black/40"></div>
+                        @else
+                            <div class="absolute inset-0" style="background-color: {{ $slide->background_color ?? '#1E40AF' }}"></div>
+                        @endif
 
-            <!-- Slide 3 -->
-            <div class="swiper-slide relative">
-                <div class="absolute inset-0 bg-primary" style="opacity: 0.85;"></div>
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <div class="text-center text-white px-6 z-10 max-w-6xl">
-                        <h1 class="hero-title text-7xl md:text-8xl lg:text-[10rem] font-bold mb-10" data-aos="fade-up">
-                            FAMILIA
-                        </h1>
-                        <p class="text-xl md:text-3xl font-light mb-14 tracking-widest uppercase" data-aos="fade-up" data-aos-delay="200">
-                            Un Club Para Todos
-                        </p>
-                        <a href="{{ route('webclubs.contact') }}" class="btn-rounded bg-white text-primary px-14 py-4 font-semibold text-[13px] uppercase tracking-[0.15em] inline-block" data-aos="fade-up" data-aos-delay="400">
-                            Contacto
-                        </a>
+                        {{-- Contenido del slide --}}
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-center text-white px-6 z-10 max-w-6xl">
+                                @if($slide->title)
+                                    <h1 class="hero-title text-7xl md:text-8xl lg:text-[10rem] font-bold mb-10" data-aos="fade-up">
+                                        {{ $slide->title }}
+                                    </h1>
+                                @endif
+                                @if($slide->subtitle)
+                                    <p class="text-xl md:text-3xl font-light mb-14 tracking-widest uppercase" data-aos="fade-up" data-aos-delay="200">
+                                        {{ $slide->subtitle }}
+                                    </p>
+                                @endif
+                                @if($slide->button_text)
+                                    <a href="{{ $slide->button_url ?: '#' }}"
+                                       class="btn-rounded bg-white text-primary px-14 py-4 font-semibold text-[13px] uppercase tracking-[0.15em] inline-block"
+                                       data-aos="fade-up" data-aos-delay="400">
+                                        {{ $slide->button_text }}
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            @else
+                {{-- Slides por defecto (sin configuración en BD) --}}
+                <div class="swiper-slide relative">
+                    <div class="absolute inset-0 bg-primary"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="text-center text-white px-6 z-10 max-w-6xl">
+                            <h1 class="hero-title text-7xl md:text-8xl lg:text-[10rem] font-bold mb-10" data-aos="fade-up">
+                                {{ tenantName() }}
+                            </h1>
+                            <p class="text-xl md:text-3xl font-light mb-14 tracking-widest uppercase" data-aos="fade-up" data-aos-delay="200">
+                                Formando Campeones
+                            </p>
+                            <a href="{{ route('webclubs.registration') }}" class="btn-rounded bg-primary text-white px-14 py-4 font-semibold text-[13px] uppercase tracking-[0.15em] inline-block" data-aos="fade-up" data-aos-delay="400">
+                                Únete Ahora
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
+
+                <div class="swiper-slide relative">
+                    <div class="absolute inset-0 bg-secondary"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="text-center text-white px-6 z-10 max-w-6xl">
+                            <h1 class="hero-title text-7xl md:text-8xl lg:text-[10rem] font-bold mb-10" data-aos="fade-up">
+                                EXCELENCIA
+                            </h1>
+                            <p class="text-xl md:text-3xl font-light mb-14 tracking-widest uppercase" data-aos="fade-up" data-aos-delay="200">
+                                En Cada Entrenamiento
+                            </p>
+                            <a href="{{ route('webclubs.about') }}" class="btn-rounded bg-white text-primary px-14 py-4 font-semibold text-[13px] uppercase tracking-[0.15em] inline-block" data-aos="fade-up" data-aos-delay="400">
+                                Conoce Más
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="swiper-slide relative">
+                    <div class="absolute inset-0 bg-primary" style="opacity: 0.85;"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="text-center text-white px-6 z-10 max-w-6xl">
+                            <h1 class="hero-title text-7xl md:text-8xl lg:text-[10rem] font-bold mb-10" data-aos="fade-up">
+                                FAMILIA
+                            </h1>
+                            <p class="text-xl md:text-3xl font-light mb-14 tracking-widest uppercase" data-aos="fade-up" data-aos-delay="200">
+                                Un Club Para Todos
+                            </p>
+                            <a href="{{ route('webclubs.contact') }}" class="btn-rounded bg-white text-primary px-14 py-4 font-semibold text-[13px] uppercase tracking-[0.15em] inline-block" data-aos="fade-up" data-aos-delay="400">
+                                Contacto
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
         </div>
         
         <!-- Pagination -->
@@ -217,7 +264,7 @@
                 </div>
                 <div data-aos="fade-up" data-aos-delay="400">
                     <div class="text-8xl md:text-9xl lg:text-[10rem] font-bold text-gray-900 mb-6 leading-none">
-                        <span class="counter" data-target="80">0</span>
+                        <span class="counter" data-target="{{ $homeConfig->stats_years ?? 80 }}">0</span>
                     </div>
                     <div class="text-[11px] uppercase tracking-[0.2em] text-gray-600 font-semibold">Años</div>
                 </div>
@@ -225,11 +272,105 @@
         </div>
     </section>
 
+    <!-- Torneos Section -->
+    @if($tournaments && $tournaments->count() > 0)
+    <section class="pt-20 pb-40 bg-white relative overflow-hidden">
+        <div class="max-w-[1920px] mx-auto px-6 lg:px-12">
+            <div class="mb-16" data-aos="fade-up">
+                <h2 class="text-sm md:text-base lg:text-lg uppercase tracking-[0.2em] text-black/40 font-semibold mb-5">[02] Competición</h2>
+                <h3 class="section-title text-6xl md:text-8xl lg:text-9xl font-bold text-gray-900">Torneos</h3>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+                @foreach($tournaments as $index => $tournament)
+                    @php
+                        $statusColors = [
+                            'registration_open' => ['bg' => 'bg-blue-100',   'text' => 'text-blue-700',   'label' => 'Inscripciones abiertas'],
+                            'in_progress'       => ['bg' => 'bg-green-100',  'text' => 'text-green-700',  'label' => 'En curso'],
+                            'completed'         => ['bg' => 'bg-purple-100', 'text' => 'text-purple-700', 'label' => 'Finalizado'],
+                            'draft'             => ['bg' => 'bg-gray-100',   'text' => 'text-gray-500',   'label' => 'Próximamente'],
+                        ];
+                        $sc = $statusColors[$tournament->status] ?? $statusColors['draft'];
+                    @endphp
+                    <a href="{{ route('webclubs.tournament.detail', $tournament) }}"
+                       class="group bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm shadow-gray-200/60 hover:shadow-xl hover:shadow-gray-200/80 hover:-translate-y-1 transition-all duration-500 flex flex-col"
+                       data-aos="fade-up" data-aos-delay="{{ $index * 100 }}">
+
+                        {{-- Banner --}}
+                        <div class="relative h-36 sm:h-44 flex items-center justify-center overflow-hidden"
+                             style="background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);">
+                            @if($tournament->logo)
+                                <img src="{{ Storage::url($tournament->logo) }}"
+                                     alt="{{ $tournament->name }}"
+                                     class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            @else
+                                <div class="text-white/30 text-8xl font-black select-none group-hover:scale-105 transition-transform duration-500">🏆</div>
+                            @endif
+                            <span class="absolute top-3 right-3 {{ $sc['bg'] }} {{ $sc['text'] }} text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
+                                {{ $sc['label'] }}
+                            </span>
+                        </div>
+
+                        {{-- Content --}}
+                        <div class="p-4 sm:p-6 flex flex-col flex-1">
+                            <h2 class="text-base sm:text-xl font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors duration-300">
+                                {{ $tournament->name }}
+                            </h2>
+
+                            @if($tournament->description)
+                                <p class="text-sm text-gray-500 leading-relaxed mb-4 line-clamp-2">{{ $tournament->description }}</p>
+                            @endif
+
+                            <div class="space-y-2 text-xs text-gray-400 font-semibold uppercase tracking-wider mt-auto">
+                                @if($tournament->start_date)
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
+                                        <span>{{ $tournament->start_date->locale('es')->translatedFormat('d M Y') }}@if($tournament->end_date) — {{ $tournament->end_date->locale('es')->translatedFormat('d M Y') }}@endif</span>
+                                    </div>
+                                @endif
+                                @if($tournament->location)
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                        <span>{{ $tournament->location }}</span>
+                                    </div>
+                                @endif
+                                @if($tournament->registration_deadline && $tournament->status === 'registration_open')
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        <span>Inscripción hasta {{ $tournament->registration_deadline->locale('es')->translatedFormat('d M') }}</span>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="mt-5 flex items-center gap-1.5 font-bold text-sm text-primary/60 group-hover:text-primary transition-colors duration-300">
+                                <span>Ver torneo</span>
+                                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </div>
+                        </div>
+
+                        {{-- Bottom accent --}}
+                        <div class="h-0.5 w-0 group-hover:w-full transition-all duration-500"
+                             style="background: linear-gradient(to right, var(--color-primary), var(--color-secondary))"></div>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    </section>
+    @endif
+
     <!-- Próximos Partidos style="background: linear-gradient(to bottom right, {{ $primaryColor }}, {{ $secondaryColor }});"-->
     <section class="pt-20 pb-40 relative overflow-hidden" >
-        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="max-w-[1920px] mx-auto px-6 lg:px-12">
             <div class="mb-20">
-                <h2 class="text-sm md:text-base lg:text-lg uppercase tracking-[0.2em] text-black/70 font-semibold mb-5">[01] Calendario</h2>
+                <h2 class="text-sm md:text-base lg:text-lg uppercase tracking-[0.2em] text-black/70 font-semibold mb-5">[03] Calendario</h2>
                 <h3 class="section-title text-6xl md:text-8xl lg:text-9xl font-bold text-black">Próximos Partidos</h3>
             </div>
             
@@ -476,7 +617,7 @@
         <div class="w-full px-6 lg:px-12 relative z-10">
             <div class="max-w-[1920px] mx-auto">
                 <div class="mb-20"  data-aos="fade-up">
-                    <h2 class="text-sm md:text-base lg:text-lg uppercase tracking-[0.2em] text-gray-500 font-semibold mb-5">[02] Resultados</h2>
+                    <h2 class="text-sm md:text-base lg:text-lg uppercase tracking-[0.2em] text-gray-500 font-semibold mb-5">[04] Resultados</h2>
                     <h3 class="section-title text-6xl md:text-8xl lg:text-9xl font-bold text-gray-900">Últimas noticias</h3>
                     <p class="text-gray-500 mt-4 text-sm uppercase tracking-wider">Últimos 15 días</p>
                 </div>
@@ -638,83 +779,17 @@
     </section>
 
     <!-- Nuestros Patrocinadores -->
-    @if($sponsors && $sponsors->count() > 0)
-    <section class="py-40  relative overflow-hidden">
-        <!-- Nombre de la escuela de fondo con palabras desordenadas -->
-        <div class="absolute inset-0 pointer-events-none">
-            @php
-                $words = explode(' ', tenantName());
-                $positions = [
-                    ['top' => '10%', 'right' => '10%', 'class' => 'float-word-1'],
-                    ['top' => '40%', 'left' => '5%', 'class' => 'float-word-2'],
-                    ['top' => '65%', 'right' => '15%', 'class' => 'float-word-3'],
-                ];
-            @endphp
-            
-            @foreach($words as $index => $word)
-                @if(isset($positions[$index]))
-                    <div class="absolute {{ $positions[$index]['class'] }}" 
-                         style="
-                            {{ isset($positions[$index]['top']) ? 'top: ' . $positions[$index]['top'] . ';' : '' }}
-                            {{ isset($positions[$index]['bottom']) ? 'bottom: ' . $positions[$index]['bottom'] . ';' : '' }}
-                            {{ isset($positions[$index]['left']) ? 'left: ' . $positions[$index]['left'] . ';' : '' }}
-                            {{ isset($positions[$index]['right']) ? 'right: ' . $positions[$index]['right'] . ';' : '' }}
-                         ">
-                        <span class="text-[12rem] md:text-[18rem] lg:text-[24rem] font-extrabold leading-none opacity-20 whitespace-nowrap"
-                              style="background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-                            {{ $word }}
-                        </span>
-                    </div>
-                @endif
-            @endforeach
-        </div>
-        
-        <div class="w-full px-6 lg:px-12 relative z-10">
-            <h2 class="text-sm md:text-base lg:text-lg uppercase tracking-[0.2em] text-gray-500 font-semibold mb-5 text-center" data-aos="fade-up">[03] Colaboradores principales</h2>
-            <h3 class="section-title text-6xl md:text-8xl lg:text-9xl font-bold mb-20 text-gray-900 text-center" data-aos="fade-up">¡¡Gracias!!</h3>
-            
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
-                @foreach($sponsors as $index => $sponsor)
-                    <div class="bg-white border border-gray-200 p-8 flex items-center justify-center hover:border-primary transition-all duration-300 rounded-2xl group" data-aos="fade-up" data-aos-delay="{{ ($index + 1) * 100 }}">
-                        @if($sponsor->logo)
-                            <a href="{{ $sponsor->web ?: '#' }}" target="{{ $sponsor->web ? '_blank' : '_self' }}" class="block w-full h-full flex items-center justify-center">
-                                <img src="{{ asset('storage/' . $sponsor->logo) }}" alt="{{ $sponsor->name }}" class="max-w-full max-h-32 object-contain group-hover:scale-105 transition-transform duration-300">
-                            </a>
-                        @else
-                            <div class="text-center">
-                                <div class="text-2xl font-bold text-gray-800 mb-2">{{ $sponsor->name }}</div>
-                                @if($sponsor->web)
-                                    <a href="{{ $sponsor->web }}" target="_blank" class="text-xs text-primary hover:underline flex items-center justify-center">
-                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                                        </svg>
-                                        Visitar web
-                                    </a>
-                                @endif
-                            </div>
-                        @endif
-                    </div>
-                @endforeach
-            </div>
-            
-            <div class="text-center mt-20" data-aos="fade-up">
-                <p class="text-gray-500 text-base uppercase tracking-[0.15em] font-medium mb-8">¿Quieres ser patrocinador?</p>
-                <a href="{{ route('webclubs.contact') }}" class="btn-rounded inline-block bg-primary text-white px-12 py-4 font-semibold text-[13px] uppercase tracking-[0.15em]">
-                    Contacta con Nosotros
-                </a>
-            </div>
-        </div>
-    </section>
-    @endif
+    <x-webclubs.sponsors />
 
     <!-- Sección de Socios/Membresía -->
+    @if(!$homeConfig || $homeConfig->membership_show)
     <section class="py-40 bg-primary text-white">
         <div class="max-w-7xl mx-auto px-6 lg:px-8">
             <div class="text-center mb-24" data-aos="fade-up">
                 <h2 class="text-sm md:text-base lg:text-lg uppercase tracking-[0.2em] text-gray-400 font-semibold mb-5">[04] Únete a Nosotros</h2>
-                <h3 class="section-title text-6xl md:text-8xl lg:text-9xl font-bold mb-10">Hazte Socio</h3>
+                <h3 class="section-title text-6xl md:text-8xl lg:text-9xl font-bold mb-10">{{ $homeConfig->membership_title ?? 'Hazte Socio' }}</h3>
                 <p class="text-xl md:text-2xl font-light text-gray-400 max-w-3xl mx-auto leading-relaxed">
-                    Disfruta de beneficios exclusivos y forma parte de nuestra comunidad deportiva
+                    {{ $homeConfig->membership_subtitle ?? 'Disfruta de beneficios exclusivos y forma parte de nuestra comunidad deportiva' }}
                 </p>
             </div>
             
@@ -722,50 +797,56 @@
                 <div class="text-center" data-aos="fade-up" data-aos-delay="100">
                     <div class="text-6xl md:text-7xl font-bold mb-8 text-gray-300">01</div>
                     <div class="h-px bg-gray-700 mb-8"></div>
-                    <h4 class="text-2xl md:text-3xl lg:text-4xl font-semibold mb-5 uppercase tracking-[0.15em]">Descuentos</h4>
-                    <p class="text-gray-400 text-base leading-relaxed">Acceso a precios especiales en equipación y eventos</p>
+                    <h4 class="text-2xl md:text-3xl lg:text-4xl font-semibold mb-5 uppercase tracking-[0.15em]">{{ $homeConfig->benefit_1_title ?? 'Descuentos' }}</h4>
+                    <p class="text-gray-400 text-base leading-relaxed">{{ $homeConfig->benefit_1_description ?? 'Acceso a precios especiales en equipación y eventos' }}</p>
                 </div>
                 
                 <div class="text-center" data-aos="fade-up" data-aos-delay="200">
                     <div class="text-6xl md:text-7xl font-bold mb-8 text-gray-300">02</div>
                     <div class="h-px bg-gray-700 mb-8"></div>
-                    <h4 class="text-2xl md:text-3xl lg:text-4xl font-semibold mb-5 uppercase tracking-[0.15em]">Eventos</h4>
-                    <p class="text-gray-400 text-base leading-relaxed">Invitaciones exclusivas a eventos del club</p>
+                    <h4 class="text-2xl md:text-3xl lg:text-4xl font-semibold mb-5 uppercase tracking-[0.15em]">{{ $homeConfig->benefit_2_title ?? 'Eventos' }}</h4>
+                    <p class="text-gray-400 text-base leading-relaxed">{{ $homeConfig->benefit_2_description ?? 'Invitaciones exclusivas a eventos del club' }}</p>
                 </div>
                 
                 <div class="text-center" data-aos="fade-up" data-aos-delay="300">
                     <div class="text-6xl md:text-7xl font-bold mb-8 text-gray-300">03</div>
                     <div class="h-px bg-gray-700 mb-8"></div>
-                    <h4 class="text-2xl md:text-3xl lg:text-4xl font-semibold mb-5 uppercase tracking-[0.15em]">Prioridad</h4>
-                    <p class="text-gray-400 text-base leading-relaxed">Acceso prioritario a inscripciones y reservas</p>
+                    <h4 class="text-2xl md:text-3xl lg:text-4xl font-semibold mb-5 uppercase tracking-[0.15em]">{{ $homeConfig->benefit_3_title ?? 'Prioridad' }}</h4>
+                    <p class="text-gray-400 text-base leading-relaxed">{{ $homeConfig->benefit_3_description ?? 'Acceso prioritario a inscripciones y reservas' }}</p>
                 </div>
             </div>
             
             <div class="text-center" data-aos="fade-up">
-                <a href="{{ route('webclubs.registration') }}" class="btn-rounded bg-secondary text-white px-14 py-4 font-semibold text-[13px] uppercase tracking-[0.15em] inline-block">
-                    Únete Ahora
+                @php
+                    $membershipUrl = $homeConfig->membership_button_url ?? route('webclubs.registration');
+                    $membershipBtn = $homeConfig->membership_button_text ?? 'Únete Ahora';
+                @endphp
+                <a href="{{ $membershipUrl }}" class="btn-rounded bg-secondary text-white px-14 py-4 font-semibold text-[13px] uppercase tracking-[0.15em] inline-block">
+                    {{ $membershipBtn }}
                 </a>
             </div>
         </div>
     </section>
+    @endif
 
     <!-- Contact CTA -->
+    @if(!$homeConfig || $homeConfig->contact_show)
     <section class="py-40 bg-white">
         <div class="max-w-4xl mx-auto px-6 lg:px-8 text-center">
             <h2 class="text-sm md:text-base lg:text-lg uppercase tracking-[0.2em] text-gray-500 font-semibold mb-5" data-aos="fade-up">[05] Contacto</h2>
-            <h3 class="section-title text-6xl md:text-8xl lg:text-9xl font-bold mb-16 text-gray-900" data-aos="fade-up">¿Tienes Preguntas?</h3>
+            <h3 class="section-title text-6xl md:text-8xl lg:text-9xl font-bold mb-16 text-gray-900" data-aos="fade-up">{{ $homeConfig->contact_title ?? '¿Tienes Preguntas?' }}</h3>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-20">
                 <div class="text-center p-10" data-aos="fade-up" data-aos-delay="100">
                     <div class="text-5xl mb-5 opacity-70">📧</div>
                     <div class="text-[11px] uppercase tracking-[0.2em] text-gray-500 font-semibold mb-3">Email</div>
-                    <div class="text-lg font-semibold text-gray-900">info@ejemplo.com</div>
+                    <div class="text-lg font-semibold text-gray-900">{{ $homeConfig->contact_email ?? 'info@ejemplo.com' }}</div>
                 </div>
                 
                 <div class="text-center p-10" data-aos="fade-up" data-aos-delay="200">
                     <div class="text-5xl mb-5 opacity-70">📱</div>
                     <div class="text-[11px] uppercase tracking-[0.2em] text-gray-500 font-semibold mb-3">Teléfono</div>
-                    <div class="text-lg font-semibold text-gray-900">+34 000 000 000</div>
+                    <div class="text-lg font-semibold text-gray-900">{{ $homeConfig->contact_phone ?? '+34 000 000 000' }}</div>
                 </div>
             </div>
             
@@ -776,6 +857,7 @@
             </div>
         </div>
     </section>
+    @endif
 
     @push('scripts')
     <script>

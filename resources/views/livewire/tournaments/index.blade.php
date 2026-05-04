@@ -45,13 +45,6 @@
                 <option value="completed">Completado</option>
                 <option value="cancelled">Cancelado</option>
             </select>
-            <select wire:model.live="seasonFilter"
-                    class="text-sm border border-silver rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white-pure text-black-deep">
-                <option value="">Todas las temporadas</option>
-                @foreach ($seasons as $season)
-                    <option value="{{ $season->id }}">{{ $season->name }}</option>
-                @endforeach
-            </select>
         </div>
     </div>
 

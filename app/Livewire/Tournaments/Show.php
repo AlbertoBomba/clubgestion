@@ -10,10 +10,14 @@ use App\Models\TournamentMatch;
 use App\Models\TournamentPhase;
 use App\Models\TournamentStanding;
 use App\Models\TournamentTeam;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class Show extends Component
 {
+    use WithFileUploads;
     public Tournament $tournament;
 
     // ------------------------------------------------------------------
@@ -66,6 +70,12 @@ class Show extends Component
     public ?int   $team_id           = null;
     public bool   $external_team     = false;
     public string $name_override     = '';
+    public string $team_logo         = '';  // path of existing logo
+    public        $team_logo_upload  = null; // TemporaryUploadedFile
+    public string $team_contact_name = '';
+    public string $team_contact_phone= '';
+    public string $team_email        = '';
+    public string $team_password     = '';
     public string $team_seed         = '';
     public string $team_group        = '';
 
@@ -283,41 +293,87 @@ class Show extends Component
 
     public function openCreateTeamModal(): void
     {
-        $this->reset(['editingTeamId', 'team_id', 'external_team', 'name_override', 'team_seed', 'team_group']);
+        $this->reset([
+            'editingTeamId', 'team_id', 'external_team', 'name_override',
+            'team_logo', 'team_logo_upload',
+            'team_contact_name', 'team_contact_phone', 'team_email', 'team_password',
+            'team_seed', 'team_group',
+        ]);
+        // Open tournaments only allow external teams
+        if ($this->tournament->team_type === 'open') {
+            $this->external_team = true;
+        }
         $this->showTeamModal = true;
     }
 
     public function openEditTeamModal(int $id): void
     {
         $tt = TournamentTeam::findOrFail($id);
-        $this->editingTeamId  = $id;
-        $this->team_id        = $tt->team_id;
-        $this->external_team  = (bool) $tt->external_team;
-        $this->name_override  = $tt->name_override ?? '';
-        $this->team_seed      = $tt->seed ? (string) $tt->seed : '';
-        $this->team_group     = $tt->group_label ?? '';
-        $this->showTeamModal  = true;
+        $this->editingTeamId       = $id;
+        $this->team_id             = $tt->team_id;
+        $this->external_team       = (bool) $tt->external_team;
+        $this->name_override       = $tt->name_override ?? '';
+        $this->team_logo           = $tt->logo ?? '';
+        $this->team_logo_upload    = null;
+        $this->team_contact_name   = $tt->contact_name ?? '';
+        $this->team_contact_phone  = $tt->contact_phone ?? '';
+        $this->team_email          = $tt->email ?? '';
+        $this->team_password       = '';   // never prefill password
+        $this->team_seed           = $tt->seed ? (string) $tt->seed : '';
+        $this->team_group          = $tt->group_label ?? '';
+        $this->showTeamModal       = true;
     }
 
     public function saveTeam(): void
     {
+        // Open tournaments only allow external teams
+        if ($this->tournament->team_type === 'open') {
+            $this->external_team = true;
+        }
+
+        $isOpen = $this->tournament->team_type === 'open';
+
         $this->validate([
-            'team_id'       => $this->external_team ? 'nullable' : 'nullable|exists:teams,id',
-            'name_override' => $this->external_team ? 'required|string|max:255' : 'nullable|string|max:255',
-            'team_seed'     => 'nullable|integer|min:1',
-            'team_group'    => 'nullable|string|max:50',
+            'team_id'           => $this->external_team ? 'nullable' : 'nullable|exists:teams,id',
+            'name_override'     => $this->external_team ? 'required|string|max:255' : 'nullable|string|max:255',
+            'team_logo_upload'  => 'nullable|image|max:2048',
+            'team_contact_name' => 'nullable|string|max:255',
+            'team_contact_phone'=> 'nullable|string|max:50',
+            'team_email'        => $isOpen ? 'required|email|max:255' : 'nullable|email|max:255',
+            'team_password'     => $this->editingTeamId ? 'nullable|string|min:6|max:100' : ($isOpen ? 'required|string|min:6|max:100' : 'nullable|string|min:6|max:100'),
+            'team_seed'         => 'nullable|integer|min:1',
+            'team_group'        => 'nullable|string|max:50',
         ]);
+
+        // Handle logo upload
+        $logoPath = $this->team_logo ?: null;
+        if ($this->team_logo_upload) {
+            // Delete old logo if editing
+            if ($this->editingTeamId && $this->team_logo) {
+                Storage::disk('public')->delete($this->team_logo);
+            }
+            $logoPath = $this->team_logo_upload->store('tournament-teams/logos', 'public');
+        }
 
         $data = [
             'tournament_id'          => $this->tournament->id,
-            'tournament_category_id' => $this->activeCategoryId,
+            'tournament_category_id' => $isOpen ? null : $this->activeCategoryId,
             'team_id'                => $this->external_team ? null : ($this->team_id ?: null),
             'external_team'          => $this->external_team,
             'name_override'          => $this->name_override ?: null,
+            'logo'                   => $logoPath,
+            'contact_name'           => $this->team_contact_name ?: null,
+            'contact_phone'          => $this->team_contact_phone ?: null,
+            'email'                  => $this->team_email ?: null,
             'seed'                   => $this->team_seed ?: null,
             'group_label'            => $this->team_group ?: null,
             'status'                 => 'registered',
         ];
+
+        // Only update password if a new one was provided
+        if ($this->team_password !== '') {
+            $data['password'] = Hash::make($this->team_password);
+        }
 
         if ($this->editingTeamId) {
             TournamentTeam::findOrFail($this->editingTeamId)->update($data);
@@ -329,6 +385,17 @@ class Show extends Component
 
         $this->showTeamModal = false;
         $this->tournament->refresh();
+    }
+
+    public function deleteTeamLogo(): void
+    {
+        if ($this->team_logo) {
+            Storage::disk('public')->delete($this->team_logo);
+        }
+        $this->team_logo = '';
+        if ($this->editingTeamId) {
+            TournamentTeam::findOrFail($this->editingTeamId)->update(['logo' => null]);
+        }
     }
 
     public function confirmDeleteTeam(int $id): void
@@ -787,24 +854,29 @@ class Show extends Component
             ->withCount(['tournamentTeams', 'phases', 'matches'])
             ->get();
 
-        // Scoped queries — filter everything to the active category
-        $phases = $this->activeCategoryId
-            ? TournamentPhase::where('tournament_category_id', $this->activeCategoryId)
+        // Scoped queries — filter by active category, or fetch all for open tournaments
+        $isOpen = $this->tournament->team_type === 'open';
+
+        $phases = ($this->activeCategoryId || $isOpen)
+            ? TournamentPhase::where('tournament_id', $this->tournament->id)
+                ->when(!$isOpen, fn ($q) => $q->where('tournament_category_id', $this->activeCategoryId))
                 ->withCount('matches')
                 ->orderBy('order')
                 ->get()
             : collect();
 
-        $teams = $this->activeCategoryId
-            ? TournamentTeam::where('tournament_category_id', $this->activeCategoryId)
+        $teams = ($this->activeCategoryId || $isOpen)
+            ? TournamentTeam::where('tournament_id', $this->tournament->id)
+                ->when(!$isOpen, fn ($q) => $q->where('tournament_category_id', $this->activeCategoryId))
                 ->with('team')
                 ->orderBy('seed')
                 ->orderBy('group_label')
                 ->get()
             : collect();
 
-        $matches = $this->activeCategoryId
-            ? TournamentMatch::where('tournament_category_id', $this->activeCategoryId)
+        $matches = ($this->activeCategoryId || $isOpen)
+            ? TournamentMatch::where('tournament_id', $this->tournament->id)
+                ->when(!$isOpen, fn ($q) => $q->where('tournament_category_id', $this->activeCategoryId))
                 ->with(['phase', 'homeTeam.team', 'awayTeam.team'])
                 ->orderByRaw('scheduled_at IS NULL ASC')
                 ->orderBy('scheduled_at')
@@ -814,8 +886,9 @@ class Show extends Component
                 ->get()
             : collect();
 
-        $standings = $this->activeCategoryId
-            ? TournamentStanding::where('tournament_category_id', $this->activeCategoryId)
+        $standings = ($this->activeCategoryId || $isOpen)
+            ? TournamentStanding::where('tournament_id', $this->tournament->id)
+                ->when(!$isOpen, fn ($q) => $q->where('tournament_category_id', $this->activeCategoryId))
                 ->with(['phase', 'tournamentTeam.team'])
                 ->orderBy('phase_id')
                 ->orderBy('group_label')

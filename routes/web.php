@@ -10,6 +10,11 @@ use App\Livewire\WebClubs\Home as WebClubsHome;
 use App\Livewire\WebClubs\About as WebClubsAbout;
 use App\Livewire\WebClubs\Contact as WebClubsContact;
 use App\Livewire\WebClubs\PlayerRegistration as WebClubsPlayerRegistration;
+use App\Livewire\WebClubs\Tournaments as WebClubsTournaments;
+use App\Livewire\WebClubs\TournamentDetail as WebClubsTournamentDetail;
+use App\Livewire\WebClubs\TeamLogin as WebClubsTeamLogin;
+use App\Livewire\WebClubs\TeamDashboard as WebClubsTeamDashboard;
+use App\Livewire\WebClubs\TeamRegister as WebClubsTeamRegister;
 use App\Models\SportsSchool;
 use App\Models\User;
 use App\Models\Category;
@@ -41,6 +46,11 @@ Route::get('/club', WebClubsHome::class)->name('webclubs.home');
 Route::get('/sobre-nosotros', WebClubsAbout::class)->name('webclubs.about');
 Route::get('/contacto', WebClubsContact::class)->name('webclubs.contact');
 Route::get('/inscripcion', WebClubsPlayerRegistration::class)->name('webclubs.registration');
+Route::get('/torneos', WebClubsTournaments::class)->name('webclubs.tournaments');
+Route::get('/torneos/{tournament}', WebClubsTournamentDetail::class)->name('webclubs.tournament.detail');
+Route::get('/torneos/{tournament}/equipo/login', WebClubsTeamLogin::class)->name('webclubs.team.login');
+Route::get('/torneos/{tournament}/equipo', WebClubsTeamDashboard::class)->name('webclubs.team.dashboard');
+Route::get('/torneos/{tournament}/inscripcion', WebClubsTeamRegister::class)->name('webclubs.team.register');
 
 // Legal Pages
 Route::get('/privacy', function () {
@@ -331,5 +341,19 @@ Route::middleware([
         Route::get('/sponsors', function () {
             return view('sponsors.index');
         })->name('sponsors.index');
+
+        // Gestión de la portada web (Hero slides)
+        Route::get('/web-home-slides/create', function () {
+            return view('web-home-slides.create');
+        })->name('web-home-slides.create');
+
+        Route::get('/web-home-slides/{slide}/edit', function (App\Models\WebHomeSlide $slide) {
+            return view('web-home-slides.edit', compact('slide'));
+        })->name('web-home-slides.edit');
+
+        // Configuración de la portada web
+        Route::get('/web-home-config', function () {
+            return view('web-home-config.edit');
+        })->name('web-home-config.edit');
     });
 });

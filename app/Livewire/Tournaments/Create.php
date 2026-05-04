@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Tournaments;
 
-use App\Models\Season;
 use App\Models\Tournament;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -15,13 +14,17 @@ class Create extends Component
     public string  $name                  = '';
     public string  $description           = '';
     public string  $location              = '';
-    public ?int    $season_id             = null;
     public string  $start_date            = '';
     public string  $end_date              = '';
     public string  $registration_deadline = '';
-    public string  $max_teams             = '';
-    public string  $status                = 'draft';
-    public string  $visibility            = 'private';
+    public string  $max_teams                    = '';
+    public string  $max_players_per_team          = '';
+    public string  $registration_fee              = '';
+    public string  $player_registration_deadline  = '';
+    public string  $min_age                       = '';
+    public string  $team_type                     = '';
+    public string  $status                        = 'draft';
+    public string  $visibility                    = 'private';
     public         $logo                  = null;
 
     // Settings
@@ -35,12 +38,16 @@ class Create extends Component
             'name'                  => 'required|string|max:255',
             'description'           => 'nullable|string',
             'location'              => 'nullable|string|max:255',
-            'season_id'             => 'nullable|exists:seasons,id',
             'start_date'            => 'nullable|date',
             'end_date'              => 'nullable|date|after_or_equal:start_date',
             'registration_deadline' => 'nullable|date',
-            'max_teams'             => 'nullable|integer|min:2|max:512',
-            'status'                => 'required|in:draft,registration_open,in_progress,completed,cancelled',
+            'max_teams'                    => 'nullable|integer|min:2|max:512',
+            'max_players_per_team'          => 'nullable|integer|min:1|max:100',
+            'registration_fee'              => 'nullable|numeric|min:0|max:99999',
+            'player_registration_deadline'  => 'nullable|date',
+            'min_age'                       => 'nullable|integer|min:1|max:100',
+            'team_type'                     => 'nullable|in:school_teams,open',
+            'status'                        => 'required|in:draft,registration_open,in_progress,completed,cancelled',
             'visibility'            => 'required|in:private,public',
             'logo'                  => 'nullable|image|max:2048',
             'points_per_win'        => 'integer|min:0|max:10',
@@ -61,15 +68,19 @@ class Create extends Component
 
         Tournament::create([
             'sports_school_id'      => $user->sports_school_id,
-            'season_id'             => $this->season_id ?: null,
             'name'                  => $this->name,
             'description'           => $this->description ?: null,
             'location'              => $this->location ?: null,
             'start_date'            => $this->start_date ?: null,
             'end_date'              => $this->end_date ?: null,
             'registration_deadline' => $this->registration_deadline ?: null,
-            'max_teams'             => $this->max_teams ?: null,
-            'status'                => $this->status,
+            'max_teams'                    => $this->max_teams ?: null,
+            'max_players_per_team'          => $this->max_players_per_team ?: null,
+            'registration_fee'              => $this->registration_fee ?: null,
+            'player_registration_deadline'  => $this->player_registration_deadline ?: null,
+            'min_age'                       => $this->min_age ?: null,
+            'team_type'                     => $this->team_type ?: null,
+            'status'                        => $this->status,
             'visibility'            => $this->visibility,
             'logo'                  => $logoPath,
             'settings'              => [
@@ -86,21 +97,6 @@ class Create extends Component
 
     public function render()
     {
-        $user = auth()->user();
-
-        $seasons = Season::where('sports_school_id', $user->sports_school_id)
-            ->orderByDesc('start_date')
-            ->get();
-
-        $activeSeason = Season::where('sports_school_id', $user->sports_school_id)
-            ->where('start_date', '<=', now())
-            ->where('end_date', '>=', now())
-            ->first();
-
-        if (! $this->season_id && $activeSeason) {
-            $this->season_id = $activeSeason->id;
-        }
-
-        return view('livewire.tournaments.create', compact('seasons'));
+        return view('livewire.tournaments.create');
     }
 }

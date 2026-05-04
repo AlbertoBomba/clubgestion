@@ -12,7 +12,6 @@ class Tournament extends Model
 
     protected $fillable = [
         'sports_school_id',
-        'season_id',
         'name',
         'description',
         'logo',
@@ -21,6 +20,11 @@ class Tournament extends Model
         'end_date',
         'registration_deadline',
         'max_teams',
+        'max_players_per_team',
+        'registration_fee',
+        'player_registration_deadline',
+        'min_age',
+        'team_type',
         'status',
         'visibility',
         'settings',
@@ -29,10 +33,12 @@ class Tournament extends Model
     ];
 
     protected $casts = [
-        'settings'              => 'array',
-        'start_date'            => 'date',
-        'end_date'              => 'date',
-        'registration_deadline' => 'date',
+        'settings'                      => 'array',
+        'start_date'                    => 'date',
+        'end_date'                      => 'date',
+        'registration_deadline'         => 'date',
+        'player_registration_deadline'  => 'date',
+        'registration_fee'              => 'decimal:2',
         'created_at'            => 'datetime',
         'updated_at'            => 'datetime',
         'deleted_at'            => 'datetime',
@@ -73,10 +79,7 @@ class Tournament extends Model
         return $this->belongsTo(SportsSchool::class);
     }
 
-    public function season()
-    {
-        return $this->belongsTo(Season::class);
-    }
+
 
     public function categories()
     {

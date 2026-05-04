@@ -89,6 +89,46 @@
                 </div>
             </div>
 
+            {{-- Player restrictions --}}
+            <div class="bg-white-pure border border-silver rounded-2xl shadow-sm p-6">
+                <h2 class="text-sm font-semibold text-black-deep flex items-center gap-2 mb-5">
+                    <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Restricciones de jugadores
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Máx. jugadores por equipo</label>
+                        <input wire:model="max_players_per_team" type="number" min="1" max="100" placeholder="Sin límite"
+                               class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white-pure text-black-deep placeholder-titanium"/>
+                        @error('max_players_per_team') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Edad mínima</label>
+                        <input wire:model="min_age" type="number" min="1" max="100" placeholder="Sin restricción"
+                               class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white-pure text-black-deep placeholder-titanium"/>
+                        @error('min_age') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Fecha límite inscripción jugadores</label>
+                        <input wire:model="player_registration_deadline" type="date"
+                               class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white-pure text-black-deep"/>
+                        @error('player_registration_deadline') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Tipo de equipos participantes</label>
+                        <select wire:model="team_type"
+                                class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white-pure text-black-deep">
+                            <option value="">Sin restricción</option>
+                            <option value="school_teams">Equipos de Escuelas Deportivas</option>
+                            <option value="open">Torneo Abierto</option>
+                        </select>
+                        @error('team_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+            </div>
+
             {{-- Scoring system --}}
             <div class="bg-white-pure border border-silver rounded-2xl shadow-sm p-6">
                 <h2 class="text-sm font-semibold text-black-deep flex items-center gap-2 mb-5">
@@ -154,14 +194,13 @@
                                class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white-pure text-black-deep"/>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Temporada</label>
-                        <select wire:model="season_id"
-                                class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white-pure text-black-deep">
-                            <option value="">Sin temporada</option>
-                            @foreach ($seasons as $season)
-                                <option value="{{ $season->id }}">{{ $season->name }}</option>
-                            @endforeach
-                        </select>
+                        <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Precio de inscripción</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-titanium text-sm font-semibold">€</span>
+                            <input wire:model="registration_fee" type="number" min="0" step="0.01" placeholder="0.00"
+                                   class="w-full pl-7 pr-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white-pure text-black-deep placeholder-titanium"/>
+                        </div>
+                        @error('registration_fee') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
             </div>

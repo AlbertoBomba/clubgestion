@@ -76,35 +76,42 @@
     </div>
 
     {{-- ========================= CATEGORY SELECTOR ========================= --}}
-    <div class="flex items-center gap-2 mb-4 overflow-x-auto pb-1 scrollbar-thin">
-        @foreach ($categories as $cat)
-            <button wire:click="selectCategory({{ $cat->id }})"
-                    class="group relative whitespace-nowrap px-4 py-2 rounded-xl text-sm font-semibold transition-all
-                        {{ $activeCategoryId === $cat->id
-                            ? 'bg-primary text-white shadow-sm'
-                            : 'bg-white-pure text-titanium border border-silver hover:border-primary/30 hover:text-primary' }}">
-                {{ $cat->name ?? $cat->category?->category ?? 'Categoría' }}
-                <span class="ml-1.5 text-xs opacity-70">{{ $cat->tournament_teams_count }}</span>
-                @if ($activeCategoryId === $cat->id)
-                    <span class="hidden group-hover:inline-flex items-center gap-0.5 ml-1">
-                        <button wire:click.stop="openEditCategoryModal({{ $cat->id }})" class="p-0.5 rounded hover:bg-white/20" title="Editar">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                        </button>
-                        <button wire:click.stop="confirmDeleteCategory({{ $cat->id }})" class="p-0.5 rounded hover:bg-white/20" title="Eliminar">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        </button>
-                    </span>
-                @endif
+    @if ($tournament->team_type === 'open')
+        <div class="flex items-center gap-2 mb-4 p-3 bg-blue-50 rounded-xl border border-blue-100">
+            <svg class="w-4 h-4 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <p class="text-xs text-blue-700 font-medium">Torneo abierto: las categorías no aplican. Los equipos se gestionan por edad mínima{{ $tournament->min_age ? ' (' . $tournament->min_age . ' años)' : '' }}.</p>
+        </div>
+    @else
+        <div class="flex items-center gap-2 mb-4 overflow-x-auto pb-1 scrollbar-thin">
+            @foreach ($categories as $cat)
+                <button wire:click="selectCategory({{ $cat->id }})"
+                        class="group relative whitespace-nowrap px-4 py-2 rounded-xl text-sm font-semibold transition-all
+                            {{ $activeCategoryId === $cat->id
+                                ? 'bg-primary text-white shadow-sm'
+                                : 'bg-white-pure text-titanium border border-silver hover:border-primary/30 hover:text-primary' }}">
+                    {{ $cat->name ?? $cat->category?->category ?? 'Categoría' }}
+                    <span class="ml-1.5 text-xs opacity-70">{{ $cat->tournament_teams_count }}</span>
+                    @if ($activeCategoryId === $cat->id)
+                        <span class="hidden group-hover:inline-flex items-center gap-0.5 ml-1">
+                            <button wire:click.stop="openEditCategoryModal({{ $cat->id }})" class="p-0.5 rounded hover:bg-white/20" title="Editar">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            </button>
+                            <button wire:click.stop="confirmDeleteCategory({{ $cat->id }})" class="p-0.5 rounded hover:bg-white/20" title="Eliminar">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
+                        </span>
+                    @endif
+                </button>
+            @endforeach
+            <button wire:click="openCreateCategoryModal"
+                    class="whitespace-nowrap px-3 py-2 rounded-xl text-sm font-semibold text-primary border border-dashed border-primary/40 hover:bg-primary/5 transition-colors">
+                + Nueva
             </button>
-        @endforeach
-        <button wire:click="openCreateCategoryModal"
-                class="whitespace-nowrap px-3 py-2 rounded-xl text-sm font-semibold text-primary border border-dashed border-primary/40 hover:bg-primary/5 transition-colors">
-            + Nueva
-        </button>
-    </div>
+        </div>
+    @endif
 
     {{-- ========================= MAIN CONTENT ========================= --}}
-    @if ($activeCategoryId)
+    @if ($activeCategoryId || $tournament->team_type === 'open')
 
         @if ($teams->isEmpty() && $matches->isEmpty())
             {{-- ==================== EMPTY STATE: NO TEAMS ==================== --}}
@@ -471,8 +478,8 @@
         @endif
 
     @else
-        {{-- No category selected --}}
-        @if ($categories->isEmpty())
+        {{-- No category selected (only for non-open tournaments) --}}
+        @if ($categories->isEmpty() && $tournament->team_type !== 'open')
             <div class="bg-white-pure border border-silver rounded-2xl shadow-sm p-8 sm:p-12 text-center">
                 <div class="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
                     <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
@@ -635,8 +642,8 @@
 
     {{-- Team modal --}}
     @if ($showTeamModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-            <div class="bg-white-pure rounded-2xl shadow-2xl border border-silver w-full max-w-md p-6">
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm overflow-y-auto">
+            <div class="bg-white-pure rounded-2xl shadow-2xl border border-silver w-full max-w-md p-6 my-4">
                 <div class="flex items-center justify-between mb-5">
                     <h3 class="text-base font-bold text-black-deep">{{ $editingTeamId ? 'Editar Equipo' : 'Añadir Equipo' }}</h3>
                     <button wire:click="$set('showTeamModal', false)" class="p-1.5 rounded-lg text-titanium hover:bg-gray-100 transition-colors">
@@ -644,13 +651,20 @@
                     </button>
                 </div>
                 <div class="space-y-4">
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-silver">
-                        <label class="text-sm font-medium text-black-deep">Equipo externo</label>
-                        <button wire:click="$set('external_team', {{ $external_team ? 'false' : 'true' }})"
-                                class="relative inline-flex items-center w-10 h-6 rounded-full transition-colors {{ $external_team ? 'bg-primary' : 'bg-silver' }}">
-                            <span class="inline-block w-4 h-4 bg-white rounded-full shadow transition-transform {{ $external_team ? 'translate-x-5' : 'translate-x-1' }}"></span>
-                        </button>
-                    </div>
+                    @if ($tournament->team_type === 'open')
+                        <div class="flex items-center gap-2 p-3 bg-blue-50 rounded-xl border border-blue-100">
+                            <svg class="w-4 h-4 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <p class="text-xs text-blue-700 font-medium">Torneo abierto: solo se pueden inscribir equipos externos.</p>
+                        </div>
+                    @else
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-silver">
+                            <label class="text-sm font-medium text-black-deep">Equipo externo</label>
+                            <button wire:click="$set('external_team', {{ $external_team ? 'false' : 'true' }})"
+                                    class="relative inline-flex items-center w-10 h-6 rounded-full transition-colors {{ $external_team ? 'bg-primary' : 'bg-silver' }}">
+                                <span class="inline-block w-4 h-4 bg-white rounded-full shadow transition-transform {{ $external_team ? 'translate-x-5' : 'translate-x-1' }}"></span>
+                            </button>
+                        </div>
+                    @endif
                     @if ($external_team)
                         <div>
                             <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Nombre del equipo *</label>
@@ -675,6 +689,61 @@
                                    class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"/>
                         </div>
                     @endif
+
+                    {{-- Logo / Escudo --}}
+                    <div>
+                        <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Escudo del equipo</label>
+                        @if ($team_logo && !$team_logo_upload)
+                            <div class="flex items-center gap-3 mb-2">
+                                <img src="{{ Storage::disk('public')->url($team_logo) }}" class="w-14 h-14 object-cover rounded-xl border border-silver">
+                                <button wire:click="deleteTeamLogo" type="button" class="text-xs text-red-500 hover:text-red-700 font-semibold">Eliminar</button>
+                            </div>
+                        @endif
+                        @if ($team_logo_upload)
+                            <img src="{{ $team_logo_upload->temporaryUrl() }}" class="w-14 h-14 object-cover rounded-xl border border-silver mb-2">
+                        @endif
+                        <input wire:model="team_logo_upload" type="file" accept="image/*"
+                               class="w-full text-sm text-titanium file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"/>
+                        <div wire:loading wire:target="team_logo_upload" class="text-xs text-primary mt-1">Subiendo...</div>
+                        @error('team_logo_upload') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        <p class="text-xs text-titanium/60 mt-1">PNG, JPG (máx. 2MB)</p>
+                    </div>
+
+                    {{-- Contact --}}
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Nombre de contacto</label>
+                            <input wire:model="team_contact_name" type="text" placeholder="Nombre"
+                                   class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"/>
+                            @error('team_contact_name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Teléfono</label>
+                            <input wire:model="team_contact_phone" type="tel" placeholder="600 000 000"
+                                   class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"/>
+                            @error('team_contact_phone') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+
+                    {{-- Access credentials --}}
+                    <div>
+                        <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">
+                            Email de acceso {{ $tournament->team_type === 'open' ? '*' : '(opcional)' }}
+                        </label>
+                        <input wire:model="team_email" type="email" placeholder="equipo@ejemplo.com"
+                               class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"/>
+                        @error('team_email') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">
+                            Contraseña {{ $editingTeamId ? '(dejar vacío para no cambiar)' : ($tournament->team_type === 'open' ? '*' : '(opcional)') }}
+                        </label>
+                        <input wire:model="team_password" type="password" placeholder="{{ $editingTeamId ? '••••••' : 'Contraseña de acceso' }}"
+                               class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"/>
+                        @error('team_password') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        <p class="text-xs text-titanium/60 mt-1">Acceso al área de gestión del equipo (mínimo 6 caracteres).</p>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Cabeza de serie</label>

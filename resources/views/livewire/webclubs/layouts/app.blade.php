@@ -125,6 +125,15 @@
     </style>
     
     @stack('styles')
+    <!-- Cropper.js (usado en inscripción de equipos) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+    <style>
+        .step-anim { animation: stepSlideIn 0.22s ease-out both; }
+        @keyframes stepSlideIn {
+            from { opacity: 0; transform: translateX(16px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+    </style>
 </head>
 <body class="antialiased bg-white text-gray-900">
     
@@ -206,6 +215,9 @@
     </script>
 
     @stack('scripts')
+
+    <!-- Cropper.js JS (used on team registration page) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 
     @include('livewire.webclubs.layouts.footer')
     

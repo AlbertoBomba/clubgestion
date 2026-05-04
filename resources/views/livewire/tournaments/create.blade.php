@@ -93,10 +93,54 @@
                 </div>
             </div>
 
-            {{-- STEP 3: Scoring system --}}
+            {{-- STEP 3: Player restrictions --}}
             <div class="bg-white-pure border border-silver rounded-2xl shadow-sm p-6">
                 <div class="flex items-center gap-3 mb-1">
                     <span class="flex items-center justify-center w-7 h-7 rounded-full bg-primary/15 text-primary text-xs font-bold shrink-0">3</span>
+                    <h2 class="text-base font-bold text-black-deep">Restricciones de jugadores</h2>
+                </div>
+                <p class="text-sm text-titanium mb-5 ml-10">Configura los límites y requisitos para los jugadores que participan en este torneo.</p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 ml-10">
+                    <div>
+                        <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Máx. jugadores por equipo <span class="text-titanium/50 normal-case font-normal">(opcional)</span></label>
+                        <input wire:model="max_players_per_team" type="number" min="1" max="100" placeholder="Sin límite"
+                               class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white-pure text-black-deep placeholder-titanium"/>
+                        @error('max_players_per_team') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        <p class="text-xs text-titanium/70 mt-1">Número máximo de jugadores que puede inscribir cada equipo en el torneo.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Edad mínima <span class="text-titanium/50 normal-case font-normal">(opcional)</span></label>
+                        <input wire:model="min_age" type="number" min="1" max="100" placeholder="Sin restricción"
+                               class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white-pure text-black-deep placeholder-titanium"/>
+                        @error('min_age') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        <p class="text-xs text-titanium/70 mt-1">Los jugadores deben tener esta edad mínima para poder inscribirse.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Fecha límite inscripción jugadores <span class="text-titanium/50 normal-case font-normal">(opcional)</span></label>
+                        <input wire:model="player_registration_deadline" type="date"
+                               class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white-pure text-black-deep"/>
+                        @error('player_registration_deadline') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        <p class="text-xs text-titanium/70 mt-1">Fecha límite hasta la que se pueden añadir jugadores a los equipos inscritos.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Tipo de equipos participantes <span class="text-titanium/50 normal-case font-normal">(opcional)</span></label>
+                        <select wire:model="team_type"
+                                class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white-pure text-black-deep">
+                            <option value="">Sin restricción</option>
+                            <option value="school_teams">Equipos de Escuelas Deportivas</option>
+                            <option value="open">Torneo Abierto</option>
+                        </select>
+                        @error('team_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        <p class="text-xs text-titanium/70 mt-1">Define si el torneo es exclusivo para escuelas o abierto a cualquier equipo.</p>
+                    </div>
+                </div>
+            </div>
+
+            {{-- STEP 4: Scoring system --}}
+            <div class="bg-white-pure border border-silver rounded-2xl shadow-sm p-6">
+                <div class="flex items-center gap-3 mb-1">
+                    <span class="flex items-center justify-center w-7 h-7 rounded-full bg-primary/15 text-primary text-xs font-bold shrink-0">4</span>
                     <h2 class="text-base font-bold text-black-deep">Sistema de puntuación</h2>
                 </div>
                 <p class="text-sm text-titanium mb-5 ml-10">Define cuántos puntos recibe cada equipo por resultado. Los valores por defecto son los del fútbol estándar (3-1-0).</p>
@@ -173,15 +217,14 @@
                         <p class="text-xs text-titanium/70 mt-1">Dejando vacío no hay límite de participantes.</p>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Temporada</label>
-                        <select wire:model="season_id"
-                                class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white-pure text-black-deep">
-                            <option value="">Sin temporada</option>
-                            @foreach ($seasons as $season)
-                                <option value="{{ $season->id }}">{{ $season->name }}</option>
-                            @endforeach
-                        </select>
-                        <p class="text-xs text-titanium/70 mt-1">Asocia el torneo a una temporada para organizarlo mejor.</p>
+                        <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Precio de inscripción <span class="text-titanium/50 normal-case font-normal">(opcional)</span></label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-titanium text-sm font-semibold">€</span>
+                            <input wire:model="registration_fee" type="number" min="0" step="0.01" placeholder="0.00"
+                                   class="w-full pl-7 pr-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white-pure text-black-deep placeholder-titanium"/>
+                        </div>
+                        @error('registration_fee') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        <p class="text-xs text-titanium/70 mt-1">Coste de inscripción por equipo. Dejar en blanco si es gratuito.</p>
                     </div>
                 </div>
             </div>

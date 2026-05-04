@@ -7,6 +7,9 @@ use App\Models\Season;
 use App\Models\Team;
 use App\Models\Player;
 use App\Models\Sponsor;
+use App\Models\Tournament;
+use App\Models\WebHomeSlide;
+use App\Models\WebHomeConfig;
 use Livewire\Component;
 use Carbon\Carbon;
 
@@ -22,6 +25,9 @@ class Home extends Component
     public $primaryColor;
     public $secondaryColor;
     public $sponsors;
+    public $heroSlides;
+    public $homeConfig;
+    public $tournaments;
     
     // Filtros
     public $searchTeam = '';
@@ -82,6 +88,23 @@ class Home extends Component
         } else {
             $this->sponsors = collect();
         }
+
+        // Cargar slides del hero desde la base de datos
+        $this->heroSlides = WebHomeSlide::where('sports_school_id', $this->school->id)
+            ->where('active', true)
+            ->orderBy('order')
+            ->get();
+
+        // Cargar configuración de portada
+        $this->homeConfig = WebHomeConfig::where('sports_school_id', $this->school->id)->first();
+
+        // Cargar torneos públicos
+        $this->tournaments = Tournament::where('sports_school_id', $this->school->id)
+            ->where('visibility', 'public')
+            ->whereNotIn('status', ['cancelled'])
+            ->orderByRaw("FIELD(status, 'registration_open', 'in_progress', 'completed', 'draft')")
+            ->orderBy('start_date', 'asc')
+            ->get();
         
         // Cargar partidos y resultados
         $this->loadMatches();
