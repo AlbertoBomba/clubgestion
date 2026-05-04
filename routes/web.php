@@ -27,6 +27,8 @@ use App\Models\TrainingSession;
 use App\Livewire\TrainingSessions\Index as TrainingSessionsIndex;
 use App\Livewire\TrainingSessions\Create as TrainingSessionsCreate;
 use App\Livewire\TrainingSessions\Edit as TrainingSessionsEdit;
+use App\Livewire\Tournaments\TeamPlayers as TournamentTeamPlayers;
+use App\Livewire\Tournaments\TeamPlayerForm as TournamentTeamPlayerForm;
 
 // Public routes
 Route::get('/convocatoria/{token}', PublicConvocatoria::class)->name('public.convocatoria');
@@ -336,6 +338,15 @@ Route::middleware([
         Route::get('/tournaments/{tournament}', function (App\Models\Tournament $tournament) {
             return view('tournaments.show', compact('tournament'));
         })->name('tournaments.show');
+
+        Route::get('/tournaments/{tournament}/teams/{tournamentTeam}/players/create', TournamentTeamPlayerForm::class)
+            ->name('tournament.team.player.create');
+
+        Route::get('/tournaments/{tournament}/teams/{tournamentTeam}/players/{player}/edit', TournamentTeamPlayerForm::class)
+            ->name('tournament.team.player.edit');
+
+        Route::get('/tournaments/{tournament}/teams/{tournamentTeam}/players', TournamentTeamPlayers::class)
+            ->name('tournament.team.players');
 
         // Gestión de Patrocinadores
         Route::get('/sponsors', function () {

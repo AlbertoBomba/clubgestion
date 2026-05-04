@@ -2,7 +2,7 @@
     <main class="min-h-screen bg-gray-50">
 
         {{-- Page header --}}
-        <section class="bg-white border-b border-gray-100 pt-8 pb-6">
+        <section class="bg-white border-b border-gray-100 pt-8 pb-2">
             <div class="max-w-2xl mx-auto px-4 sm:px-6">
                 <a href="{{ route('webclubs.tournament.detail', $tournament) }}"
                    class="inline-flex items-center gap-2 text-black/30 hover:text-black/60 text-sm font-semibold uppercase tracking-wider transition mb-5">
@@ -11,15 +11,16 @@
                     </svg>
                     {{ $tournament->name }}
                 </a>
-                <h1 class="text-2xl sm:text-3xl font-black text-gray-900">Inscribir equipo</h1>
-                <p class="text-sm text-gray-400 mt-1">Completa los datos para inscribir tu equipo en <strong class="text-gray-600">{{ $tournament->name }}</strong></p>
             </div>
         </section>
 
         {{-- Wizard card --}}
-        <div class="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+        <div class="max-w-2xl mx-auto px-4 sm:px-6 py-4">
             <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-
+                <div class="px-6 py-2">
+                    <h1 class="text-2xl sm:text-3xl font-black text-gray-900">Inscribir equipo</h1>
+                    {{-- <p class="text-sm text-gray-400 mt-1">en <strong class="text-gray-600">{{ $tournament->name }}</strong></p> --}}
+                </div>
                 {{-- Step indicator --}}
                 <div class="flex items-center justify-center gap-0 px-6 pt-6 pb-2">
                     @foreach([['Equipo',1],['Contacto',2],['Acceso',3],['Resumen',4]] as [$label,$n])
@@ -48,95 +49,93 @@
                     @if($step === 1)
                     <div class="step-anim space-y-5">
 
-                        @if($tournament->team_type === 'open')
-                            <div class="flex items-start gap-2.5 p-3.5 bg-blue-50 rounded-2xl border border-blue-100">
-                                <svg class="w-4 h-4 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                <p class="text-xs text-blue-700 font-medium leading-relaxed">Torneo abierto — el email y contraseña que configures te permitirán acceder al área de gestión de tu equipo para añadir jugadores.</p>
-                            </div>
-                        @endif
+                        {{-- Desktop: logo izquierda + nombre derecha en la misma fila. Móvil: apilados --}}
+                        <div class="flex flex-col gap-5 md:flex-row md:items-start md:gap-6">
 
-                        {{-- Team name --}}
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Nombre del equipo *</label>
-                            <input wire:model="reg_name" type="text" placeholder="Nombre de tu equipo"
-                                   class="w-full px-4 py-3 text-sm border border-gray-200 rounded-2xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
-                            @error('reg_name') <p class="text-red-500 text-xs mt-1 font-medium">{{ $message }}</p> @enderror
-                        </div>
+                            {{-- Logo uploader — columna izquierda en desktop --}}
+                            <div class="order-2 md:order-1 md:w-44 md:shrink-0">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                                    Escudo / Logo <span class="normal-case font-normal text-gray-400">(opcional)</span>
+                                </label>
 
-                        {{-- Logo uploader (NO Alpine / no x-data — plain JS only) --}}
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                                Escudo / Logo <span class="normal-case font-normal text-gray-400">(opcional, cuadrado)</span>
-                            </label>
+                                {{-- Hidden Livewire upload input — NEVER inside wire:ignore --}}
+                                <input type="file" id="logo-livewire-input" wire:model.live="reg_logo"
+                                       accept="image/*" class="hidden">
 
-                            {{-- Hidden Livewire upload input — NEVER inside wire:ignore --}}
-                            <input type="file" id="logo-livewire-input" wire:model.live="reg_logo"
-                                   accept="image/*" class="hidden">
+                                {{-- Trigger inputs — no wire: attributes --}}
+                                <input type="file" id="logo-file-input" accept="image/*" class="hidden"
+                                       onchange="handleLogoFileSelect(event)">
+                                <input type="file" id="logo-camera-input" accept="image/*" capture="environment" class="hidden"
+                                       onchange="handleLogoFileSelect(event)">
 
-                            {{-- Trigger inputs — no wire: attributes --}}
-                            <input type="file" id="logo-file-input" accept="image/*" class="hidden"
-                                   onchange="handleLogoFileSelect(event)">
-                            <input type="file" id="logo-camera-input" accept="image/*" capture="environment" class="hidden"
-                                   onchange="handleLogoFileSelect(event)">
+                                {{-- Hidden clear-logo button (clicked by JS to call Livewire) --}}
+                                <button id="clear-logo-wire-btn" type="button" wire:click="clearRegLogo" class="hidden"></button>
 
-                            {{-- Hidden clear-logo button (clicked by JS to call Livewire) --}}
-                            <button id="clear-logo-wire-btn" type="button" wire:click="clearRegLogo" class="hidden"></button>
-
-                            @if($reg_logo)
-                                {{-- Server preview (after upload) --}}
-                                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-200">
-                                    <img src="{{ $reg_logo->temporaryUrl() }}" class="w-14 h-14 object-cover rounded-xl border border-gray-200" alt="Escudo">
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-xs font-bold text-gray-700">Escudo listo</p>
-                                        <p class="text-[10px] text-gray-400 mt-0.5">Se guardará al finalizar la inscripción</p>
-                                    </div>
-                                    <button type="button" onclick="clearLogoPreview()"
-                                            class="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                    </button>
-                                </div>
-                            @else
-                                {{-- Drop zone --}}
-                                <div id="logo-dropzone"
-                                     onclick="document.getElementById('logo-file-input').click()"
-                                     class="border-2 border-dashed border-gray-200 rounded-2xl p-5 text-center hover:border-primary/40 hover:bg-gray-50/50 transition-colors cursor-pointer">
-                                    <div class="text-3xl mb-2 opacity-30">🛡️</div>
-                                    <p class="text-xs font-bold text-gray-500">Toca para subir un escudo</p>
-                                    <p class="text-[10px] text-gray-300 mt-0.5">PNG, JPG · Máx 2 MB</p>
-                                </div>
-
-                                {{-- JS-managed preview while Livewire uploads --}}
-                                <div id="logo-preview-container" class="hidden items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-200">
-                                    <img id="logo-preview-img" class="w-14 h-14 object-cover rounded-xl border border-gray-200" alt="Vista previa">
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-xs font-bold text-gray-700">Escudo recortado</p>
-                                        <div wire:loading wire:target="reg_logo" class="flex items-center gap-1 mt-0.5">
-                                            <svg class="animate-spin w-3 h-3 text-primary" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                                            <span class="text-[10px] text-gray-400">Subiendo...</span>
+                                @if($reg_logo)
+                                    {{-- Server preview (after upload) --}}
+                                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-200 md:flex-col md:items-center md:text-center md:py-4">
+                                        <img src="{{ $reg_logo->temporaryUrl() }}" class="w-14 h-14 object-cover rounded-xl border border-gray-200 md:w-20 md:h-20" alt="Escudo">
+                                        <div class="flex-1 min-w-0 md:flex-none">
+                                            <p class="text-xs font-bold text-gray-700">Escudo listo</p>
+                                            <p class="text-[10px] text-gray-400 mt-0.5">Se guardará al finalizar</p>
                                         </div>
+                                        <button type="button" onclick="clearLogoPreview()"
+                                                class="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        </button>
                                     </div>
-                                    <button type="button" onclick="clearLogoPreview()"
-                                            class="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                    </button>
-                                </div>
+                                @else
+                                    {{-- Drop zone --}}
+                                    <div id="logo-dropzone"
+                                         onclick="document.getElementById('logo-file-input').click()"
+                                         class="border-2 border-dashed border-gray-200 rounded-2xl p-5 text-center hover:border-primary/40 hover:bg-gray-50/50 transition-colors cursor-pointer md:flex md:flex-col md:items-center md:justify-center md:min-h-[140px]">
+                                        <div class="text-3xl mb-2 opacity-30">🛡️</div>
+                                        <p class="text-xs font-bold text-gray-500">Toca para subir</p>
+                                        <p class="text-[10px] text-gray-300 mt-0.5">PNG, JPG · Máx 2 MB</p>
+                                    </div>
 
-                                {{-- Gallery / Camera buttons --}}
-                                <div id="logo-action-buttons" class="flex gap-2 mt-3">
-                                    <button type="button" onclick="document.getElementById('logo-file-input').click()"
-                                            class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-gray-200 bg-white text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                        Galería
-                                    </button>
-                                    <button type="button" onclick="document.getElementById('logo-camera-input').click()"
-                                            class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-gray-200 bg-white text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                        Cámara
-                                    </button>
-                                </div>
-                            @endif
+                                    {{-- JS-managed preview while Livewire uploads --}}
+                                    <div id="logo-preview-container" class="hidden items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-200">
+                                        <img id="logo-preview-img" class="w-14 h-14 object-cover rounded-xl border border-gray-200" alt="Vista previa">
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-xs font-bold text-gray-700">Escudo recortado</p>
+                                            <div wire:loading wire:target="reg_logo" class="flex items-center gap-1 mt-0.5">
+                                                <svg class="animate-spin w-3 h-3 text-primary" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                                <span class="text-[10px] text-gray-400">Subiendo...</span>
+                                            </div>
+                                        </div>
+                                        <button type="button" onclick="clearLogoPreview()"
+                                                class="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        </button>
+                                    </div>
 
-                            @error('reg_logo') <p class="text-red-500 text-xs mt-2 font-medium">{{ $message }}</p> @enderror
+                                    {{-- Gallery / Camera buttons --}}
+                                    <div id="logo-action-buttons" class="flex gap-2 mt-3">
+                                        <button type="button" onclick="document.getElementById('logo-file-input').click()"
+                                                class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-gray-200 bg-white text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                            Galería
+                                        </button>
+                                        <button type="button" onclick="document.getElementById('logo-camera-input').click()"
+                                                class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-gray-200 bg-white text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                            Cámara
+                                        </button>
+                                    </div>
+                                @endif
+
+                                @error('reg_logo') <p class="text-red-500 text-xs mt-2 font-medium">{{ $message }}</p> @enderror
+                            </div>
+
+                            {{-- Nombre del equipo — columna derecha en desktop, primera en móvil --}}
+                            <div class="order-1 md:order-2 flex-1">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Nombre del equipo *</label>
+                                <input wire:model="reg_name" type="text" placeholder="Nombre de tu equipo"
+                                       class="w-full px-4 py-3 text-sm border border-gray-200 rounded-2xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
+                                @error('reg_name') <p class="text-red-500 text-xs mt-1 font-medium">{{ $message }}</p> @enderror
+                            </div>
+
                         </div>
 
                     </div>
@@ -169,6 +168,12 @@
                     {{-- STEP 3: Access credentials --}}
                     @if($step === 3)
                     <div class="step-anim space-y-4">
+                        @if($tournament->team_type === 'open')
+                            <div class="flex items-start gap-2.5 p-3.5 bg-blue-50 rounded-2xl border border-blue-100">
+                                <svg class="w-4 h-4 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <p class="text-xs text-blue-700 font-medium leading-relaxed">Torneo abierto — el email y contrase&ntilde;a que configures te permitir&aacute;n acceder al &aacute;rea de gesti&oacute;n de tu equipo para a&ntilde;adir jugadores.</p>
+                            </div>
+                        @endif
                         <div class="flex items-start gap-2.5 p-3.5 {{ $tournament->team_type === 'open' ? 'bg-amber-50 border-amber-100' : 'bg-gray-50 border-gray-100' }} rounded-2xl border">
                             <svg class="w-4 h-4 {{ $tournament->team_type === 'open' ? 'text-amber-500' : 'text-gray-400' }} mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
                             @if($tournament->team_type === 'open')
