@@ -1,6 +1,6 @@
 <div>
     <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-4 px-3 sm:px-4 lg:px-6">
-        <div class="max-w-5xl mx-auto">
+        <div class="max-w-7xl mx-auto">
 
             {{-- HEADER --}}
             <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden mb-5">
@@ -14,111 +14,203 @@
                             <span class="text-gray-800">{{ $tournamentTeam->displayName() }}</span>
                         </nav>
                         <h1 class="text-xl font-bold text-gray-900">Jugadores</h1>
-                        <p class="text-sm text-gray-400 mt-0.5">{{ $players->count() }} jugador{{ $players->count() !== 1 ? 'es' : '' }}</p>
                     </div>
-                    <a href="{{ route('tournament.team.player.create', [$tournament, $tournamentTeam]) }}"
-                       class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-white rounded-xl shadow transition-opacity hover:opacity-90 bg-primary shrink-0">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                        Nuevo jugador
-                    </a>
                 </div>
             </div>
 
             @if (session('message'))
-                <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700 font-medium">
-                    {{ session('message') }}
+                <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)"
+                     class="mb-5 p-4 bg-neon-green/10 border-l-4 border-neon-green rounded-lg">
+                    <p class="text-sm text-neon-green font-medium">{{ session('message') }}</p>
                 </div>
             @endif
 
-            {{-- Toolbar --}}
-            <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-4 mb-5 flex flex-col sm:flex-row gap-3">
-                <div class="flex-1 relative">
-                    <svg class="w-4 h-4 text-gray-300 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    <input wire:model.live.debounce.300ms="search" type="text" placeholder="Buscar por nombre o DNI..."
-                           class="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
-                </div>
-                <select wire:model.live="statusFilter"
-                        class="px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all">
-                    <option value="">Todos los estados</option>
-                    @foreach ($statuses as $key => $label)
-                        <option value="{{ $key }}">{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
+            {{-- Main card --}}
+            <div class="bg-white-pure rounded-2xl shadow-xl border border-primary/10 overflow-hidden">
 
-            {{-- Players table --}}
-            @if ($players->isEmpty())
-                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-12 text-center">
-                    <svg class="w-12 h-12 text-gray-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    <p class="text-sm font-semibold text-gray-400">No hay jugadores</p>
-                    <p class="text-xs text-gray-300 mt-1">Añade el primer jugador con el botón de arriba.</p>
+                {{-- Sticky top bar --}}
+                <div class="sticky top-16 z-10 bg-white-pure flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                    <h2 class="font-bold text-xl text-titanium leading-tight">
+                        <span>{{ $players->count() }}</span>
+                        <span class="text-titanium"> {{ $players->count() === 1 ? 'jugador encontrado' : 'jugadores encontrados' }}</span>
+                    </h2>
+                    <div class="flex gap-3">
+                        <button wire:click="exportExcel"
+                                class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-300 hover:-translate-y-0.5 bg-green-600 hover:bg-green-700">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            Descargar Excel
+                        </button>
+                        <a href="{{ route('tournament.team.player.create', [$tournament, $tournamentTeam]) }}"
+                           class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 hover:-translate-y-0.5 bg-primary hover:bg-primary/90">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Nuevo jugador
+                        </a>
+                    </div>
                 </div>
-            @else
-                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+
+                {{-- Filters --}}
+                <div class="p-5 border-b border-gray-100">
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+                        <div class="relative">
+                            <svg class="w-4 h-4 text-gray-300 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            <input wire:model.live.debounce.300ms="search" type="text" placeholder="Buscar jugador..."
+                                   class="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all">
+                        </div>
+                        <div class="relative">
+                            <svg class="w-4 h-4 text-gray-300 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0M9 12h.01M15 12h.01M9 15h6"/></svg>
+                            <input wire:model.live.debounce.300ms="dniFilter" type="text" placeholder="Buscar por DNI..."
+                                   class="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all">
+                        </div>
+                        <div>
+                            <select wire:model.live="statusFilter"
+                                    class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all">
+                                <option value="">Todos los estados</option>
+                                @foreach ($statuses as $key => $label)
+                                    <option value="{{ $key }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <select wire:model.live="positionFilter"
+                                    class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all">
+                                <option value="">Todas las posiciones</option>
+                                @foreach ($positions as $pos)
+                                    <option value="{{ $pos }}">{{ $pos }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <select wire:model.live="docsFilter"
+                                    class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all">
+                                <option value="">Filtrar por documentos</option>
+                                <option value="complete">Documentación completa</option>
+                                <option value="missing_photo">Sin foto selfie</option>
+                                <option value="missing_doc_front">Sin DNI cara A</option>
+                                <option value="missing_doc_back">Sin DNI cara B</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Table --}}
+                @if ($players->isEmpty())
+                    <div class="p-12 text-center">
+                        <svg class="w-14 h-14 text-gray-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        <p class="text-sm font-semibold text-gray-400">No hay jugadores</p>
+                        <p class="text-xs text-gray-300 mt-1">Añade el primer jugador con el botón de arriba.</p>
+                    </div>
+                @else
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="border-b border-gray-100">
-                                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Jugador</th>
-                                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider hidden sm:table-cell">Dorsal</th>
-                                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider hidden md:table-cell">DNI / Tipo</th>
-                                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Estado</th>
-                                    <th class="px-4 py-3 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">Acciones</th>
+                        <table class="min-w-full divide-y divide-silver/30">
+                            <thead class="bg-gradient-to-r from-gray-50 to-primary/5 sticky top-0 z-10">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Jugador</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider hidden sm:table-cell">Dorsal</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider hidden md:table-cell">Edad</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider hidden md:table-cell">DNI / Tipo</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider hidden lg:table-cell">Documentos</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Estado</th>
+                                    <th class="px-6 py-4 text-right text-xs font-semibold text-primary uppercase tracking-wider"></th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-50">
+                            <tbody class="bg-white-pure divide-y divide-silver/30">
                                 @foreach ($players as $player)
-                                    <tr class="hover:bg-gray-50 transition-colors">
-                                        <td class="px-4 py-3">
+                                    <tr class="hover:bg-primary/5 transition-colors" id="player-{{ $player->id }}">
+                                        {{-- Jugador --}}
+                                        <td class="px-6 py-4">
                                             <div class="flex items-center gap-3">
                                                 @if ($player->photo)
                                                     <img src="{{ Storage::url($player->photo) }}"
-                                                         class="w-9 h-9 rounded-lg object-cover border border-gray-200 shrink-0" alt="">
+                                                         class="w-11 h-11 rounded-full object-cover border-2 border-primary/20 shrink-0" alt="">
                                                 @else
-                                                    <div class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                                                        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                                    <div class="w-11 h-11 rounded-full bg-gradient-to-br from-primary to-night-blue flex items-center justify-center shrink-0">
+                                                        <span class="text-white font-bold text-sm">{{ substr($player->name, 0, 1) }}{{ substr($player->surname ?? '', 0, 1) }}</span>
                                                     </div>
                                                 @endif
                                                 <div>
-                                                    <p class="font-semibold text-gray-800">{{ $player->fullName() }}</p>
-                                                    @if ($player->birthdate)
-                                                        <p class="text-xs text-gray-400">{{ $player->birthdate->format('d/m/Y') }}</p>
+                                                    <p class="text-sm font-semibold text-black-deep">{{ $player->fullName() }}</p>
+                                                    @if ($player->position)
+                                                        <p class="text-xs text-gray-400">{{ $player->position }}</p>
                                                     @endif
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-4 py-3 hidden sm:table-cell">
-                                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 text-xs font-bold text-gray-600">
+                                        {{-- Dorsal --}}
+                                        <td class="px-6 py-4 hidden sm:table-cell">
+                                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-xs font-bold text-primary">
                                                 {{ $player->dorsal ?? '-' }}
                                             </span>
                                         </td>
-                                        <td class="px-4 py-3 hidden md:table-cell">
-                                            <div>
-                                                <p class="text-gray-700">{{ $player->dni ?: '-' }}</p>
-                                                @if ($player->doc_type)
-                                                    <p class="text-xs text-gray-400">{{ $docTypes[$player->doc_type] ?? $player->doc_type }}</p>
-                                                @endif
+                                        {{-- Edad --}}
+                                        <td class="px-6 py-4 hidden md:table-cell">
+                                            @if ($player->birthdate)
+                                                <div class="text-sm font-medium text-gray-700">{{ $player->birthdate->age }} años</div>
+                                                <div class="text-xs text-gray-400">{{ $player->birthdate->format('d/m/Y') }}</div>
+                                            @else
+                                                <span class="text-gray-400 text-sm">-</span>
+                                            @endif
+                                        </td>
+                                        {{-- DNI --}}
+                                        <td class="px-6 py-4 hidden md:table-cell">
+                                            <div class="text-sm text-gray-700">{{ $player->dni ?: '-' }}</div>
+                                            @if ($player->doc_type)
+                                                <div class="text-xs text-gray-400">{{ $docTypes[$player->doc_type] ?? $player->doc_type }}</div>
+                                            @endif
+                                        </td>
+                                        {{-- Documentos --}}
+                                        <td class="px-6 py-4 hidden lg:table-cell">
+                                            <div class="flex items-center gap-2">
+                                                {{-- Foto selfie --}}
+                                                <span title="{{ $player->photo ? 'Foto selfie subida' : 'Foto selfie pendiente' }}"
+                                                      class="w-7 h-7 rounded-lg flex items-center justify-center border
+                                                          {{ $player->photo ? 'bg-emerald-50 border-emerald-100 text-emerald-500' : 'bg-gray-50 border-gray-100 text-gray-300' }}">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                                </span>
+                                                {{-- DNI cara A --}}
+                                                <span title="{{ $player->doc_front ? 'DNI cara A subida' : 'DNI cara A pendiente' }}"
+                                                      class="w-7 h-7 rounded-lg flex items-center justify-center border relative
+                                                          {{ $player->doc_front ? 'bg-emerald-50 border-emerald-100 text-emerald-500' : 'bg-gray-50 border-gray-100 text-gray-300' }}">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0M9 12h.01M15 12h.01M9 15h6"/></svg>
+                                                    <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full text-[8px] font-black flex items-center justify-center leading-none
+                                                        {{ $player->doc_front ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-400' }}">A</span>
+                                                </span>
+                                                {{-- DNI cara B --}}
+                                                <span title="{{ $player->doc_back ? 'DNI cara B subida' : 'DNI cara B pendiente' }}"
+                                                      class="w-7 h-7 rounded-lg flex items-center justify-center border relative
+                                                          {{ $player->doc_back ? 'bg-emerald-50 border-emerald-100 text-emerald-500' : 'bg-gray-50 border-gray-100 text-gray-300' }}">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0M9 12h.01M15 12h.01M9 15h6"/></svg>
+                                                    <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full text-[8px] font-black flex items-center justify-center leading-none
+                                                        {{ $player->doc_back ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-400' }}">B</span>
+                                                </span>
                                             </div>
                                         </td>
-                                        <td class="px-4 py-3">
+                                        {{-- Estado --}}
+                                        <td class="px-6 py-4">
                                             <select wire:change="setStatus({{ $player->id }}, $event.target.value)"
-                                                    class="text-xs font-semibold rounded-lg px-2 py-1 border-0 ring-1 focus:outline-none focus:ring-2 cursor-pointer
-                                                        {{ $player->status === 'approved' ? 'bg-green-50 text-green-700 ring-green-200' :
-                                                          ($player->status === 'rejected'  ? 'bg-red-50 text-red-700 ring-red-200' :
-                                                                                             'bg-amber-50 text-amber-700 ring-amber-200') }}">
+                                                    class="text-xs font-semibold rounded-full px-3 py-1.5 border-0 ring-1 focus:outline-none focus:ring-2 cursor-pointer
+                                                        {{ $player->status === 'approved' ? 'bg-neon-green/10 text-neon-green ring-neon-green/20' :
+                                                          ($player->status === 'rejected'  ? 'bg-red-100 text-red-600 ring-red-200' :
+                                                                                             'bg-amber-50 text-amber-600 ring-amber-200') }}">
                                                 @foreach ($statuses as $key => $label)
                                                     <option value="{{ $key }}" {{ $player->status === $key ? 'selected' : '' }}>{{ $label }}</option>
                                                 @endforeach
                                             </select>
                                         </td>
-                                        <td class="px-4 py-3 text-right">
+                                        {{-- Acciones --}}
+                                        <td class="px-6 py-4 text-right">
                                             <div class="flex items-center justify-end gap-1">
                                                 <a href="{{ route('tournament.team.player.edit', [$tournament, $tournamentTeam, $player]) }}"
-                                                   class="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
+                                                   class="p-2 rounded-xl text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors"
+                                                   title="Editar jugador">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                                 </a>
                                                 <button wire:click="confirmDelete({{ $player->id }})"
-                                                        class="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                                                        class="p-2 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                                                        title="Eliminar jugador">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                                 </button>
                                             </div>
@@ -128,8 +220,9 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
-            @endif
+                @endif
+
+            </div>{{-- /main card --}}
 
         </div>
     </div>

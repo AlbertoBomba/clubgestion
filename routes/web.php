@@ -15,6 +15,7 @@ use App\Livewire\WebClubs\TournamentDetail as WebClubsTournamentDetail;
 use App\Livewire\WebClubs\TeamLogin as WebClubsTeamLogin;
 use App\Livewire\WebClubs\TeamDashboard as WebClubsTeamDashboard;
 use App\Livewire\WebClubs\TeamRegister as WebClubsTeamRegister;
+use App\Livewire\WebClubs\TeamPlayerRegister as WebClubsTeamPlayerRegister;
 use App\Models\SportsSchool;
 use App\Models\User;
 use App\Models\Category;
@@ -53,6 +54,7 @@ Route::get('/torneos/{tournament}', WebClubsTournamentDetail::class)->name('webc
 Route::get('/torneos/{tournament}/equipo/login', WebClubsTeamLogin::class)->name('webclubs.team.login');
 Route::get('/torneos/{tournament}/equipo', WebClubsTeamDashboard::class)->name('webclubs.team.dashboard');
 Route::get('/torneos/{tournament}/inscripcion', WebClubsTeamRegister::class)->name('webclubs.team.register');
+Route::get('/torneos/{tournament}/jugador/{token}', WebClubsTeamPlayerRegister::class)->name('webclubs.player.register');
 
 // Legal Pages
 Route::get('/privacy', function () {
@@ -347,6 +349,12 @@ Route::middleware([
 
         Route::get('/tournaments/{tournament}/teams/{tournamentTeam}/players', TournamentTeamPlayers::class)
             ->name('tournament.team.players');
+
+        Route::get('/tournaments/{tournament}/matches/{match}/events', App\Livewire\Tournaments\MatchEvents::class)
+            ->name('tournament.match.events');
+
+        Route::get('/tournaments/{tournament}/stats', App\Livewire\Tournaments\TournamentStats::class)
+            ->name('tournament.stats');
 
         // Gestión de Patrocinadores
         Route::get('/sponsors', function () {

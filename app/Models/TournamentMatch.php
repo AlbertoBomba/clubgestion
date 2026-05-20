@@ -119,6 +119,21 @@ class TournamentMatch extends Model
         return $this->belongsTo(User::class, 'created_user');
     }
 
+    public function goals()
+    {
+        return $this->hasMany(TournamentMatchGoal::class);
+    }
+
+    public function cards()
+    {
+        return $this->hasMany(TournamentMatchCard::class);
+    }
+
+    public function sanctions()
+    {
+        return $this->hasMany(TournamentSanction::class);
+    }
+
     public function updatedBy()
     {
         return $this->belongsTo(User::class, 'updated_user');

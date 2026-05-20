@@ -1,8 +1,65 @@
-<div>
-    <main class="min-h-screen bg-white">
+<div x-data="{ tab: 'partidos', showBases: false }">
+    <main class="min-h-screen bg-white pb-20 md:pb-0">
 
-        {{-- Hero header --}}
-        <section class="pt-8 pb-8 md:pt-16 md:pb-12 border-b border-gray-100">
+        @php
+            $statusColors = [
+                'registration_open' => ['bg' => 'bg-blue-100',   'text' => 'text-blue-700',   'label' => 'Inscripciones abiertas'],
+                'in_progress'       => ['bg' => 'bg-green-100',  'text' => 'text-green-700',  'label' => 'En curso'],
+                'completed'         => ['bg' => 'bg-purple-100', 'text' => 'text-purple-700', 'label' => 'Finalizado'],
+                'draft'             => ['bg' => 'bg-gray-100',   'text' => 'text-gray-500',   'label' => 'Proximamente'],
+            ];
+            $sc = $statusColors[$tournament->status] ?? $statusColors['draft'];
+        @endphp
+
+        {{-- ══════════════════════ MOBILE HEADER (hidden md+) ══════════════════════ --}}
+        <header class="md:hidden sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
+            <div class="flex items-center gap-3 px-4 pt-4 pb-3">
+                {{-- Back --}}
+                <a href="{{ route('webclubs.tournaments') }}" class="shrink-0 p-1.5 -ml-1 rounded-xl text-gray-400 active:bg-gray-100">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                </a>
+                {{-- Logo --}}
+                @if($tournament->logo)
+                    <div class="w-14 h-14 shrink-0 rounded-xl overflow-hidden border border-gray-200"
+                         style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary))">
+                        <img src="{{ Storage::url($tournament->logo) }}" alt="{{ $tournament->name }}" class="w-full h-full object-cover">
+                    </div>
+                @else
+                    <div class="w-14 h-14 shrink-0 rounded-xl flex items-center justify-center text-2xl border border-gray-200"
+                         style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary))"></div>
+                @endif
+                {{-- Title & status --}}
+                <div class="flex-1 min-w-0">
+                    <span class="{{ $sc['bg'] }} {{ $sc['text'] }} text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full inline-block">{{ $sc['label'] }}</span>
+                    <h1 class="text-sm font-black text-black leading-tight truncate mt-0.5">{{ $tournament->name }}</h1>
+                </div>
+            </div>
+            {{-- Action strip --}}
+            <div class="flex gap-2 px-4 pb-3">
+                <a href="{{ route('webclubs.team.login', $tournament) }}"
+                   class="flex-1 flex items-center gap-3 px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 active:bg-gray-100">
+                    <svg class="w-4 h-4 shrink-0 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                    </svg>
+                    <span class="flex flex-col leading-tight">
+                        <span class="text-xs font-black text-gray-800">Acceso equipos</span>
+                        <span class="text-[10px] text-gray-400 font-medium">Inscríbete si aún no estás inscrito</span>
+                    </span>
+                </a>
+                <button @click="showBases = true"
+                        class="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-gray-700 font-bold text-xs border border-gray-200 bg-gray-50 active:bg-gray-100">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Bases
+                </button>
+            </div>
+        </header>
+
+        {{-- Hero header (desktop only) --}}
+        <section class="hidden md:block pt-8 pb-8 md:pt-16 md:pb-12 border-b border-gray-100">
             <div class="max-w-[1920px] mx-auto px-6 lg:px-12">
                 <a href="{{ route('webclubs.tournaments') }}"
                    class="inline-flex items-center gap-2 text-black/30 hover:text-black/60 text-sm font-semibold uppercase tracking-wider transition mb-6 md:mb-8">
@@ -120,9 +177,9 @@
                             @endif
                         </div>
 
-                        {{-- Registration CTA --}}
-                        @if($canRegister)
-                            <div class="mt-6">
+                        {{-- CTAs --}}
+                        <div class="mt-6 flex flex-wrap items-center gap-3">
+                            @if($canRegister)
                                 <a href="{{ route('webclubs.team.register', $tournament) }}"
                                    class="inline-flex items-center gap-2.5 px-6 py-3 rounded-2xl text-white font-bold text-sm shadow-lg hover:opacity-90 active:scale-95 transition-all duration-150"
                                    style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary))">
@@ -131,18 +188,25 @@
                                     </svg>
                                     Inscribir equipo
                                 </a>
-                            </div>
-                        @endif
+                            @endif
+                            <a href="{{ route('webclubs.team.login', $tournament) }}"
+                               class="inline-flex items-center gap-2.5 px-6 py-3 rounded-2xl text-gray-700 font-bold text-sm border border-gray-200 bg-white hover:bg-gray-50 active:scale-95 transition-all duration-150 shadow-sm">
+                                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                                </svg>
+                                Acceso equipos
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
         {{-- Tabs --}}
-        <div x-data="{ tab: 'partidos' }" class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12 py-6 md:py-10">
+        <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12 py-6 md:py-10">
 
-            {{-- Tab nav --}}
-            <div class="flex gap-1 bg-gray-100 rounded-2xl p-1.5 mb-6 md:mb-10 w-full md:w-fit">
+            {{-- Tab nav (desktop only — mobile uses fixed bottom nav) --}}
+            <div class="hidden md:flex gap-1 bg-gray-100 rounded-2xl p-1.5 mb-6 md:mb-10 w-full md:w-fit">
                 <button @click="tab = 'partidos'"
                         :class="tab === 'partidos' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-700'"
                         class="flex-1 md:flex-none flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-200">
@@ -418,9 +482,200 @@
             </div>
 
         </div>
+      
+
+        {{-- ══════════════════════ BASES BOTTOM SHEET (mobile) ══════════════════════ --}}
+        <div x-show="showBases" x-cloak
+             class="md:hidden fixed inset-0 z-50 flex flex-col justify-end"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0">
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="showBases = false"></div>
+            <div class="relative bg-white rounded-t-3xl shadow-2xl max-h-[88vh] flex flex-col"
+                 @click.stop>
+                {{-- Handle --}}
+                <div class="flex-shrink-0 pt-3 pb-4 px-5 border-b border-gray-100">
+                    <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-3"></div>
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-base font-black text-black">{{ $tournament->name }}</h2>
+                        <button @click="showBases = false" class="p-1.5 rounded-xl text-gray-400 hover:bg-gray-100 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                {{-- Scrollable body --}}
+                <div class="flex-1 overflow-y-auto px-5 py-5 space-y-4">
+                    @if($tournament->description)
+                        <div>
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Descripción</p>
+                            <p class="text-sm text-gray-700 leading-relaxed">{{ $tournament->description }}</p>
+                        </div>
+                    @endif
+                    <div class="space-y-3">
+                        @if($tournament->start_date)
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Fechas</p>
+                                    <p class="text-sm font-semibold text-gray-800">{{ $tournament->start_date->locale('es')->translatedFormat('d M Y') }}@if($tournament->end_date) &mdash; {{ $tournament->end_date->locale('es')->translatedFormat('d M Y') }}@endif</p>
+                                </div>
+                            </div>
+                        @endif
+                        @if($tournament->location)
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Sede</p>
+                                    <p class="text-sm font-semibold text-gray-800">{{ $tournament->location }}</p>
+                                </div>
+                            </div>
+                        @endif
+                        @if($tournament->registration_deadline && $tournament->status === 'registration_open')
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-amber-500 uppercase tracking-widest">Plazo inscripción</p>
+                                    <p class="text-sm font-semibold text-gray-800">{{ $tournament->registration_deadline->locale('es')->translatedFormat('d M Y') }}</p>
+                                </div>
+                            </div>
+                        @endif
+                        @if($tournament->registration_fee)
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Inscripción</p>
+                                    <p class="text-sm font-semibold text-gray-800">{{ number_format($tournament->registration_fee, 2, ',', '.') }} &euro;</p>
+                                </div>
+                            </div>
+                        @endif
+                        @if($tournament->max_players_per_team)
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Jugadores por equipo</p>
+                                    <p class="text-sm font-semibold text-gray-800">Máx. {{ $tournament->max_players_per_team }}</p>
+                                </div>
+                            </div>
+                        @endif
+                        @if($tournament->min_age)
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Edad mínima</p>
+                                    <p class="text-sm font-semibold text-gray-800">{{ $tournament->min_age }} años</p>
+                                </div>
+                            </div>
+                        @endif
+                        @if($tournament->player_registration_deadline)
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Alta jugadores hasta</p>
+                                    <p class="text-sm font-semibold text-gray-800">{{ $tournament->player_registration_deadline->locale('es')->translatedFormat('d M Y') }}</p>
+                                </div>
+                            </div>
+                        @endif
+                        @if($tournament->team_type)
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/></svg>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Modalidad</p>
+                                    <p class="text-sm font-semibold text-gray-800">{{ $tournament->team_type === 'school_teams' ? 'Escuelas Deportivas' : 'Torneo Abierto' }}</p>
+                                </div>
+                            </div>
+                        @endif
+                        @if($teams->count())
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Equipos inscritos</p>
+                                    <p class="text-sm font-semibold text-gray-800">{{ $teams->count() }}</p>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+                {{-- Sticky CTA at bottom of sheet --}}
+                @if($canRegister)
+                    <div class="flex-shrink-0 bg-white border-t border-gray-100 px-5 py-4">
+                        <a href="{{ route('webclubs.team.register', $tournament) }}"
+                           class="flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-white font-bold text-sm shadow active:opacity-80"
+                           style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary))">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                            </svg>
+                            Inscribir equipo
+                        </a>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- ══════════════════════ MOBILE FIXED BOTTOM NAV ══════════════════════ --}}
+        <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-t border-gray-100"
+             style="padding-bottom: env(safe-area-inset-bottom, 0px)">
+            <div class="flex">
+                <button @click="tab = 'partidos'"
+                        :class="tab === 'partidos' ? 'text-gray-900' : 'text-gray-400'"
+                        class="flex-1 flex flex-col items-center justify-center py-3 gap-0.5 transition-colors relative">
+                    <span :class="tab === 'partidos' ? 'opacity-100' : 'opacity-0'"
+                          class="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full transition-opacity"
+                          style="background: var(--color-primary)"></span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="text-[10px] font-bold uppercase tracking-wide">Partidos</span>
+                </button>
+                <button @click="tab = 'clasificacion'"
+                        :class="tab === 'clasificacion' ? 'text-gray-900' : 'text-gray-400'"
+                        class="flex-1 flex flex-col items-center justify-center py-3 gap-0.5 transition-colors relative">
+                    <span :class="tab === 'clasificacion' ? 'opacity-100' : 'opacity-0'"
+                          class="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full transition-opacity"
+                          style="background: var(--color-primary)"></span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    <span class="text-[10px] font-bold uppercase tracking-wide">Clasificación</span>
+                </button>
+                <button @click="tab = 'equipos'"
+                        :class="tab === 'equipos' ? 'text-gray-900' : 'text-gray-400'"
+                        class="flex-1 flex flex-col items-center justify-center py-3 gap-0.5 transition-colors relative">
+                    <span :class="tab === 'equipos' ? 'opacity-100' : 'opacity-0'"
+                          class="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full transition-opacity"
+                          style="background: var(--color-primary)"></span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="text-[10px] font-bold uppercase tracking-wide">Equipos</span>
+                </button>
+            </div>
+        </nav>
+
         {{-- Patrocinadores --}}
         <x-webclubs.sponsors />
-
     </main>
 
 </div>

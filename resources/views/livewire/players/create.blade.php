@@ -18,7 +18,7 @@
                     </svg>
                     <span class="hidden sm:inline">Cancelar</span>
                 </a>
-                <button type="submit" form="player-form" wire:loading.attr="disabled" wire:target="save" class="inline-flex items-center px-3 py-2 sm:px-4 rounded-xl text-white font-semibold text-xs sm:text-sm shadow-lg hover:shadow-xl transition-all bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed whitespace-nowrap">
+                <button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save" class="inline-flex items-center px-3 py-2 sm:px-4 rounded-xl text-white font-semibold text-xs sm:text-sm shadow-lg hover:shadow-xl transition-all bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed whitespace-nowrap">
                     <svg wire:loading.remove wire:target="save" class="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
@@ -206,7 +206,7 @@
                                     </label>
                                 @empty
                                     <div class="col-span-full">
-                                        <p class="text-sm text-gray-500 text-center py-4">No hay secciones disponibles para las temporadas seleccionadas</p>
+                                        <p class="text-sm text-gray-500 text-center py-4">No hay secciones disponibles para la temporada actual</p>
                                     </div>
                                 @endforelse
                             </div>
@@ -372,39 +372,54 @@
             </div>
         </div>
 
-        <!-- Temporadas -->
+        <!-- Equipo -->
         <div class="mb-8 p-6 bg-white-pure rounded-2xl shadow-xl border border-primary/10">
             <h3 class="text-lg font-semibold text-titanium flex items-center border-b border-silver/30 pb-3 mb-4">
                 <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                 </svg>
-                Temporadas *
+                Equipo
             </h3>
-            <p class="text-sm text-gray-600 mb-4">Seleccione al menos una temporada para el jugador</p>
-            
-            @error('selectedSeasons') <span class="text-red-500 text-sm block mb-3">{{ $message }}</span> @enderror
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                @forelse($seasons as $season)
+            <p class="text-sm text-gray-600 mb-4">Seleccione el equipo al que pertenece el jugador (opcional)</p>
+
+            @error('selectedTeam') <span class="text-red-500 text-sm block mb-3">{{ $message }}</span> @enderror
+
+            @if($teams->isEmpty())
+                <p class="text-sm text-gray-500 text-center py-4">No hay equipos disponibles para la temporada actual</p>
+            @else
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Opción sin equipo -->
                     <label class="relative flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200
-                        {{ in_array($season->id, $selectedSeasons) ? 'border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-md' : 'border-silver bg-white hover:border-primary/30' }}">
-                        <input type="checkbox" wire:model.live="selectedSeasons" value="{{ $season->id }}"
-                            class="w-5 h-5 text-primary border-silver rounded focus:ring-primary">
-                        <span class="ml-3 text-sm font-semibold {{ in_array($season->id, $selectedSeasons) ? 'text-primary' : 'text-titanium' }}">
-                            {{ $season->season }}
+                        {{ $selectedTeam === null ? 'border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-md' : 'border-silver bg-white hover:border-primary/30' }}">
+                        <input type="radio" wire:model.live="selectedTeam" value=""
+                            class="w-5 h-5 text-primary border-silver focus:ring-primary">
+                        <span class="ml-3 text-sm font-semibold {{ $selectedTeam === null ? 'text-primary' : 'text-titanium' }}">
+                            Sin equipo
                         </span>
-                        @if(in_array($season->id, $selectedSeasons))
-                            <svg class="w-4 h-4 ml-auto text-primary" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            </svg>
-                        @endif
                     </label>
-                @empty
-                    <div class="col-span-full">
-                        <p class="text-sm text-gray-500 text-center py-4">No hay temporadas disponibles</p>
-                    </div>
-                @endforelse
-            </div>
+
+                    @foreach($teams as $team)
+                        <label class="relative flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200
+                            {{ $selectedTeam == $team->id ? 'border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-md' : 'border-silver bg-white hover:border-primary/30' }}">
+                            <input type="radio" wire:model.live="selectedTeam" value="{{ $team->id }}"
+                                class="w-5 h-5 text-primary border-silver focus:ring-primary">
+                            <div class="ml-3 flex-1">
+                                <span class="text-sm font-semibold {{ $selectedTeam == $team->id ? 'text-primary' : 'text-titanium' }}">
+                                    {{ $team->team }}
+                                </span>
+                                @if($team->category)
+                                    <p class="text-xs text-gray-500">{{ $team->category->category }}</p>
+                                @endif
+                            </div>
+                            @if($selectedTeam == $team->id)
+                                <svg class="w-4 h-4 ml-auto text-primary" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            @endif
+                        </label>
+                    @endforeach
+                </div>
+            @endif
         </div>
     </form>
     </div>

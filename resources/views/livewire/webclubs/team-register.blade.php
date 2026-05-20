@@ -1,45 +1,80 @@
 <div>
-    <main class="min-h-screen bg-gray-50">
+    <style>
+        .team-register-outer {
+            background: linear-gradient(160deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+            min-height: calc(100vh - 4rem);
+            display: flex;
+            flex-direction: column;
+        }
+        @media (max-width: 639px) {
+            .team-register-sheet-wrap {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+            }
+        }
+    </style>
 
-        {{-- Page header --}}
-        <section class="bg-white border-b border-gray-100 pt-8 pb-2">
-            <div class="max-w-2xl mx-auto px-4 sm:px-6">
-                <a href="{{ route('webclubs.tournament.detail', $tournament) }}"
-                   class="inline-flex items-center gap-2 text-black/30 hover:text-black/60 text-sm font-semibold uppercase tracking-wider transition mb-5">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                    </svg>
-                    {{ $tournament->name }}
-                </a>
-            </div>
-        </section>
+    <div class="team-register-outer">
 
-        {{-- Wizard card --}}
-        <div class="max-w-2xl mx-auto px-4 sm:px-6 py-4">
-            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="px-6 py-2">
-                    <h1 class="text-2xl sm:text-3xl font-black text-gray-900">Inscribir equipo</h1>
-                    {{-- <p class="text-sm text-gray-400 mt-1">en <strong class="text-gray-600">{{ $tournament->name }}</strong></p> --}}
+        {{-- MOBILE HERO (hidden on sm+) --}}
+        <div class="sm:hidden px-5 pt-5 pb-2">
+            <a href="{{ route('webclubs.team.login', $tournament) }}"
+               class="inline-flex items-center gap-1.5 text-white/80 text-sm font-semibold py-1.5 pr-3 active:opacity-60 transition-opacity">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Volver
+            </a>
+            <div class="mt-5 mb-2">
                 </div>
-                {{-- Step indicator --}}
-                <div class="flex items-center justify-center gap-0 px-6 pt-6 pb-2">
-                    @foreach([['Equipo',1],['Contacto',2],['Acceso',3],['Resumen',4]] as [$label,$n])
-                        @if($n > 1)
-                            <div class="h-px flex-1 max-w-[48px] transition-colors duration-300 {{ $step > $n-1 ? 'bg-primary' : 'bg-gray-200' }}"></div>
-                        @endif
-                        <div class="flex flex-col items-center gap-1">
-                            <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-black transition-all duration-300
-                                {{ $step > $n ? 'text-white' : ($step === $n ? 'ring-2 ring-offset-1 ring-primary text-primary bg-white' : 'bg-gray-100 text-gray-400') }}"
-                                 style="{{ $step > $n ? 'background: linear-gradient(135deg, var(--color-primary), var(--color-secondary))' : '' }}">
-                                @if($step > $n)
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                                @else
-                                    {{ $n }}
-                                @endif
+        </div>
+
+        {{-- SHEET WRAPPER --}}
+        <div class="team-register-sheet-wrap sm:flex sm:min-h-[calc(100vh-6rem)] sm:items-center sm:justify-center sm:px-4 sm:py-12">
+            <div class="w-full sm:max-w-2xl">
+
+                <div class="bg-white  sm:rounded-3xl
+                            shadow-[0_-6px_32px_rgba(0,0,0,0.10)] sm:shadow-sm sm:border sm:border-gray-100
+                            overflow-hidden">
+                            <div class="px-6 pt-6 pb-4 sm:p-7 sm:pb-5">
+                                <p class="text-black/60 text-[10px] font-bold uppercase tracking-widest mb-1">{{ $tournament->name }}</p>
+                                <h1 class="text-black text-[1.6rem] font-black leading-tight">Inscribir equipo</h1>
                             </div>
-                            <span class="text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 {{ $step === $n ? 'text-primary' : 'text-gray-300' }}">{{ $label }}</span>
-                        </div>
-                    @endforeach
+
+                    {{-- Drag handle (mobile only) --}}
+                    <div class="sm:hidden w-10 h-1 bg-gray-200 rounded-full mx-auto mt-5 mb-1"></div>
+
+                    {{-- Desktop page header --}}
+                    <div class="hidden sm:block px-6 pt-6 pb-0">
+                        <a href="{{ route('webclubs.team.login', $tournament) }}"
+                           class="inline-flex items-center gap-2 text-black/30 hover:text-black/60 text-sm font-semibold uppercase tracking-wider transition mb-4">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                            {{ $tournament->name }} / Inscribir equipo
+                        </a>
+                    </div>
+                
+                {{-- Step indicator --}}
+                <div class="px-6 pt-5 pb-4 border-b border-gray-100">
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Inscripción de equipo</p>
+                        <p class="text-xs font-bold" style="color: var(--color-primary)">Paso {{ $step }} de 3</p>
+                    </div>
+                    <div class="flex gap-1.5">
+                        @foreach([1,2,3] as $s)
+                            <div class="h-1.5 flex-1 rounded-full transition-all duration-300 {{ $s <= $step ? '' : 'bg-gray-100' }}"
+                                 style="{{ $s <= $step ? 'background: linear-gradient(90deg, var(--color-primary), var(--color-secondary))' : '' }}">
+                            </div>
+                        @endforeach
+                    </div>
+                    <div class="flex justify-between mt-2">
+                        <span class="text-[10px] font-bold {{ $step >= 1 ? 'text-gray-700' : 'text-gray-300' }}">Equipo</span>
+                        <span class="text-[10px] font-bold {{ $step >= 2 ? 'text-gray-700' : 'text-gray-300' }}">Contacto</span>
+                        <span class="text-[10px] font-bold {{ $step >= 3 ? 'text-gray-700' : 'text-gray-300' }}">Acceso</span>
+                    </div>
                 </div>
 
                 {{-- Step content --}}
@@ -132,7 +167,7 @@
                             <div class="order-1 md:order-2 flex-1">
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Nombre del equipo *</label>
                                 <input wire:model="reg_name" type="text" placeholder="Nombre de tu equipo"
-                                       class="w-full px-4 py-3 text-sm border border-gray-200 rounded-2xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
+                                       class="w-full px-4 py-4 sm:py-3 text-base sm:text-sm border border-gray-200 rounded-2xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
                                 @error('reg_name') <p class="text-red-500 text-xs mt-1 font-medium">{{ $message }}</p> @enderror
                             </div>
 
@@ -152,14 +187,14 @@
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Nombre del responsable</label>
                             <input wire:model="reg_contact_name" type="text" placeholder="Tu nombre completo"
-                                   class="w-full px-4 py-3 text-sm border border-gray-200 rounded-2xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
+                                   class="w-full px-4 py-4 sm:py-3 text-base sm:text-sm border border-gray-200 rounded-2xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
                             @error('reg_contact_name') <p class="text-red-500 text-xs mt-1 font-medium">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Teléfono de contacto</label>
                             <input wire:model="reg_contact_phone" type="tel" placeholder="600 000 000"
-                                   class="w-full px-4 py-3 text-sm border border-gray-200 rounded-2xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
+                                   class="w-full px-4 py-4 sm:py-3 text-base sm:text-sm border border-gray-200 rounded-2xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
                             @error('reg_contact_phone') <p class="text-red-500 text-xs mt-1 font-medium">{{ $message }}</p> @enderror
                         </div>
                     </div>
@@ -189,7 +224,7 @@
                             </label>
                             <input wire:model="reg_email" type="email" autocomplete="off"
                                    placeholder="equipo@ejemplo.com"
-                                   class="w-full px-4 py-3 text-sm border border-gray-200 rounded-2xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
+                                   class="w-full px-4 py-4 sm:py-3 text-base sm:text-sm border border-gray-200 rounded-2xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
                             @error('reg_email') <p class="text-red-500 text-xs mt-1 font-medium">{{ $message }}</p> @enderror
                         </div>
 
@@ -199,7 +234,7 @@
                             </label>
                             <input wire:model="reg_password" type="password" autocomplete="new-password"
                                    placeholder="Mínimo 6 caracteres"
-                                   class="w-full px-4 py-3 text-sm border border-gray-200 rounded-2xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
+                                   class="w-full px-4 py-4 sm:py-3 text-base sm:text-sm border border-gray-200 rounded-2xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
                             @error('reg_password') <p class="text-red-500 text-xs mt-1 font-medium">{{ $message }}</p> @enderror
                         </div>
 
@@ -209,7 +244,7 @@
                             </label>
                             <input wire:model="reg_confirm_password" type="password" autocomplete="new-password"
                                    placeholder="Repite la contraseña"
-                                   class="w-full px-4 py-3 text-sm border border-gray-200 rounded-2xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
+                                   class="w-full px-4 py-4 sm:py-3 text-base sm:text-sm border border-gray-200 rounded-2xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
                             @error('reg_confirm_password') <p class="text-red-500 text-xs mt-1 font-medium">{{ $message }}</p> @enderror
                         </div>
                     </div>
@@ -271,23 +306,23 @@
                 </div>
 
                 {{-- Navigation buttons --}}
-                <div class="flex gap-3 px-6 pb-6 pt-2">
+                <div class="flex gap-3 px-6 pb-8 sm:pb-6 pt-2">
                     @if($step > 1)
                         <button wire:click="prevStep"
-                                class="flex items-center justify-center gap-1.5 px-5 py-3 rounded-2xl border border-gray-200 text-sm font-bold text-gray-500 hover:bg-gray-50 transition-colors">
+                                class="flex items-center justify-center gap-1.5 px-5 py-4 sm:py-3 rounded-2xl border border-gray-200 text-base sm:text-sm font-bold text-gray-500 hover:bg-gray-50 transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                             Atrás
                         </button>
                     @else
-                        <a href="{{ route('webclubs.tournament.detail', $tournament) }}"
-                           class="px-5 py-3 rounded-2xl border border-gray-200 text-sm font-bold text-gray-500 hover:bg-gray-50 transition-colors">
+                        <a href="{{ route('webclubs.team.login', $tournament) }}"
+                           class="px-5 py-4 sm:py-3 rounded-2xl border border-gray-200 text-base sm:text-sm font-bold text-gray-500 hover:bg-gray-50 transition-colors">
                             Cancelar
                         </a>
                     @endif
 
                     @if($step < 4)
                         <button wire:click="nextStep"
-                                class="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl text-white text-sm font-bold shadow hover:opacity-90 active:scale-[0.98] transition-all duration-150"
+                                class="flex-1 flex items-center justify-center gap-1.5 py-4 sm:py-3 rounded-2xl text-white text-base sm:text-sm font-bold shadow hover:opacity-90 active:scale-[0.98] transition-all duration-150"
                                 style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary))">
                             <span wire:loading.remove wire:target="nextStep">
                                 Siguiente
@@ -300,11 +335,11 @@
                         </button>
                     @else
                         <button wire:click="registerTeam"
-                                class="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl text-white text-sm font-bold shadow hover:opacity-90 active:scale-[0.98] transition-all duration-150"
+                                class="flex-1 flex items-center justify-center gap-1.5 py-4 sm:py-3 rounded-2xl text-white text-base sm:text-sm font-bold shadow hover:opacity-90 active:scale-[0.98] transition-all duration-150"
                                 style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary))">
                             <span wire:loading.remove wire:target="registerTeam">
                                 <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                Confirmar inscripción
+                                Confirmar
                             </span>
                             <span wire:loading wire:target="registerTeam" class="inline-flex items-center gap-2">
                                 <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
@@ -316,8 +351,9 @@
 
             </div>
         </div>
+    </div>
 
-    </main>
+    </div>
 
     {{-- Cropper overlay — wire:ignore prevents Livewire morphing from touching it --}}
     <div id="cropper-overlay" class="fixed inset-0 z-[200] bg-black/85 flex items-center justify-center p-4" style="display:none" wire:ignore>

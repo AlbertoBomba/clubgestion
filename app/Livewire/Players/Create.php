@@ -32,7 +32,6 @@ class Create extends Component
     public $email = '';
     
     // Datos deportivos
-    public $selectedSeasons = [];
     public $dorsal = '';
     public $position = '';
     public $sizes = '';
@@ -54,6 +53,9 @@ class Create extends Component
     // Modal de tallas
     public $showSizesModal = false;
     
+    // Equipo
+    public $selectedTeam = null;
+
     // Otros
     public $observations = '';
     public $player_photo;
@@ -100,8 +102,6 @@ class Create extends Component
     }
 
     protected $rules = [
-        'selectedSeasons' => 'required|array|min:1',
-        'selectedSeasons.*' => 'exists:seasons,id',
         'name' => 'required|string|max:255',
         'surname' => 'required|string|max:255',
         'dni' => 'nullable|string|max:20',
@@ -125,6 +125,7 @@ class Create extends Component
         'player_photo' => 'nullable|image|max:2048',
         'selectedSections' => 'nullable|array',
         'selectedSections.*' => 'exists:sections,id',
+        'selectedTeam' => 'nullable|exists:teams,id',
         'discountType' => 'nullable|in:ninguno,cantidad,porcentaje',
         'descEnt' => 'nullable|numeric|min:0',
         'descPerc' => 'nullable|numeric|min:0|max:100',
@@ -175,9 +176,13 @@ class Create extends Component
 
         $player = Player::create($data);
 
-        // Sync seasons
-        if (!empty($this->selectedSeasons)) {
-            $player->seasons()->attach($this->selectedSeasons, [
+        // Asignar temporada activa
+        $activeSeason = \App\Models\Season::where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->first();
+        if ($activeSeason) {
+            $player->seasons()->attach($activeSeason->id, [
                 'created_user' => auth()->id(),
                 'updated_user' => auth()->id(),
                 'created_at' => now(),
@@ -195,6 +200,16 @@ class Create extends Component
             ]);
         }
 
+        // Asignar equipo
+        if ($this->selectedTeam) {
+            $player->teams()->attach($this->selectedTeam, [
+                'created_user' => auth()->id(),
+                'updated_user' => auth()->id(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
         session()->flash('message', 'Jugador creado correctamente.');
         
         return redirect()->route('players.index');
@@ -202,18 +217,28 @@ class Create extends Component
 
     public function render()
     {
-        // Obtener temporadas de la escuela
-        $seasons = \App\Models\Season::where('sports_school_id', auth()->user()->sports_school_id)
-            ->orderBy('from_year', 'desc')
-            ->get();
+        // Temporada activa de la escuela
+        $activeSeason = \App\Models\Season::where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->first();
 
-        // Obtener las secciones de todas las temporadas seleccionadas
+        // Secciones de la temporada activa
         $sections = collect();
-        if (!empty($this->selectedSeasons)) {
-            $sections = \App\Models\Section::whereHas('seasons', function($query) {
-                $query->whereIn('seasons.id', $this->selectedSeasons)
+        if ($activeSeason) {
+            $sections = \App\Models\Section::whereHas('seasons', function($query) use ($activeSeason) {
+                $query->where('seasons.id', $activeSeason->id)
                       ->where('active', true);
             })->distinct()->orderBy('name')->get();
+        }
+
+        // Equipos de la temporada activa
+        $teams = collect();
+        if ($activeSeason) {
+            $teams = \App\Models\Team::where('season_id', $activeSeason->id)
+                ->with('category')
+                ->orderBy('team')
+                ->get();
         }
         
         // Obtener tallas asociadas a la escuela
@@ -222,8 +247,9 @@ class Create extends Component
         })->with('brand')->orderBy('brand_id')->orderBy('order')->orderBy('size')->get();
             
         return view('livewire.players.create', [
-            'seasons' => $seasons,
+            'activeSeason' => $activeSeason,
             'sections' => $sections,
+            'teams' => $teams,
             'availableSizes' => $availableSizes
         ]);
     }

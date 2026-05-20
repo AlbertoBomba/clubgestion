@@ -7,7 +7,9 @@ use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentCategory;
 use App\Models\TournamentMatch;
+use App\Models\TournamentMatchGoal;
 use App\Models\TournamentPhase;
+use App\Models\TournamentPlayer;
 use App\Models\TournamentStanding;
 use App\Models\TournamentTeam;
 use Illuminate\Support\Facades\Hash;
@@ -34,13 +36,6 @@ class Show extends Component
     // Setup panel toggle
     // ------------------------------------------------------------------
     public bool $showSetup = false;
-
-    // ------------------------------------------------------------------
-    // Inline score editing
-    // ------------------------------------------------------------------
-    public ?int  $editingScoreId   = null;
-    public string $quick_home_score = '';
-    public string $quick_away_score = '';
 
     // ------------------------------------------------------------------
     // Category modal
@@ -92,12 +87,19 @@ class Show extends Component
     public string $match_scheduled   = '';
     public string $match_location    = '';
     public string $match_status      = 'scheduled';
-    public string $home_score        = '';
-    public string $away_score        = '';
-    public string $home_score_extra  = '';
-    public string $away_score_extra  = '';
-    public string $penalty_winner    = '';
     public string $match_notes       = '';
+
+    // ------------------------------------------------------------------
+    // Goals modal (enter results via goal scorers)
+    // ------------------------------------------------------------------
+    public bool   $showGoalsModal    = false;
+    public ?int   $goalsMatchId      = null;
+    public string $gm_team_id        = '';
+    public string $gm_player_id      = '';
+    public string $gm_goal_type      = 'normal';
+    public string $gm_minute         = '';
+    public bool   $gm_showForm       = false;
+    public ?int   $gm_deletingGoalId = null;
 
     // ------------------------------------------------------------------
     // Generate matches modal
@@ -119,6 +121,13 @@ class Show extends Component
     public bool  $confirmingMatchDelete    = false;
     public ?int  $matchToDelete            = null;
 
+    // ------------------------------------------------------------------
+    // Postpone match modal
+    // ------------------------------------------------------------------
+    public bool   $showPostponeModal   = false;
+    public ?int   $postponeMatchId     = null;
+    public string $postponeDate        = '';
+
     public function mount(Tournament $tournament): void
     {
         abort_unless($tournament->sports_school_id === auth()->user()->sports_school_id, 403);
@@ -138,7 +147,6 @@ class Show extends Component
     public function selectCategory(int $id): void
     {
         $this->activeCategoryId = $id;
-        $this->editingScoreId   = null;
     }
 
     // ==================================================================
@@ -400,6 +408,22 @@ class Show extends Component
 
     public function confirmDeleteTeam(int $id): void
     {
+        $team = TournamentTeam::withCount('players')->findOrFail($id);
+
+        if ($team->players_count > 0) {
+            session()->flash('error', 'No se puede eliminar el equipo: tiene ' . $team->players_count . ' jugador(es) inscrito(s). Elimínalos primero.');
+            return;
+        }
+
+        $hasCompleted = TournamentMatch::where(function ($q) use ($id) {
+            $q->where('home_team_id', $id)->orWhere('away_team_id', $id);
+        })->where('status', 'completed')->exists();
+
+        if ($hasCompleted) {
+            session()->flash('error', 'No se puede eliminar el equipo: tiene partidos finalizados asociados.');
+            return;
+        }
+
         $this->teamToDelete         = $id;
         $this->confirmingTeamDelete = true;
     }
@@ -422,8 +446,7 @@ class Show extends Component
         $this->reset([
             'editingMatchId', 'match_phase_id', 'match_home_id', 'match_away_id',
             'match_round', 'match_number', 'match_scheduled', 'match_location',
-            'match_status', 'home_score', 'away_score', 'home_score_extra',
-            'away_score_extra', 'penalty_winner', 'match_notes',
+            'match_status', 'match_notes',
         ]);
         $this->match_status   = 'scheduled';
         $this->showMatchModal = true;
@@ -441,11 +464,6 @@ class Show extends Component
         $this->match_scheduled    = $m->scheduled_at?->format('Y-m-d\TH:i') ?? '';
         $this->match_location     = $m->location ?? '';
         $this->match_status       = $m->status;
-        $this->home_score         = $m->home_score !== null ? (string) $m->home_score : '';
-        $this->away_score         = $m->away_score !== null ? (string) $m->away_score : '';
-        $this->home_score_extra   = $m->home_score_extra !== null ? (string) $m->home_score_extra : '';
-        $this->away_score_extra   = $m->away_score_extra !== null ? (string) $m->away_score_extra : '';
-        $this->penalty_winner     = $m->penalty_winner ?? '';
         $this->match_notes        = $m->notes ?? '';
         $this->showMatchModal     = true;
     }
@@ -461,11 +479,6 @@ class Show extends Component
             'match_scheduled'  => 'nullable|date',
             'match_location'   => 'nullable|string|max:255',
             'match_status'     => 'required|in:scheduled,in_progress,completed,cancelled,postponed',
-            'home_score'       => 'nullable|integer|min:0',
-            'away_score'       => 'nullable|integer|min:0',
-            'home_score_extra' => 'nullable|integer|min:0',
-            'away_score_extra' => 'nullable|integer|min:0',
-            'penalty_winner'   => 'nullable|in:home,away',
         ]);
 
         $user = auth()->user();
@@ -480,11 +493,6 @@ class Show extends Component
             'scheduled_at'           => $this->match_scheduled ?: null,
             'location'               => $this->match_location ?: null,
             'status'                 => $this->match_status,
-            'home_score'             => $this->home_score !== '' ? (int) $this->home_score : null,
-            'away_score'             => $this->away_score !== '' ? (int) $this->away_score : null,
-            'home_score_extra'       => $this->home_score_extra !== '' ? (int) $this->home_score_extra : null,
-            'away_score_extra'       => $this->away_score_extra !== '' ? (int) $this->away_score_extra : null,
-            'penalty_winner'         => $this->penalty_winner ?: null,
             'notes'                  => $this->match_notes ?: null,
         ];
 
@@ -509,17 +517,59 @@ class Show extends Component
 
     public function confirmDeleteMatch(int $id): void
     {
+        $match = TournamentMatch::findOrFail($id);
+
+        if ($match->status === 'completed' && (($match->home_score ?? 0) + ($match->away_score ?? 0)) > 0) {
+            session()->flash('error', 'No se puede eliminar este partido: está finalizado y tiene goles registrados.');
+            return;
+        }
+
         $this->matchToDelete         = $id;
         $this->confirmingMatchDelete = true;
     }
 
     public function deleteMatch(): void
     {
-        TournamentMatch::findOrFail($this->matchToDelete)->delete();
+        $match = TournamentMatch::findOrFail($this->matchToDelete);
+
+        if ($match->status === 'completed' && (($match->home_score ?? 0) + ($match->away_score ?? 0)) > 0) {
+            session()->flash('error', 'No se puede eliminar este partido: está finalizado y tiene goles registrados.');
+            $this->confirmingMatchDelete = false;
+            $this->matchToDelete         = null;
+            return;
+        }
+
+        $match->delete();
         $this->confirmingMatchDelete = false;
         $this->matchToDelete         = null;
         $this->tournament->refresh();
         session()->flash('message', 'Partido eliminado correctamente.');
+    }
+
+    public function openPostponeModal(int $id): void
+    {
+        $match = TournamentMatch::findOrFail($id);
+        abort_unless(in_array($match->status, ['scheduled', 'postponed', 'in_progress']), 403);
+
+        $this->postponeMatchId   = $id;
+        $this->postponeDate      = $match->scheduled_at?->format('Y-m-d\\TH:i') ?? '';
+        $this->showPostponeModal = true;
+    }
+
+    public function postponeMatch(): void
+    {
+        $this->validate(['postponeDate' => 'nullable|date']);
+
+        TournamentMatch::findOrFail($this->postponeMatchId)->update([
+            'status'       => 'postponed',
+            'scheduled_at' => $this->postponeDate ?: null,
+        ]);
+
+        $this->showPostponeModal = false;
+        $this->postponeMatchId   = null;
+        $this->postponeDate      = '';
+        $this->tournament->refresh();
+        session()->flash('message', 'Partido aplazado correctamente.');
     }
 
     // ==================================================================
@@ -795,53 +845,111 @@ class Show extends Component
     }
 
     // ==================================================================
-    // Inline score editing
+    // Goals Modal — enter match results via goal scorers
     // ==================================================================
 
-    public function startEditScore(int $matchId): void
+    public function openGoalsModal(int $matchId): void
     {
         $match = TournamentMatch::findOrFail($matchId);
         abort_unless($match->tournament_id === $this->tournament->id, 403);
-        $this->editingScoreId   = $matchId;
-        $this->quick_home_score = $match->home_score !== null ? (string) $match->home_score : '';
-        $this->quick_away_score = $match->away_score !== null ? (string) $match->away_score : '';
+        $this->goalsMatchId      = $matchId;
+        $this->gm_showForm       = false;
+        $this->gm_deletingGoalId = null;
+        $this->gm_goal_type      = 'normal';
+        $this->reset(['gm_team_id', 'gm_player_id', 'gm_minute']);
+        $this->showGoalsModal    = true;
     }
 
-    public function cancelEditScore(): void
+    public function closeGoalsModal(): void
     {
-        $this->editingScoreId   = null;
-        $this->quick_home_score = '';
-        $this->quick_away_score = '';
+        $this->showGoalsModal    = false;
+        $this->goalsMatchId      = null;
+        $this->gm_showForm       = false;
+        $this->gm_deletingGoalId = null;
     }
 
-    public function saveQuickScore(): void
+    public function gmToggleForm(): void
+    {
+        $this->gm_showForm  = ! $this->gm_showForm;
+        $this->gm_goal_type = 'normal';
+        $this->reset(['gm_team_id', 'gm_player_id', 'gm_minute']);
+    }
+
+    public function gmAddGoal(): void
     {
         $this->validate([
-            'quick_home_score' => 'required|integer|min:0',
-            'quick_away_score' => 'required|integer|min:0',
+            'gm_team_id'   => 'required|exists:tournament_teams,id',
+            'gm_player_id' => 'required|exists:tournament_players,id',
+            'gm_goal_type' => 'required|in:normal,penalty,own_goal',
+            'gm_minute'    => 'nullable|integer|min:1|max:180',
         ]);
 
-        $match = TournamentMatch::findOrFail($this->editingScoreId);
-        abort_unless($match->tournament_id === $this->tournament->id, 403);
+        TournamentMatchGoal::create([
+            'tournament_match_id'  => $this->goalsMatchId,
+            'tournament_player_id' => (int) $this->gm_player_id,
+            'tournament_team_id'   => (int) $this->gm_team_id,
+            'goal_type'            => $this->gm_goal_type,
+            'minute'               => $this->gm_minute !== '' ? (int) $this->gm_minute : null,
+        ]);
+
+        $this->recalculateMatchScore($this->goalsMatchId);
+        $this->gm_goal_type = 'normal';
+        $this->reset(['gm_team_id', 'gm_player_id', 'gm_minute']);
+        $this->gm_showForm = false;
+        $this->tournament->refresh();
+    }
+
+    public function gmConfirmDeleteGoal(int $id): void
+    {
+        $this->gm_deletingGoalId = $id;
+    }
+
+    public function gmCancelDeleteGoal(): void
+    {
+        $this->gm_deletingGoalId = null;
+    }
+
+    public function gmDeleteGoal(): void
+    {
+        TournamentMatchGoal::where('id', $this->gm_deletingGoalId)
+            ->where('tournament_match_id', $this->goalsMatchId)
+            ->delete();
+
+        $this->gm_deletingGoalId = null;
+        $this->recalculateMatchScore($this->goalsMatchId);
+        $this->tournament->refresh();
+    }
+
+    private function recalculateMatchScore(int $matchId): void
+    {
+        $match = TournamentMatch::with('phase')->findOrFail($matchId);
+        $goals = TournamentMatchGoal::where('tournament_match_id', $matchId)->get();
+
+        $homeScore = $goals->filter(
+                fn($g) => $g->tournament_team_id === $match->home_team_id && $g->goal_type !== 'own_goal'
+            )->count()
+            + $goals->filter(
+                fn($g) => $g->tournament_team_id === $match->away_team_id && $g->goal_type === 'own_goal'
+            )->count();
+
+        $awayScore = $goals->filter(
+                fn($g) => $g->tournament_team_id === $match->away_team_id && $g->goal_type !== 'own_goal'
+            )->count()
+            + $goals->filter(
+                fn($g) => $g->tournament_team_id === $match->home_team_id && $g->goal_type === 'own_goal'
+            )->count();
 
         $match->update([
-            'home_score'   => (int) $this->quick_home_score,
-            'away_score'   => (int) $this->quick_away_score,
-            'status'       => 'completed',
-            'played_at'    => $match->played_at ?? now(),
+            'home_score'   => $homeScore,
+            'away_score'   => $awayScore,
+            'status'       => $goals->isNotEmpty() ? 'completed' : $match->status,
+            'played_at'    => ($goals->isNotEmpty() && ! $match->played_at) ? now() : $match->played_at,
             'updated_user' => auth()->id(),
         ]);
 
-        $this->editingScoreId   = null;
-        $this->quick_home_score = '';
-        $this->quick_away_score = '';
-
-        // Auto-recalculate standings for league/group phases
         if ($match->phase && in_array($match->phase->type, ['league', 'group'])) {
             $this->recalculateStandings($match->phase_id);
         }
-
-        $this->tournament->refresh();
     }
 
     // ==================================================================
@@ -896,6 +1004,9 @@ class Show extends Component
                 ->get()
             : collect();
 
+        // Detect if any phase is a league/group type (requires standings to always be visible)
+        $hasLeaguePhase = $phases->contains(fn ($p) => in_array($p->type, ['league', 'group']));
+
         // School teams — narrow to the active category's age group when possible
         $activeCategory = $categories->firstWhere('id', $this->activeCategoryId);
         $schoolTeams = Team::whereHas('season', function ($query) {
@@ -911,10 +1022,32 @@ class Show extends Component
             ->orderBy('category')
             ->get();
 
+        // Goals modal data
+        $goalsModalMatch = $this->goalsMatchId
+            ? TournamentMatch::with(['homeTeam.team', 'awayTeam.team'])->find($this->goalsMatchId)
+            : null;
+        $goalsForModal = $this->goalsMatchId
+            ? TournamentMatchGoal::where('tournament_match_id', $this->goalsMatchId)
+                ->with(['player', 'team'])
+                ->orderBy('minute')
+                ->get()
+            : collect();
+        $gmTeamPlayers = $this->gm_team_id
+            ? TournamentPlayer::where('tournament_team_id', $this->gm_team_id)
+                ->orderBy('surname')->orderBy('name')->get()
+            : collect();
+        $gmMatchTeams = $goalsModalMatch
+            ? TournamentTeam::whereIn('id', array_filter([
+                $goalsModalMatch->home_team_id,
+                $goalsModalMatch->away_team_id,
+              ]))->with('team')->get()
+            : collect();
+
         return view('livewire.tournaments.show', compact(
             'categories', 'activeCategory',
-            'phases', 'teams', 'matches', 'standings',
-            'schoolTeams', 'schoolCategories'
+            'phases', 'teams', 'matches', 'standings', 'hasLeaguePhase',
+            'schoolTeams', 'schoolCategories',
+            'goalsModalMatch', 'goalsForModal', 'gmTeamPlayers', 'gmMatchTeams'
         ));
     }
 }

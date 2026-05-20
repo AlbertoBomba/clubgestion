@@ -1,9 +1,8 @@
 <!-- Footer -->
-<footer class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white py-12 mt-16">
+{{-- <footer class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white py-12 mt-16">
     <div class="max-wy-900 text-white py-20 mt-32">
         <div class="max-w-7xl mx-auto px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-                <!-- Info de Contacto -->
                 <div class="md:col-span-2">
                     @if(tenantLogo())
                         <img src="{{ tenantLogo() }}" alt="{{ tenantName() }}" class="h-12 w-auto mb-6 brightness-0 invert">
@@ -19,7 +18,6 @@
                     @endif
                 </div>
                 
-                <!-- Enlaces Rápidos -->
                 <div>
                     <h3 class="text-xs font-bold uppercase tracking-wider mb-6">Enlaces</h3>
                     <ul class="space-y-3">
@@ -30,7 +28,6 @@
                     </ul>
                 </div>
                 
-                <!-- Redes Sociales -->
                 <div>
                     <h3 class="text-xs font-bold uppercase tracking-wider mb-6">Síguenos</h3>
                     <div class="flex space-x-4">
@@ -52,4 +49,4 @@
             </div>
         </div>
     </div>
-</footer>
+</footer> --}}

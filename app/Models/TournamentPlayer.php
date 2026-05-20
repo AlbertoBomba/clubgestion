@@ -19,6 +19,7 @@ class TournamentPlayer extends Model
         'phone',
         'email',
         'photo',
+        'signature',
         'doc_front',
         'doc_back',
         'status',
@@ -45,6 +46,11 @@ class TournamentPlayer extends Model
     public function photoUrl(): ?string
     {
         return $this->photo ? Storage::url($this->photo) : null;
+    }
+
+    public function signatureUrl(): ?string
+    {
+        return $this->signature ? Storage::url($this->signature) : null;
     }
 
     public function docFrontUrl(): ?string
@@ -88,5 +94,20 @@ class TournamentPlayer extends Model
     public function tournamentTeam()
     {
         return $this->belongsTo(TournamentTeam::class);
+    }
+
+    public function goals()
+    {
+        return $this->hasMany(TournamentMatchGoal::class);
+    }
+
+    public function cards()
+    {
+        return $this->hasMany(TournamentMatchCard::class);
+    }
+
+    public function sanctions()
+    {
+        return $this->hasMany(TournamentSanction::class);
     }
 }

@@ -24,6 +24,7 @@ class TournamentTeam extends Model
         'seed',
         'group_label',
         'notes',
+        'registration_token',
     ];
 
     protected $casts = [
@@ -33,6 +34,19 @@ class TournamentTeam extends Model
     ];
 
     protected $hidden = ['password'];
+
+    // Generate a permanent 12-char registration token (created once, never changes)
+    public function getOrCreateRegistrationToken(): string
+    {
+        if (!$this->registration_token) {
+            do {
+                $token = strtoupper(\Illuminate\Support\Str::random(12));
+            } while (self::where('registration_token', $token)->exists());
+
+            $this->update(['registration_token' => $token]);
+        }
+        return $this->registration_token;
+    }
 
     // ──────────────────────────────────────── Helpers
     public static function statuses(): array
@@ -87,5 +101,20 @@ class TournamentTeam extends Model
     public function players()
     {
         return $this->hasMany(TournamentPlayer::class);
+    }
+
+    public function goals()
+    {
+        return $this->hasMany(TournamentMatchGoal::class);
+    }
+
+    public function cards()
+    {
+        return $this->hasMany(TournamentMatchCard::class);
+    }
+
+    public function sanctions()
+    {
+        return $this->hasMany(TournamentSanction::class);
     }
 }

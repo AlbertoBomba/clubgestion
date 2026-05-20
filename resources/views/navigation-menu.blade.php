@@ -2,7 +2,7 @@
     <!-- Primary Navigation Menu -->
     <div class="w-full px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
-            <div class="flex">
+            <div class="flex w-full sm:w-auto justify-between sm:justify-start">
                 @if(auth()->user()->sportsSchool)
                     <!-- Botón Sidebar para Back2 (usuarios de escuela, incluso si están siendo suplantados) -->
                     <div class="flex items-center mr-4">
@@ -249,7 +249,8 @@
                 </div>
             </div>
 
-            <!-- Hamburger -->
+            <!-- Hamburger (solo Back1: master sin escuela) -->
+            @if(!auth()->user()->sportsSchool)
             <div class="-me-2 flex items-center sm:hidden">
                 <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-lg text-titanium hover:text-primary hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary transition duration-150 ease-in-out">
                     <svg class="size-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
@@ -258,6 +259,7 @@
                     </svg>
                 </button>
             </div>
+            @endif
         </div>
     </div>
 
@@ -620,6 +622,8 @@
 
     <!-- Sidebar para Back2 (usuarios de escuela, incluso si están siendo suplantados) -->
     @if(auth()->user()->sportsSchool)
+        <template x-teleport="body">
+        <div> {{-- wrapper único requerido por x-teleport --}}
         <!-- Overlay -->
         <div x-show="sidebarOpen" 
              x-transition:enter="transition-opacity ease-linear duration-300"
@@ -629,8 +633,7 @@
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0"
              @click="sidebarOpen = false"
-             class="fixed inset-0 bg-black-deep bg-opacity-50 z-40"
-             style="display: none;">
+             class="fixed inset-0 bg-black/60 z-[9998]">
         </div>
 
         <!-- Sidebar Panel -->
@@ -641,8 +644,8 @@
              x-transition:leave="transition ease-in-out duration-300 transform"
              x-transition:leave-start="translate-x-0"
              x-transition:leave-end="-translate-x-full"
-             class="fixed top-0 bottom-0 left-0 w-64 bg-white-pure shadow-2xl z-50 overflow-y-auto flex flex-col"
-             style="display: none; height: 100vh;">
+             class="fixed top-0 bottom-0 left-0 w-64 bg-white-pure shadow-2xl z-[9999] overflow-y-auto flex flex-col"
+             style="height: 100vh;">
             
             <!-- Sidebar Header -->
             <div class="p-6 bg-gradient-to-r from-primary to-night-blue flex-shrink-0">
@@ -718,15 +721,6 @@
                             Equipos
                         </a>
 
-                        <a href="{{ route('tournaments.index') }}" 
-                           @click="sidebarOpen = false"
-                           class="flex items-center px-4 py-2 text-sm text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('tournaments.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
-                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
-                            </svg>
-                            Torneos
-                        </a>
-
                         @if(auth()->user()->hasRole('school_admin'))
                         <a href="{{ route('training-fields.index') }}" 
                            @click="sidebarOpen = false"
@@ -757,6 +751,21 @@
                         </a>
                         @endif
                     </div>
+                </div>
+                @endif
+
+                @if(auth()->user()->hasAnyRole(['school_admin', 'coach']))
+                <!-- Menú: Torneos -->
+                <div class="space-y-1">
+                    <a href="{{ route('tournaments.index') }}" 
+                       @click="sidebarOpen = false"
+                       class="flex items-center px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('tournaments.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21h8m-4-4v4M5 3h14v7a7 7 0 01-14 0V3z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 6H3v1a2 2 0 002 2m14-3h2v1a2 2 0 01-2 2"/>
+                        </svg>
+                        <span>Torneos</span>
+                    </a>
                 </div>
                 @endif
 
@@ -1014,5 +1023,7 @@
                 @endif
             </nav>
         </div>
+        </div> {{-- cierre wrapper x-teleport --}}
+        </template>
     @endif
 </nav>

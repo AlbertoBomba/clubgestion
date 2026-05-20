@@ -41,7 +41,7 @@
     <input type="file" id="tp-doc-back-trigger"  accept="image/*" class="hidden" onchange="tpOpenCropper(event,'doc_back')">
     <input type="file" id="tp-extra-trigger"     accept="image/*" class="hidden" onchange="tpOpenCropper(event,'extra')">
 
-    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-4 px-3 sm:px-4 lg:px-6 max-w-3xl mx-auto">
+    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-4 px-3 sm:px-4 lg:px-6 w-[90%] mx-auto">
 
         {{-- HEADER --}}
         <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden mb-5">
@@ -64,10 +64,14 @@
 
         <div class="space-y-5">
 
+            {{-- Fila 1: Datos personales + Datos deportivos --}}
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
             {{-- Datos personales --}}
             <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
                 <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Datos personales</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {{-- Fila: Nombre + Apellidos --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-xs font-bold text-gray-600 mb-1">Nombre *</label>
                         <input wire:model="p_name" type="text" placeholder="Nombre"
@@ -80,11 +84,19 @@
                                class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
                         @error('p_surname') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
+                </div>
+                {{-- Fila: Fecha + Teléfono + Email --}}
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                     <div>
                         <label class="block text-xs font-bold text-gray-600 mb-1">Fecha de nacimiento</label>
                         <input wire:model="p_birthdate" type="date"
                                class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
                         @error('p_birthdate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        @if($playerAge !== null)
+                            <p class="text-xs mt-1 font-medium {{ $tournament->min_age && $playerAge < $tournament->min_age ? 'text-red-500' : 'text-gray-400' }}">
+                                Edad actual: {{ $playerAge }} años
+                            </p>
+                        @endif
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-600 mb-1">Teléfono</label>
@@ -92,11 +104,24 @@
                                class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
                         @error('p_phone') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
-                    <div class="sm:col-span-2">
+                    <div>
                         <label class="block text-xs font-bold text-gray-600 mb-1">Email</label>
                         <input wire:model="p_email" type="email" placeholder="jugador@ejemplo.com"
                                class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
                         @error('p_email') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+                {{-- Fila: Estado --}}
+                <div class="grid grid-cols-1 gap-4">
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Estado</label>
+                        <select wire:model="p_status"
+                                class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all">
+                            @foreach ($statuses as $key => $label)
+                                <option value="{{ $key }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        @error('p_status') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
             </div>
@@ -104,7 +129,7 @@
             {{-- Datos deportivos --}}
             <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
                 <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Datos deportivos</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-gray-600 mb-1">Posición</label>
                         <select wire:model="p_position"
@@ -122,27 +147,32 @@
                                class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
                         @error('p_dorsal') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Categoría</label>
-                        <input wire:model="p_categoria" type="text" placeholder="p.ej. Juvenil A, Sub-18..."
-                               class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
-                        @error('p_categoria') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-                    <div class="flex items-center pt-4">
-                        <label class="flex items-center gap-3 cursor-pointer select-none">
-                            <div class="relative">
+                    <div class="flex items-end pb-0.5">
+                        <label class="flex items-center gap-2 cursor-pointer select-none">
+                            <div class="relative shrink-0">
                                 <input wire:model="p_federado" type="checkbox" class="sr-only peer">
                                 <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                             </div>
-                            <span class="text-sm font-semibold text-gray-700">Jugador federado</span>
+                            <span class="text-sm font-semibold text-gray-700 leading-tight">Jugador federado</span>
                         </label>
                     </div>
                 </div>
+                <div class="mt-4">
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Observaciones</label>
+                    <textarea wire:model="p_notes" rows="3" placeholder="Notas sobre el jugador..."
+                              class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all resize-none"></textarea>
+                    @error('p_notes') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
             </div>
+
+            </div>{{-- /grid fila 1 --}}
+
+            {{-- Fila 2: Foto + Documento + Docs adicionales --}}
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
             {{-- Foto carnet --}}
             <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
-                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Foto carnet</h2>
+                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Foto selfie</h2>
                 @if ($existing_photo && !$clearPhoto && !$p_photo)
                     <div class="flex items-center gap-4">
                         <img src="{{ Storage::url($existing_photo) }}" class="w-20 h-20 object-cover rounded-xl border border-gray-200" alt="">
@@ -289,10 +319,21 @@
                     </div>
                     @endif
                 </div>
+
+                @if ($existing_doc_front || $existing_doc_back)
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <button wire:click="downloadDocPdf" wire:loading.attr="disabled"
+                                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors disabled:opacity-60 shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span wire:loading.remove wire:target="downloadDocPdf">Descargar {{ strtoupper($p_doc_type ?: 'doc') }} en PDF</span>
+                            <span wire:loading wire:target="downloadDocPdf">Generando PDF...</span>
+                        </button>
+                    </div>
+                @endif
             </div>
 
             {{-- Documentación adicional --}}
-            <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
+            <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 flex flex-col">
                 <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Documentación adicional</h2>
                 <p class="text-xs text-gray-400 mb-4">Ficha médica, ficha federativa u otros documentos.</p>
 
@@ -307,8 +348,14 @@
                                     <p class="text-xs font-semibold text-gray-700 truncate">{{ $doc['label'] }}</p>
                                 </div>
                                 <a href="{{ Storage::url($doc['path']) }}" target="_blank"
-                                   class="p-1.5 rounded-lg text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 transition-colors">
+                                   class="p-1.5 rounded-lg text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 transition-colors"
+                                   title="Ver">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                </a>
+                                <a href="{{ Storage::url($doc['path']) }}" download
+                                   class="p-1.5 rounded-lg text-gray-400 hover:text-green-600 hover:bg-green-50 transition-colors"
+                                   title="Descargar">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                 </a>
                                 <button wire:click="removeExistingDoc({{ $idx }})"
                                         class="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
@@ -366,28 +413,7 @@
                 </div>
             </div>
 
-            {{-- Estado y notas --}}
-            <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
-                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Estado y notas</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Estado</label>
-                        <select wire:model="p_status"
-                                class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all">
-                            @foreach ($statuses as $key => $label)
-                                <option value="{{ $key }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
-                        @error('p_status') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <label class="block text-xs font-bold text-gray-600 mb-1">Observaciones</label>
-                    <textarea wire:model="p_notes" rows="3" placeholder="Notas sobre el jugador..."
-                              class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all resize-none"></textarea>
-                    @error('p_notes') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-            </div>
+            </div>{{-- /grid fila 2 --}}
 
             {{-- Action buttons --}}
             <div class="flex items-center justify-end gap-3 pb-6">

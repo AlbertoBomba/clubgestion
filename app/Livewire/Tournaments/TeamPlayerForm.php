@@ -30,7 +30,6 @@ class TeamPlayerForm extends Component
     public string $p_position  = '';
     public string $p_dorsal    = '';
     public bool   $p_federado  = false;
-    public string $p_categoria = '';
 
     // Meta
     public string $p_status = 'pending';
@@ -69,7 +68,6 @@ class TeamPlayerForm extends Component
             'p_phone'     => 'nullable|string|max:20',
             'p_email'     => 'nullable|email|max:150',
             'p_federado'  => 'boolean',
-            'p_categoria' => 'nullable|string|max:100',
             'p_status'    => 'required|in:pending,approved,rejected',
             'p_notes'     => 'nullable|string|max:500',
             'p_photo'     => 'nullable|image|max:4096',
@@ -100,13 +98,18 @@ class TeamPlayerForm extends Component
             $this->p_phone             = $player->phone        ?? '';
             $this->p_email             = $player->email        ?? '';
             $this->p_federado          = (bool) $player->federado;
-            $this->p_categoria         = $player->categoria    ?? '';
             $this->p_status            = $player->status;
             $this->p_notes             = $player->notes        ?? '';
             $this->existing_photo      = $player->photo;
             $this->existing_doc_front  = $player->doc_front;
             $this->existing_doc_back   = $player->doc_back;
-            $this->existing_extra_docs = $player->extra_documents ?? [];
+            $this->existing_extra_docs = array_map(function ($doc) {
+                // Normalize: old entries saved as plain strings (from public register form)
+                if (is_string($doc)) {
+                    return ['path' => $doc, 'label' => basename($doc)];
+                }
+                return $doc;
+            }, $player->extra_documents ?? []);
         }
     }
 
@@ -145,6 +148,15 @@ class TeamPlayerForm extends Component
     {
         $this->validate();
 
+        // Age restriction check
+        if ($this->tournament->min_age && $this->p_birthdate) {
+            $age = \Carbon\Carbon::parse($this->p_birthdate)->age;
+            if ($age < $this->tournament->min_age) {
+                $this->addError('p_birthdate', "El jugador tiene {$age} años y el torneo requiere una edad mínima de {$this->tournament->min_age} años.");
+                return null;
+            }
+        }
+
         $data = [
             'tournament_team_id' => $this->tournamentTeam->id,
             'name'               => $this->p_name,
@@ -157,7 +169,6 @@ class TeamPlayerForm extends Component
             'phone'              => $this->p_phone        ?: null,
             'email'              => $this->p_email        ?: null,
             'federado'           => $this->p_federado,
-            'categoria'          => $this->p_categoria    ?: null,
             'status'             => $this->p_status,
             'notes'              => $this->p_notes        ?: null,
             'extra_documents'    => array_values(array_merge($this->existing_extra_docs, $this->staged_extra_docs)) ?: null,
@@ -211,12 +222,76 @@ class TeamPlayerForm extends Component
         return redirect()->route('tournament.team.players', [$this->tournament, $this->tournamentTeam]);
     }
 
+    public function downloadDocPdf(): mixed
+    {
+        $front = $this->existing_doc_front;
+        $back  = $this->existing_doc_back;
+
+        if (!$front && !$back) {
+            session()->flash('error', 'No hay imágenes de documento para descargar.');
+            return null;
+        }
+
+        $playerName = $this->player
+            ? str_replace(' ', '_', $this->player->fullName())
+            : 'documento';
+        $docLabel = strtoupper($this->p_doc_type ?: 'doc');
+        $filename = $playerName . '_' . $docLabel . '.pdf';
+
+        // Build HTML with images embedded as base64
+        $html = '<style>
+            body { margin: 0; padding: 0; }
+            .page { width: 100%; text-align: center; }
+            .label { font-family: sans-serif; font-size: 10px; color: #666; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+            img { max-width: 100%; height: auto; border-radius: 6px; }
+            .spacer { height: 12px; }
+        </style>';
+
+        if ($front) {
+            $frontPath = Storage::disk('public')->path($front);
+            if (file_exists($frontPath)) {
+                $mime = mime_content_type($frontPath);
+                $b64  = base64_encode(file_get_contents($frontPath));
+                $html .= '<div class="page"><p class="label">Anverso / Cara A</p><img src="data:' . $mime . ';base64,' . $b64 . '"></div>';
+            }
+        }
+
+        if ($back) {
+            $backPath = Storage::disk('public')->path($back);
+            if (file_exists($backPath)) {
+                $mime = mime_content_type($backPath);
+                $b64  = base64_encode(file_get_contents($backPath));
+                if ($front) {
+                    $html .= '<div class="spacer"></div>';
+                }
+                $html .= '<div class="page"><p class="label">Reverso / Cara B</p><img src="data:' . $mime . ';base64,' . $b64 . '"></div>';
+            }
+        }
+
+        $mpdf = new \Mpdf\Mpdf([
+            'margin_top'    => 8,
+            'margin_bottom' => 8,
+            'margin_left'   => 8,
+            'margin_right'  => 8,
+            'format'        => 'A4',
+        ]);
+        $mpdf->WriteHTML($html);
+
+        return response()->streamDownload(
+            fn () => print($mpdf->Output($filename, \Mpdf\Output\Destination::STRING_RETURN)),
+            $filename,
+            ['Content-Type' => 'application/pdf']
+        );
+    }
+
     public function render()
     {
+        $playerAge = $this->p_birthdate ? \Carbon\Carbon::parse($this->p_birthdate)->age : null;
         return view('livewire.tournaments.team-player-form', [
             'docTypes'  => TournamentPlayer::docTypes(),
             'statuses'  => TournamentPlayer::statuses(),
             'positions' => TournamentPlayer::positions(),
+            'playerAge' => $playerAge,
         ]);
     }
 }
