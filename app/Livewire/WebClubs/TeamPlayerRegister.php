@@ -246,8 +246,9 @@ class TeamPlayerRegister extends Component
     public function render()
     {
         return view('livewire.webclubs.team-player-register', [
-            'docTypes'  => TournamentPlayer::docTypes(),
-            'positions' => TournamentPlayer::positions(),
+            'docTypes'   => TournamentPlayer::docTypes(),
+            'positions'  => TournamentPlayer::positions(),
+            'schoolName' => currentSchool()?->name ?? config('app.name'),
         ])->layout('livewire.webclubs.layouts.app');
     }
 }

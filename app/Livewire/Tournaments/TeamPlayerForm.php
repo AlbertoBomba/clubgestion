@@ -49,6 +49,9 @@ class TeamPlayerForm extends Component
     public bool $clearDocFront = false;
     public bool $clearDocBack  = false;
 
+    // Signature (read-only display from the public registration form)
+    public ?string $existing_signature = null;
+
     // Extra documents
     public array  $existing_extra_docs = [];
     public array  $staged_extra_docs   = [];
@@ -110,6 +113,7 @@ class TeamPlayerForm extends Component
                 }
                 return $doc;
             }, $player->extra_documents ?? []);
+            $this->existing_signature  = $player->signature;
         }
     }
 

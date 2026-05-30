@@ -415,6 +415,28 @@
 
             </div>{{-- /grid fila 2 --}}
 
+            {{-- Firma del jugador --}}
+            @if ($existing_signature)
+            <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Firma de inscripción</h2>
+                        <p class="text-xs text-gray-400 mt-0.5">Firma manuscrita recogida durante el proceso de inscripción del jugador.</p>
+                    </div>
+                    <a href="{{ Storage::url($existing_signature) }}" download
+                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-indigo-500 hover:bg-indigo-600 transition-colors shadow-sm">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Descargar
+                    </a>
+                </div>
+                <div class="rounded-xl border border-gray-200 bg-gray-50 p-3 flex items-center justify-center" style="min-height:120px">
+                    <img src="{{ Storage::url($existing_signature) }}"
+                         alt="Firma de {{ $player->fullName() }}"
+                         class="max-h-40 max-w-full object-contain">
+                </div>
+            </div>
+            @endif
+
             {{-- Action buttons --}}
             <div class="flex items-center justify-end gap-3 pb-6">
                 <button wire:click="cancel"

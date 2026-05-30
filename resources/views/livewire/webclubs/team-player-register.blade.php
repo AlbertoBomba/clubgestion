@@ -364,7 +364,16 @@
             <div class="space-y-5" wire:key="step-4-signature">
                 <div>
                     <h2 class="text-xl font-black text-gray-900 mb-1">Firma de inscripción</h2>
-                    <p class="text-sm text-gray-500">Firma con el dedo (o el ratón) dentro del recuadro para confirmar la inscripción.</p>
+                    <p class="text-sm text-gray-500">Lee el siguiente texto y firma en el recuadro para confirmar tu inscripción.</p>
+                </div>
+
+                {{-- Declaración de responsabilidad --}}
+                <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 text-xs text-gray-600 leading-relaxed space-y-2">
+                    <p class="font-bold text-gray-700 text-sm">Declaración de participación y responsabilidad</p>
+                    <p>Declaro que participo en <span class="font-semibold text-gray-800">{{ $tournament->name }}</span> de forma voluntaria, bajo mi propia responsabilidad y conociendo los riesgos inherentes a la práctica deportiva. Manifiesto encontrarme en condiciones físicas adecuadas para participar.</p>
+                    <p>Eximo al <span class="font-semibold text-gray-800">{{ $schoolName }}</span>, organización, colaboradores y responsables del torneo de cualquier responsabilidad derivada de lesiones, accidentes, daños personales o materiales que pudieran producirse durante mi participación.</p>
+                    <p>Asimismo, me comprometo a respetar las normas del torneo y mantener una conducta adecuada, asumiendo personalmente la responsabilidad de cualquier altercado o actuación contraria a las normas.</p>
+                    <p>Del mismo modo, autorizo al <span class="font-semibold text-gray-800">{{ $schoolName }}</span> a la captación y uso de imágenes, fotografías o vídeos en los que pueda aparecer durante el desarrollo del torneo, con fines informativos, deportivos o de difusión en medios oficiales del club y redes sociales.</p>
                 </div>
 
                 <div wire:ignore>
@@ -424,7 +433,14 @@
                         </a>
                     </div>
                 @else
-                    <p class="text-xs text-gray-400 mt-2">Puedes cerrar esta ventana.</p>
+                    <div class="flex flex-col gap-3 w-full mt-4">
+                        <a href="{{ route('webclubs.tournament.detail', $tournament) }}"
+                           class="w-full py-3.5 rounded-2xl text-white text-sm font-bold shadow text-center transition-opacity hover:opacity-90"
+                           style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary))">
+                            Ver el torneo
+                        </a>
+                    </div>
+                    <p class="text-xs text-gray-400">O puedes cerrar esta ventana.</p>
                 @endif
             </div>
             @endif
