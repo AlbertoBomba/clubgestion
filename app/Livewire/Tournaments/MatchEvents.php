@@ -390,7 +390,10 @@ class MatchEvents extends Component
 
     public function render()
     {
-        $teams = TournamentTeam::where('tournament_id', $this->tournament->id)
+        $teams = TournamentTeam::whereIn('id', array_filter([
+                $this->match->home_team_id,
+                $this->match->away_team_id,
+            ]))
             ->with(['players' => fn($q) => $q->orderBy('surname')->orderBy('name')])
             ->get();
 

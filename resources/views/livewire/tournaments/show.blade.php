@@ -386,6 +386,24 @@
                                                 @endif
                                             </div>
                                         @endforeach
+                                        {{-- Bye rows: teams not playing this round --}}
+                                        @if ($round > 0 && $teams->isNotEmpty())
+                                            @php
+                                                $busyIds      = $roundMatches->flatMap(fn($m) => [$m->home_team_id, $m->away_team_id])->unique();
+                                                $restingTeams = $teams->whereNotIn('id', $busyIds);
+                                            @endphp
+                                            @foreach ($restingTeams as $restingTeam)
+                                                <div class="px-5 py-4 border-t-2 border-dashed border-amber-200 bg-amber-50/60 flex items-center gap-4">
+                                                    <div class="w-9 h-9 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center shrink-0">
+                                                        <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                                                        </svg>
+                                                    </div>
+                                                    <span class="text-sm font-bold text-amber-900">{{ $restingTeam->displayName() }}</span>
+                                                    <span class="text-[11px] font-black uppercase tracking-wider text-amber-700 bg-amber-100 border border-amber-200 px-3 py-1 rounded-full">Descansa esta jornada</span>
+                                                </div>
+                                            @endforeach
+                                        @endif
                                     </div>
                                 </div>
                             @endforeach

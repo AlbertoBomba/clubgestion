@@ -38,7 +38,7 @@ class TournamentDetail extends Component
     {
         // Teams
         $teams = $this->tournament->tournamentTeams()
-            ->with('team')
+            ->with(['team', 'players' => fn ($q) => $q->where('status', 'approved')->orderBy('dorsal')->orderBy('surname')])
             ->orderBy('seed')
             ->orderBy('id')
             ->get();

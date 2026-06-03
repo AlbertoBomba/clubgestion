@@ -481,6 +481,33 @@ class Show extends Component
             'match_status'     => 'required|in:scheduled,in_progress,completed,cancelled,postponed',
         ]);
 
+        // Validate: a team cannot appear twice in the same round
+        if ($this->match_round !== '') {
+            $conflict = TournamentMatch::where('tournament_id', $this->tournament->id)
+                ->where('round', $this->match_round)
+                ->when($this->match_phase_id, fn ($q) => $q->where('phase_id', $this->match_phase_id))
+                ->when($this->editingMatchId, fn ($q) => $q->where('id', '!=', $this->editingMatchId))
+                ->where(function ($q) {
+                    $q->whereIn('home_team_id', [$this->match_home_id, $this->match_away_id])
+                      ->orWhereIn('away_team_id', [$this->match_home_id, $this->match_away_id]);
+                })
+                ->with(['homeTeam', 'awayTeam'])
+                ->first();
+
+            if ($conflict) {
+                $conflictTeams = collect();
+                if (in_array($conflict->home_team_id, [$this->match_home_id, $this->match_away_id])) {
+                    $conflictTeams->push($conflict->homeTeam?->displayName());
+                }
+                if (in_array($conflict->away_team_id, [$this->match_home_id, $this->match_away_id])) {
+                    $conflictTeams->push($conflict->awayTeam?->displayName());
+                }
+                $teamNames = $conflictTeams->filter()->unique()->implode(' y ');
+                session()->flash('error', "No se puede guardar: {$teamNames} ya tiene un partido en la Jornada {$this->match_round}.");
+                return;
+            }
+        }
+
         $user = auth()->user();
         $data = [
             'tournament_id'          => $this->tournament->id,
@@ -585,6 +612,7 @@ class Show extends Component
 
     public function generateMatches(): void
     {
+        
         $this->validate([
             'generate_phase_id' => 'required|exists:tournament_phases,id',
             'generate_legs'     => 'required|in:1,2',
@@ -596,10 +624,13 @@ class Show extends Component
         if ($this->generate_clear) {
             TournamentMatch::where('phase_id', $phase->id)->delete();
         }
-
+        
         $teamsQuery = TournamentTeam::where('tournament_id', $this->tournament->id);
-        $categoryId = $phase->tournament_category_id ?? $this->activeCategoryId;
-        if ($categoryId) {
+
+        $isOpen     = $this->tournament->team_type === 'open';
+        $categoryId = $isOpen ? null : ($phase->tournament_category_id ?? $this->activeCategoryId);
+
+        if (!$isOpen && $categoryId) {
             $teamsQuery->where('tournament_category_id', $categoryId);
         }
 

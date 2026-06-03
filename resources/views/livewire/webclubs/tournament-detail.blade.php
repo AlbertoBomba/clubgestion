@@ -1,4 +1,4 @@
-<div x-data="{ tab: 'partidos', showBases: false }">
+<div x-data="{ tab: 'partidos', showBases: false, teamModal: false, modalTeam: null, modalPlayers: [] }">
     <main class="min-h-screen bg-white pb-20 md:pb-0">
 
         @php
@@ -242,7 +242,35 @@
                     </div>
                 @else
                     @foreach($matchesByPhaseAndRound as $phaseName => $rounds)
-                        <div class="mb-10">
+                        @php
+                            $roundKeys  = $rounds->keys()->values()->toArray();
+                            $roundCount = count($roundKeys);
+                            $today      = now()->startOfDay();
+
+                            // All teams participating in this phase (appear in at least one match)
+                            $phaseTeamIds = $rounds->flatMap(fn($rm) => $rm->flatMap(fn($m) => [$m->home_team_id, $m->away_team_id]))->filter()->unique()->values();
+                            $phaseTeams   = $teams->whereIn('id', $phaseTeamIds);
+
+                            // Default: last round
+                            $activeIdx = $roundCount - 1;
+
+                            // Find the first round that has a match today or in the future
+                            foreach ($roundKeys as $idx => $rLabel) {
+                                $hasFuture = $rounds[$rLabel]->contains(
+                                    fn($m) => !$m->scheduled_at || $m->scheduled_at->gte($today)
+                                );
+                                if ($hasFuture) { $activeIdx = $idx; break; }
+                            }
+                        @endphp
+
+                        <div x-data="{ activeRound: {{ $activeIdx }} }"
+                             x-init="$nextTick(() => {
+                                 const bar = $el.querySelector('[data-round-bar]');
+                                 const active = bar?.querySelector('[data-active]');
+                                 if (active) active.scrollIntoView({ inline: 'center', block: 'nearest' });
+                             })"
+                             class="mb-10">
+
                             @if($matchesByPhaseAndRound->count() > 1)
                                 <h2 class="text-2xl font-bold text-gray-900 mb-5 flex items-center gap-3">
                                     <span class="w-1.5 h-8 rounded-full inline-block shrink-0" style="background: var(--color-primary)"></span>
@@ -250,111 +278,229 @@
                                 </h2>
                             @endif
 
-                            {{-- Accordion per round --}}
-                            <div class="space-y-3">
-                                @foreach($rounds as $roundLabel => $roundMatches)
-                                    <div x-data="{ open: {{ $loop->first ? 'true' : 'false' }} }"
-                                         class="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm shadow-gray-200/60">
+                            {{-- Round pill navigation --}}
+                            <div class="flex items-center gap-2 mb-5">
+                                {{-- Prev --}}
+                                <button @click="activeRound = Math.max(0, activeRound - 1);
+                                                $nextTick(() => { const a = $el.closest('[x-data]').querySelector('[data-active]'); if(a) a.scrollIntoView({inline:'center',block:'nearest'}); })"
+                                        :disabled="activeRound === 0"
+                                        class="shrink-0 w-8 h-8 flex items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
+                                    </svg>
+                                </button>
 
-                                        {{-- Accordion header --}}
-                                        <button @click="open = !open"
-                                                class="w-full flex items-center justify-between px-4 sm:px-6 py-4 hover:bg-gray-50 transition-colors duration-200">
-                                            <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-                                                <span class="w-8 h-8 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0"
-                                                      style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary))">
-                                                    {{ $loop->iteration }}
-                                                </span>
-                                                <span class="text-gray-900 font-bold uppercase tracking-wide text-sm truncate">{{ $roundLabel }}</span>
-                                                <span class="text-gray-400 text-xs font-semibold shrink-0">{{ $roundMatches->count() }} {{ $roundMatches->count() === 1 ? 'partido' : 'partidos' }}</span>
-                                            </div>
-                                            <svg :class="open ? 'rotate-180' : ''"
-                                                 class="w-5 h-5 text-gray-400 transition-transform duration-200"
-                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                            </svg>
+                                {{-- Pills --}}
+                                <div data-round-bar
+                                     x-init="
+                                         const el = $el;
+                                         let isDown = false, startX = 0, scrollLeft = 0, moved = false;
+                                         el.addEventListener('mousedown', e => {
+                                             isDown = true; moved = false;
+                                             el.style.cursor = 'grabbing';
+                                             startX = e.pageX - el.offsetLeft;
+                                             scrollLeft = el.scrollLeft;
+                                         });
+                                         document.addEventListener('mouseup', () => {
+                                             isDown = false;
+                                             el.style.cursor = '';
+                                         });
+                                         el.addEventListener('mousemove', e => {
+                                             if (!isDown) return;
+                                             e.preventDefault();
+                                             moved = true;
+                                             el.scrollLeft = scrollLeft - (e.pageX - el.offsetLeft - startX);
+                                         });
+                                         el.addEventListener('click', e => { if (moved) { e.stopPropagation(); moved = false; } }, true);
+                                     "
+                                     class="flex-1 overflow-x-auto [&::-webkit-scrollbar]:hidden flex gap-2 py-1 px-0.5 snap-x snap-proximity scroll-smooth cursor-grab"
+                                     style="scrollbar-width:none;-ms-overflow-style:none;touch-action:pan-x;-webkit-overflow-scrolling:touch">
+                                    @foreach($roundKeys as $idx => $rLabel)
+                                        <button @click="activeRound = {{ $idx }}"
+                                                {{ $idx === $activeIdx ? 'data-active' : '' }}
+                                                :data-active="activeRound === {{ $idx }} ? '' : null"
+                                                :class="activeRound === {{ $idx }}
+                                                    ? 'bg-gray-900 text-white shadow-md scale-110'
+                                                    : 'bg-white text-gray-500 border border-gray-200 hover:border-gray-400 hover:text-gray-800'"
+                                                class="shrink-0 snap-center w-10 h-10 rounded-full font-black text-sm transition-all duration-200">
+                                            {{ $idx + 1 }}
                                         </button>
+                                    @endforeach
+                                </div>
 
-                                        {{-- Accordion body --}}
-                                        <div x-show="open" x-collapse class="border-t border-gray-100">
-                                            <div class="divide-y divide-gray-50">
-                                                @foreach($roundMatches as $match)
-                                                    @php
-                                                        $isCompleted = $match->status === 'completed';
-                                                        $homeTotal = ($match->home_score ?? 0) + ($match->home_score_extra ?? 0);
-                                                        $awayTotal = ($match->away_score ?? 0) + ($match->away_score_extra ?? 0);
-                                                        $homeWins  = $isCompleted && $homeTotal > $awayTotal;
-                                                        $awayWins  = $isCompleted && $awayTotal > $homeTotal;
-                                                        if ($match->penalty_winner === 'home') { $homeWins = true; $awayWins = false; }
-                                                        if ($match->penalty_winner === 'away') { $awayWins = true; $homeWins = false; }
-                                                    @endphp
-                                                <div class="px-3 sm:px-6 py-3 sm:py-4 flex items-center gap-2 sm:gap-4 hover:bg-gray-50/50 transition-colors duration-150">
+                                {{-- Next --}}
+                                <button @click="activeRound = Math.min({{ $roundCount - 1 }}, activeRound + 1);
+                                                $nextTick(() => { const a = $el.closest('[x-data]').querySelector('[data-active]'); if(a) a.scrollIntoView({inline:'center',block:'nearest'}); })"
+                                        :disabled="activeRound === {{ $roundCount - 1 }}"
+                                        class="shrink-0 w-8 h-8 flex items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </button>
+                            </div>
 
-                                                        {{-- Date --}}
-                                                        <div class="w-20 shrink-0 text-center hidden md:block">
-                                                            @if($match->scheduled_at)
-                                                                <div class="text-gray-400 text-xs font-bold uppercase tracking-wider">
-                                                                    {{ $match->scheduled_at->locale('es')->translatedFormat('d M') }}
-                                                                </div>
-                                                                <div class="text-gray-400 text-xs">{{ $match->scheduled_at->format('H:i') }}</div>
+                            {{-- Matches per round --}}
+                            @foreach($roundKeys as $idx => $rLabel)
+                                <div x-show="activeRound === {{ $idx }}"
+                                     x-transition:enter="transition ease-out duration-150"
+                                     x-transition:enter-start="opacity-0 translate-x-2"
+                                     x-transition:enter-end="opacity-100 translate-x-0">
+
+                                    {{-- Round label + date range --}}
+                                    @php
+                                        $rMatches     = $rounds[$rLabel];
+                                        $dates        = $rMatches->filter(fn($m) => $m->scheduled_at)->sortBy('scheduled_at');
+                                        $firstDate    = $dates->first()?->scheduled_at;
+                                        $lastDate     = $dates->last()?->scheduled_at;
+                                        $dateLabel    = null;
+                                        if ($firstDate) {
+                                            $dateLabel = $firstDate->isSameDay($lastDate)
+                                                ? $firstDate->locale('es')->translatedFormat('d \d\e F Y')
+                                                : $firstDate->locale('es')->translatedFormat('d M') . ' – ' . $lastDate->locale('es')->translatedFormat('d M Y');
+                                        }
+                                        $busyIds      = $rMatches->flatMap(fn($m) => [$m->home_team_id, $m->away_team_id])->filter()->unique();
+                                        $restingTeams = $phaseTeams->whereNotIn('id', $busyIds);
+                                    @endphp
+                                    <div class="flex items-center gap-3 mb-3 px-1">
+                                        <p class="text-base font-black text-gray-900 uppercase tracking-wide">{{ $rLabel }}</p>
+                                        @if($dateLabel)
+                                            <span class="text-xs text-gray-400 font-medium">{{ $dateLabel }}</span>
+                                        @endif
+                                        <div class="flex-1 h-px bg-gray-100"></div>
+                                    </div>
+
+                                    <div class="flex flex-col gap-2">
+                                        @foreach($rMatches as $match)
+                                            @php
+                                                $isCompleted = $match->status === 'completed';
+                                                $homeTotal   = ($match->home_score ?? 0) + ($match->home_score_extra ?? 0);
+                                                $awayTotal   = ($match->away_score ?? 0) + ($match->away_score_extra ?? 0);
+                                                $homeWins    = $isCompleted && $homeTotal > $awayTotal;
+                                                $awayWins    = $isCompleted && $awayTotal > $homeTotal;
+                                                if ($match->penalty_winner === 'home') { $homeWins = true; $awayWins = false; }
+                                                if ($match->penalty_winner === 'away') { $awayWins = true; $homeWins = false; }
+                                            @endphp
+                                            <div class="bg-white border border-gray-100 rounded-2xl px-3 sm:px-6 py-3 sm:py-4 flex items-center gap-2 sm:gap-4 shadow-sm hover:shadow-md hover:border-gray-200 transition-all duration-150">
+
+                                                {{-- Date --}}
+                                                <div class="w-20 shrink-0 text-center hidden md:block">
+                                                    @if($match->scheduled_at)
+                                                        <div class="text-gray-400 text-xs font-bold uppercase tracking-wider">
+                                                            {{ $match->scheduled_at->locale('es')->translatedFormat('d M') }}
+                                                        </div>
+                                                        <div class="text-gray-400 text-xs">{{ $match->scheduled_at->format('H:i') }}</div>
+                                                    @else
+                                                        <div class="text-gray-200 text-xs">&mdash;</div>
+                                                    @endif
+                                                </div>
+
+                                                {{-- Match --}}
+                                                <div class="flex-1 flex items-center gap-1.5 sm:gap-3 min-w-0">
+                                                    {{-- Home --}}
+                                                    <div class="flex-1 flex items-center justify-end gap-1.5 sm:gap-2 min-w-0">
+                                                        <span class="text-xs sm:text-sm font-bold truncate
+                                                            {{ $homeWins ? 'text-gray-900' : ($isCompleted ? 'text-gray-400' : 'text-gray-700') }}">
+                                                            {{ $match->homeTeam?->displayName() ?? 'Por definir' }}
+                                                        </span>
+                                                        {{-- Home shield --}}
+                                                        <div class="shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg overflow-hidden border {{ $homeWins ? 'border-gray-200' : 'border-gray-100' }} bg-gray-50 flex items-center justify-center">
+                                                            @if($match->homeTeam?->logo)
+                                                                <img src="{{ Storage::url($match->homeTeam->logo) }}"
+                                                                     alt="{{ $match->homeTeam->displayName() }}"
+                                                                     class="w-full h-full object-contain {{ $isCompleted && !$homeWins ? 'opacity-40 grayscale' : '' }}">
                                                             @else
-                                                                <div class="text-gray-200 text-xs">&mdash;</div>
+                                                                <span class="text-[10px] font-black text-gray-400">
+                                                                    {{ mb_strtoupper(mb_substr($match->homeTeam?->displayName() ?? '?', 0, 1)) }}
+                                                                </span>
                                                             @endif
                                                         </div>
+                                                    </div>
 
-                                                        {{-- Match --}}
-                                                        <div class="flex-1 flex items-center gap-1.5 sm:gap-2 min-w-0">
-                                                            {{-- Home --}}
-                                                            <div class="flex-1 text-right min-w-0">
-                                                                <span class="text-xs sm:text-sm font-bold truncate block
-                                                                    {{ $homeWins ? 'text-gray-900' : ($isCompleted ? 'text-gray-400' : 'text-gray-700') }}">
-                                                                    {{ $match->homeTeam?->displayName() ?? 'Por definir' }}
-                                                                </span>
-                                                            </div>
-
-                                                            {{-- Score --}}
-                                                            <div class="shrink-0 flex items-center gap-0.5 sm:gap-1">
-                                                                @if($isCompleted)
-                                                                    <span class="text-lg sm:text-xl font-black {{ $homeWins ? 'text-gray-900' : 'text-gray-300' }} w-5 sm:w-6 text-center">{{ $match->home_score ?? 0 }}</span>
-                                                                    <span class="text-gray-300 font-bold text-lg sm:text-xl">:</span>
-                                                                    <span class="text-lg sm:text-xl font-black {{ $awayWins ? 'text-gray-900' : 'text-gray-300' }} w-5 sm:w-6 text-center">{{ $match->away_score ?? 0 }}</span>
-                                                                    @if($match->home_score_extra !== null || $match->away_score_extra !== null)
-                                                                        <span class="text-gray-300 text-xs ml-1 hidden sm:inline">({{ ($match->home_score_extra ?? 0) }}:{{ ($match->away_score_extra ?? 0) }})</span>
-                                                                    @endif
-                                                                    @if($match->penalty_winner)
-                                                                        <span class="text-amber-500 text-xs ml-0.5 font-bold">P</span>
-                                                                    @endif
-                                                                @else
-                                                                    @php
-                                                                        $stColors = ['scheduled'=>'text-blue-500','in_progress'=>'text-yellow-500','postponed'=>'text-orange-400','cancelled'=>'text-red-400'];
-                                                                    @endphp
-                                                                    <span class="px-1.5 sm:px-2.5 py-1 rounded-lg bg-gray-100 text-[10px] sm:text-xs font-bold uppercase tracking-wide {{ $stColors[$match->status] ?? 'text-gray-400' }}">
-                                                                        {{ $match->statusLabel() }}
-                                                                    </span>
-                                                                @endif
-                                                            </div>
-
-                                                            {{-- Away --}}
-                                                            <div class="flex-1 text-left min-w-0">
-                                                                <span class="text-xs sm:text-sm font-bold truncate block
-                                                                    {{ $awayWins ? 'text-gray-900' : ($isCompleted ? 'text-gray-400' : 'text-gray-700') }}">
-                                                                    {{ $match->awayTeam?->displayName() ?? 'Por definir' }}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-
-                                                        {{-- Location --}}
-                                                        @if($match->location)
-                                                            <div class="hidden lg:block text-xs text-gray-300 font-semibold uppercase tracking-wider shrink-0 max-w-36 truncate">
-                                                                {{ $match->location }}
-                                                            </div>
+                                                    {{-- Score --}}
+                                                    <div class="shrink-0 flex items-center gap-0.5 sm:gap-1">
+                                                        @if($isCompleted)
+                                                            <span class="text-lg sm:text-xl font-black {{ $homeWins ? 'text-gray-900' : 'text-gray-300' }} w-5 sm:w-6 text-center">{{ $match->home_score ?? 0 }}</span>
+                                                            <span class="text-gray-300 font-bold text-lg sm:text-xl">:</span>
+                                                            <span class="text-lg sm:text-xl font-black {{ $awayWins ? 'text-gray-900' : 'text-gray-300' }} w-5 sm:w-6 text-center">{{ $match->away_score ?? 0 }}</span>
+                                                            @if($match->home_score_extra !== null || $match->away_score_extra !== null)
+                                                                <span class="text-gray-300 text-xs ml-1 hidden sm:inline">({{ ($match->home_score_extra ?? 0) }}:{{ ($match->away_score_extra ?? 0) }})</span>
+                                                            @endif
+                                                            @if($match->penalty_winner)
+                                                                <span class="text-amber-500 text-xs ml-0.5 font-bold">P</span>
+                                                            @endif
+                                                        @else
+                                                            @php
+                                                                $stColors = ['scheduled'=>'text-blue-500','in_progress'=>'text-yellow-500','postponed'=>'text-orange-400','cancelled'=>'text-red-400'];
+                                                            @endphp
+                                                            <span class="px-1.5 sm:px-2.5 py-1 rounded-lg bg-gray-100 text-[10px] sm:text-xs font-bold uppercase tracking-wide {{ $stColors[$match->status] ?? 'text-gray-400' }}">
+                                                                {{ $match->statusLabel() }}
+                                                            </span>
                                                         @endif
                                                     </div>
-                                                @endforeach
+
+                                                    {{-- Away --}}
+                                                    <div class="flex-1 flex items-center justify-start gap-1.5 sm:gap-2 min-w-0">
+                                                        {{-- Away shield --}}
+                                                        <div class="shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg overflow-hidden border {{ $awayWins ? 'border-gray-200' : 'border-gray-100' }} bg-gray-50 flex items-center justify-center">
+                                                            @if($match->awayTeam?->logo)
+                                                                <img src="{{ Storage::url($match->awayTeam->logo) }}"
+                                                                     alt="{{ $match->awayTeam->displayName() }}"
+                                                                     class="w-full h-full object-contain {{ $isCompleted && !$awayWins ? 'opacity-40 grayscale' : '' }}">
+                                                            @else
+                                                                <span class="text-[10px] font-black text-gray-400">
+                                                                    {{ mb_strtoupper(mb_substr($match->awayTeam?->displayName() ?? '?', 0, 1)) }}
+                                                                </span>
+                                                            @endif
+                                                        </div>
+                                                        <span class="text-xs sm:text-sm font-bold truncate
+                                                            {{ $awayWins ? 'text-gray-900' : ($isCompleted ? 'text-gray-400' : 'text-gray-700') }}">
+                                                            {{ $match->awayTeam?->displayName() ?? 'Por definir' }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {{-- Location --}}
+                                                @if($match->location)
+                                                    <div class="hidden lg:block text-xs text-gray-300 font-semibold uppercase tracking-wider shrink-0 max-w-36 truncate">
+                                                        {{ $match->location }}
+                                                    </div>
+                                                @endif
                                             </div>
-                                        </div>
+                                        @endforeach
+
+                                        {{-- Bye rows: teams resting this round --}}
+                                        @foreach($restingTeams as $restingTeam)
+                                            <div class="border border-dashed border-amber-300 bg-amber-50/70 rounded-2xl px-3 sm:px-6 py-3 sm:py-4 flex items-center gap-3">
+                                                {{-- Moon icon --}}
+                                                <div class="shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-100 border border-amber-200 flex items-center justify-center">
+                                                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                                                    </svg>
+                                                </div>
+                                                {{-- Team logo + name --}}
+                                                <div class="flex items-center gap-2 flex-1 min-w-0">
+                                                    <div class="shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg overflow-hidden border border-amber-200 bg-white flex items-center justify-center">
+                                                        @if($restingTeam->logo)
+                                                            <img src="{{ Storage::url($restingTeam->logo) }}"
+                                                                 alt="{{ $restingTeam->displayName() }}"
+                                                                 class="w-full h-full object-contain opacity-70">
+                                                        @else
+                                                            <span class="text-[10px] font-black text-amber-500">
+                                                                {{ mb_strtoupper(mb_substr($restingTeam->displayName(), 0, 1)) }}
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                    <span class="text-sm font-bold text-amber-900 truncate">{{ $restingTeam->displayName() }}</span>
+                                                </div>
+                                                {{-- Badge --}}
+                                                <span class="shrink-0 text-[10px] sm:text-xs font-black uppercase tracking-widest text-amber-700 bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-full">
+                                                    Descansa
+                                                </span>
+                                            </div>
+                                        @endforeach
                                     </div>
-                                @endforeach
-                            </div>
+                                </div>
+                            @endforeach
                         </div>
                     @endforeach
                 @endif
@@ -454,20 +600,40 @@
                                     'eliminated'   => ['bg' => 'bg-gray-100',  'text' => 'text-gray-500',  'label' => 'Eliminado'],
                                     'disqualified' => ['bg' => 'bg-red-100',   'text' => 'text-red-600',   'label' => 'Descalificado'],
                                 ][$tt->status] ?? ['bg' => 'bg-gray-100', 'text' => 'text-gray-500', 'label' => $tt->status];
+                                $approvedPlayers = $tt->players;
+                                $playersJson = $approvedPlayers->map(fn($p) => [
+                                    'name'     => $p->fullName(),
+                                    'dorsal'   => $p->dorsal,
+                                    'position' => $p->position,
+                                    'photo'    => $p->photoUrl(),
+                                ])->values()->toJson();
                             @endphp
-                            <div class="bg-white border border-gray-100 rounded-2xl p-5 flex items-center gap-4 shadow-sm shadow-gray-200/60 hover:shadow-md hover:shadow-gray-200/80 transition-all duration-200">
-                                <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 border border-gray-100"
+                            <div class="bg-white rounded-2xl p-5 flex items-center gap-4 shadow-sm shadow-gray-200/60 hover:shadow-md transition-all duration-200 cursor-pointer select-none"
+                                 style="border: 1.5px solid color-mix(in srgb, var(--color-primary) 35%, transparent)"
+                                 @click="modalTeam = @js($tt->displayName()); modalPlayers = {{ $playersJson }}; teamModal = true">
+                                <div class="w-12 h-12 rounded-xl shrink-0 border border-gray-100 overflow-hidden flex items-center justify-center"
                                      style="background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 10%, white), color-mix(in srgb, var(--color-secondary) 10%, white))">
-                                    ???
+                                    @if($tt->logo)
+                                        <img src="{{ Storage::url($tt->logo) }}" alt="{{ $tt->displayName() }}" class="w-full h-full object-cover">
+                                    @else
+                                        <span class="text-xl font-black text-gray-400 uppercase">{{ mb_substr($tt->displayName(), 0, 1) }}</span>
+                                    @endif
                                 </div>
                                 <div class="min-w-0 flex-1">
                                     <p class="text-gray-900 font-bold truncate">{{ $tt->displayName() }}</p>
                                     @if($tt->group_label)
                                         <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Grupo {{ $tt->group_label }}</p>
                                     @endif
-                                    <span class="inline-block mt-1 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full {{ $teamSc['bg'] }} {{ $teamSc['text'] }}">
-                                        {{ $teamSc['label'] }}
-                                    </span>
+                                    <div class="flex items-center gap-2 mt-1 flex-wrap">
+                                        <span class="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full {{ $teamSc['bg'] }} {{ $teamSc['text'] }}">
+                                            {{ $teamSc['label'] }}
+                                        </span>
+                                        @if($approvedPlayers->count() > 0)
+                                            <span class="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
+                                                {{ $approvedPlayers->count() }} jugador{{ $approvedPlayers->count() !== 1 ? 'es' : '' }}
+                                            </span>
+                                        @endif
+                                    </div>
                                 </div>
                                 @if($tt->seed)
                                     <div class="shrink-0 text-right">
@@ -479,6 +645,77 @@
                         @endforeach
                     </div>
                 @endif
+            </div>
+
+            {{-- ══ MODAL JUGADORES ══ --}}
+            <div x-show="teamModal" x-cloak
+                 class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0">
+                {{-- Backdrop --}}
+                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="teamModal = false"></div>
+                {{-- Panel --}}
+                <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col overflow-hidden"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100 scale-100"
+                     x-transition:leave-end="opacity-0 scale-95"
+                     @click.stop>
+                    {{-- Header --}}
+                    <div class="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-100 shrink-0">
+                        <div>
+                            <h3 class="text-base font-black text-gray-900" x-text="modalTeam"></h3>
+                            <p class="text-xs text-gray-400 font-semibold mt-0.5">
+                                <span x-text="modalPlayers.length"></span> jugador<span x-text="modalPlayers.length !== 1 ? 'es' : ''"></span> aprobado<span x-text="modalPlayers.length !== 1 ? 's' : ''"></span>
+                            </p>
+                        </div>
+                        <button @click="teamModal = false" class="p-1.5 rounded-xl text-gray-400 hover:bg-gray-100 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    {{-- Body --}}
+                    <div class="overflow-y-auto flex-1 px-5 py-4">
+                        <template x-if="modalPlayers.length === 0">
+                            <p class="text-center text-gray-400 text-sm py-10 font-semibold">Sin jugadores aprobados todavía.</p>
+                        </template>
+                        <template x-if="modalPlayers.length > 0">
+                            <ul class="divide-y divide-gray-50">
+                                <template x-for="(player, index) in modalPlayers" :key="index">
+                                    <li class="flex items-center gap-3 py-3">
+                                        {{-- Foto / inicial --}}
+                                        <div class="w-10 h-10 rounded-xl shrink-0 overflow-hidden border border-gray-100 flex items-center justify-center bg-gray-50">
+                                            <template x-if="player.photo">
+                                                <img :src="player.photo" :alt="player.name" class="w-full h-full object-cover">
+                                            </template>
+                                            <template x-if="!player.photo">
+                                                <span class="text-sm font-black text-gray-400 uppercase" x-text="player.name.charAt(0)"></span>
+                                            </template>
+                                        </div>
+                                        {{-- Info --}}
+                                        <div class="min-w-0 flex-1">
+                                            <p class="text-sm font-bold text-gray-900 truncate" x-text="player.name"></p>
+                                            <p class="text-xs text-gray-400 font-medium truncate" x-text="player.position || '—'"></p>
+                                        </div>
+                                        {{-- Dorsal --}}
+                                        <template x-if="player.dorsal">
+                                            <div class="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center bg-gray-100">
+                                                <span class="text-xs font-black text-gray-600" x-text="'#' + player.dorsal"></span>
+                                            </div>
+                                        </template>
+                                    </li>
+                                </template>
+                            </ul>
+                        </template>
+                    </div>
+                </div>
             </div>
 
         </div>
