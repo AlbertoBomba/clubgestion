@@ -6,8 +6,11 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\User;
 use App\Models\SportsSchool;
+use App\Services\SchoolMailer;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 
 class Edit extends Component
@@ -317,6 +320,43 @@ class Edit extends Component
         return redirect()->route($route);
     }
     
+    public function sendResetEmail(): void
+    {
+        $school = $this->user->sports_school_id
+            ? SportsSchool::find($this->user->sports_school_id)
+            : null;
+
+        try {
+            $token    = Password::broker()->createToken($this->user);
+            $resetUrl = url(route('password.reset', [
+                'token' => $token,
+                'email' => $this->user->email,
+            ], false));
+
+            $schoolName = $school?->name ?? config('app.name');
+            $fromAddr   = $school?->mail_from_address ?: ($school?->mail_username ?: config('mail.from.address'));
+            $fromName   = $school?->mail_from_name ?: $schoolName;
+
+            $body = "Hola {$this->user->name},\n\n"
+                . "Has solicitado restablecer la contraseña de tu cuenta en {$schoolName}.\n\n"
+                . "Haz clic en el siguiente enlace para establecer una nueva contraseña (válido durante 60 minutos):\n\n"
+                . "{$resetUrl}\n\n"
+                . "Si no has solicitado este cambio, ignora este mensaje.\n\n"
+                . "Saludos,\n{$schoolName}";
+
+            $mailer = SchoolMailer::forSchool($school ?? new SportsSchool());
+            $mailer->raw($body, function ($msg) use ($fromAddr, $fromName) {
+                $msg->to($this->user->email, $this->user->name)
+                    ->from($fromAddr, $fromName)
+                    ->subject('Restablece tu contraseña');
+            });
+
+            session()->flash('message', 'Email de restablecimiento enviado a ' . $this->user->email . '.');
+        } catch (\Throwable $e) {
+            session()->flash('error', 'No se pudo enviar el email: ' . $e->getMessage());
+        }
+    }
+
     public $confirmingDeletion = false;
 
     public function confirmDelete()
@@ -378,10 +418,20 @@ class Edit extends Component
                 ->get();
         }
         
+        $selectedSchool       = $this->user->sports_school_id
+            ? SportsSchool::find($this->user->sports_school_id)
+            : null;
+        $schoolMailConfigured = $selectedSchool ? SchoolMailer::isConfigured($selectedSchool) : false;
+        $schoolMailFrom       = $selectedSchool
+            ? ($selectedSchool->mail_from_address ?: ($selectedSchool->mail_username ?: null))
+            : null;
+
         return view('livewire.school-users.edit', [
-            'schools' => $schools,
-            'roles' => $roles,
-            'coachTeams' => $coachTeams,
+            'schools'              => $schools,
+            'roles'                => $roles,
+            'coachTeams'           => $coachTeams,
+            'schoolMailConfigured' => $schoolMailConfigured,
+            'schoolMailFrom'       => $schoolMailFrom,
         ]);
     }
 }

@@ -69,7 +69,7 @@
                         </div>
                     </div>
                     
-                    <div class="flex w-full gap-6">
+                    <div class="flex w-full gap-6" x-data="{ sendReset: $wire.entangle('send_reset_email') }">
                         <!-- Contraseña -->
                         <div class="space-y-4">
                             <h3 class="text-lg font-semibold text-titanium flex items-center border-b border-silver/30 pb-3">
@@ -79,18 +79,63 @@
                                 Contraseña
                             </h3>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {{-- Toggle: enviar email o poner contraseña manual --}}
+                            <label class="flex items-start gap-3 cursor-pointer select-none p-3 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors">
+                                <input type="checkbox" wire:model.live="send_reset_email" class="mt-0.5 h-4 w-4 rounded text-primary border-gray-300 focus:ring-primary cursor-pointer">
                                 <div>
-                                    <label for="password" class="block text-sm font-semibold text-titanium mb-2">Contraseña *</label>
-                                    <input wire:model.live="password" type="password" id="password" 
-                                        class="block w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm @error('password') border-red-500 @enderror">
-                                    @error('password') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                    <p class="text-sm font-semibold text-gray-800">Enviar email para que el usuario establezca su contraseña</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">Se enviará un enlace al correo del usuario. No necesitas introducir contraseña ahora.</p>
                                 </div>
+                            </label>
 
-                                <div>
-                                    <label for="password_confirmation" class="block text-sm font-semibold text-titanium mb-2">Confirmar contraseña *</label>
-                                    <input wire:model.live="password_confirmation" type="password" id="password_confirmation" 
-                                        class="block w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                            {{-- Email info cuando está activo --}}
+                            <div x-show="sendReset" x-collapse>
+                                @if($send_reset_email)
+                                    @if($schoolMailConfigured)
+                                        <div class="flex items-start gap-2 bg-green-50 border border-green-200 rounded-xl px-3 py-2.5 text-xs text-green-800">
+                                            <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            <div>
+                                                <p class="font-semibold">El email se enviará desde el correo de la escuela</p>
+                                                <p class="mt-0.5">Remitente: <strong>{{ $schoolMailFrom }}</strong>. El enlace expirará en 60 minutos.</p>
+                                            </div>
+                                        </div>
+                                    @elseif($sports_school_id)
+                                        <div class="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-xs text-amber-800">
+                                            <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                            </svg>
+                                            <div>
+                                                <p class="font-semibold">La escuela no tiene correo configurado</p>
+                                                <p class="mt-0.5">El email se enviará usando el correo genérico de la plataforma. Para usar el correo de la escuela, configura el SMTP en <strong>Ajustes de escuela → Configuración de correo</strong>.</p>
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div class="flex items-start gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-600">
+                                            <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            <p>Selecciona una escuela para ver qué correo se usará como remitente.</p>
+                                        </div>
+                                    @endif
+                                @endif
+                            </div>
+
+                            {{-- Campos de contraseña (ocultos si se va a enviar email) --}}
+                            <div x-show="!sendReset" x-collapse>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="password" class="block text-sm font-semibold text-titanium mb-2">Contraseña *</label>
+                                        <input wire:model.live="password" type="password" id="password"
+                                            class="block w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm @error('password') border-red-500 @enderror">
+                                        @error('password') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                    </div>
+                                    <div>
+                                        <label for="password_confirmation" class="block text-sm font-semibold text-titanium mb-2">Confirmar contraseña *</label>
+                                        <input wire:model.live="password_confirmation" type="password" id="password_confirmation"
+                                            class="block w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                                    </div>
                                 </div>
                             </div>
                         </div>

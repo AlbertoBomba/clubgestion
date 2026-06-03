@@ -1,36 +1,207 @@
-<x-guest-layout>
-    <x-authentication-card>
-        <x-slot name="logo">
-            <x-authentication-card-logo />
-        </x-slot>
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/favicon/apple-icon-180x180.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/favicon/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/favicon/favicon-16x16.png') }}">
+    <title>{{ config('app.name', 'Trevion APP') }} - Restablecer contraseña</title>
 
-        <x-validation-errors class="mb-4" />
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700&display=swap" rel="stylesheet" />
 
-        <form method="POST" action="{{ route('password.update') }}">
-            @csrf
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-            <input type="hidden" name="token" value="{{ $request->route('token') }}">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
 
-            <div class="block">
-                <x-label for="email" value="{{ __('Email') }}" />
-                <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email', $request->email)" required autofocus autocomplete="username" />
+        .gradient-bg {
+            background: linear-gradient(135deg, #005DFF 0%, #001C40 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .gradient-bg::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+        @keyframes rotate {
+            0%   { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .login-card {
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.6s ease-out;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-field { transition: all 0.3s ease; }
+        .input-field:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 93, 255, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #005DFF 0%, #001C40 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 93, 255, 0.4);
+        }
+        .btn-primary:active { transform: translateY(0); }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="gradient-bg min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
+        <div class="w-full max-w-md">
+
+            <!-- Card -->
+            <div class="login-card bg-white rounded-2xl shadow-2xl p-6 sm:p-8 lg:p-10">
+
+                <!-- Logo / Brand -->
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-24 h-24 mb-2">
+                        <img src="{{ asset('images/logos/logo_vaed.png') }}" alt="{{ config('app.name') }} Logo" class="w-16 h-16 sm:w-20 sm:h-20">
+                    </div>
+                    <h1 class="text-xl font-bold text-titanium mb-1">Restablecer contraseña</h1>
+                    <p class="text-gray-500 text-sm">Introduce tu nueva contraseña para continuar</p>
+                </div>
+
+                <!-- Validation Errors -->
+                @if ($errors->any())
+                    <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-red-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                            <div class="text-sm text-red-700">
+                                <p class="font-semibold mb-1">Por favor corrige los siguientes errores:</p>
+                                <ul class="list-disc list-inside space-y-1">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Form -->
+                <form method="POST" action="{{ route('password.update') }}" class="space-y-5">
+                    @csrf
+                    <input type="hidden" name="token" value="{{ $request->route('token') }}">
+
+                    <!-- Email -->
+                    <div>
+                        <label for="email" class="block text-sm font-semibold text-titanium mb-2">
+                            Correo electrónico
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
+                                </svg>
+                            </div>
+                            <input
+                                id="email"
+                                type="email"
+                                name="email"
+                                value="{{ old('email', $request->email) }}"
+                                required
+                                autofocus
+                                autocomplete="username"
+                                class="input-field block w-full pl-10 pr-3 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep placeholder-gray-400 text-sm sm:text-base"
+                                placeholder="tu@email.com"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Nueva contraseña -->
+                    <div>
+                        <label for="password" class="block text-sm font-semibold text-titanium mb-2">
+                            Nueva contraseña
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                </svg>
+                            </div>
+                            <input
+                                id="password"
+                                type="password"
+                                name="password"
+                                required
+                                autocomplete="new-password"
+                                class="input-field block w-full pl-10 pr-3 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep placeholder-gray-400 text-sm sm:text-base"
+                                placeholder="Mínimo 8 caracteres"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Confirmar contraseña -->
+                    <div>
+                        <label for="password_confirmation" class="block text-sm font-semibold text-titanium mb-2">
+                            Confirmar contraseña
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                </svg>
+                            </div>
+                            <input
+                                id="password_confirmation"
+                                type="password"
+                                name="password_confirmation"
+                                required
+                                autocomplete="new-password"
+                                class="input-field block w-full pl-10 pr-3 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep placeholder-gray-400 text-sm sm:text-base"
+                                placeholder="Repite la contraseña"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <button
+                        type="submit"
+                        class="btn-primary w-full py-3 px-4 rounded-xl text-white font-semibold text-sm sm:text-base shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                    >
+                        <span class="flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                            </svg>
+                            Restablecer contraseña
+                        </span>
+                    </button>
+                </form>
+
+                <!-- Volver al login -->
+                <div class="text-center mt-6">
+                    <a href="{{ route('login') }}" class="text-sm font-medium text-primary hover:text-night-blue transition-colors">
+                        ← Volver al inicio de sesión
+                    </a>
+                </div>
             </div>
 
-            <div class="mt-4">
-                <x-label for="password" value="{{ __('Password') }}" />
-                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
+            <!-- Footer -->
+            <div class="text-center mt-6">
+                <p class="text-white-pure/80 text-xs sm:text-sm">
+                    © {{ date('Y') }} {{ config('app.name', 'Vaed APP') }}. Todos los derechos reservados.
+                </p>
             </div>
 
-            <div class="mt-4">
-                <x-label for="password_confirmation" value="{{ __('Confirm Password') }}" />
-                <x-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required autocomplete="new-password" />
-            </div>
-
-            <div class="flex items-center justify-end mt-4">
-                <x-button>
-                    {{ __('Reset Password') }}
-                </x-button>
-            </div>
-        </form>
-    </x-authentication-card>
-</x-guest-layout>
+        </div>
+    </div>
+</body>
+</html>

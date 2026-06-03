@@ -68,7 +68,7 @@ class TeamPlayerRegister extends Component
                 'docType'   => 'required|in:dni,nie,passport',
                 'docNumber' => 'required|string|min:1|max:30',
                 'docFront'  => 'required|file|max:10240',
-                'docBack'   => 'required_unless:docType,passport|file|max:10240',
+                'docBack'   => $this->docType === 'passport' ? 'nullable|file|max:10240' : 'required|file|max:10240',
             ],
             3 => [
                 'position'  => 'nullable|string|max:50',

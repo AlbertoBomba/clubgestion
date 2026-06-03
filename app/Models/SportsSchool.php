@@ -32,13 +32,23 @@ class SportsSchool extends Model
         'api_requests_count',
         'last_api_request_at',
         'api_enabled',
+        // Mail configuration
+        'mail_host',
+        'mail_port',
+        'mail_encryption',
+        'mail_username',
+        'mail_password',
+        'mail_from_address',
+        'mail_from_name',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
-        'api_enabled' => 'boolean',
+        'is_active'            => 'boolean',
+        'api_enabled'          => 'boolean',
         'api_key_generated_at' => 'datetime',
-        'last_api_request_at' => 'datetime',
+        'last_api_request_at'  => 'datetime',
+        'mail_port'            => 'integer',
+        'mail_password'        => 'encrypted',  // stored encrypted at rest
     ];
 
     // Boot method para generar slug automáticamente

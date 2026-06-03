@@ -209,6 +209,32 @@
                                         class="block w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
                                 </div>
                             </div>
+
+                            {{-- Enviar email de restablecimiento --}}
+                            <div class="border-t border-silver/30 pt-4 mt-2">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                                    <button type="button" wire:click="sendResetEmail" wire:loading.attr="disabled"
+                                        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-primary text-primary text-sm font-semibold hover:bg-primary hover:text-white transition-colors disabled:opacity-50">
+                                        <svg wire:loading.remove wire:target="sendResetEmail" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                        </svg>
+                                        <svg wire:loading wire:target="sendResetEmail" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                                        </svg>
+                                        Enviar enlace de restablecimiento
+                                    </button>
+                                    <div class="text-xs text-gray-500">
+                                        @if($schoolMailConfigured)
+                                            <span class="text-green-600 font-medium">&#10003;</span>
+                                            Se enviará desde <strong>{{ $schoolMailFrom }}</strong>
+                                        @else
+                                            <span class="text-amber-500 font-medium">&#9888;</span>
+                                            La escuela no tiene SMTP configurado &mdash; se usará el correo genérico de la plataforma
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Escuela y Rol -->

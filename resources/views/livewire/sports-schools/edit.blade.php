@@ -384,13 +384,397 @@ X-API-Key: tu_api_key_aqui<br><br>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-function copyApiKey() {
-    const apiKey = document.getElementById('api-key-display').textContent;
-    navigator.clipboard.writeText(apiKey).then(() => {
-        alert('API Key copiada al portapapeles');
-    });
-}
-</script>
+    {{-- ─── Mail configuration card ──────────────────────────────────────────────── --}}
+    <div class="card-modern rounded-2xl shadow-xl border border-primary/10 p-4 w-full mt-6">
+    <div class="space-y-5">
+
+        {{-- Header --}}
+        <div class="flex items-center justify-between pb-4 border-b border-gray-200">
+            <h3 class="text-base font-semibold text-gray-900 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                Configuración de correo electrónico
+            </h3>
+            @if($mail_has_password && $school->mail_host)
+                <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-800">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                    Configurado
+                </span>
+            @else
+                <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">
+                    Sin configurar
+                </span>
+            @endif
+        </div>
+
+        {{-- Info banner --}}
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-800">
+            <p class="font-semibold mb-1">¿Para qué sirve esto?</p>
+            <p>Al configurar el servidor de correo de la escuela, todas las notificaciones enviadas a jugadores, entrenadores o familias utilizarán el correo oficial de <strong>{{ $school->name }}</strong> como remitente en lugar del correo genérico de la plataforma.</p>
+        </div>
+
+        {{-- Flash message --}}
+        @if(session()->has('mail_message'))
+            <div class="bg-green-50 border border-green-200 rounded-xl p-3 text-sm text-green-800 font-medium flex items-center gap-2">
+                <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                {{ session('mail_message') }}
+            </div>
+        @endif
+
+        {{-- Provider presets --}}
+        <div>
+            <p class="text-xs font-semibold text-gray-600 mb-2">Selecciona tu proveedor de correo:</p>
+            <div class="flex flex-wrap gap-2">
+                <button type="button" wire:click="applyMailPreset('gmail')"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:border-red-300 transition-all">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"><path d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6z" stroke="#EA4335" stroke-width="1.5"/><path d="M2 6l10 7 10-7" stroke="#EA4335" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    Gmail
+                </button>
+                <button type="button" wire:click="applyMailPreset('outlook')"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:border-blue-300 transition-all">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="#0078D4" stroke-width="1.5"/><path d="M2 8h20M8 8v12" stroke="#0078D4" stroke-width="1.5"/></svg>
+                    Outlook / Hotmail
+                </button>
+                <button type="button" wire:click="applyMailPreset('yahoo')"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:border-purple-300 transition-all">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#6001D2" stroke-width="1.5"/><path d="M8 8l4 5 4-5M12 13v4" stroke="#6001D2" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    Yahoo
+                </button>
+                <button type="button" wire:click="applyMailPreset('strato')"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:border-orange-300 transition-all">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="2" stroke="#E87722" stroke-width="1.5"/><path d="M3 10h18" stroke="#E87722" stroke-width="1.5"/><path d="M8 14h4" stroke="#E87722" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    Strato
+                </button>
+                <span class="inline-flex items-center px-3 py-1.5 text-xs text-gray-400">o configura manualmente →</span>
+            </div>
+        </div>
+
+        {{-- SMTP fields grid --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+            {{-- Host --}}
+            <div class="sm:col-span-2">
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Servidor SMTP (host)</label>
+                <input wire:model="mail_host" type="text" placeholder="smtp.gmail.com"
+                       class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"/>
+                @error('mail_host') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+            </div>
+
+            {{-- Port --}}
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Puerto</label>
+                <input wire:model="mail_port" type="number" placeholder="587"
+                       class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"/>
+                @error('mail_port') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+            </div>
+
+            {{-- Encryption --}}
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Cifrado</label>
+                <div class="flex gap-2">
+                    <button type="button" wire:click="$set('mail_encryption', 'tls')"
+                            class="flex-1 py-2 text-xs font-bold rounded-lg border transition-all {{ $mail_encryption === 'tls' ? 'bg-primary text-white border-primary' : 'border-gray-200 text-gray-600 hover:bg-gray-50' }}">
+                        TLS (587)
+                    </button>
+                    <button type="button" wire:click="$set('mail_encryption', 'ssl')"
+                            class="flex-1 py-2 text-xs font-bold rounded-lg border transition-all {{ $mail_encryption === 'ssl' ? 'bg-primary text-white border-primary' : 'border-gray-200 text-gray-600 hover:bg-gray-50' }}">
+                        SSL (465)
+                    </button>
+                </div>
+                @error('mail_encryption') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+            </div>
+
+            {{-- Username --}}
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Usuario (tu email)</label>
+                <input wire:model="mail_username" type="email" placeholder="tucorreo@gmail.com"
+                       autocomplete="off"
+                       class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"/>
+                @error('mail_username') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+            </div>
+
+            {{-- Password --}}
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">
+                    Contraseña / App Password
+                    @if($mail_has_password)
+                        <span class="ml-1 text-green-600 font-normal">✓ guardada</span>
+                    @endif
+                </label>
+                <input wire:model="mail_password" type="password"
+                       placeholder="{{ $mail_has_password ? 'Deja en blanco para no cambiarla' : 'Contraseña SMTP o App Password' }}"
+                       autocomplete="new-password"
+                       class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"/>
+                @error('mail_password') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                @if($mail_username && str_contains($mail_username, 'gmail'))
+                    <p class="text-[10px] text-amber-600 mt-1">⚠ Gmail requiere una <strong>Contraseña de aplicación</strong> (no tu contraseña habitual). Actívala en <a href="https://myaccount.google.com/apppasswords" target="_blank" class="underline">myaccount.google.com/apppasswords</a>.</p>
+                @endif
+            </div>
+
+        </div>
+
+        {{-- From section --}}
+        <div>
+            <p class="text-xs font-semibold text-gray-700 mb-3">Remitente visible por el destinatario</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Email remitente</label>
+                    <input wire:model="mail_from_address" type="email" placeholder="noreply@miacademia.com"
+                           class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"/>
+                    <p class="text-[10px] text-gray-400 mt-1">Si se deja vacío se usará el usuario SMTP.</p>
+                    @error('mail_from_address') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre remitente</label>
+                    <input wire:model="mail_from_name" type="text" placeholder="{{ $school->name }}"
+                           class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"/>
+                    <p class="text-[10px] text-gray-400 mt-1">Si se deja vacío se usará el nombre de la escuela.</p>
+                    @error('mail_from_name') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                </div>
+            </div>
+        </div>
+
+        {{-- DNS records helper --}}
+        @php
+            $host = $school->mail_host ?? $mail_host;
+            $fromDomain = $school->mail_from_address ? explode('@', $school->mail_from_address)[1] ?? '' : '';
+            $isGmail   = str_contains($host, 'gmail') || str_contains($host, 'google');
+            $isOutlook = str_contains($host, 'office365') || str_contains($host, 'outlook') || str_contains($host, 'hotmail');
+            $isYahoo   = str_contains($host, 'yahoo');
+            $isStrato  = str_contains($host, 'strato');
+            $isCustom  = $host && !$isGmail && !$isOutlook && !$isYahoo && !$isStrato;
+        @endphp
+
+        <div x-data="{ open: false }" class="border border-gray-200 rounded-xl overflow-hidden">
+            <button type="button" @click="open = !open"
+                    class="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left">
+                <span class="text-xs font-semibold text-gray-700 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                    Registros DNS para evitar spam
+                    @if($isGmail || $isOutlook || $isYahoo || $isStrato)
+                        <span class="text-green-600 font-normal">(configurado con {{ $isGmail ? 'Gmail' : ($isOutlook ? 'Outlook' : ($isYahoo ? 'Yahoo' : 'Strato')) }})</span>
+                    @endif
+                </span>
+                <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+
+            <div x-show="open" x-collapse class="px-4 pb-4 pt-3 space-y-4 text-xs">
+
+                @if($isGmail)
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-green-800">
+                        <p class="font-semibold mb-1">✅ Con Gmail no necesitas configurar DNS</p>
+                        <p>Google gestiona automáticamente SPF y DKIM cuando envías a través de <code class="bg-white px-1 rounded">smtp.gmail.com</code>. Los correos salen con la reputación de Google, lo que garantiza una entrega óptima.</p>
+                    </div>
+
+                @elseif($isOutlook)
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-blue-800">
+                        <p class="font-semibold mb-1">✅ Con Outlook/Hotmail no necesitas configurar DNS</p>
+                        <p>Microsoft gestiona automáticamente SPF y DKIM cuando envías a través de <code class="bg-white px-1 rounded">smtp.office365.com</code>. Los correos salen con la reputación de Microsoft.</p>
+                    </div>
+
+                @elseif($isYahoo)
+                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 text-purple-800">
+                        <p class="font-semibold mb-1">✅ Con Yahoo no necesitas configurar DNS</p>
+                        <p>Yahoo gestiona automáticamente SPF y DKIM cuando envías a través de sus servidores SMTP.</p>
+                    </div>
+
+                @elseif($isStrato)
+
+                    {{-- PASO 1: SPF --}}
+                    <div class="rounded-lg border border-gray-200 overflow-hidden">
+                        <div class="bg-gray-100 px-3 py-2 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-orange-500 text-white text-[11px] font-bold flex items-center justify-center shrink-0">1</span>
+                            <p class="text-xs font-semibold text-gray-800">SPF — en la pestaña DNS → "Registros TXT y CNAME" → <u>administrar</u></p>
+                        </div>
+                        <div class="p-3 space-y-2 text-xs text-gray-700">
+                            <p>Busca la sección <strong>"STRATO Parámetros de registro SPF"</strong> y selecciona:</p>
+                            <div class="flex items-start gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                                <span class="text-green-600 font-bold mt-0.5">●</span>
+                                <span><strong>Servidor mail estándar de STRATO</strong></span>
+                            </div>
+                            <p class="text-gray-400">Pulsa guardar. Strato añade el registro SPF automáticamente — no tienes que escribir nada en los campos de abajo.</p>
+                        </div>
+                    </div>
+
+                    {{-- PASO 2: DMARC --}}
+                    <div class="rounded-lg border border-gray-200 overflow-hidden">
+                        <div class="bg-gray-100 px-3 py-2 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-orange-500 text-white text-[11px] font-bold flex items-center justify-center shrink-0">2</span>
+                            <p class="text-xs font-semibold text-gray-800">DMARC — en la misma pantalla "Registros TXT y CNAME"</p>
+                        </div>
+                        <div class="p-3 space-y-2 text-xs text-gray-700">
+                            <p>Busca la sección <strong>"STRATO DMARC"</strong> y selecciona:</p>
+                            <div class="flex items-start gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                                <span class="text-green-600 font-bold mt-0.5">●</span>
+                                <span><strong>Regla DMARC estándar de STRATO</strong></span>
+                            </div>
+                            <p class="text-gray-400">Guarda. Con esto ya tienes DMARC configurado sin tocar los campos de texto.</p>
+                            <hr class="border-gray-100">
+                            <p class="font-medium text-gray-600">¿Quieres recibir informes de entrega en tu correo? Usa el campo TXT manual que aparece debajo en esa misma pantalla:</p>
+                            <table class="w-full text-xs border-collapse">
+                                <tr class="border-b border-gray-100">
+                                    <td class="py-1 pr-3 font-semibold text-gray-500 whitespace-nowrap">Tipo</td>
+                                    <td><code class="bg-gray-100 px-1 rounded">TXT</code></td>
+                                </tr>
+                                <tr class="border-b border-gray-100">
+                                    <td class="py-1 pr-3 font-semibold text-gray-500 whitespace-nowrap">Prefijo</td>
+                                    <td><code class="bg-gray-100 px-1 rounded">_dmarc</code> <span class="text-gray-400">(deja el resto del dominio que ya aparece)</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1 pr-3 font-semibold text-gray-500 whitespace-nowrap align-top">Valor</td>
+                                    <td>
+                                        <div class="flex items-center gap-2">
+                                            <code class="bg-gray-100 px-1 rounded break-all">v=DMARC1; p=none; rua=mailto:{{ $school->email ?? 'tucorreo@tudominio.com' }}</code>
+                                            <button type="button" onclick="navigator.clipboard.writeText('v=DMARC1; p=none; rua=mailto:{{ $school->email ?? 'tucorreo@tudominio.com' }}')" class="shrink-0 text-primary hover:underline font-semibold">Copiar</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    {{-- PASO 3: DKIM --}}
+                    <div class="rounded-lg border border-gray-200 overflow-hidden">
+                        <div class="bg-gray-100 px-3 py-2 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-orange-500 text-white text-[11px] font-bold flex items-center justify-center shrink-0">3</span>
+                            <p class="text-xs font-semibold text-gray-800">DKIM — en el paquete de email (no en DNS)</p>
+                        </div>
+                        <div class="p-3 space-y-2 text-xs text-gray-700">
+                            <p>El DKIM <strong>no está en la sección DNS</strong>, está en la configuración del paquete de correo:</p>
+                            <ol class="list-decimal list-inside space-y-1.5 text-gray-600">
+                                <li>Entra en <a href="https://www.strato.es/apps/CustomerService" target="_blank" class="text-primary underline font-medium">strato.es → Mi cuenta</a></li>
+                                <li>Ve a <strong>Paquetes</strong> → tu paquete de correo (Starter Mail, Business Mail, etc.)</li>
+                                <li>Busca la opción <strong>"Seguridad del correo"</strong> o <strong>"Firma DKIM"</strong></li>
+                                <li>Activa el interruptor de <strong>DKIM</strong></li>
+                                <li>Strato crea el registro DNS automáticamente — no tienes que copiar nada</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    {{-- Verification Strato --}}
+                    <div class="pt-2 border-t border-gray-100">
+                        <p class="font-semibold text-gray-600 mb-2 text-xs">Verificar que todo está bien configurado:</p>
+                        <div class="flex flex-wrap gap-2">
+                            @if($fromDomain)
+                                <a href="https://mxtoolbox.com/spf.aspx?domain={{ $fromDomain }}" target="_blank"
+                                   class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-50 border border-orange-200 hover:bg-orange-100 text-orange-800 transition-colors font-medium text-xs">
+                                    Verificar SPF
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                </a>
+                                <a href="https://mxtoolbox.com/dmarc.aspx?domain={{ $fromDomain }}" target="_blank"
+                                   class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-50 border border-orange-200 hover:bg-orange-100 text-orange-800 transition-colors font-medium text-xs">
+                                    Verificar DMARC
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                </a>
+                            @endif
+                            <a href="https://www.mail-tester.com" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors text-xs">
+                                Puntuación anti-spam (mail-tester.com)
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                            </a>
+                        </div>
+                    </div>
+
+                @else
+                    <p class="text-gray-600">
+                        Si usas un servidor SMTP propio o de hosting, el administrador del dominio
+                        @if($fromDomain) <strong>{{ $fromDomain }}</strong> @else del email remitente @endif
+                        debe añadir estos registros DNS:
+                    </p>
+
+                    {{-- SPF --}}
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <p class="font-semibold text-gray-700">1. Registro SPF <span class="font-normal text-gray-400">(TXT en @)</span></p>
+                            <button type="button" onclick="navigator.clipboard.writeText('v=spf1 a mx include:{{ $host ?? 'tuservidor.com' }} ~all')" class="text-primary hover:underline">Copiar</button>
+                        </div>
+                        <code class="block bg-gray-100 rounded-lg px-3 py-2 text-gray-800 break-all select-all">v=spf1 a mx{{ $host ? ' include:'.$host : '' }} ~all</code>
+                        <p class="text-gray-400 mt-1">Añade este registro TXT en la raíz (@) de tu dominio. Si ya tienes un SPF, añade <code class="bg-gray-100 px-1 rounded">include:{{ $host ?? 'tuservidor' }}</code> dentro del existente.</p>
+                    </div>
+
+                    {{-- DMARC --}}
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <p class="font-semibold text-gray-700">2. Registro DMARC <span class="font-normal text-gray-400">(TXT en _dmarc)</span></p>
+                            <button type="button" onclick="navigator.clipboard.writeText('v=DMARC1; p=none; rua=mailto:{{ $school->email ?? 'admin@tudominio.com' }}')" class="text-primary hover:underline">Copiar</button>
+                        </div>
+                        <code class="block bg-gray-100 rounded-lg px-3 py-2 text-gray-800 break-all select-all">v=DMARC1; p=none; rua=mailto:{{ $school->email ?? 'admin@tudominio.com' }}</code>
+                        <p class="text-gray-400 mt-1">Nombre del registro: <code class="bg-gray-100 px-1 rounded">_dmarc</code> — Tipo: <code class="bg-gray-100 px-1 rounded">TXT</code></p>
+                    </div>
+
+                    {{-- DKIM note --}}
+                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-amber-800">
+                        <p class="font-semibold mb-1">3. DKIM — lo genera tu proveedor de hosting</p>
+                        <p>El registro DKIM es único para cada servidor. Entra en el panel de tu hosting (cPanel, Plesk, etc.) y busca la sección <strong>"Email Authentication"</strong> o <strong>"DKIM"</strong>. Te dará el registro TXT que hay que pegar en el DNS.</p>
+                    </div>
+                @endif
+
+                {{-- Verification tools --}}
+                <div class="pt-2 border-t border-gray-100">
+                    <p class="font-semibold text-gray-600 mb-2">Verificar configuración:</p>
+                    <div class="flex flex-wrap gap-2">
+                        <a href="https://www.mail-tester.com" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors">
+                            mail-tester.com <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        </a>
+                        <a href="https://mxtoolbox.com/SuperTool.aspx" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors">
+                            MXToolbox <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        </a>
+                        <a href="https://dmarcian.com/dmarc-inspector/" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors">
+                            DMARC Inspector <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- Save button --}}
+        <div class="flex justify-end pt-2 border-t border-gray-100">
+            <button type="button" wire:click="saveMailConfig" wire:loading.attr="disabled" wire:target="saveMailConfig"
+                    class="btn-primary px-5 py-2 rounded-lg text-sm text-white font-semibold shadow hover:shadow-md disabled:opacity-70 transition-all">
+                <svg wire:loading wire:target="saveMailConfig" class="animate-spin -ml-1 mr-2 h-4 w-4 inline" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <span wire:loading.remove wire:target="saveMailConfig">Guardar configuración de correo</span>
+                <span wire:loading wire:target="saveMailConfig">Guardando...</span>
+            </button>
+        </div>
+
+        {{-- Test email --}}
+        <div class="bg-gray-50 rounded-xl border border-gray-200 p-4">
+            <p class="text-xs font-semibold text-gray-700 mb-3 flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Enviar correo de prueba
+            </p>
+            <div class="flex gap-2 items-start">
+                <div class="flex-1">
+                    <input wire:model="mail_test_to" type="email" placeholder="destinatario@ejemplo.com"
+                           class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"/>
+                    @error('mail_test_to') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                </div>
+                <button type="button" wire:click="sendTestMail" wire:loading.attr="disabled" wire:target="sendTestMail"
+                        class="shrink-0 px-4 py-2 rounded-lg text-sm font-semibold border border-gray-300 text-gray-700 hover:bg-white transition-colors disabled:opacity-60">
+                    <span wire:loading.remove wire:target="sendTestMail">Enviar prueba</span>
+                    <span wire:loading wire:target="sendTestMail">Enviando...</span>
+                </button>
+            </div>
+            <p class="text-[10px] text-gray-400 mt-2">Usa los valores del formulario para la prueba. Guarda primero para que los cambios persistan.</p>
+        </div>
+
+    </div>
+
+    <script>
+    function copyApiKey() {
+        const apiKey = document.getElementById('api-key-display').textContent;
+        navigator.clipboard.writeText(apiKey).then(() => {
+            alert('API Key copiada al portapapeles');
+        });
+    }
+    </script>
+</div>

@@ -6,8 +6,11 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\User;
 use App\Models\SportsSchool;
+use App\Services\SchoolMailer;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 
 class Create extends Component
@@ -26,6 +29,7 @@ class Create extends Component
     public $documentLabel;
     public $documentType = '';
     public $captureMode = false;
+    public bool $send_reset_email = false;
 
     public function mount()
     {
@@ -40,7 +44,7 @@ class Create extends Component
         $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email|max:255',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => $this->send_reset_email ? 'nullable' : 'required|string|min:8|confirmed',
             'sports_school_id' => 'required|exists:sports_schools,id',
             'role' => 'required|exists:roles,name',
             'is_active' => 'boolean',
@@ -80,7 +84,7 @@ class Create extends Component
         $data = [
             'name' => $this->name,
             'email' => $this->email,
-            'password' => Hash::make($this->password),
+            'password' => Hash::make($this->send_reset_email ? Str::random(32) : $this->password),
             'sports_school_id' => $this->sports_school_id,
             'role' => $this->role,
             'is_active' => $this->is_active,
@@ -117,7 +121,44 @@ class Create extends Component
         // Asignar rol usando Spatie
         $user->assignRole($this->role);
 
-        session()->flash('message', 'Usuario creado correctamente. Ahora puedes agregar su foto de perfil y documentos.');
+        // Enviar email de bienvenida con enlace para establecer contraseña
+        if ($this->send_reset_email) {
+            try {
+                $school  = SportsSchool::find($this->sports_school_id);
+                $token   = Password::broker()->createToken($user);
+                $resetUrl = url(route('password.reset', [
+                    'token' => $token,
+                    'email' => $user->email,
+                ], false));
+
+                $schoolName = $school?->name ?? config('app.name');
+                $fromAddr   = $school?->mail_from_address ?: ($school?->mail_username ?: config('mail.from.address'));
+                $fromName   = $school?->mail_from_name ?: $schoolName;
+
+                $body = implode("\n\n", [
+                    "Hola {$user->name},",
+                    "Tu cuenta en {$schoolName} ha sido creada correctamente.",
+                    "Para establecer tu contraseña y acceder a la plataforma, pulsa el siguiente enlace:",
+                    $resetUrl,
+                    "Este enlace expirará en 60 minutos. Si no lo usas a tiempo, puedes solicitar otro desde la pantalla de inicio de sesión.",
+                    "Saludos,\n{$schoolName}",
+                ]);
+
+                $mailer = SchoolMailer::forSchool($school ?? new SportsSchool());
+                $mailer->raw($body, function ($msg) use ($user, $fromAddr, $fromName, $schoolName) {
+                    $msg->to($user->email, $user->name)
+                        ->from($fromAddr, $fromName)
+                        ->subject("Bienvenido a {$schoolName} — Establece tu contraseña");
+                });
+
+                session()->flash('message', "Usuario creado correctamente. Se ha enviado un email a {$user->email} con el enlace para establecer la contraseña.");
+            } catch (\Exception $e) {
+                \Log::error('Error enviando email de bienvenida: ' . $e->getMessage());
+                session()->flash('message', 'Usuario creado correctamente. No se pudo enviar el email de bienvenida (revisa la configuración SMTP de la escuela).');
+            }
+        } else {
+            session()->flash('message', 'Usuario creado correctamente. Ahora puedes agregar su foto de perfil y documentos.');
+        }
         
         // Redirigir al editar del usuario creado según el contexto
         $route = (auth()->user()->isMaster() || session()->has('impersonator_id')) 
@@ -130,11 +171,19 @@ class Create extends Component
     public function render()
     {
         $schools = SportsSchool::where('is_active', true)->orderBy('name')->get();
-        $roles = Role::where('name', '!=', 'master')->get();
-        
+        $roles   = Role::where('name', '!=', 'master')->get();
+
+        $selectedSchool       = $this->sports_school_id ? SportsSchool::find($this->sports_school_id) : null;
+        $schoolMailConfigured = $selectedSchool ? SchoolMailer::isConfigured($selectedSchool) : false;
+        $schoolMailFrom       = $selectedSchool
+            ? ($selectedSchool->mail_from_address ?: ($selectedSchool->mail_username ?: null))
+            : null;
+
         return view('livewire.school-users.create', [
-            'schools' => $schools,
-            'roles' => $roles
+            'schools'             => $schools,
+            'roles'               => $roles,
+            'schoolMailConfigured'=> $schoolMailConfigured,
+            'schoolMailFrom'      => $schoolMailFrom,
         ]);
     }
 }

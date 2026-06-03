@@ -755,7 +755,7 @@
                     
                     <!-- Botón Ver Más Resultados -->
                     {{-- TODO: Crear ruta 'webclubs.results' para mostrar todos los resultados históricos --}}
-                    <div class="text-center mt-16">
+                    {{-- <div class="text-center mt-16">
                         <div class="bg-gray-50 rounded-3xl p-12 inline-block">
                             <a href="#" class="group inline-flex items-center gap-4 text-white px-12 py-5 rounded-full font-bold text-sm uppercase tracking-[0.15em] shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105" style="background: linear-gradient(to right, {{ $primaryColor }}, {{ $secondaryColor }});">
                                 <span>Ver Todos Los Resultados</span>
@@ -764,7 +764,7 @@
                                 </svg>
                             </a>
                         </div>
-                    </div>
+                    </div> --}}
                 @else
                     <div class="text-center py-20">
                         <div class="inline-block bg-gray-50 rounded-3xl p-16">
