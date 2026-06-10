@@ -676,7 +676,24 @@
                                                     <table class="min-w-full divide-y divide-gray-200">
                                                         <thead class="bg-gray-50 sticky top-0">
                                                             <tr>
-                                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Selección</th>
+                                                                @php
+                                                                    $selectableCount = collect($transferResults)->filter(fn($r) => empty($r['no_match']) && isset($r['id']) && $r['id'] !== null && empty($r['from_quick_search']))->count();
+                                                                    $allSelected = $selectableCount > 0 && count($selectedTransferPayments) === $selectableCount;
+                                                                @endphp
+                                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                                                    @if($selectableCount > 0)
+                                                                        <div class="flex flex-col items-center gap-0.5">
+                                                                            <input type="checkbox"
+                                                                                wire:click="toggleSelectAllTransferPayments"
+                                                                                @checked($allSelected)
+                                                                                class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                                                                                title="Seleccionar/Deseleccionar todos">
+                                                                            <span class="text-[10px] leading-none">todos</span>
+                                                                        </div>
+                                                                    @else
+                                                                        Sel.
+                                                                    @endif
+                                                                </th>
                                                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Código</th>
                                                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jugador</th>
                                                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tutor</th>
@@ -732,6 +749,10 @@
                                                                             @if($isDuplicate)
                                                                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-orange-100 text-orange-800 border border-orange-300">
                                                                                     ⚠ DUPLICADO ({{ $result['duplicate_count'] }} coincidencias en {{ $result['excel_cell'] }})
+                                                                                </span>
+                                                                            @elseif(isset($result['matched_by']) && $result['matched_by'] === 'name')
+                                                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-300">
+                                                                                    Por nombre
                                                                                 </span>
                                                                             @endif
                                                                         </div>
@@ -800,14 +821,48 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                                                     </svg>
                                                     <div class="flex-1">
-                                                        <p class="text-sm font-semibold text-purple-900 mb-2">Importación masiva de códigos de pago desde Excel</p>
+                                                        <div class="flex items-center justify-between mb-2">
+                                                            <p class="text-sm font-semibold text-purple-900">Importación masiva desde Excel</p>
+                                                            <button wire:click="downloadTransferTemplate"
+                                                                class="inline-flex items-center px-3 py-1.5 bg-white border border-purple-400 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors duration-200 text-xs font-semibold">
+                                                                <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                                                </svg>
+                                                                Descargar plantilla
+                                                            </button>
+                                                        </div>
                                                         <p class="text-xs text-purple-700 mb-3">
-                                                            Sube un archivo Excel con códigos de pago (7-10 dígitos). El sistema detecta códigos incluso si están pegados a palabras (ej: "PAGO2612244P").
+                                                            Sube un archivo Excel con códigos de pago (7-10 dígitos) o nombres de jugadores. El sistema busca primero por código y, si no lo encuentra, por nombre y apellido del jugador.
                                                         </p>
                                                         <div class="bg-blue-100 border border-blue-300 rounded px-3 py-2 mb-3">
                                                             <p class="text-xs text-blue-800">
-                                                                <strong>ℹ️ Importante:</strong> Solo se buscan códigos de pago numéricos. No se procesan nombres, apellidos ni DNIs.
+                                                                <strong>ℹ️ Importante:</strong> Se busca por código de pago (prioridad) y también por nombre + apellido del jugador. Descarga la plantilla para ver el formato recomendado.
                                                             </p>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="block text-xs font-semibold text-purple-800 mb-1">Filtrar por cuota (opcional)</label>
+                                                            <select wire:model="transferCuotaFilter"
+                                                                class="block w-full px-3 py-2 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm text-gray-700">
+                                                                <option value="">Todas las cuotas</option>
+                                                                @for($i = 1; $i <= $maxCuotas; $i++)
+                                                                    <option value="{{ $i }}">
+                                                                        @if($i == 1) Primera cuota
+                                                                        @elseif($i == 2) Segunda cuota
+                                                                        @elseif($i == 3) Tercera cuota
+                                                                        @elseif($i == 4) Cuarta cuota
+                                                                        @elseif($i == 5) Quinta cuota
+                                                                        @elseif($i == 6) Sexta cuota
+                                                                        @elseif($i == 7) Séptima cuota
+                                                                        @elseif($i == 8) Octava cuota
+                                                                        @elseif($i == 9) Novena cuota
+                                                                        @elseif($i == 10) Décima cuota
+                                                                        @elseif($i == 11) Undécima cuota
+                                                                        @elseif($i == 12) Duodécima cuota
+                                                                        @else Cuota {{ $i }}
+                                                                        @endif
+                                                                    </option>
+                                                                @endfor
+                                                            </select>
                                                         </div>
                                                         <div class="flex gap-2">
                                                             <input type="file" 

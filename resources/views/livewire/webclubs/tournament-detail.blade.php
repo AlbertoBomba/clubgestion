@@ -387,10 +387,20 @@
                                                     @if($match->scheduled_at)
                                                         <div class="text-gray-400 text-xs font-bold uppercase tracking-wider">
                                                             {{ $match->scheduled_at->locale('es')->translatedFormat('d M') }}
+                                                           
                                                         </div>
                                                         <div class="text-gray-400 text-xs">{{ $match->scheduled_at->format('H:i') }}</div>
+                                                         @php
+                                                           
+                                                            $matchDate = $match->scheduled_at->locale('es')->translatedFormat('d M')." - ".$match->scheduled_at->format('H:i');
+                                                           
+                                                        @endphp
+
                                                     @else
                                                         <div class="text-gray-200 text-xs">&mdash;</div>
+                                                        @php
+                                                            $matchDate = null;
+                                                        @endphp
                                                     @endif
                                                 </div>
 
@@ -405,6 +415,7 @@
                                                         {{-- Home shield --}}
                                                         <div class="shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg overflow-hidden border {{ $homeWins ? 'border-gray-200' : 'border-gray-100' }} bg-gray-50 flex items-center justify-center">
                                                             @if($match->homeTeam?->logo)
+                                                            
                                                                 <img src="{{ Storage::url($match->homeTeam->logo) }}"
                                                                      alt="{{ $match->homeTeam->displayName() }}"
                                                                      class="w-full h-full object-contain {{ $isCompleted && !$homeWins ? 'opacity-40 grayscale' : '' }}">
@@ -433,7 +444,11 @@
                                                                 $stColors = ['scheduled'=>'text-blue-500','in_progress'=>'text-yellow-500','postponed'=>'text-orange-400','cancelled'=>'text-red-400'];
                                                             @endphp
                                                             <span class="px-1.5 sm:px-2.5 py-1 rounded-lg bg-gray-100 text-[10px] sm:text-xs font-bold uppercase tracking-wide {{ $stColors[$match->status] ?? 'text-gray-400' }}">
-                                                                {{ $match->statusLabel() }}
+                                                                @if($matchDate)
+                                                                   {{ $matchDate }} 
+                                                                @else
+                                                                   {{ $match->statusLabel() }}
+                                                                @endif
                                                             </span>
                                                         @endif
                                                     </div>

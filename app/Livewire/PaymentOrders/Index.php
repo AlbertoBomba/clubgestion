@@ -46,6 +46,7 @@ class Index extends Component
     public $selectedTransferPayments = []; // Para importación Excel (múltiples)
     public $selectedQuickSearchPayment = null; // Para búsqueda rápida (único)
     public $excelFile = null;
+    public $transferCuotaFilter = ''; // Filtro de cuota para importación Excel
     
     // Modal de confirmación de transferencias
     public $showTransferConfirmModal = false;
@@ -406,6 +407,7 @@ class Index extends Component
         $this->selectedTransferPayments = [];
         $this->selectedQuickSearchPayment = null;
         $this->excelFile = null;
+        $this->transferCuotaFilter = '';
         $this->showTransferModal = true;
     }
     
@@ -417,6 +419,7 @@ class Index extends Component
         $this->selectedTransferPayments = [];
         $this->selectedQuickSearchPayment = null;
         $this->excelFile = null;
+        $this->transferCuotaFilter = '';
     }
     
     public function clearTransferResults()
@@ -426,6 +429,22 @@ class Index extends Component
         $this->selectedTransferPayments = [];
         $this->selectedQuickSearchPayment = null;
         $this->excelFile = null;
+        $this->transferCuotaFilter = '';
+    }
+
+    public function toggleSelectAllTransferPayments()
+    {
+        $validIds = collect($this->transferResults)
+            ->filter(fn($r) => empty($r['no_match']) && isset($r['id']) && $r['id'] !== null && empty($r['from_quick_search']))
+            ->pluck('id')
+            ->values()
+            ->toArray();
+
+        if (count($this->selectedTransferPayments) === count($validIds) && count($validIds) > 0) {
+            $this->selectedTransferPayments = [];
+        } else {
+            $this->selectedTransferPayments = $validIds;
+        }
     }
     
     public function searchTransfers()
@@ -713,6 +732,7 @@ class Index extends Component
                             ->where('sports_school_id', $sportsSchoolId)
                             ->where('code', $code)
                             ->where('state', 0)
+                            ->when(!empty($this->transferCuotaFilter), fn($q) => $q->where('cuota', $this->transferCuotaFilter))
                             ->get();
                         
                         if ($payments->count() > 0) {
@@ -738,9 +758,6 @@ class Index extends Component
                                 if (!in_array($payment->id, $foundPaymentIds)) {
                                     $foundPaymentIds[] = $payment->id;
                                     
-                                    // Todos los pagos encontrados están pendientes
-                                    $this->selectedTransferPayments[] = $payment->id;
-                                    
                                     $results[] = [
                                         'id' => $payment->id,
                                         'code' => $payment->code,
@@ -761,6 +778,80 @@ class Index extends Component
                             }
                             
                             break; // Solo procesar el primer código encontrado en la fila
+                        }
+                    }
+                }
+                
+                // ===== PASO 2: BUSCAR POR NOMBRE/APELLIDO (si no se encontró por código) =====
+                if (!$foundInThisRow) {
+                    // Extraer palabras del texto de la fila (ignorar números y palabras muy cortas)
+                    $nameWords = array_values(array_unique(array_filter(
+                        preg_split('/[\s,;\/\-\.]+/u', $rowText),
+                        function($w) { return mb_strlen(trim($w)) >= 3 && !is_numeric(trim($w)); }
+                    )));
+                    
+                    if (!empty($nameWords)) {
+                        // Buscar pagos pendientes donde nombre Y apellido del jugador aparezcan en la fila
+                        $matchedPayments = PaymentPlayer::with(['player.teams'])
+                            ->where('sports_school_id', $sportsSchoolId)
+                            ->where('state', 0)
+                            ->when(!empty($this->transferCuotaFilter), fn($q) => $q->where('cuota', $this->transferCuotaFilter))
+                            ->whereHas('player', function($q) use ($nameWords) {
+                                $q->where(function($subQ) use ($nameWords) {
+                                    foreach ($nameWords as $word) {
+                                        $subQ->orWhere('name', 'like', '%' . $word . '%')
+                                             ->orWhere('surname', 'like', '%' . $word . '%');
+                                    }
+                                });
+                            })
+                            ->get()
+                            ->filter(function($payment) use ($rowText) {
+                                // Verificar que TANTO nombre COMO apellido estén presentes en la fila
+                                $player = $payment->player;
+                                if (!$player) return false;
+                                $nameInRow = !empty($player->name) && mb_stripos($rowText, trim($player->name)) !== false;
+                                $surnameInRow = !empty($player->surname) && mb_stripos($rowText, trim($player->surname)) !== false;
+                                return $nameInRow && $surnameInRow;
+                            });
+                        
+                        if ($matchedPayments->count() > 0) {
+                            $foundInThisRow = true;
+                            
+                            // Encontrar la primera celda no vacía
+                            $cellReference = 'A' . ($rowIndex + 1);
+                            $cellContent = $rowText;
+                            foreach ($row as $colIndex => $cellValue) {
+                                if (!empty(trim($cellValue))) {
+                                    $cellReference = $this->getColumnLetter($colIndex) . ($rowIndex + 1);
+                                    $cellContent = trim($cellValue);
+                                    break;
+                                }
+                            }
+                            
+                            foreach ($matchedPayments as $payment) {
+                                if (!in_array($payment->id, $foundPaymentIds)) {
+                                    $foundPaymentIds[] = $payment->id;
+                                    $playerSearchTerm = trim(($payment->player->name ?? '') . ' ' . ($payment->player->surname ?? ''));
+                                    
+                                    $results[] = [
+                                        'id' => $payment->id,
+                                        'code' => $payment->code,
+                                        'player_name' => trim(trim($payment->player->name ?? '') . ' ' . trim($payment->player->surname ?? '')),
+                                        'player_dni' => $payment->player->dni ?? '-',
+                                        'tutor_name' => trim(trim($payment->player->nametutor ?? '') . ' ' . trim($payment->player->surnametutor ?? '')),
+                                        'cuota' => $payment->cuota,
+                                        'amount' => $payment->amount,
+                                        'team' => $payment->player->teams->first()->team ?? '-',
+                                        'search_term' => $playerSearchTerm,
+                                        'excel_cell' => $cellReference,
+                                        'excel_cell_content' => $cellContent,
+                                        'no_match' => false,
+                                        'row_hash' => $rowHash,
+                                        'matched_by' => 'name',
+                                    ];
+                                    $processedCount++;
+                                }
+                            }
                         }
                     }
                 }
@@ -817,13 +908,6 @@ class Index extends Component
                     foreach ($indices as $index) {
                         $results[$index]['duplicate_cell'] = true;
                         $results[$index]['duplicate_count'] = count($indices);
-                        
-                        // Remover de selección automática
-                        $paymentId = $results[$index]['id'];
-                        $key = array_search($paymentId, $this->selectedTransferPayments);
-                        if ($key !== false) {
-                            unset($this->selectedTransferPayments[$key]);
-                        }
                     }
                     $duplicateCount += count($indices);
                 }
@@ -881,6 +965,64 @@ class Index extends Component
         }
     }
     
+    public function downloadTransferTemplate()
+    {
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Transferencias');
+
+        // Cabeceras
+        $headers = [
+            'A' => 'Código de Pago',
+            'B' => 'Nombre Jugador',
+            'C' => 'Apellido Jugador',
+            'D' => 'Nombre Tutor',
+            'E' => 'Apellido Tutor',
+        ];
+
+        foreach ($headers as $col => $title) {
+            $sheet->setCellValue($col . '1', $title);
+            $sheet->getStyle($col . '1')->applyFromArray([
+                'font'      => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
+                'fill'      => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF7C3AED']],
+                'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
+            ]);
+            $sheet->getColumnDimension($col)->setWidth(25);
+        }
+
+        // Filas de ejemplo
+        $examples = [
+            ['2612244', 'Juan', 'García', 'Pedro', 'García'],
+            ['2612245', 'María', 'López', '', ''],
+            ['', 'Carlos', 'Martínez', 'Ana', 'Martínez'],
+        ];
+        foreach ($examples as $rowIdx => $example) {
+            $cols = ['A', 'B', 'C', 'D', 'E'];
+            foreach ($cols as $i => $col) {
+                $sheet->setCellValue($col . ($rowIdx + 2), $example[$i]);
+            }
+            $sheet->getStyle('A' . ($rowIdx + 2) . ':E' . ($rowIdx + 2))->applyFromArray([
+                'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFF5F3FF']],
+            ]);
+        }
+
+        // Nota informativa (sin mergeCells para evitar el error "celda combinada" al pegar datos)
+        $noteRow = count($examples) + 3;
+        $sheet->setCellValue('A' . $noteRow, 'NOTA: Puedes rellenar código de pago Y/O nombre+apellido del jugador. El sistema buscará por ambos criterios.');
+        $sheet->getStyle('A' . $noteRow)->applyFromArray([
+            'font' => ['italic' => true, 'color' => ['argb' => 'FF6B7280']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFFFBEB']],
+        ]);
+        $sheet->getColumnDimension('A')->setWidth(70);
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+
+        return response()->streamDownload(
+            fn () => $writer->save('php://output'),
+            'Plantilla_Transferencias.xlsx'
+        );
+    }
+
     private function getColumnLetter($colIndex)
     {
         $letter = '';

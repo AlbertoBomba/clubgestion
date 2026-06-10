@@ -618,12 +618,31 @@
                                                         {{ $team->contact_phone ?: '—' }}
                                                     </td>
                                                     {{-- Jugadores --}}
-                                                    <td class="px-4 py-3 text-center">
-                                                        @php $playerCount = $team->players()->count(); @endphp
-                                                        <span class="inline-flex items-center justify-center min-w-[1.5rem] px-1.5 py-0.5 rounded-full text-xs font-bold
-                                                            {{ $playerCount > 0 ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-gray-100 text-gray-400' }}">
-                                                            {{ $playerCount }}
-                                                        </span>
+                                                    <td class="px-4 py-3">
+                                                        @php
+                                                            $totalPlayers    = $team->players()->count();
+                                                            $approvedPlayers = $team->players()->where('status', 'approved')->count();
+                                                            $pct             = $totalPlayers > 0 ? round($approvedPlayers / $totalPlayers * 100) : 0;
+                                                            $barColor        = $pct === 100 ? 'bg-green-500' : ($pct >= 50 ? 'bg-indigo-500' : ($pct > 0 ? 'bg-amber-400' : 'bg-gray-200'));
+                                                        @endphp
+                                                        @if($totalPlayers > 0)
+                                                            <div class="flex flex-col gap-1 min-w-[80px]">
+                                                                <div class="flex items-center justify-between gap-2">
+                                                                    <span class="text-xs font-bold {{ $pct === 100 ? 'text-green-700' : 'text-indigo-700' }}">
+                                                                        {{ $approvedPlayers }}/{{ $totalPlayers }}
+                                                                    </span>
+                                                                    <span class="text-[10px] font-black {{ $pct === 100 ? 'text-green-600' : 'text-titanium' }}">
+                                                                        {{ $pct }}%
+                                                                    </span>
+                                                                </div>
+                                                                <div class="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+                                                                    <div class="h-full rounded-full transition-all {{ $barColor }}"
+                                                                         style="width: {{ $pct }}%"></div>
+                                                                </div>
+                                                            </div>
+                                                        @else
+                                                            <span class="text-xs text-titanium/40 font-semibold">—</span>
+                                                        @endif
                                                     </td>
                                                     {{-- Grupo --}}
                                                     @if ($hasGroups)
