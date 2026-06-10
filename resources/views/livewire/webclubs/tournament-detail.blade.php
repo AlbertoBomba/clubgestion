@@ -445,7 +445,7 @@
                                                             @endphp
                                                             <span class="px-1.5 sm:px-2.5 py-1 rounded-lg bg-gray-100 text-[10px] sm:text-xs font-bold uppercase tracking-wide {{ $stColors[$match->status] ?? 'text-gray-400' }}">
                                                                 @if($matchDate)
-                                                                   {{ $matchDate }} 
+                                                                   {{ $match->statusLabel() }} </br>  {{ $matchDate }} 
                                                                 @else
                                                                    {{ $match->statusLabel() }}
                                                                 @endif
