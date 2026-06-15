@@ -75,6 +75,10 @@ Route::middleware([
     'verified',
 ])->group(function () {
     Route::get('/dashboard', function () {
+        // Redirigir a árbitros a su dashboard
+        if (auth()->user()->hasRole('judge')) {
+            return redirect()->route('referee.dashboard');
+        }
         return view('dashboard');
     })->name('dashboard');
 
@@ -374,5 +378,17 @@ Route::middleware([
         Route::get('/web-home-config', function () {
             return view('web-home-config.edit');
         })->name('web-home-config.edit');
+    });
+
+    // Rutas para Árbitros (Judge role)
+    Route::middleware([App\Http\Middleware\EnsureJudgeRole::class])->prefix('referee')->name('referee.')->group(function () {
+        Route::get('/dashboard', App\Livewire\Referee\Dashboard::class)
+            ->name('dashboard');
+        
+        Route::get('/tournament/{tournament}/matches', App\Livewire\Referee\TournamentMatches::class)
+            ->name('tournament.matches');
+        
+        Route::get('/match/{match}/manage', App\Livewire\Referee\ManageMatch::class)
+            ->name('match.manage');
     });
 });

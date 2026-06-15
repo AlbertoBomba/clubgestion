@@ -115,4 +115,10 @@ class Tournament extends Model
     {
         return $this->belongsTo(User::class, 'updated_user');
     }
+
+    public function referees()
+    {
+        return $this->belongsToMany(User::class, 'tournament_referees')
+            ->withTimestamps();
+    }
 }

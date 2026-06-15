@@ -12,6 +12,7 @@ use App\Models\TournamentPhase;
 use App\Models\TournamentPlayer;
 use App\Models\TournamentStanding;
 use App\Models\TournamentTeam;
+use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
@@ -127,6 +128,12 @@ class Show extends Component
     public bool   $showPostponeModal   = false;
     public ?int   $postponeMatchId     = null;
     public string $postponeDate        = '';
+
+    // ------------------------------------------------------------------
+    // Referees modal
+    // ------------------------------------------------------------------
+    public bool   $showRefereesModal   = false;
+    public array  $selectedReferees    = [];
 
     public function mount(Tournament $tournament): void
     {
@@ -984,6 +991,33 @@ class Show extends Component
     }
 
     // ==================================================================
+    // Referees management
+    // ==================================================================
+
+    public function openRefereesModal(): void
+    {
+        // Load current referees
+        $this->selectedReferees = $this->tournament->referees()->pluck('user_id')->toArray();
+        $this->showRefereesModal = true;
+    }
+
+    public function toggleReferee(int $userId): void
+    {
+        if (in_array($userId, $this->selectedReferees)) {
+            $this->selectedReferees = array_diff($this->selectedReferees, [$userId]);
+        } else {
+            $this->selectedReferees[] = $userId;
+        }
+    }
+
+    public function saveReferees(): void
+    {
+        $this->tournament->referees()->sync($this->selectedReferees);
+        $this->showRefereesModal = false;
+        session()->flash('message', 'Árbitros actualizados correctamente.');
+    }
+
+    // ==================================================================
     // Render
     // ==================================================================
 
@@ -1074,11 +1108,20 @@ class Show extends Component
               ]))->with('team')->get()
             : collect();
 
+        // Referees data
+        $availableReferees = User::role('judge')
+            ->where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+        $assignedReferees = $this->tournament->referees;
+
         return view('livewire.tournaments.show', compact(
             'categories', 'activeCategory',
             'phases', 'teams', 'matches', 'standings', 'hasLeaguePhase',
             'schoolTeams', 'schoolCategories',
-            'goalsModalMatch', 'goalsForModal', 'gmTeamPlayers', 'gmMatchTeams'
+            'goalsModalMatch', 'goalsForModal', 'gmTeamPlayers', 'gmMatchTeams',
+            'availableReferees', 'assignedReferees'
         ));
     }
 }

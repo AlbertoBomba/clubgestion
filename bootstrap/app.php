@@ -22,6 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.key' => \App\Http\Middleware\ValidateApiKey::class,
             'api.rate' => \App\Http\Middleware\ApiRateLimiter::class,
             'tenant' => \App\Http\Middleware\IdentifyTenant::class,
+            'judge' => \App\Http\Middleware\EnsureJudgeRole::class,
+            'redirect.judge' => \App\Http\Middleware\RedirectIfJudge::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
