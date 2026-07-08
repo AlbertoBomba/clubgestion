@@ -231,6 +231,15 @@
                     </svg>
                     <span class="hidden xs:inline sm:inline">Equipos</span>
                 </button>
+                <button @click="tab = 'ranking'"
+                        :class="tab === 'ranking' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-700'"
+                        class="flex-1 md:flex-none flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-200">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 2 C 8 6, 8 10, 12 12 M12 12 C 16 10, 16 6, 12 2 M12 12 C 8 14, 8 18, 12 22 M12 12 C 16 14, 16 18, 12 22 M2 12 C 6 8, 10 8, 12 12 M12 12 C 14 8, 18 8, 22 12"/>
+                    </svg>
+                    <span class="hidden xs:inline sm:inline">Ranking</span>
+                </button>
             </div>
 
             {{-- --------------- TAB: PARTIDOS --------------- --}}
@@ -733,6 +742,153 @@
                 </div>
             </div>
 
+            {{-- --------------- TAB: RANKING --------------- --}}
+            <div x-show="tab === 'ranking'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
+                <div class="space-y-8">
+                    {{-- Tabla de Goleadores --}}
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-5 flex items-center gap-3">
+                            <span class="w-1.5 h-8 rounded-full inline-block shrink-0" style="background: var(--color-primary)"></span>
+                            Máximos Goleadores
+                        </h2>
+
+                        @if($topScorers->isEmpty())
+                            <div class="text-center py-16 bg-gray-50 border border-gray-100 rounded-2xl">
+                                <div class="text-5xl mb-3 opacity-10">⚽</div>
+                                <p class="text-gray-400 text-base font-semibold">No hay goleadores registrados aún.</p>
+                            </div>
+                        @else
+                            <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm shadow-gray-200/60">
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-sm">
+                                        <thead>
+                                            <tr class="border-b border-gray-100 text-xs text-gray-400 uppercase tracking-wider font-bold">
+                                                <th class="text-left px-3 sm:px-5 py-3 w-12">Pos</th>
+                                                <th class="text-left px-3 sm:px-5 py-3">Jugador</th>
+                                                <th class="text-left px-3 sm:px-5 py-3 hidden sm:table-cell">Equipo</th>
+                                                <th class="text-center px-3 sm:px-4 py-3 text-gray-600">Goles</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-50">
+                                            @foreach($topScorers as $i => $scorer)
+                                                <tr class="hover:bg-gray-50/70 transition-colors duration-150">
+                                                    <td class="px-3 sm:px-5 py-3 text-center">
+                                                        @if($i === 0)
+                                                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-black text-white"
+                                                                  style="background: linear-gradient(135deg, #FFD700, #FFA500)">🥇</span>
+                                                        @elseif($i === 1)
+                                                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-black bg-gray-300 text-white">🥈</span>
+                                                        @elseif($i === 2)
+                                                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-black bg-amber-600 text-white">🥉</span>
+                                                        @else
+                                                            <span class="text-gray-300 font-bold text-xs">{{ $i + 1 }}</span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="px-3 sm:px-5 py-3">
+                                                        <div class="flex items-center gap-2">
+                                                            @if($scorer->player?->photoUrl())
+                                                                <div class="w-8 h-8 rounded-lg overflow-hidden border border-gray-100 shrink-0">
+                                                                    <img src="{{ $scorer->player->photoUrl() }}" alt="{{ $scorer->player->fullName() }}" class="w-full h-full object-cover">
+                                                                </div>
+                                                            @else
+                                                                <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                                                                    <span class="text-xs font-black text-gray-400">{{ mb_substr($scorer->player?->fullName() ?? '?', 0, 1) }}</span>
+                                                                </div>
+                                                            @endif
+                                                            <span class="text-gray-900 font-semibold text-xs sm:text-sm">{{ $scorer->player?->fullName() ?? '—' }}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-3 sm:px-5 py-3 hidden sm:table-cell">
+                                                        <span class="text-gray-500 text-xs sm:text-sm">{{ $scorer->team?->displayName() ?? '—' }}</span>
+                                                    </td>
+                                                    <td class="px-3 sm:px-4 py-3 text-center">
+                                                        <div class="inline-flex items-center gap-1.5">
+                                                            <span class="text-gray-900 font-black text-base">{{ $scorer->goals ?? 0 }}</span>
+                                                            <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                                                <circle cx="10" cy="10" r="8" fill="white" stroke="currentColor" stroke-width="1.5"/>
+                                                                <path d="M10 2 C 14 4, 14 6, 10 8 C 6 6, 6 4, 10 2 Z" fill="currentColor"/>
+                                                                <path d="M10 12 C 14 14, 14 16, 10 18 C 6 16, 6 14, 10 12 Z" fill="currentColor"/>
+                                                            </svg>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- Tabla de Tarjetas --}}
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-5 flex items-center gap-3">
+                            <span class="w-1.5 h-8 rounded-full inline-block shrink-0" style="background: var(--color-primary)"></span>
+                            Tarjetas
+                        </h2>
+
+                        @if($playerCards->isEmpty())
+                            <div class="text-center py-16 bg-gray-50 border border-gray-100 rounded-2xl">
+                                <div class="text-5xl mb-3 opacity-10">🟨</div>
+                                <p class="text-gray-400 text-base font-semibold">No hay tarjetas registradas aún.</p>
+                            </div>
+                        @else
+                            <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm shadow-gray-200/60">
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-sm">
+                                        <thead>
+                                            <tr class="border-b border-gray-100 text-xs text-gray-400 uppercase tracking-wider font-bold">
+                                                <th class="text-left px-3 sm:px-5 py-3">Jugador</th>
+                                                <th class="text-left px-3 sm:px-5 py-3 hidden sm:table-cell">Equipo</th>
+                                                <th class="text-center px-3 sm:px-4 py-3">🟨 Amarillas</th>
+                                                <th class="text-center px-3 sm:px-4 py-3">🟥 Rojas</th>
+                                                <th class="text-center px-3 sm:px-4 py-3 text-gray-600">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-50">
+                                            @foreach($playerCards as $card)
+                                                <tr class="hover:bg-gray-50/70 transition-colors duration-150">
+                                                    <td class="px-3 sm:px-5 py-3">
+                                                        <div class="flex items-center gap-2">
+                                                            @if($card->player?->photoUrl())
+                                                                <div class="w-8 h-8 rounded-lg overflow-hidden border border-gray-100 shrink-0">
+                                                                    <img src="{{ $card->player->photoUrl() }}" alt="{{ $card->player->fullName() }}" class="w-full h-full object-cover">
+                                                                </div>
+                                                            @else
+                                                                <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                                                                    <span class="text-xs font-black text-gray-400">{{ mb_substr($card->player?->fullName() ?? '?', 0, 1) }}</span>
+                                                                </div>
+                                                            @endif
+                                                            <span class="text-gray-900 font-semibold text-xs sm:text-sm">{{ $card->player?->fullName() ?? '—' }}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-3 sm:px-5 py-3 hidden sm:table-cell">
+                                                        <span class="text-gray-500 text-xs sm:text-sm">{{ $card->team?->displayName() ?? '—' }}</span>
+                                                    </td>
+                                                    <td class="px-3 sm:px-4 py-3 text-center">
+                                                        <span class="inline-flex items-center justify-center min-w-[2rem] px-2 py-1 rounded-lg {{ $card->yellow_cards > 0 ? 'bg-yellow-100 text-yellow-700' : 'text-gray-300' }} font-bold text-sm">
+                                                            {{ $card->yellow_cards ?? 0 }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-3 sm:px-4 py-3 text-center">
+                                                        <span class="inline-flex items-center justify-center min-w-[2rem] px-2 py-1 rounded-lg {{ $card->red_cards > 0 ? 'bg-red-100 text-red-700' : 'text-gray-300' }} font-bold text-sm">
+                                                            {{ $card->red_cards ?? 0 }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-3 sm:px-4 py-3 text-center">
+                                                        <span class="text-gray-900 font-black text-base">{{ ($card->yellow_cards ?? 0) + ($card->red_cards ?? 0) }}</span>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
         </div>
       
 
@@ -922,6 +1078,18 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
                     <span class="text-[10px] font-bold uppercase tracking-wide">Equipos</span>
+                </button>
+                <button @click="tab = 'ranking'"
+                        :class="tab === 'ranking' ? 'text-gray-900' : 'text-gray-400'"
+                        class="flex-1 flex flex-col items-center justify-center py-3 gap-0.5 transition-colors relative">
+                    <span :class="tab === 'ranking' ? 'opacity-100' : 'opacity-0'"
+                          class="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full transition-opacity"
+                          style="background: var(--color-primary)"></span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 2 C 8 6, 8 10, 12 12 M12 12 C 16 10, 16 6, 12 2 M12 12 C 8 14, 8 18, 12 22 M12 12 C 16 14, 16 18, 12 22 M2 12 C 6 8, 10 8, 12 12 M12 12 C 14 8, 18 8, 22 12"/>
+                    </svg>
+                    <span class="text-[10px] font-bold uppercase tracking-wide">Ranking</span>
                 </button>
             </div>
         </nav>

@@ -48,6 +48,8 @@ class Create extends Component
             'to_year' => 'required|integer|min:1900|max:2100',
             'cuota' => 'required|integer|min:1|max:12',
             'end_date' => 'nullable|date',
+            'inscription_start_at' => 'nullable|date',
+            'inscription_end_at' => 'nullable|date',
             'precio_preinscripcion' => 'nullable|numeric|min:0',
         ];
     }
@@ -63,15 +65,15 @@ class Create extends Component
         $this->validate();
 
         // Verificar que no exista una temporada activa
-        $activeSeason = Season::where('sports_school_id', auth()->user()->sports_school_id)
-            ->where('start_date', '<=', now())
-            ->where('end_date', '>=', now())
-            ->first();
+        // $activeSeason = Season::where('sports_school_id', auth()->user()->sports_school_id)
+        //     ->where('start_date', '<=', now())
+        //     ->where('end_date', '>=', now())
+        //     ->first();
         
-        if ($activeSeason) {
-            $this->addError('season', 'No se puede crear una nueva temporada mientras exista una temporada activa. La temporada "' . $activeSeason->season . '" está actualmente activa.');
-            return;
-        }
+        // if ($activeSeason) {
+        //     $this->addError('season', 'No se puede crear una nueva temporada mientras exista una temporada activa. La temporada "' . $activeSeason->season . '" está actualmente activa.');
+        //     return;
+        // }
 
         $season = Season::create([
             'sports_school_id' => auth()->user()->sports_school_id,
@@ -82,6 +84,8 @@ class Create extends Component
             'cuota' => $this->cuota,
             'start_date' => now()->toDateString(),
             'end_date' => $this->end_date,
+            'inscription_start_at' => $this->inscription_start_at,
+            'inscription_end_at' => $this->inscription_end_at,
             'precio_preinscripcion' => $this->precio_preinscripcion ? floatval($this->precio_preinscripcion) : null,
             'created_user' => auth()->id(),
         ]);

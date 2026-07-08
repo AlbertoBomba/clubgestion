@@ -17,7 +17,7 @@
                 <a href="{{ route('webclubs.tournaments') }}" class="text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider transition">Torneos</a>
                 {{-- <a href="{{ route('webclubs.contact') }}" class="text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider transition">Contacto</a> --}}
                 {{-- <a href="{{ route('webclubs.registration') }}" class="bg-primary text-white px-8 py-3 text-sm font-semibold uppercase tracking-wider hover:opacity-90 transition rounded-full">
-                    Únete
+                    Alta jugadores
                 </a> --}}
                 @auth
                     <a href="{{ route('dashboard') }}" class="text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider transition">Panel</a>

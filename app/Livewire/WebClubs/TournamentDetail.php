@@ -3,6 +3,8 @@
 namespace App\Livewire\WebClubs;
 
 use App\Models\Tournament;
+use App\Models\TournamentMatchGoal;
+use App\Models\TournamentMatchCard;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 
@@ -69,10 +71,50 @@ class TournamentDetail extends Component
             $phaseMatches->groupBy(fn ($m) => $m->round ? 'Jornada ' . $m->round : 'Sin jornada')
         );
 
+        // Get all match IDs for statistics
+        $matchIds = $this->tournament->matches()->pluck('id');
+
+        // Top scorers (excluding own goals)
+        $topScorers = TournamentMatchGoal::whereIn('tournament_match_id', $matchIds)
+            ->where('goal_type', '!=', 'own_goal')
+            ->with(['player', 'team'])
+            ->get()
+            ->groupBy('tournament_player_id')
+            ->map(function ($goals) {
+                $first = $goals->first();
+                return (object) [
+                    'player'   => $first->player,
+                    'team'     => $first->team,
+                    'goals'    => $goals->count(),
+                ];
+            })
+            ->sortByDesc('goals')
+            ->values();
+
+        // Player cards (grouped by player)
+        $playerCards = TournamentMatchCard::whereIn('tournament_match_id', $matchIds)
+            ->with(['player', 'team'])
+            ->get()
+            ->groupBy('tournament_player_id')
+            ->map(function ($cards) {
+                $first = $cards->first();
+                return (object) [
+                    'player'        => $first->player,
+                    'team'          => $first->team,
+                    'yellow_cards'  => $cards->where('card_type', 'yellow')->count(),
+                    'red_cards'     => $cards->whereIn('card_type', ['red', 'double_yellow'])->count(),
+                ];
+            })
+            ->filter(fn($card) => $card->yellow_cards > 0 || $card->red_cards > 0)
+            ->sortByDesc(fn($card) => $card->red_cards * 1000 + $card->yellow_cards)
+            ->values();
+
         return view('livewire.webclubs.tournament-detail', [
             'teams'                  => $teams,
             'standings'              => $standings,
             'matchesByPhaseAndRound' => $matchesByPhaseAndRound,
+            'topScorers'             => $topScorers,
+            'playerCards'            => $playerCards,
             'canRegister'            => $this->tournament->status === 'registration_open'
                 && (
                     ! $this->tournament->registration_deadline

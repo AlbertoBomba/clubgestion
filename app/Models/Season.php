@@ -20,6 +20,8 @@ class Season extends Model
         'cuota',
         'start_date',
         'end_date',
+        'inscription_start_at',
+        'inscription_end_at',
         'precio_preinscripcion',
         'created_user',
         'updated_user',
@@ -31,6 +33,8 @@ class Season extends Model
         'cuota' => 'integer',
         'start_date' => 'date',
         'end_date' => 'date',
+        'inscription_start_at' => 'date',
+        'inscription_end_at' => 'date',
     ];
 
     /**

@@ -11,20 +11,38 @@
                    $season->start_date <= now() && 
                    $season->end_date >= now();
         });
+        $now = now();
+        $openInscriptionSeasons = $seasons->filter(function($season) use ($now) {
+            return $season->inscription_start_at && $season->inscription_end_at &&
+                   $season->inscription_start_at <= $now &&
+                   $season->inscription_end_at >= $now;
+        });
     @endphp
+
+    @if($openInscriptionSeasons->count() >= 2)
+        <div class="mb-4 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-lg flex items-start gap-3">
+            <svg class="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            </svg>
+            <div>
+                <p class="text-sm font-bold text-amber-800">Advertencia: hay {{ $openInscriptionSeasons->count() }} temporadas con inscripciones abiertas simultáneamente.</p>
+                <p class="text-sm text-amber-700 mt-1">No debería haber más de una temporada con inscripciones abiertas al mismo tiempo. Por favor, revisa y corrige las fechas de inscripción de las temporadas: <span class="font-semibold">{{ $openInscriptionSeasons->pluck('season')->join(', ') }}</span>.</p>
+            </div>
+        </div>
+    @endif
 
     <div class="sticky top-16 z-10 bg-white-pure flex items-center justify-between p-6 border-b border-gray-100">
         <h2 class="font-bold text-2xl text-titanium leading-tight">
             {{ __('Temporadas') }}
         </h2>
-        @if(!$hasActiveSeason)
+        {{-- @if(!$hasActiveSeason) --}}
             <a href="{{ route('seasons.create') }}" class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 hover:-translate-y-1 bg-blue-600 hover:bg-blue-700">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
                 Nueva Temporada
             </a>
-        @endif
+        {{-- @endif --}}
     </div>
 
     <div class=" bg-white-pure rounded-b-2xl shadow-xl border border-primary/10 overflow-hidden">
@@ -51,6 +69,7 @@
                         <th class="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider">Players</th>
                         <th class="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider">Equipos</th>
                         <th class="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider">Secciones</th>
+                        <th class="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider">Inscripciones</th>
                         <th class="px-6 py-4 text-right text-xs font-semibold text-primary uppercase tracking-wider"></th>
                     </tr>
                 </thead>
@@ -60,6 +79,9 @@
                             $isActive = $season->start_date && $season->end_date && 
                                         $season->start_date <= now() && 
                                         $season->end_date >= now();
+                            $hasOpenInscriptions = $season->inscription_start_at && $season->inscription_end_at &&
+                                        $season->inscription_start_at <= now() &&
+                                        $season->inscription_end_at >= now();
                         @endphp
                         <tr class="{{ $isActive ? 'bg-green-50 hover:bg-green-100 border-l-4 border-green-600' : 'hover:bg-primary/5' }}">
                             <td class="px-6 py-4">
@@ -110,6 +132,23 @@
                                     {{ $season->sections_count }}
                                 </span>
                             </td>
+                            <td class="px-6 py-4 text-center">
+                                @if($hasOpenInscriptions)
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-300">
+                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Abiertas
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-400">
+                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Cerradas
+                                    </span>
+                                @endif
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <div class="flex items-center justify-end space-x-2">
                                     <a href="{{ route('seasons.edit', $season->id) }}" 
@@ -146,7 +185,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-6 py-12 text-center text-gray-400">
+                            <td colspan="9" class="px-6 py-12 text-center text-gray-400">
                                 No se encontraron temporadas
                             </td>
                         </tr>

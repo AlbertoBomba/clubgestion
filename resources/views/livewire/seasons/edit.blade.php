@@ -141,6 +141,25 @@
                                     {{-- @if(!$isActive) disabled @endif --}}
                                 />
                             </div>
+                        
+                        </div>
+                        <div class="flex w-full gap-4">
+                            <div class="flex-1">
+                                <x-date-input 
+                                    label="Inicio Inscripción" 
+                                    model="inscription_start_at" 
+                                    error="inscription_start_at"
+                                    {{-- @if(!$isActive) disabled @endif --}}
+                                />
+                            </div>
+                            <div class="flex-1">
+                                <x-date-input 
+                                    label="Fin Inscripción" 
+                                    model="inscription_end_at" 
+                                    error="inscription_end_at"
+                                    {{-- @if(!$isActive) disabled @endif --}}
+                                />
+                            </div>
                         </div>
 
                         <div class="flex w-full gap-4">

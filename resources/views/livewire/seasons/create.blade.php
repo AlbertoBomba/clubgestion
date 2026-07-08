@@ -77,6 +77,23 @@
 
                         <div class="flex w-full gap-4">
                             <div class="flex-1">
+                                <x-date-input 
+                                    label="Inicio Inscripciones" 
+                                    model="inscription_start_at" 
+                                    error="inscription_start_at" 
+                                />
+                            </div>
+                            <div class="flex-1">
+                                <x-date-input 
+                                    label="Fin Inscripciones" 
+                                    model="inscription_end_at" 
+                                    error="inscription_end_at" 
+                                />
+                            </div>
+                        </div>
+
+                        <div class="flex w-full gap-4">
+                            <div class="flex-1">
                                 <label class="block text-sm font-semibold text-titanium mb-2">Número de Cuotas *</label>
                                 <select wire:model.live="cuota" class="w-full px-3 py-2 border border-silver rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
                                     @for ($i = 1; $i <= 12; $i++)

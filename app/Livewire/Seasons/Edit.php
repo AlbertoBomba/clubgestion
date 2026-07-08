@@ -22,6 +22,8 @@ class Edit extends Component
     public $isActive = false; // Si la temporada está activa
     public $confirmingDeletion = false;
     public $hasChanges = false; // Indica si hay cambios sin guardar
+    public $inscription_start_at = '';
+    public $inscription_end_at = '';
     
     // Valores originales para comparar
     private $originalSeason;
@@ -32,6 +34,8 @@ class Edit extends Component
     private $originalEndDate;
     private $originalPrecioPreinscripcion;
     private $originalSectionPrices = [];
+    private $originalInscriptionStartAt;
+    private $originalInscriptionEndAt;
     private $originalSelectedSections = [];
 
     public function updated($propertyName)
@@ -49,6 +53,8 @@ class Edit extends Component
         $cuotaChanged = (string)$this->cuota !== (string)$this->originalCuota;
         $endDateChanged = $this->end_date !== $this->originalEndDate;
         $precioPreinscripcionChanged = $this->precio_preinscripcion !== $this->originalPrecioPreinscripcion;
+        $inscriptionStartAtChanged = $this->inscription_start_at !== $this->originalInscriptionStartAt;
+        $inscriptionEndAtChanged = $this->inscription_end_at !== $this->originalInscriptionEndAt;
         $pricesChanged = $this->sectionPrices !== $this->originalSectionPrices;
         $sectionsChanged = count(array_diff($this->selectedSections, $this->originalSelectedSections)) > 0 ||
                           count(array_diff($this->originalSelectedSections, $this->selectedSections)) > 0;
@@ -82,6 +88,8 @@ class Edit extends Component
             'to_year' => 'required|integer|min:1900|max:2100',
             'cuota' => 'required|integer|min:1|max:12',
             'end_date' => 'nullable|date',
+            'inscription_start_at' => 'nullable|date',
+            'inscription_end_at' => 'nullable|date',
             'precio_preinscripcion' => 'nullable|numeric|min:0',
         ];
     }
@@ -107,6 +115,8 @@ class Edit extends Component
         $this->cuota = $season->cuota ?? 1;
         $this->end_date = $season->end_date ? $season->end_date->format('Y-m-d') : '';
         $this->precio_preinscripcion = $season->precio_preinscripcion;
+        $this->inscription_start_at = $season->inscription_start_at ? $season->inscription_start_at->format('Y-m-d') : '';
+        $this->inscription_end_at = $season->inscription_end_at ? $season->inscription_end_at->format('Y-m-d') : '';
         
         // Guardar valores originales para detectar cambios
         $this->originalSeason = $this->season;
@@ -116,6 +126,8 @@ class Edit extends Component
         $this->originalCuota = $this->cuota;
         $this->originalEndDate = $this->end_date ?? '';
         $this->originalPrecioPreinscripcion = $this->precio_preinscripcion ?? '';
+        $this->originalInscriptionStartAt = $this->inscription_start_at ?? '';
+        $this->originalInscriptionEndAt = $this->inscription_end_at ?? '';
         
         // Verificar si la temporada está activa (entre start_date y end_date)
         $this->isActive = $season->start_date && $season->end_date &&
@@ -149,6 +161,8 @@ class Edit extends Component
             'to_year' => $this->to_year,
             'cuota' => $this->cuota,
             'end_date' => $this->end_date,
+            'inscription_start_at' => $this->inscription_start_at,
+            'inscription_end_at' => $this->inscription_end_at,
             'precio_preinscripcion' => $this->precio_preinscripcion ? floatval($this->precio_preinscripcion) : null,
             'updated_user' => auth()->id(),
         ]);
@@ -184,6 +198,8 @@ class Edit extends Component
         $this->originalToYear = $this->to_year;
         $this->originalCuota = $this->cuota;
         $this->originalEndDate = $this->end_date;
+        $this->originalInscriptionStartAt = $this->inscription_start_at;
+        $this->originalInscriptionEndAt = $this->inscription_end_at;
         $this->originalPrecioPreinscripcion = $this->precio_preinscripcion;
         $this->originalSectionPrices = $this->sectionPrices;
         $this->originalSelectedSections = $this->selectedSections;
