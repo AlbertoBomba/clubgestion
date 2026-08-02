@@ -109,6 +109,16 @@ class SportsSchool extends Model
         return $this->hasMany(User::class)->where('role', 'student');
     }
 
+    public function members()
+    {
+        return $this->hasMany(Member::class);
+    }
+
+    public function memberTypes()
+    {
+        return $this->hasMany(MemberType::class);
+    }
+
     /**
      * Relación con marcas (many-to-many)
      */

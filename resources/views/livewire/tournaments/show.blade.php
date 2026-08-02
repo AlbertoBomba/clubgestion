@@ -189,6 +189,14 @@
                                     Clasificación
                                 </button>
                             @endif
+                            @if ($hasKnockoutPhase)
+                                <button @click="tab = 'bracket'"
+                                        :class="tab === 'bracket' ? 'bg-primary text-white shadow-sm' : 'text-titanium hover:text-black-deep hover:bg-gray-100'"
+                                        class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
+                                    Cuadro
+                                </button>
+                            @endif
                             <button @click="tab = 'stats'"
                                     :class="tab === 'stats' ? 'bg-primary text-white shadow-sm' : 'text-titanium hover:text-black-deep hover:bg-gray-100'"
                                     class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all">
@@ -258,9 +266,33 @@
                             </div>
                         </div>
 
-                        {{-- Rounds --}}
-                        <div class="space-y-6">
-                            @foreach ($matches->sortBy([['round', 'asc'], ['match_number', 'asc'], ['scheduled_at', 'asc']])->groupBy(fn($m) => $m->round ?? 0) as $round => $roundMatches)
+                        {{-- Rounds agrupados por fase --}}
+                        <div class="space-y-8">
+                            @foreach ($matches->sortBy([['phase_id', 'asc'], ['round', 'asc'], ['match_number', 'asc'], ['scheduled_at', 'asc']])->groupBy(fn($m) => $m->phase_id ?? 0) as $phaseId => $phaseMatches)
+                                @php
+                                    $phase     = $phaseMatches->first()?->phase;
+                                    $phaseName = $phase?->name ?? 'Sin fase';
+                                @endphp
+
+                                {{-- Phase header --}}
+                                <div>
+                                    <div class="flex items-center gap-3 mb-4 px-1">
+                                        <div class="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                                            <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                                        </div>
+                                        <h3 class="text-base font-black text-black-deep uppercase tracking-wide">{{ $phaseName }}</h3>
+                                        @if ($phase)
+                                            <span class="text-xs font-semibold text-titanium bg-gray-100 border border-silver px-2.5 py-1 rounded-full">{{ $phase->typeLabel() }}</span>
+                                        @endif
+                                        <div class="flex-1 h-px bg-silver mx-1"></div>
+                                        <span class="text-xs font-semibold text-titanium shrink-0">
+                                            {{ $phaseMatches->where('status', 'completed')->count() }}/{{ $phaseMatches->count() }} jugados
+                                        </span>
+                                    </div>
+
+                                    <div class="space-y-6">
+                                    @foreach ($phaseMatches->groupBy(fn($m) => $m->round ?? 0) as $round => $roundMatches)
+                            
                                 @php
                                     $roundLabel     = $round > 0 ? 'Jornada ' . $round : 'Sin jornada';
                                     $completedCount = $roundMatches->where('status', 'completed')->count();
@@ -305,12 +337,99 @@
                                     {{-- Match rows --}}
                                     <div class="bg-white-pure border border-silver rounded-2xl shadow-sm overflow-hidden">
                                         @foreach ($roundMatches as $match)
-                                            <div class="px-5 py-4 border-b border-gray-50 last:border-0 hover:bg-gray-50/60 transition-colors">
-                                                <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-                                                    {{-- Fixture --}}
-                                                    <div class="flex items-center gap-3 flex-1 min-w-0">
-                                                        {{-- Date/time block --}}
-                                                        <div class="hidden sm:flex flex-col items-center justify-center shrink-0 w-16 h-14 bg-gray-50 rounded-xl border border-silver/60 text-center">
+                                            <div class="px-5 py-4 border-b last:border-0 transition-colors
+                                                {{ $match->status === 'in_progress'
+                                                    ? 'border-green-100 bg-green-50/40 hover:bg-green-50/70'
+                                                    : 'border-gray-50 hover:bg-gray-50/60' }}">
+                                                {{-- ========== MOBILE layout (< sm) ========== --}}
+                                                <div class="sm:hidden space-y-2.5">
+                                                    {{-- Fila 1: fecha/estado + campo --}}
+                                                    <div class="flex items-center justify-between gap-2">
+                                                        @if ($match->status === 'in_progress')
+                                                            <span class="inline-flex items-center gap-1.5 text-[11px] font-black text-white bg-red-500 px-2.5 py-1 rounded-full animate-pulse">
+                                                                <span class="w-1.5 h-1.5 rounded-full bg-white shrink-0"></span>
+                                                                EN VIVO
+                                                            </span>
+                                                        @elseif ($match->scheduled_at)
+                                                            <span class="text-xs font-semibold text-titanium">{{ $match->scheduled_at->translatedFormat('d M · H:i') }}</span>
+                                                        @else
+                                                            <span class="text-xs text-titanium/40">Sin fecha</span>
+                                                        @endif
+                                                        <div class="flex items-center gap-2">
+                                                            @if ($match->location)
+                                                                <span class="text-[11px] text-titanium truncate max-w-[140px]">
+                                                                    <svg class="w-3 h-3 inline-block mr-0.5 -mt-px text-titanium/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                                                    {{ $match->location }}
+                                                                </span>
+                                                            @endif
+                                                            @if ($match->status === 'completed')
+                                                                <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full shrink-0">
+                                                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                                    Jugado
+                                                                </span>
+                                                            @elseif ($match->status === 'cancelled')
+                                                                <span class="text-[10px] font-semibold text-red-500 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full shrink-0">Cancelado</span>
+                                                            @elseif ($match->status === 'postponed')
+                                                                <span class="text-[10px] font-semibold text-gray-500 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full shrink-0">Aplazado</span>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+
+                                                    {{-- Fila 2: equipo local · marcador · equipo visitante --}}
+                                                    <div class="flex items-center gap-2">
+                                                        <p class="flex-1 text-right text-sm font-bold text-black-deep leading-tight truncate">{{ $match->homeTeam?->displayName() ?? '—' }}</p>
+                                                        <button wire:click="openGoalsModal({{ $match->id }})"
+                                                                class="shrink-0 w-[72px] py-2 rounded-xl text-center font-black text-base transition-all
+                                                                    {{ $match->status === 'completed'
+                                                                        ? 'bg-gray-50 border border-silver text-black-deep'
+                                                                        : ($match->status === 'in_progress'
+                                                                            ? 'bg-green-500 border border-green-600 text-white shadow-sm shadow-green-200'
+                                                                            : 'bg-amber-50 border-2 border-dashed border-amber-300 text-amber-600') }}">
+                                                            @if ($match->status === 'completed')
+                                                                {{ $match->home_score }} – {{ $match->away_score }}
+                                                            @elseif ($match->status === 'in_progress')
+                                                                {{ $match->home_score ?? 0 }} – {{ $match->away_score ?? 0 }}
+                                                            @elseif ($match->status === 'cancelled')
+                                                                <span class="text-xs font-bold text-red-400">CANC.</span>
+                                                            @elseif ($match->status === 'postponed')
+                                                                <span class="text-xs font-bold text-gray-400">APL.</span>
+                                                            @else
+                                                                <span class="text-xs font-bold">⚽ Goles</span>
+                                                            @endif
+                                                        </button>
+                                                        <p class="flex-1 text-left text-sm font-bold text-black-deep leading-tight truncate">{{ $match->awayTeam?->displayName() ?? '—' }}</p>
+                                                    </div>
+
+                                                    {{-- Fila 3: botón Eventos (ancho completo) --}}
+                                                    {{-- <a href="{{ route('tournament.match.events', [$tournament, $match]) }}" wire:navigate
+                                                       class="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 active:bg-indigo-100 transition-colors">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                                        Eventos
+                                                    </a> --}}
+                                                    <a wire:click="openEditMatchModal({{ $match->id }})" wire:navigate
+                                                       class="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 active:bg-indigo-100 transition-colors">
+                                                       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg> 
+                                                       {{-- <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg> --}}
+                                                        Editas Partido
+                                                    </a>
+                                                    
+                                                </div>
+
+                                                {{-- ========== DESKTOP layout (sm+) ========== --}}
+                                                <div class="hidden sm:flex sm:items-center gap-3">
+                                                    {{-- Date/time block --}}
+                                                    @if ($match->status === 'in_progress')
+                                                        <div class="flex flex-col items-center justify-center shrink-0 w-16 h-14 bg-red-500 rounded-xl border border-red-600 text-center shadow-sm shadow-red-200 animate-pulse">
+                                                            <span class="flex items-center gap-1">
+                                                                <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                                                <span class="text-[10px] font-black text-white tracking-wider">EN VIVO</span>
+                                                            </span>
+                                                            @if ($match->scheduled_at)
+                                                                <span class="text-[10px] text-red-100 mt-0.5">{{ $match->scheduled_at->format('H:i') }}</span>
+                                                            @endif
+                                                        </div>
+                                                    @else
+                                                        <div class="flex flex-col items-center justify-center shrink-0 w-16 h-14 bg-gray-50 rounded-xl border border-silver/60 text-center">
                                                             @if ($match->scheduled_at)
                                                                 <span class="text-xs font-bold text-black-deep">{{ $match->scheduled_at->format('d/m') }}</span>
                                                                 <span class="text-xs text-titanium">{{ $match->scheduled_at->format('H:i') }}</span>
@@ -318,44 +437,48 @@
                                                                 <span class="text-xs text-titanium/40 font-semibold">—</span>
                                                             @endif
                                                         </div>
-                                                        {{-- Teams + score --}}
-                                                        <div class="flex items-center gap-3 flex-1 min-w-0">
-                                                            <div class="flex-1 text-right min-w-0">
-                                                                <p class="text-sm font-bold text-black-deep truncate">{{ $match->homeTeam?->displayName() ?? '—' }}</p>
-                                                            </div>
-                                                            {{-- Score / Goals button --}}
-                                                            <button wire:click="openGoalsModal({{ $match->id }})"
-                                                                    class="shrink-0 min-w-[76px] px-3 py-2.5 rounded-xl text-center transition-all font-black text-base
-                                                                        {{ $match->status === 'completed'
-                                                                            ? 'bg-gray-50 border border-silver text-black-deep hover:bg-amber-50 hover:border-amber-200'
-                                                                            : 'bg-amber-50 border-2 border-dashed border-amber-300 text-amber-600 hover:bg-amber-100 hover:border-amber-400' }}"
-                                                                    title="Registrar goles / ver resultado">
-                                                                @if ($match->status === 'completed')
-                                                                    {{ $match->home_score }} – {{ $match->away_score }}
-                                                                @elseif ($match->status === 'cancelled')
-                                                                    <span class="text-xs font-bold text-red-400">CANC.</span>
-                                                                @elseif ($match->status === 'postponed')
-                                                                    <span class="text-xs font-bold text-gray-400">APL.</span>
-                                                                @else
-                                                                    <span class="text-xs font-bold">⚽ Goles</span>
-                                                                @endif
-                                                            </button>
-                                                            <div class="flex-1 text-left min-w-0">
-                                                                <p class="text-sm font-bold text-black-deep truncate">{{ $match->awayTeam?->displayName() ?? '—' }}</p>
-                                                            </div>
+                                                    @endif
+                                                    {{-- Teams + score --}}
+                                                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                                                        <div class="flex-1 text-right min-w-0">
+                                                            <p class="text-sm font-bold text-black-deep truncate">{{ $match->homeTeam?->displayName() ?? '—' }}</p>
+                                                        </div>
+                                                        <button wire:click="openGoalsModal({{ $match->id }})"
+                                                                class="shrink-0 min-w-[76px] px-3 py-2.5 rounded-xl text-center transition-all font-black text-base
+                                                                    {{ $match->status === 'completed'
+                                                                        ? 'bg-gray-50 border border-silver text-black-deep hover:bg-amber-50 hover:border-amber-200'
+                                                                        : ($match->status === 'in_progress'
+                                                                            ? 'bg-green-500 border border-green-600 text-white shadow-sm shadow-green-200 hover:bg-green-600'
+                                                                            : 'bg-amber-50 border-2 border-dashed border-amber-300 text-amber-600 hover:bg-amber-100 hover:border-amber-400') }}"
+                                                                title="Registrar goles / ver resultado">
+                                                            @if ($match->status === 'completed')
+                                                                {{ $match->home_score }} – {{ $match->away_score }}
+                                                            @elseif ($match->status === 'in_progress')
+                                                                {{ $match->home_score ?? 0 }} – {{ $match->away_score ?? 0 }}
+                                                            @elseif ($match->status === 'cancelled')
+                                                                <span class="text-xs font-bold text-red-400">CANC.</span>
+                                                            @elseif ($match->status === 'postponed')
+                                                                <span class="text-xs font-bold text-gray-400">APL.</span>
+                                                            @else
+                                                                <span class="text-xs font-bold">⚽ Goles</span>
+                                                            @endif
+                                                        </button>
+                                                        <div class="flex-1 text-left min-w-0">
+                                                            <p class="text-sm font-bold text-black-deep truncate">{{ $match->awayTeam?->displayName() ?? '—' }}</p>
                                                         </div>
                                                     </div>
-
                                                     {{-- Status + Actions --}}
                                                     <div class="flex items-center gap-2 shrink-0">
-                                                        {{-- Status badge --}}
                                                         @if ($match->status === 'completed')
                                                             <span class="hidden md:inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full shrink-0">
                                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                                                 Jugado
                                                             </span>
                                                         @elseif ($match->status === 'in_progress')
-                                                            <span class="hidden md:inline-flex items-center gap-1 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full animate-pulse shrink-0">En curso</span>
+                                                            <span class="inline-flex items-center gap-1.5 text-xs font-black text-white bg-red-500 border border-red-600 px-2.5 py-1 rounded-full animate-pulse shrink-0 shadow-sm shadow-red-200">
+                                                                <span class="w-1.5 h-1.5 rounded-full bg-white shrink-0"></span>
+                                                                EN VIVO
+                                                            </span>
                                                         @elseif ($match->status === 'cancelled')
                                                             <span class="hidden md:inline-flex items-center gap-1 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 px-2.5 py-1 rounded-full shrink-0">Cancelado</span>
                                                         @elseif ($match->status === 'postponed')
@@ -363,21 +486,18 @@
                                                         @else
                                                             <span class="hidden md:inline-flex items-center gap-1 text-xs font-semibold text-titanium bg-gray-50 border border-silver px-2.5 py-1 rounded-full shrink-0">Programado</span>
                                                         @endif
-                                                        {{-- Action: Eventos --}}
                                                         <a href="{{ route('tournament.match.events', [$tournament, $match]) }}" wire:navigate
                                                            class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition-colors"
                                                            title="Tarjetas y sanciones">
                                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                                                             <span class="hidden lg:inline">Eventos</span>
                                                         </a>
-                                                        {{-- Action: Editar --}}
                                                         <button wire:click="openEditMatchModal({{ $match->id }})"
                                                                 class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 transition-colors"
                                                                 title="Editar fecha, lugar, estado">
                                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                                             <span class="hidden lg:inline">Editar</span>
                                                         </button>
-                                                        {{-- Action: Eliminar --}}
                                                         <button wire:click="confirmDeleteMatch({{ $match->id }})"
                                                                 class="p-2 rounded-xl text-titanium/40 hover:text-red-500 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors"
                                                                 title="Eliminar partido">
@@ -385,13 +505,6 @@
                                                         </button>
                                                     </div>
                                                 </div>
-                                                {{-- Mobile date --}}
-                                                @if ($match->scheduled_at)
-                                                    <p class="sm:hidden text-xs text-titanium mt-2 pl-1">
-                                                        {{ $match->scheduled_at->translatedFormat('d/m/Y · H:i') }}
-                                                        @if ($match->location) · {{ $match->location }} @endif
-                                                    </p>
-                                                @endif
                                             </div>
                                         @endforeach
                                         {{-- Bye rows: teams not playing this round --}}
@@ -414,6 +527,9 @@
                                         @endif
                                     </div>
                                 </div>
+                                    @endforeach
+                                    </div>{{-- /space-y-6 --}}
+                                </div>{{-- /phase wrapper --}}
                             @endforeach
                         </div>
                     @endif
@@ -446,6 +562,7 @@
                                                         <tr class="border-b border-silver">
                                                             <th class="text-left text-xs font-semibold text-titanium px-5 py-3 w-10">#</th>
                                                             <th class="text-left text-xs font-semibold text-titanium px-4 py-3">Equipo</th>
+                                                            <th class="text-center text-xs font-bold text-primary px-5 py-3 w-16">Pts</th>
                                                             <th class="text-center text-xs font-semibold text-titanium px-3 py-3 w-12">PJ</th>
                                                             <th class="text-center text-xs font-semibold text-green-700 px-3 py-3 w-12">G</th>
                                                             <th class="text-center text-xs font-semibold text-titanium px-3 py-3 w-12">E</th>
@@ -453,7 +570,7 @@
                                                             <th class="text-center text-xs font-semibold text-titanium px-3 py-3 w-12">GF</th>
                                                             <th class="text-center text-xs font-semibold text-titanium px-3 py-3 w-12">GC</th>
                                                             <th class="text-center text-xs font-semibold text-titanium px-3 py-3 w-12">DG</th>
-                                                            <th class="text-center text-xs font-bold text-primary px-5 py-3 w-16">Pts</th>
+                                                            
                                                         </tr>
                                                     </thead>
                                                     <tbody class="divide-y divide-gray-50">
@@ -471,6 +588,7 @@
                                                                     @endif
                                                                 </td>
                                                                 <td class="px-4 py-4 font-semibold text-black-deep">{{ $standing->tournamentTeam?->displayName() ?? '—' }}</td>
+                                                                <td class="px-5 py-4 text-center"><span class="text-xl font-black text-primary">{{ $standing->points }}</span></td>
                                                                 <td class="px-3 py-4 text-center text-titanium">{{ $standing->played }}</td>
                                                                 <td class="px-3 py-4 text-center font-semibold text-green-700">{{ $standing->won }}</td>
                                                                 <td class="px-3 py-4 text-center text-titanium">{{ $standing->drawn }}</td>
@@ -478,7 +596,7 @@
                                                                 <td class="px-3 py-4 text-center text-titanium">{{ $standing->goals_for }}</td>
                                                                 <td class="px-3 py-4 text-center text-titanium">{{ $standing->goals_against }}</td>
                                                                 <td class="px-3 py-4 text-center text-titanium">{{ ($standing->goals_for - $standing->goals_against) >= 0 ? '+' : '' }}{{ $standing->goals_for - $standing->goals_against }}</td>
-                                                                <td class="px-5 py-4 text-center"><span class="text-xl font-black text-primary">{{ $standing->points }}</span></td>
+                                                                
                                                             </tr>
                                                         @endforeach
                                                     </tbody>
@@ -533,6 +651,282 @@
                                 </div>
                             </div>
                         @endif
+                    </div>
+                @endif
+
+                {{-- ========================= TAB: CUADRO ELIMINATORIO ========================= --}}
+                @if ($hasKnockoutPhase)
+                    <div x-show="tab === 'bracket'" x-cloak>
+                        @php
+                            $getRoundLabel = function(int $roundIndex, int $totalRounds): string {
+                                $fromFinal = $totalRounds - 1 - $roundIndex;
+                                return match($fromFinal) {
+                                    0 => 'Final',
+                                    1 => 'Semifinal',
+                                    2 => 'Cuartos de Final',
+                                    3 => 'Octavos de Final',
+                                    4 => '16avos de Final',
+                                    default => 'Ronda ' . ($roundIndex + 1),
+                                };
+                            };
+                            $matchH = 76;
+                            $matchW = 216;
+                            $gapX   = 28;
+                            $unit   = $matchH + 8;
+                        @endphp
+
+                        @foreach ($bracketData as $phaseId => $bracket)
+                            <div class="bg-white-pure border border-silver rounded-2xl shadow-sm p-5 mb-5">
+                                {{-- Phase header --}}
+                                <div class="flex items-center justify-between mb-5">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                                            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-sm font-bold text-black-deep">{{ $bracket['phase']->name }}</h3>
+                                            <p class="text-xs text-titanium">{{ $bracket['phase']->typeLabel() }} · {{ $bracket['phase']->statusLabel() }}</p>
+                                        </div>
+                                    </div>
+                                    <button wire:click="openBracketModal({{ $phaseId }})"
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-primary bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-colors">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                        Configurar cuadro
+                                    </button>
+                                </div>
+
+                                @if (!$bracket['hasMatches'])
+                                    <div class="flex flex-col items-center justify-center py-14 border-2 border-dashed border-silver rounded-2xl">
+                                        <svg class="w-12 h-12 text-titanium/20 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                        </svg>
+                                        <p class="text-sm font-semibold text-titanium mb-1">Sin cuadro generado</p>
+                                        <p class="text-xs text-titanium/60 mb-4 text-center max-w-xs">Selecciona los equipos clasificados para generar el cuadro de eliminatorias.</p>
+                                        <button wire:click="openBracketModal({{ $phaseId }})"
+                                                class="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow transition-colors">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                            Generar cuadro
+                                        </button>
+                                    </div>
+                                @else
+                                    @php
+                                        $numFirstRound = $bracket['numFirstRoundMatches'];
+                                        $totalRounds   = $bracket['totalRounds'];
+                                        $firstRound    = $bracket['firstRound'];
+                                        $maxRound      = $bracket['maxRound'];
+                                        $containerH    = max($numFirstRound, 1) * $unit;
+                                        // Teams already used in the first round (to filter dropdowns)
+                                        $firstRoundUsedTeams = collect($bracket['rounds'][$firstRound] ?? [])
+                                            ->flatMap(fn($m) => [$m->home_team_id, $m->away_team_id])
+                                            ->filter()->unique();
+                                    @endphp
+                                    <div class="overflow-x-auto pb-2">
+                                        <div class="flex min-w-max" style="align-items: flex-start;">
+                                            @foreach ($bracket['rounds'] as $roundNum => $roundMatches)
+                                                @php
+                                                    $roundIndex = $roundNum - $firstRound;
+                                                    $roundLabel = $getRoundLabel($roundIndex, $totalRounds);
+                                                    $isLast     = ($roundNum === $maxRound);
+                                                @endphp
+
+                                                {{-- Round column --}}
+                                                <div style="width: {{ $matchW }}px; flex-shrink: 0;">
+                                                    <div class="text-center mb-2">
+                                                        <span class="inline-block px-2.5 py-1 rounded-full text-xs font-bold
+                                                            {{ $isLast ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-gray-100 text-titanium' }}">
+                                                            {{ $roundLabel }}
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="relative" style="height: {{ $containerH }}px;">
+                                                        @foreach ($roundMatches as $matchIdx => $match)
+                                                            @php
+                                                                $slotMult = (int) pow(2, $roundIndex);
+                                                                $centerY  = (int)(($matchIdx + 0.5) * $unit * $slotMult);
+                                                                $topPx    = $centerY - (int)($matchH / 2);
+                                                                $mWinner  = $match->status === 'completed' ? $match->winner() : null;
+                                                                $homeWins = $mWinner && $mWinner->id === $match->home_team_id;
+                                                                $awayWins = $mWinner && $mWinner->id === $match->away_team_id;
+                                                            @endphp
+                                                            <div class="absolute left-0 right-0" style="top: {{ $topPx }}px;">
+                                                                {{-- Match card --}}
+                                                                <div class="border border-silver rounded-xl overflow-hidden shadow-sm bg-white-pure flex flex-col" style="height: {{ $matchH }}px;">
+                                                                    {{-- Home team --}}
+                                                                    <div class="flex-1 flex items-center gap-1.5 px-2.5 min-w-0 {{ $homeWins ? 'bg-green-50' : '' }}">
+                                                                        @if ($match->homeTeam)
+                                                                            <div class="w-5 h-5 rounded shrink-0 flex items-center justify-center bg-gray-100 overflow-hidden">
+                                                                                @if ($match->homeTeam->logo)
+                                                                                    <img src="{{ asset('storage/'.$match->homeTeam->logo) }}" class="w-5 h-5 object-contain" alt="">
+                                                                                @elseif ($match->homeTeam->team?->logo)
+                                                                                    <img src="{{ Storage::url($match->homeTeam->team->logo) }}" class="w-5 h-5 object-contain" alt="">
+                                                                                @else
+                                                                                    <span class="text-[10px] font-black text-gray-400">{{ mb_strtoupper(mb_substr($match->homeTeam->displayName(), 0, 1)) }}</span>
+                                                                                @endif
+                                                                            </div>
+                                                                            <span class="flex-1 text-xs font-semibold truncate {{ $homeWins ? 'text-green-800' : 'text-black-deep' }}">
+                                                                                {{ $match->homeTeam->displayName() }}
+                                                                            </span>
+                                                                            @if ($match->status === 'completed')
+                                                                                <span class="text-xs font-black shrink-0 ml-1 {{ $homeWins ? 'text-green-700' : 'text-titanium' }}">{{ $match->home_score ?? 0 }}</span>
+                                                                            @endif
+                                                                            @if ($homeWins)
+                                                                                <svg class="w-3 h-3 text-green-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                                                            @endif
+                                                                            @if ($match->status === 'scheduled' && $roundNum === $firstRound)
+                                                                                <button @click="$wire.assignTeamToSlot({{ $match->id }}, 'home', null)"
+                                                                                        class="shrink-0 w-4 h-4 rounded-full bg-gray-200 hover:bg-red-100 hover:text-red-400 text-gray-400 text-[10px] font-black flex items-center justify-center transition-colors ml-0.5" title="Quitar equipo">×</button>
+                                                                            @endif
+                                                                        @else
+                                                                            @if ($roundNum === $firstRound)
+                                                                                <select @change="$wire.assignTeamToSlot({{ $match->id }}, 'home', $event.target.value || null)"
+                                                                                        class="flex-1 min-w-0 text-[11px] text-titanium italic bg-transparent border-0 focus:outline-none focus:ring-0 cursor-pointer py-0 pl-0">
+                                                                                    <option value="">Por definir…</option>
+                                                                                    @foreach ($teams as $t)
+                                                                                        @php
+                                                                                            $takenElsewhere = $firstRoundUsedTeams->reject(fn($id) => $id === ($match->home_team_id ?? 0))->contains($t->id);
+                                                                                            $isOpponent     = $t->id === ($match->away_team_id ?? 0);
+                                                                                        @endphp
+                                                                                        @if (!$takenElsewhere && !$isOpponent)
+                                                                                            <option value="{{ $t->id }}">{{ $t->displayName() }}</option>
+                                                                                        @endif
+                                                                                    @endforeach
+                                                                                </select>
+                                                                            @else
+                                                                                <span class="flex-1 text-[11px] text-titanium/40 italic px-0.5">Por definir</span>
+                                                                            @endif
+                                                                        @endif
+                                                                    </div>
+                                                                    <div class="h-px bg-gray-100 mx-2"></div>
+                                                                    {{-- Away team --}}
+                                                                    <div class="flex-1 flex items-center gap-1.5 px-2.5 min-w-0 {{ $awayWins ? 'bg-green-50' : '' }}">
+                                                                        @if ($match->awayTeam)
+                                                                            <div class="w-5 h-5 rounded shrink-0 flex items-center justify-center bg-gray-100 overflow-hidden">
+                                                                                @if ($match->awayTeam->logo)
+                                                                                    <img src="{{ asset('storage/'.$match->awayTeam->logo) }}" class="w-5 h-5 object-contain" alt="">
+                                                                                @elseif ($match->awayTeam->team?->logo)
+                                                                                    <img src="{{ Storage::url($match->awayTeam->team->logo) }}" class="w-5 h-5 object-contain" alt="">
+                                                                                @else
+                                                                                    <span class="text-[10px] font-black text-gray-400">{{ mb_strtoupper(mb_substr($match->awayTeam->displayName(), 0, 1)) }}</span>
+                                                                                @endif
+                                                                            </div>
+                                                                            <span class="flex-1 text-xs font-semibold truncate {{ $awayWins ? 'text-green-800' : 'text-black-deep' }}">
+                                                                                {{ $match->awayTeam->displayName() }}
+                                                                            </span>
+                                                                            @if ($match->status === 'completed')
+                                                                                <span class="text-xs font-black shrink-0 ml-1 {{ $awayWins ? 'text-green-700' : 'text-titanium' }}">{{ $match->away_score ?? 0 }}</span>
+                                                                            @endif
+                                                                            @if ($awayWins)
+                                                                                <svg class="w-3 h-3 text-green-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                                                            @endif
+                                                                            @if ($match->status === 'scheduled' && $roundNum === $firstRound)
+                                                                                <button @click="$wire.assignTeamToSlot({{ $match->id }}, 'away', null)"
+                                                                                        class="shrink-0 w-4 h-4 rounded-full bg-gray-200 hover:bg-red-100 hover:text-red-400 text-gray-400 text-[10px] font-black flex items-center justify-center transition-colors ml-0.5" title="Quitar equipo">×</button>
+                                                                            @endif
+                                                                        @else
+                                                                            @if ($roundNum === $firstRound)
+                                                                                <select @change="$wire.assignTeamToSlot({{ $match->id }}, 'away', $event.target.value || null)"
+                                                                                        class="flex-1 min-w-0 text-[11px] text-titanium italic bg-transparent border-0 focus:outline-none focus:ring-0 cursor-pointer py-0 pl-0">
+                                                                                    <option value="">Por definir…</option>
+                                                                                    @foreach ($teams as $t)
+                                                                                        @php
+                                                                                            $takenElsewhere = $firstRoundUsedTeams->reject(fn($id) => $id === ($match->away_team_id ?? 0))->contains($t->id);
+                                                                                            $isOpponent     = $t->id === ($match->home_team_id ?? 0);
+                                                                                        @endphp
+                                                                                        @if (!$takenElsewhere && !$isOpponent)
+                                                                                            <option value="{{ $t->id }}">{{ $t->displayName() }}</option>
+                                                                                        @endif
+                                                                                    @endforeach
+                                                                                </select>
+                                                                            @else
+                                                                                <span class="flex-1 text-[11px] text-titanium/40 italic px-0.5">Por definir</span>
+                                                                            @endif
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
+                                                                {{-- Action micro-buttons --}}
+                                                                <div class="flex items-center justify-center gap-1 mt-0.5">
+                                                                    <button wire:click="openGoalsModal({{ $match->id }})"
+                                                                            class="text-[10px] font-semibold text-titanium hover:text-primary transition-colors px-1.5 py-0.5 rounded hover:bg-primary/5">
+                                                                        ⚽ Resultado
+                                                                    </button>
+                                                                    @if ($match->status === 'completed' && $mWinner && !$isLast)
+                                                                        <button wire:click="advanceWinner({{ $match->id }})"
+                                                                                class="text-[10px] font-bold text-green-600 hover:text-green-800 transition-colors px-1.5 py-0.5 rounded hover:bg-green-50">
+                                                                            ↗ Avanzar
+                                                                        </button>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+
+                                                {{-- Connector lines between rounds --}}
+                                                @if (!$isLast)
+                                                    @php
+                                                        $nextRoundMatches = $bracket['rounds'][$roundNum + 1] ?? collect();
+                                                        $nextCount = $nextRoundMatches->count();
+                                                    @endphp
+                                                    <div style="width: {{ $gapX }}px; flex-shrink: 0; position: relative; height: {{ $containerH + 22 }}px; margin-top: 22px;">
+                                                        @for ($ci = 0; $ci < $nextCount; $ci++)
+                                                            @php
+                                                                $slotMult   = (int) pow(2, $roundIndex);
+                                                                $topCenter  = (int)(($ci * 2 + 0.5) * $unit * $slotMult);
+                                                                $botCenter  = (int)(($ci * 2 + 1.5) * $unit * $slotMult);
+                                                                $midCenter  = (int)(($ci + 0.5) * $unit * (int)pow(2, $roundIndex + 1));
+                                                            @endphp
+                                                            <div style="
+                                                                position: absolute;
+                                                                left: 0;
+                                                                top: {{ $topCenter }}px;
+                                                                width: 50%;
+                                                                height: {{ max($botCenter - $topCenter, 2) }}px;
+                                                                border-right: 2px solid #d1d5db;
+                                                                border-top: 2px solid #d1d5db;
+                                                                border-bottom: 2px solid #d1d5db;
+                                                                border-radius: 0 5px 5px 0;
+                                                            "></div>
+                                                            <div style="
+                                                                position: absolute;
+                                                                left: 50%;
+                                                                top: {{ $midCenter }}px;
+                                                                width: 50%;
+                                                                height: 2px;
+                                                                background: #d1d5db;
+                                                            "></div>
+                                                        @endfor
+                                                    </div>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    </div>
+
+                                    {{-- 3rd place match --}}
+                                    @if ($bracket['thirdPlace'])
+                                        @php $tp = $bracket['thirdPlace']; @endphp
+                                        <div class="mt-5 pt-5 border-t border-dashed border-silver">
+                                            <h4 class="text-xs font-bold text-titanium uppercase tracking-wider mb-3 flex items-center gap-2">
+                                                <span class="w-5 h-5 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-black">3</span>
+                                                Partido por el 3er Puesto
+                                            </h4>
+                                            <div class="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                                                <span class="flex-1 text-sm font-semibold text-right text-black-deep">{{ $tp->homeTeam?->displayName() ?? 'Por definir' }}</span>
+                                                <div class="shrink-0 px-3 py-1.5 bg-white rounded-lg border border-amber-200 text-center min-w-[60px]">
+                                                    @if ($tp->status === 'completed')
+                                                        <span class="text-base font-black text-black-deep">{{ $tp->home_score }} – {{ $tp->away_score }}</span>
+                                                    @else
+                                                        <button wire:click="openGoalsModal({{ $tp->id }})" class="text-xs font-bold text-amber-600 hover:text-amber-800">vs</button>
+                                                    @endif
+                                                </div>
+                                                <span class="flex-1 text-sm font-semibold text-black-deep">{{ $tp->awayTeam?->displayName() ?? 'Por definir' }}</span>
+                                            </div>
+                                        </div>
+                                    @endif
+                                @endif
+                            </div>
+                        @endforeach
                     </div>
                 @endif
 
@@ -734,6 +1128,12 @@
                                                 <p class="text-xs text-titanium mt-0.5">{{ $phase->typeLabel() }} · {{ $phase->matches_count }} partidos</p>
                                             </div>
                                             <div class="flex items-center gap-1 shrink-0">
+                                                @if (in_array($phase->type, ['knockout', 'double_elimination']))
+                                                    <button wire:click="openBracketModal({{ $phase->id }})"
+                                                            class="p-2 rounded-lg text-titanium hover:text-amber-600 hover:bg-amber-50 transition-colors" title="Configurar cuadro eliminatorio">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
+                                                    </button>
+                                                @endif
                                                 <button wire:click="openEditPhaseModal({{ $phase->id }})"
                                                         class="p-2 rounded-lg text-titanium hover:text-primary hover:bg-primary/10 transition-colors" title="Editar fase">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
@@ -1165,6 +1565,95 @@
         </div>
     @endif
 
+    {{-- ========================= MODAL: BRACKET ========================= --}}
+    @if ($showBracketModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm overflow-y-auto">
+            <div class="bg-white-pure rounded-2xl shadow-2xl border border-silver w-full max-w-xl p-6 my-4">
+                {{-- Header --}}
+                <div class="flex items-center justify-between mb-5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
+                        </div>
+                        <h3 class="text-base font-bold text-black-deep">Configurar cuadro eliminatorio</h3>
+                    </div>
+                    <button wire:click="$set('showBracketModal', false)" class="p-1.5 rounded-lg text-titanium hover:bg-gray-100 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                {{-- Quick-select top N --}}
+
+                {{-- Round selector --}}
+                <div class="mb-5">
+                    <p class="text-xs font-semibold text-titanium uppercase tracking-wide mb-3">Primera ronda del cuadro</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        @foreach ([
+                            1 => ['label' => 'Final',           'sub' => '2 equipos'],
+                            2 => ['label' => 'Semifinal',       'sub' => '4 equipos'],
+                            3 => ['label' => 'Cuartos de Final','sub' => '8 equipos'],
+                            4 => ['label' => 'Octavos de Final','sub' => '16 equipos'],
+                            5 => ['label' => '16avos de Final', 'sub' => '32 equipos'],
+                        ] as $rc => $info)
+                            <button wire:click="$set('bracketRoundCount', {{ $rc }})"
+                                    class="flex flex-col items-center justify-center gap-0.5 px-3 py-3 rounded-xl border-2 transition-all text-center
+                                        {{ $bracketRoundCount === $rc
+                                            ? 'border-primary bg-primary/5 text-primary'
+                                            : 'border-silver bg-gray-50 text-titanium hover:border-primary/40 hover:text-black-deep' }}">
+                                <span class="text-sm font-bold leading-tight">{{ $info['label'] }}</span>
+                                <span class="text-[11px] font-medium {{ $bracketRoundCount === $rc ? 'text-primary/70' : 'text-titanium/60' }}">{{ $info['sub'] }}</span>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="mb-5 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+                    <p class="text-xs text-blue-800">
+                        Se generará un cuadro vacío con
+                        <strong>{{ (int) pow(2, $bracketRoundCount) }}</strong> plazas y
+                        <strong>{{ $bracketRoundCount }}</strong> {{ $bracketRoundCount === 1 ? 'ronda' : 'rondas' }}.
+                        Asigna los equipos directamente en cada partido del cuadro.
+                    </p>
+                </div>
+
+                @if ($bracketModalStandings->isNotEmpty())
+                @endif
+
+                {{-- Options --}}
+                <div class="mb-5 space-y-3">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" wire:model="bracketThirdPlace"
+                               class="w-4 h-4 rounded text-primary border-silver focus:ring-primary/30">
+                        <div>
+                            <p class="text-sm font-semibold text-black-deep">Incluir partido por el 3er puesto</p>
+                            <p class="text-xs text-titanium">Los perdedores de semifinales jugarán por el tercer lugar</p>
+                        </div>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" wire:model="bracketClearExisting"
+                               class="w-4 h-4 rounded text-red-500 border-silver focus:ring-red-300">
+                        <div>
+                            <p class="text-sm font-semibold text-red-700">Borrar partidos existentes</p>
+                            <p class="text-xs text-titanium">Elimina todos los partidos actuales de esta fase antes de generar</p>
+                        </div>
+                    </label>
+                </div>
+
+                {{-- Actions --}}
+                <div class="flex gap-3">
+                    <button wire:click="$set('showBracketModal', false)"
+                            class="flex-1 py-2.5 rounded-xl border border-silver text-sm font-semibold text-titanium hover:bg-gray-50 transition-colors">
+                        Cancelar
+                    </button>
+                    <button wire:click="generateKnockoutBracket"
+                            class="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors">
+                        Generar cuadro
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
     {{-- Match modal --}}
     @if ($showMatchModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm overflow-y-auto">
@@ -1267,144 +1756,311 @@
 
     {{-- Goals Modal — register match results by entering goal scorers --}}
     @if ($showGoalsModal && $goalsModalMatch)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
-             wire:keydown.window.escape="closeGoalsModal">
-            <div class="bg-white-pure rounded-2xl shadow-2xl border border-silver w-full max-w-lg max-h-[90vh] flex flex-col">
+        @php
+            $gm_homeTeamId = $goalsModalMatch->home_team_id;
+            $gm_awayTeamId = $goalsModalMatch->away_team_id;
+            // Merge goals + cards into a unified timeline sorted by minute (nulls last)
+            $gm_timeline = $goalsForModal->map(fn($g) => (object)[
+                'type'    => 'goal',
+                'minute'  => $g->minute,
+                'player'  => $g->player,
+                'team'    => $g->team,
+                'subtype' => $g->goal_type,
+                'id'      => $g->id,
+                'teamId'  => $g->tournament_team_id,
+            ])->merge(
+                $gmCardsForModal->map(fn($c) => (object)[
+                    'type'    => 'card',
+                    'minute'  => $c->minute,
+                    'player'  => $c->player,
+                    'team'    => $c->team,
+                    'subtype' => $c->card_type,
+                    'id'      => $c->id,
+                    'teamId'  => $c->tournament_team_id,
+                ])
+            )->sortBy(fn($e) => $e->minute ?? 999)->values();
+        @endphp
 
-                {{-- Header --}}
-                <div class="px-6 pt-6 pb-4 border-b border-silver shrink-0">
-                    <div class="flex items-center justify-between mb-3">
-                        <h3 class="text-base font-bold text-black-deep">Registrar goles</h3>
-                        <button wire:click="closeGoalsModal"
-                                class="p-1.5 rounded-lg text-titanium hover:bg-gray-100 transition-colors">
+        <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/50 backdrop-blur-sm"
+             wire:keydown.window.escape="closeGoalsModal">
+            <div class="bg-white w-full sm:max-w-2xl max-h-[96vh] sm:max-h-[92vh] sm:rounded-2xl rounded-t-2xl shadow-2xl border border-silver flex flex-col overflow-hidden">
+
+                {{-- ===== HEADER: título + cerrar ===== --}}
+                <div class="px-5 pt-4 pb-3 border-b border-silver shrink-0">
+                    <div class="flex items-center justify-between">
+                        <p class="text-xs font-semibold text-titanium uppercase tracking-wider">Control del partido</p>
+                        <button wire:click="closeGoalsModal" class="p-1.5 rounded-lg text-titanium hover:bg-gray-100 transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
-                    {{-- Match header --}}
-                    <div class="flex items-center justify-center gap-3 bg-gray-50 rounded-xl p-3">
-                        <span class="text-sm font-semibold text-black-deep text-right flex-1">{{ $goalsModalMatch->homeTeam?->displayName() ?? '—' }}</span>
-                        <div class="shrink-0 px-3 py-1 bg-white-pure rounded-lg border border-silver text-center min-w-[64px]">
-                            @if ($goalsModalMatch->status === 'completed' || $goalsModalMatch->home_score !== null)
-                                <span class="text-lg font-bold text-black-deep">{{ $goalsModalMatch->home_score ?? 0 }} – {{ $goalsModalMatch->away_score ?? 0 }}</span>
-                            @else
-                                <span class="text-sm font-bold text-titanium">0 – 0</span>
-                            @endif
-                        </div>
-                        <span class="text-sm font-semibold text-black-deep text-left flex-1">{{ $goalsModalMatch->awayTeam?->displayName() ?? '—' }}</span>
+                </div>
+
+                {{-- ===== SCOREBOARD ===== --}}
+                <div class="px-5 py-4 border-b border-silver shrink-0
+                    {{ $goalsModalMatch->status === 'in_progress' ? 'bg-green-50/60' : 'bg-gray-50/40' }}">
+                    {{-- Score row --}}
+                    <div class="flex items-center gap-2">
+                        <p class="flex-1 text-right text-sm font-bold text-black-deep leading-tight">{{ $goalsModalMatch->homeTeam?->displayName() ?? '—' }}</p>
+                        <button wire:click="openGoalsModal({{ $goalsModalMatch->id }})"
+                                class="shrink-0 px-4 py-2.5 rounded-xl text-center font-black text-2xl min-w-[90px]
+                                    {{ $goalsModalMatch->status === 'in_progress'
+                                        ? 'bg-green-500 text-white border border-green-600 shadow-sm'
+                                        : ($goalsModalMatch->status === 'completed'
+                                            ? 'bg-gray-100 text-black-deep border border-silver'
+                                            : 'bg-white border-2 border-dashed border-silver text-titanium') }}">
+                            {{ $goalsModalMatch->home_score ?? 0 }} – {{ $goalsModalMatch->away_score ?? 0 }}
+                        </button>
+                        <p class="flex-1 text-left text-sm font-bold text-black-deep leading-tight">{{ $goalsModalMatch->awayTeam?->displayName() ?? '—' }}</p>
+                    </div>
+                    {{-- Status controls --}}
+                    <div class="flex items-center justify-center gap-2 mt-3">
+                        @if ($goalsModalMatch->status === 'scheduled' || $goalsModalMatch->status === 'postponed')
+                            <button wire:click="gmStartMatch"
+                                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary/90 transition-colors shadow-sm">
+                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                Iniciar partido
+                            </button>
+                        @elseif ($goalsModalMatch->status === 'in_progress')
+                            <span class="inline-flex items-center gap-1.5 text-xs font-black text-white bg-red-500 px-3 py-1.5 rounded-full animate-pulse">
+                                <span class="w-1.5 h-1.5 rounded-full bg-white shrink-0"></span>
+                                EN VIVO
+                            </span>
+                            <button wire:click="gmFinishMatch"
+                                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gray-800 text-white text-xs font-bold hover:bg-black transition-colors">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12"/></svg>
+                                Finalizar partido
+                            </button>
+                        @elseif ($goalsModalMatch->status === 'completed')
+                            <span class="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-100 border border-green-200 px-3 py-1.5 rounded-full">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                Partido finalizado
+                            </span>
+                            <button wire:click="gmStartMatch"
+                                    class="text-xs font-semibold text-titanium border border-silver px-3 py-1.5 rounded-xl hover:bg-gray-50 transition-colors">
+                                Reabrir
+                            </button>
+                        @endif
                     </div>
                 </div>
 
-                {{-- Goals list --}}
-                <div class="flex-1 overflow-y-auto px-6 py-4 space-y-2">
-                    @forelse ($goalsForModal as $goal)
-                        @if ($gm_deletingGoalId === $goal->id)
-                            <div class="flex items-center justify-between bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
-                                <span class="text-sm text-red-700">¿Eliminar este gol?</span>
-                                <div class="flex gap-2">
-                                    <button wire:click="gmCancelDeleteGoal"
-                                            class="px-3 py-1 text-xs font-semibold text-titanium border border-silver rounded-lg hover:bg-gray-50 transition-colors">No</button>
-                                    <button wire:click="gmDeleteGoal"
-                                            class="px-3 py-1 text-xs font-semibold text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors">Sí, eliminar</button>
-                                </div>
+                {{-- ===== CUERPO DESPLAZABLE: timeline + panel ===== --}}
+                <div class="flex-1 overflow-y-auto min-h-0">
+
+                {{-- ===== TIMELINE (goles + tarjetas) ===== --}}
+                <div class="px-4 py-3 space-y-1.5">
+                    @if ($gm_timeline->isEmpty())
+                        <div class="text-center py-8">
+                            <div class="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                                <span class="text-2xl">⚽</span>
                             </div>
-                        @else
-                            <div class="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-2.5 group">
-                                <div class="flex items-center gap-3">
-                                    <span class="text-base leading-none">
-                                        @if ($goal->goal_type === 'own_goal') ⚽
-                                        @elseif ($goal->goal_type === 'penalty') ⚽
-                                        @else ⚽
-                                        @endif
-                                    </span>
-                                    <div>
-                                        <p class="text-sm font-semibold text-black-deep">
-                                            {{ $goal->player?->surname }} {{ $goal->player?->name }}
-                                            @if ($goal->goal_type === 'own_goal')
-                                                <span class="text-xs text-red-500 font-normal">(p.p.)</span>
-                                            @elseif ($goal->goal_type === 'penalty')
-                                                <span class="text-xs text-blue-500 font-normal">(pen.)</span>
-                                            @endif
-                                        </p>
-                                        <p class="text-xs text-titanium">
-                                            {{ $goal->team?->displayName() }}{{ $goal->minute ? ' · min. ' . $goal->minute : '' }}
-                                        </p>
+                            <p class="text-sm text-titanium">Aún no hay eventos registrados</p>
+                        </div>
+                    @else
+                        @foreach ($gm_timeline as $event)
+                            @php $isHome = $event->teamId === $gm_homeTeamId; @endphp
+                            @if ($event->type === 'goal' && $gm_deletingGoalId === $event->id)
+                                <div class="flex items-center justify-between bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
+                                    <span class="text-sm text-red-700">¿Eliminar este gol?</span>
+                                    <div class="flex gap-2">
+                                        <button wire:click="gmCancelDeleteGoal" class="px-3 py-1 text-xs font-semibold text-titanium border border-silver rounded-lg hover:bg-gray-50">No</button>
+                                        <button wire:click="gmDeleteGoal" class="px-3 py-1 text-xs font-semibold text-white bg-red-500 rounded-lg hover:bg-red-600">Sí</button>
                                     </div>
                                 </div>
-                                <button wire:click="gmConfirmDeleteGoal({{ $goal->id }})"
-                                        class="p-1.5 rounded-lg text-titanium/30 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            @elseif ($event->type === 'card' && $gm_deletingCardId === $event->id)
+                                <div class="flex items-center justify-between bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
+                                    <span class="text-sm text-red-700">¿Eliminar esta tarjeta?</span>
+                                    <div class="flex gap-2">
+                                        <button wire:click="gmCancelDeleteCard" class="px-3 py-1 text-xs font-semibold text-titanium border border-silver rounded-lg hover:bg-gray-50">No</button>
+                                        <button wire:click="gmDeleteCard" class="px-3 py-1 text-xs font-semibold text-white bg-red-500 rounded-lg hover:bg-red-600">Sí</button>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 group transition-colors
+                                    {{ $event->type === 'card' && in_array($event->subtype, ['red','double_yellow']) ? 'bg-red-50/60' : '' }}">
+                                    {{-- Minute --}}
+                                    <span class="shrink-0 w-9 text-center text-[11px] font-bold text-titanium">
+                                        {{ $event->minute ? $event->minute . "'" : '—' }}
+                                    </span>
+                                    {{-- Icon --}}
+                                    <span class="shrink-0 text-base leading-none">
+                                        @if ($event->type === 'goal') ⚽
+                                        @elseif ($event->subtype === 'yellow') 🟨
+                                        @elseif ($event->subtype === 'red') 🟥
+                                        @else 🟨🟥
+                                        @endif
+                                    </span>
+                                    {{-- Info --}}
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-semibold text-black-deep truncate">
+                                            {{ $event->player?->dorsal ? '#' . $event->player->dorsal . ' ' : '' }}{{ $event->player?->surname }} {{ $event->player?->name }}
+                                            @if ($event->type === 'goal')
+                                                @if ($event->subtype === 'own_goal')
+                                                    <span class="text-xs font-normal text-red-500">(p.p.)</span>
+                                                @elseif ($event->subtype === 'penalty')
+                                                    <span class="text-xs font-normal text-blue-500">(pen.)</span>
+                                                @endif
+                                            @elseif ($event->subtype === 'double_yellow')
+                                                <span class="text-xs font-normal text-orange-500">(2ª amarilla)</span>
+                                            @endif
+                                        </p>
+                                        <p class="text-xs text-titanium truncate">{{ $event->team?->displayName() }}</p>
+                                    </div>
+                                    {{-- Side indicator --}}
+                                    <span class="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded
+                                        {{ $isHome ? 'bg-primary/10 text-primary' : 'bg-orange-100 text-orange-600' }}">
+                                        {{ $isHome ? 'L' : 'V' }}
+                                    </span>
+                                    {{-- Delete --}}
+                                    <button wire:click="{{ $event->type === 'goal' ? 'gmConfirmDeleteGoal' : 'gmConfirmDeleteCard' }}({{ $event->id }})"
+                                            class="shrink-0 p-1.5 rounded-lg text-titanium/20 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    </button>
+                                </div>
+                            @endif
+                        @endforeach
+                    @endif
+                </div>
+
+                {{-- ===== ADD EVENT PANEL ===== --}}
+                <div class="border-t border-silver bg-gray-50/60 rounded-b-2xl">
+
+                    {{-- Paso 1 · Tipo de evento --}}
+                    <div class="flex px-4 pt-3 gap-2">
+                        <button wire:click="gmSetAction('goal')"
+                                class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold transition-all
+                                    {{ $gm_action === 'goal' ? 'bg-primary text-white shadow-sm' : 'bg-white border border-silver text-titanium hover:bg-gray-50' }}">
+                            ⚽ Gol
+                        </button>
+                        <button wire:click="gmSetAction('card')"
+                                class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold transition-all
+                                    {{ $gm_action === 'card' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white border border-silver text-titanium hover:bg-gray-50' }}">
+                            🟨 Tarjeta
+                        </button>
+                    </div>
+
+                    <div class="px-4 pb-4 pt-4 space-y-4">
+
+                        {{-- Paso 2 · Seleccionar equipo --}}
+                        <div>
+                            <p class="text-[11px] font-bold text-titanium uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                                <span class="inline-flex w-4 h-4 rounded-full bg-titanium/20 items-center justify-center text-[10px] font-black shrink-0">1</span>
+                                ¿De qué equipo?
+                            </p>
+                            <div class="grid grid-cols-2 gap-2">
+                                @foreach ($gmMatchTeams as $t)
+                                    @php
+                                        $isHome     = $t->id === $gm_homeTeamId;
+                                        $isSelected = (string)$gm_team_id === (string)$t->id;
+                                    @endphp
+                                    <button wire:click="gmSelectTeam({{ $t->id }})"
+                                            class="relative flex flex-col items-center justify-center gap-0.5 px-3 py-3.5 rounded-xl border-2 transition-all min-h-[68px]
+                                                {{ $isSelected
+                                                    ? ($isHome ? 'border-primary bg-primary text-white shadow-md' : 'border-orange-500 bg-orange-500 text-white shadow-md')
+                                                    : ($isHome ? 'border-primary/20 bg-white text-primary hover:border-primary/50 hover:bg-primary/5' : 'border-orange-200 bg-white text-orange-600 hover:border-orange-400 hover:bg-orange-50') }}">
+                                        @if ($isSelected)
+                                            <svg class="absolute top-1.5 right-1.5 w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                            </svg>
+                                        @endif
+                                        <span class="text-[10px] font-semibold uppercase tracking-wider {{ $isSelected ? 'text-white/70' : 'opacity-60' }}">
+                                            {{ $isHome ? 'Local' : 'Visitante' }}
+                                        </span>
+                                        <span class="text-xs font-bold text-center leading-tight mt-0.5">
+                                            {{ $t->displayName() }}
+                                        </span>
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- Paso 3 · Seleccionar jugador (sólo si hay equipo seleccionado) --}}
+                        @if ($gm_team_id)
+                            @php $isHomeTeam = (int)$gm_team_id === $gm_homeTeamId; @endphp
+                            <div>
+                                <p class="text-[11px] font-bold text-titanium uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                                    <span class="inline-flex w-4 h-4 rounded-full bg-titanium/20 items-center justify-center text-[10px] font-black shrink-0">2</span>
+                                    ¿Qué jugador?
+                                </p>
+                                {{-- Buscador --}}
+                                <div class="relative mb-2.5">
+                                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-titanium/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                    <input wire:model.live="gm_player_search"
+                                           type="text" placeholder="Buscar por dorsal o nombre..."
+                                           class="w-full pl-9 pr-3 py-2 text-sm border border-silver rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"/>
+                                </div>
+                                @if ($gmTeamPlayers->isEmpty())
+                                    <div class="text-center py-5 bg-white rounded-xl border border-dashed border-silver">
+                                        <p class="text-xs text-titanium">{{ $gm_player_search ? 'Sin resultados para "' . $gm_player_search . '"' : 'No hay jugadores inscritos en este equipo.' }}</p>
+                                    </div>
+                                @else
+                                    <div class="grid grid-cols-3 gap-1.5">
+                                        @foreach ($gmTeamPlayers as $p)
+                                            @php $pSel = (string)$gm_player_id === (string)$p->id; @endphp
+                                            <button wire:click="gmSelectPlayer({{ $p->id }})"
+                                                    class="flex flex-col items-center gap-0.5 px-1.5 py-2.5 rounded-xl border-2 text-center transition-all
+                                                        {{ $pSel
+                                                            ? ($isHomeTeam ? 'border-primary bg-primary text-white shadow-sm' : 'border-orange-500 bg-orange-500 text-white shadow-sm')
+                                                            : ($isHomeTeam ? 'border-silver bg-white hover:border-primary/40 hover:bg-primary/5' : 'border-silver bg-white hover:border-orange-300 hover:bg-orange-50') }}">
+                                                <span class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black mb-0.5
+                                                    {{ $pSel
+                                                        ? 'bg-white/20 text-white'
+                                                        : ($isHomeTeam ? 'bg-primary/10 text-primary' : 'bg-orange-100 text-orange-600') }}">
+                                                    {{ $p->dorsal ?? '?' }}
+                                                </span>
+                                                <span class="text-[11px] font-bold leading-tight w-full truncate {{ $pSel ? 'text-white' : 'text-black-deep' }}">
+                                                    {{ $p->surname }}
+                                                </span>
+                                                <span class="text-[10px] leading-tight w-full truncate {{ $pSel ? 'text-white/70' : 'text-titanium' }}">
+                                                    {{ $p->name }}
+                                                </span>
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                @endif
+                                @error('gm_player_id') <p class="text-xs text-red-500 mt-1.5">{{ $message }}</p> @enderror
+                            </div>
+                        @endif
+
+                        {{-- Paso 4 · Tipo + minuto + guardar (sólo si hay jugador seleccionado) --}}
+                        @if ($gm_player_id)
+                            <div class="space-y-3">
+                                <p class="text-[11px] font-bold text-titanium uppercase tracking-wider flex items-center gap-1.5">
+                                    <span class="inline-flex w-4 h-4 rounded-full bg-titanium/20 items-center justify-center text-[10px] font-black shrink-0">3</span>
+                                    Detalles
+                                </p>
+                                <div class="flex gap-2">
+                                    @if ($gm_action === 'goal')
+                                        <select wire:model="gm_goal_type"
+                                                class="flex-1 px-3 py-2.5 text-sm border border-silver rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary">
+                                            <option value="normal">⚽ Normal</option>
+                                            <option value="penalty">🎯 Penalti</option>
+                                            <option value="own_goal">↩️ En propia</option>
+                                        </select>
+                                    @else
+                                        <select wire:model="gm_card_type"
+                                                class="flex-1 px-3 py-2.5 text-sm border border-silver rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-400">
+                                            <option value="yellow">🟨 Amarilla</option>
+                                            <option value="red">🟥 Roja directa</option>
+                                            <option value="double_yellow">🟨🟥 Doble amarilla</option>
+                                        </select>
+                                    @endif
+                                    <input wire:model="{{ $gm_action === 'goal' ? 'gm_minute' : 'gm_card_minute' }}"
+                                           type="number" min="1" max="180" placeholder="Min."
+                                           class="w-20 px-3 py-2.5 text-sm border border-silver rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-center"/>
+                                </div>
+                                <button wire:click="{{ $gm_action === 'goal' ? 'gmAddGoal' : 'gmAddCard' }}"
+                                        class="w-full py-3 rounded-xl text-sm font-bold transition-colors shadow-sm
+                                            {{ $gm_action === 'goal'
+                                                ? 'bg-primary text-white hover:bg-primary/90'
+                                                : 'bg-amber-500 text-white hover:bg-amber-600' }}">
+                                    {{ $gm_action === 'goal' ? '+ Registrar gol' : '+ Registrar tarjeta' }}
                                 </button>
                             </div>
                         @endif
-                    @empty
-                        <p class="text-center text-sm text-titanium py-6">Aún no hay goles registrados.</p>
-                    @endforelse
-                </div>
 
-                {{-- Add goal form --}}
-                <div class="px-6 pb-6 pt-2 border-t border-silver shrink-0">
-                    @if ($gm_showForm)
-                        <div class="space-y-3 pt-4">
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Equipo</label>
-                                    <select wire:model.live="gm_team_id"
-                                            class="w-full px-3 py-2 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary">
-                                        <option value="">— Equipo —</option>
-                                        @foreach ($gmMatchTeams as $t)
-                                            <option value="{{ $t->id }}">{{ $t->displayName() }}</option>
-                                        @endforeach
-                                    </select>
-                                    @error('gm_team_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Jugador</label>
-                                    <select wire:model="gm_player_id"
-                                            class="w-full px-3 py-2 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary disabled:opacity-50"
-                                            @if(!$gm_team_id) disabled @endif>
-                                        <option value="">— Jugador —</option>
-                                        @foreach ($gmTeamPlayers as $p)
-                                            <option value="{{ $p->id }}">{{ $p->surname }} {{ $p->name }}</option>
-                                        @endforeach
-                                    </select>
-                                    @error('gm_player_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Tipo</label>
-                                    <select wire:model="gm_goal_type"
-                                            class="w-full px-3 py-2 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary">
-                                        <option value="normal">Normal</option>
-                                        <option value="penalty">Penalti</option>
-                                        <option value="own_goal">En propia</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Minuto <span class="font-normal normal-case">(opcional)</span></label>
-                                    <input wire:model="gm_minute" type="number" min="1" max="180" placeholder="ej. 45"
-                                           class="w-full px-3 py-2 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"/>
-                                </div>
-                            </div>
-                            <div class="flex gap-2 pt-1">
-                                <button wire:click="gmToggleForm"
-                                        class="flex-1 py-2 rounded-xl border border-silver text-sm font-semibold text-titanium hover:bg-gray-50 transition-colors">
-                                    Cancelar
-                                </button>
-                                <button wire:click="gmAddGoal"
-                                        class="flex-1 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors">
-                                    Añadir gol
-                                </button>
-                            </div>
-                        </div>
-                    @else
-                        <button wire:click="gmToggleForm"
-                                class="w-full mt-4 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-dashed border-primary/30 text-sm font-semibold text-primary hover:bg-primary/5 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                            Añadir goleador
-                        </button>
-                    @endif
-                </div>
+                    </div>
+                </div>{{-- /ADD EVENT PANEL --}}
+                </div>{{-- /scrollable body --}}
             </div>
         </div>
     @endif

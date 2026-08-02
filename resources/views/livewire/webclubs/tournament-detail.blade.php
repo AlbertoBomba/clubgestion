@@ -555,6 +555,7 @@
                                                         <tr class="border-b border-gray-100 text-xs text-gray-400 uppercase tracking-wider font-bold">
                                                                     <th class="text-left px-3 sm:px-5 py-3 w-8">Pos</th>
                                                                     <th class="text-left px-3 sm:px-5 py-3">Equipo</th>
+                                                                    <th class="text-center px-3 sm:px-4 py-3 text-gray-600">Pts</th>
                                                                     <th class="text-center px-2 sm:px-3 py-3">PJ</th>
                                                                     <th class="text-center px-2 sm:px-3 py-3">G</th>
                                                                     <th class="text-center px-2 sm:px-3 py-3">E</th>
@@ -562,7 +563,7 @@
                                                                     <th class="text-center px-2 sm:px-3 py-3 hidden sm:table-cell">GF</th>
                                                                     <th class="text-center px-2 sm:px-3 py-3 hidden sm:table-cell">GC</th>
                                                                     <th class="text-center px-2 sm:px-3 py-3 hidden xs:table-cell sm:table-cell">DG</th>
-                                                                    <th class="text-center px-3 sm:px-4 py-3 text-gray-600">Pts</th>
+                                                                    
                                                                 </tr>
                                             </thead>
                                             <tbody class="divide-y divide-gray-50">
@@ -583,6 +584,9 @@
                                                         <td class="px-3 sm:px-5 py-3">
                                                             <span class="text-gray-900 font-semibold text-xs sm:text-sm">{{ $standing->tournamentTeam?->displayName() ?? '&mdash;' }}</span>
                                                         </td>
+                                                         <td class="px-3 sm:px-4 py-3 text-center">
+                                                            <span class="text-gray-900 font-black text-sm sm:text-base">{{ $standing->points }}</span>
+                                                        </td>
                                                         <td class="px-2 sm:px-3 py-3 text-center text-gray-500 text-xs sm:text-sm">{{ $standing->played }}</td>
                                                         <td class="px-2 sm:px-3 py-3 text-center text-green-600 font-semibold text-xs sm:text-sm">{{ $standing->won }}</td>
                                                         <td class="px-2 sm:px-3 py-3 text-center text-gray-400 text-xs sm:text-sm">{{ $standing->drawn }}</td>
@@ -592,9 +596,7 @@
                                                         <td class="px-2 sm:px-3 py-3 text-center font-semibold text-xs sm:text-sm hidden xs:table-cell sm:table-cell {{ ($standing->goals_for - $standing->goals_against) >= 0 ? 'text-green-600' : 'text-red-500' }}">
                                                             {{ ($standing->goals_for - $standing->goals_against) >= 0 ? '+' : '' }}{{ $standing->goals_for - $standing->goals_against }}
                                                         </td>
-                                                        <td class="px-3 sm:px-4 py-3 text-center">
-                                                            <span class="text-gray-900 font-black text-sm sm:text-base">{{ $standing->points }}</span>
-                                                        </td>
+                                                       
                                                     </tr>
                                                 @endforeach
                                             </tbody>

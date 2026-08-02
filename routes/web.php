@@ -45,6 +45,10 @@ Route::get('/vaed-sport', function () {
 // Ruta específica para clubs (tenant)
 Route::get('/club', WebClubsHome::class)->name('webclubs.home');
 
+// Ruta específica para clubs (tenant)
+Route::get('/live', App\Livewire\WebClubs\Live::class)->name('webclubs.live');
+Route::get('/live/{tournament}', App\Livewire\WebClubs\LiveDetail::class)->name('webclubs.live.detail');
+
 // Tenant Public Routes
 Route::get('/sobre-nosotros', WebClubsAbout::class)->name('webclubs.about');
 Route::get('/contacto', WebClubsContact::class)->name('webclubs.contact');
@@ -378,6 +382,34 @@ Route::middleware([
         Route::get('/web-home-config', function () {
             return view('web-home-config.edit');
         })->name('web-home-config.edit');
+
+        // ── Gestión de Socios ──────────────────────────────────────────────────
+
+        // Tipos de socio
+        Route::get('/member-types', function () {
+            return view('member-types.index');
+        })->name('member-types.index');
+
+        Route::get('/member-types/create', function () {
+            return view('member-types.create');
+        })->name('member-types.create');
+
+        Route::get('/member-types/{memberType}/edit', function (App\Models\MemberType $memberType) {
+            return view('member-types.edit', compact('memberType'));
+        })->name('member-types.edit');
+
+        // Socios
+        Route::get('/members', function () {
+            return view('members.index');
+        })->name('members.index');
+
+        Route::get('/members/create', function () {
+            return view('members.create');
+        })->name('members.create');
+
+        Route::get('/members/{member}/edit', function (App\Models\Member $member) {
+            return view('members.edit', compact('member'));
+        })->name('members.edit');
     });
 
     // Rutas para Árbitros (Judge role)

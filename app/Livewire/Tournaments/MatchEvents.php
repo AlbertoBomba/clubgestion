@@ -296,7 +296,9 @@ class MatchEvents extends Component
         $this->match->update([
             'home_score'   => $homeScore,
             'away_score'   => $awayScore,
-            'status'       => $goals->isNotEmpty() ? 'completed' : $this->match->status,
+            'status'       => ($this->match->status === 'in_progress')
+                                ? 'in_progress'
+                                : ($goals->isNotEmpty() ? 'completed' : $this->match->status),
             'played_at'    => ($goals->isNotEmpty() && ! $this->match->played_at) ? now() : $this->match->played_at,
             'updated_user' => auth()->id(),
         ]);
@@ -317,7 +319,15 @@ class MatchEvents extends Component
         $ptDraw   = $settings['points_per_draw'] ?? 1;
         $ptLoss   = $settings['points_per_loss'] ?? 0;
 
-        $teamIds = TournamentTeam::where('tournament_category_id', $phase->tournament_category_id)->pluck('id');
+        if($this->tournament->team_type === 'open'){
+            $teamIds = TournamentTeam::where('tournament_id', $this->tournament->id)
+            ->pluck('id');
+        } elseif($this->tournament->team_type === 'school_teams') {
+            $teamIds = TournamentTeam::where('tournament_category_id', $phase->tournament_category_id)
+            ->pluck('id');
+        }
+
+        // $teamIds = TournamentTeam::where('tournament_category_id', $phase->tournament_category_id)->pluck('id');
 
         TournamentStanding::where('phase_id', $phaseId)->delete();
 
@@ -327,7 +337,7 @@ class MatchEvents extends Component
         }
 
         $matches = TournamentMatch::where('phase_id', $phaseId)
-            ->where('status', 'completed')
+            // ->where('status', 'completed')
             ->whereNotNull('home_score')
             ->whereNotNull('away_score')
             ->get();

@@ -123,7 +123,7 @@ class ManageMatch extends Component
         ]);
 
         $this->reset(['showGoalForm', 'goalTeamId', 'goalPlayerId', 'goalMinute', 'goalType', 'goalPlayerSearch']);
-        $this->match->refresh();
+        $this->recalculateLiveScore();
         session()->flash('message', 'Gol añadido correctamente.');
     }
 
@@ -136,7 +136,7 @@ class ManageMatch extends Component
         }
 
         $goal->delete();
-        $this->match->refresh();
+        $this->recalculateLiveScore();
         session()->flash('message', 'Gol eliminado correctamente.');
     }
 
@@ -184,6 +184,28 @@ class ManageMatch extends Component
         ]);
 
         session()->flash('message', 'Notas guardadas correctamente.');
+    }
+
+    private function recalculateLiveScore(): void
+    {
+        $goals = $this->match->goals()->get();
+
+        $homeScore = $goals->where('tournament_team_id', $this->match->home_team_id)
+                           ->where('goal_type', '!=', 'own_goal')->count()
+                   + $goals->where('tournament_team_id', $this->match->away_team_id)
+                           ->where('goal_type', 'own_goal')->count();
+
+        $awayScore = $goals->where('tournament_team_id', $this->match->away_team_id)
+                           ->where('goal_type', '!=', 'own_goal')->count()
+                   + $goals->where('tournament_team_id', $this->match->home_team_id)
+                           ->where('goal_type', 'own_goal')->count();
+
+        $this->match->update([
+            'home_score' => $homeScore,
+            'away_score' => $awayScore,
+        ]);
+
+        $this->match->refresh();
     }
 
     public function viewPlayerDetails($playerId)

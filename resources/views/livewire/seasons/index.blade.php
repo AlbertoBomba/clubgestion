@@ -20,13 +20,13 @@
     @endphp
 
     @if($openInscriptionSeasons->count() >= 2)
-        <div class="mb-4 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-lg flex items-start gap-3">
-            <svg class="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="mb-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg flex items-start gap-3">
+            <svg class="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
             </svg>
             <div>
-                <p class="text-sm font-bold text-amber-800">Advertencia: hay {{ $openInscriptionSeasons->count() }} temporadas con inscripciones abiertas simultáneamente.</p>
-                <p class="text-sm text-amber-700 mt-1">No debería haber más de una temporada con inscripciones abiertas al mismo tiempo. Por favor, revisa y corrige las fechas de inscripción de las temporadas: <span class="font-semibold">{{ $openInscriptionSeasons->pluck('season')->join(', ') }}</span>.</p>
+                <p class="text-sm font-bold text-red-800">Advertencia: hay {{ $openInscriptionSeasons->count() }} temporadas con inscripciones abiertas simultáneamente.</p>
+                <p class="text-sm text-red-700 mt-1">No debería haber más de una temporada con inscripciones abiertas al mismo tiempo. Por favor, revisa y corrige las fechas de inscripción de las temporadas: <span class="font-semibold">{{ $openInscriptionSeasons->pluck('season')->join(', ') }}</span>.</p>
             </div>
         </div>
     @endif

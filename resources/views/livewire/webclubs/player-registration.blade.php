@@ -19,7 +19,18 @@
 </style>
 
 <div class="reg-outer">
-
+@if($openInscriptionSeasons->count() >= 2)
+    <div class="mb-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg flex items-start gap-3">
+        <svg class="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        </svg>
+        <div>
+            <p class="text-sm font-bold text-red-800">Advertencia: No se pueden realizar inscripciones,</p>
+            <p class="text-sm text-red-700 mt-1">Contacte con el {{$school->name}} al teléfono {{$school->phone}} o al correo electrónico {{$school->email}} para comunicar la incidencia. Existen
+                {{ $openInscriptionSeasons->count() }} temporadas que mantienen inscripciones abiertas. Solo puede haber una temporada con inscripciones abiertas a la vez.</p>
+        </div>
+    </div>
+@elseif($openInscriptionSeasons->count() === 1)
     {{-- ── White sheet ─────────────────────────────────────────────── --}}
     <div class="reg-sheet sm:mx-auto">
 
@@ -75,7 +86,7 @@
             @if($step === 1 && !$done)
             <div class="pt-6 space-y-4">
                 <div>
-                    <h2 class="text-lg font-black text-gray-900">Datos personales</h2>
+                    <h2 class="text-lg font-black text-gray-900">Datos personales del jugador</h2>
                     <p class="text-sm text-gray-400 mt-0.5">Introduce tus datos de identificación</p>
                 </div>
 
@@ -447,6 +458,17 @@
 
         </div>{{-- /px-6 --}}
     </div>{{-- /reg-sheet --}}
+@else
+    <div class="mb-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg flex items-start gap-3">
+        <svg class="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        </svg>
+        <div>
+            <p class="text-sm font-bold text-red-800">Advertencia: No se pueden realizar inscripciones,</p>
+            <p class="text-sm text-red-700 mt-1">No existe temporada abierta. Consulte con {{$school->name}} al teléfono {{$school->phone}} o al correo electrónico {{$school->email}} para más información.</p>
+        </div>
+    </div>
+@endif
 </div>{{-- /reg-outer --}}
 
 {{-- ─── Document photo cropper overlay ────────────────────────────── --}}

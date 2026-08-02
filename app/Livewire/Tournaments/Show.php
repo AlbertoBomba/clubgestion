@@ -7,8 +7,10 @@ use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentCategory;
 use App\Models\TournamentMatch;
+use App\Models\TournamentMatchCard;
 use App\Models\TournamentMatchGoal;
 use App\Models\TournamentPhase;
+use App\Models\TournamentSanction;
 use App\Models\TournamentPlayer;
 use App\Models\TournamentStanding;
 use App\Models\TournamentTeam;
@@ -99,8 +101,13 @@ class Show extends Component
     public string $gm_player_id      = '';
     public string $gm_goal_type      = 'normal';
     public string $gm_minute         = '';
-    public bool   $gm_showForm       = false;
+    public bool   $gm_showForm       = true;
     public ?int   $gm_deletingGoalId = null;
+    public string $gm_action         = 'goal';   // 'goal' | 'card'
+    public string $gm_player_search  = '';
+    public string $gm_card_type      = 'yellow';
+    public string $gm_card_minute    = '';
+    public ?int   $gm_deletingCardId = null;
 
     // ------------------------------------------------------------------
     // Generate matches modal
@@ -134,6 +141,17 @@ class Show extends Component
     // ------------------------------------------------------------------
     public bool   $showRefereesModal   = false;
     public array  $selectedReferees    = [];
+
+    // ------------------------------------------------------------------
+    // Bracket / Knockout modal
+    // ------------------------------------------------------------------
+    public bool   $showBracketModal     = false;
+    public ?int   $bracketPhaseId       = null;
+    public array  $bracketSelectedTeams = [];
+    public array  $bracketPairings      = [];
+    public bool   $bracketClearExisting = false;
+    public bool   $bracketThirdPlace    = false;
+    public int    $bracketRoundCount    = 2;  // 1=Final, 2=Semi+Final, 3=Cuartos+…, 4=Octavos+…, 5=16avos+…
 
     public function mount(Tournament $tournament): void
     {
@@ -776,6 +794,7 @@ class Show extends Component
         $phasesQuery = $this->activeCategoryId
             ? TournamentPhase::where('tournament_category_id', $this->activeCategoryId)
             : $this->tournament->phases();
+            
 
         $phases = $phaseId
             ? $phasesQuery->where('id', $phaseId)->get()
@@ -785,11 +804,18 @@ class Show extends Component
         $ptWin    = $settings['points_per_win']  ?? 3;
         $ptDraw   = $settings['points_per_draw'] ?? 1;
         $ptLoss   = $settings['points_per_loss'] ?? 0;
-
+        
         foreach ($phases as $phase) {
-            $teamIds = TournamentTeam::where('tournament_category_id', $phase->tournament_category_id)
-                ->pluck('id');
 
+            if($this->tournament->team_type === 'open'){
+                $teamIds = TournamentTeam::where('tournament_id', $this->tournament->id)
+                ->pluck('id');
+            } elseif($this->tournament->team_type === 'school_teams') {
+                $teamIds = TournamentTeam::where('tournament_category_id', $phase->tournament_category_id)
+                ->pluck('id');
+            }
+            
+            // dd($phase->id);
             TournamentStanding::where('phase_id', $phase->id)->delete();
 
             $stats = [];
@@ -802,12 +828,15 @@ class Show extends Component
             }
 
             $matches = TournamentMatch::where('phase_id', $phase->id)
-                ->where('status', 'completed')
+                // ->where('status', 'completed')
                 ->whereNotNull('home_score')
                 ->whereNotNull('away_score')
                 ->get();
 
+            // dd($matches);
+
             foreach ($matches as $match) {
+                // dd($match."entra");
                 $h = $match->home_team_id;
                 $a = $match->away_team_id;
 
@@ -840,6 +869,8 @@ class Show extends Component
                 }
             }
 
+            // dd($stats);
+
             uasort($stats, function ($a, $b) {
                 if ($b['points'] !== $a['points']) return $b['points'] <=> $a['points'];
                 $gdA = $a['goals_for'] - $a['goals_against'];
@@ -847,6 +878,7 @@ class Show extends Component
                 if ($gdB !== $gdA) return $gdB <=> $gdA;
                 return $b['goals_for'] <=> $a['goals_for'];
             });
+
 
             $position = 1;
             foreach ($stats as $ttId => $row) {
@@ -891,9 +923,14 @@ class Show extends Component
         $match = TournamentMatch::findOrFail($matchId);
         abort_unless($match->tournament_id === $this->tournament->id, 403);
         $this->goalsMatchId      = $matchId;
-        $this->gm_showForm       = false;
+        $this->gm_showForm       = true;
         $this->gm_deletingGoalId = null;
+        $this->gm_deletingCardId = null;
         $this->gm_goal_type      = 'normal';
+        $this->gm_action         = 'goal';
+        $this->gm_player_search  = '';
+        $this->gm_card_type      = 'yellow';
+        $this->gm_card_minute    = '';
         $this->reset(['gm_team_id', 'gm_player_id', 'gm_minute']);
         $this->showGoalsModal    = true;
     }
@@ -902,8 +939,10 @@ class Show extends Component
     {
         $this->showGoalsModal    = false;
         $this->goalsMatchId      = null;
-        $this->gm_showForm       = false;
+        $this->gm_showForm       = true;
         $this->gm_deletingGoalId = null;
+        $this->gm_deletingCardId = null;
+        $this->gm_player_search  = '';
     }
 
     public function gmToggleForm(): void
@@ -916,24 +955,34 @@ class Show extends Component
     public function gmAddGoal(): void
     {
         $this->validate([
-            'gm_team_id'   => 'required|exists:tournament_teams,id',
             'gm_player_id' => 'required|exists:tournament_players,id',
             'gm_goal_type' => 'required|in:normal,penalty,own_goal',
             'gm_minute'    => 'nullable|integer|min:1|max:180',
         ]);
 
+        $player = TournamentPlayer::findOrFail((int) $this->gm_player_id);
+        $match  = TournamentMatch::findOrFail($this->goalsMatchId);
+
+        // For own goals: credit goes to the opposing team
+        $teamId = $this->gm_goal_type === 'own_goal'
+            ? ($player->tournament_team_id === $match->home_team_id
+                ? $match->away_team_id
+                : $match->home_team_id)
+            : $player->tournament_team_id;
+
         TournamentMatchGoal::create([
             'tournament_match_id'  => $this->goalsMatchId,
-            'tournament_player_id' => (int) $this->gm_player_id,
-            'tournament_team_id'   => (int) $this->gm_team_id,
+            'tournament_player_id' => $player->id,
+            'tournament_team_id'   => $teamId,
             'goal_type'            => $this->gm_goal_type,
             'minute'               => $this->gm_minute !== '' ? (int) $this->gm_minute : null,
         ]);
 
         $this->recalculateMatchScore($this->goalsMatchId);
-        $this->gm_goal_type = 'normal';
-        $this->reset(['gm_team_id', 'gm_player_id', 'gm_minute']);
-        $this->gm_showForm = false;
+        $this->gm_goal_type     = 'normal';
+        $this->gm_player_search = '';
+        $this->reset(['gm_player_id', 'gm_minute']);
+        // Keep form open for fast multi-goal entry
         $this->tournament->refresh();
     }
 
@@ -955,6 +1004,113 @@ class Show extends Component
 
         $this->gm_deletingGoalId = null;
         $this->recalculateMatchScore($this->goalsMatchId);
+        $this->tournament->refresh();
+    }
+
+    public function gmStartMatch(): void
+    {
+        $match = TournamentMatch::findOrFail($this->goalsMatchId);
+        abort_unless($match->tournament_id === $this->tournament->id, 403);
+        $match->update(['status' => 'in_progress', 'updated_user' => auth()->id()]);
+        $this->tournament->refresh();
+    }
+
+    public function gmFinishMatch(): void
+    {
+        $match = TournamentMatch::with('phase')->findOrFail($this->goalsMatchId);
+        abort_unless($match->tournament_id === $this->tournament->id, 403);
+        $match->update([
+            'status'       => 'completed',
+            'played_at'    => $match->played_at ?? now(),
+            'updated_user' => auth()->id(),
+        ]);
+        if ($match->phase && in_array($match->phase->type, ['league', 'group'])) {
+            $this->recalculateStandings($match->phase_id);
+        }
+        $this->tournament->refresh();
+    }
+
+    public function gmSetAction(string $action): void
+    {
+        $this->gm_action        = in_array($action, ['goal', 'card']) ? $action : 'goal';
+        $this->gm_player_search = '';
+        $this->gm_card_type     = 'yellow';
+        $this->reset(['gm_team_id', 'gm_player_id', 'gm_minute', 'gm_card_minute']);
+        $this->gm_goal_type = 'normal';
+    }
+
+    public function gmSelectTeam(int $teamId): void
+    {
+        $this->gm_team_id       = (string) $teamId;
+        $this->gm_player_search = '';
+        $this->reset(['gm_player_id']);
+    }
+
+    public function gmSelectPlayer(int $playerId): void
+    {
+        $player = TournamentPlayer::find($playerId);
+        if ($player) {
+            $this->gm_player_id = (string) $playerId;
+            $this->gm_team_id   = (string) $player->tournament_team_id;
+        }
+    }
+
+    public function gmAddCard(): void
+    {
+        $this->validate([
+            'gm_player_id'   => 'required|exists:tournament_players,id',
+            'gm_card_type'   => 'required|in:yellow,red,double_yellow',
+            'gm_card_minute' => 'nullable|integer|min:1|max:180',
+        ]);
+
+        $player = TournamentPlayer::findOrFail((int) $this->gm_player_id);
+
+        TournamentMatchCard::create([
+            'tournament_match_id'  => $this->goalsMatchId,
+            'tournament_player_id' => $player->id,
+            'tournament_team_id'   => $player->tournament_team_id,
+            'card_type'            => $this->gm_card_type,
+            'minute'               => $this->gm_card_minute !== '' ? (int) $this->gm_card_minute : null,
+        ]);
+
+        if (in_array($this->gm_card_type, ['red', 'double_yellow'])) {
+            TournamentSanction::create([
+                'tournament_id'        => $this->tournament->id,
+                'tournament_match_id'  => $this->goalsMatchId,
+                'tournament_team_id'   => $player->tournament_team_id,
+                'tournament_player_id' => $player->id,
+                'sanction_type'        => 'suspension',
+                'matches_suspended'    => 1,
+                'matches_served'       => 0,
+                'reason'               => $this->gm_card_type === 'red'
+                    ? 'Tarjeta roja directa'
+                    : 'Expulsión por doble amarilla',
+                'active'               => true,
+            ]);
+        }
+
+        $this->gm_player_search = '';
+        $this->gm_card_type     = 'yellow';
+        $this->reset(['gm_player_id', 'gm_card_minute']);
+        $this->tournament->refresh();
+    }
+
+    public function gmConfirmDeleteCard(int $id): void
+    {
+        $this->gm_deletingCardId = $id;
+    }
+
+    public function gmCancelDeleteCard(): void
+    {
+        $this->gm_deletingCardId = null;
+    }
+
+    public function gmDeleteCard(): void
+    {
+        TournamentMatchCard::where('id', $this->gm_deletingCardId)
+            ->where('tournament_match_id', $this->goalsMatchId)
+            ->delete();
+        $this->gm_deletingCardId = null;
         $this->tournament->refresh();
     }
 
@@ -980,13 +1136,19 @@ class Show extends Component
         $match->update([
             'home_score'   => $homeScore,
             'away_score'   => $awayScore,
-            'status'       => $goals->isNotEmpty() ? 'completed' : $match->status,
+            'status'       => ($goals->isNotEmpty() && $match->status === 'scheduled') ? 'completed' : $match->status,
             'played_at'    => ($goals->isNotEmpty() && ! $match->played_at) ? now() : $match->played_at,
             'updated_user' => auth()->id(),
         ]);
 
         if ($match->phase && in_array($match->phase->type, ['league', 'group'])) {
             $this->recalculateStandings($match->phase_id);
+        }
+
+        if ($match->phase && in_array($match->phase->type, ['knockout', 'double_elimination'])
+            && $homeScore !== $awayScore
+            && ! ($match->settings['is_third_place'] ?? false)) {
+            $this->advanceWinner($match->id);
         }
     }
 
@@ -1015,6 +1177,253 @@ class Show extends Component
         $this->tournament->referees()->sync($this->selectedReferees);
         $this->showRefereesModal = false;
         session()->flash('message', 'Árbitros actualizados correctamente.');
+    }
+
+    // ==================================================================
+    // Bracket / Knockout
+    // ==================================================================
+
+    public function openBracketModal(int $phaseId): void
+    {
+        $phase = TournamentPhase::findOrFail($phaseId);
+        abort_unless($phase->tournament_id === $this->tournament->id, 403);
+
+        $this->bracketPhaseId       = $phaseId;
+        $this->bracketSelectedTeams = [];
+        $this->bracketPairings      = [];
+        $this->bracketClearExisting = false;
+        $this->bracketThirdPlace    = $phase->settings['third_place'] ?? false;
+        // Detect existing round count so the selector reflects reality
+        $existing = TournamentMatch::where('phase_id', $phaseId)
+            ->where('match_number', '!=', 999)
+            ->max('round') ?? 0;
+        $this->bracketRoundCount = max(1, (int)$existing ?: 2);
+        $this->showBracketModal  = true;
+    }
+
+    public function updatedBracketSelectedTeams(): void
+    {
+        $this->initBracketPairings();
+    }
+
+    public function initBracketPairings(): void
+    {
+        $selected = array_values(array_map('intval', array_filter($this->bracketSelectedTeams)));
+        $n        = count($selected);
+
+        if ($n < 2) {
+            $this->bracketPairings = [];
+            return;
+        }
+
+        $slots      = (int) pow(2, ceil(log($n, 2)));
+        $numMatches = $slots / 2;
+
+        // Preserve existing pairings if teams are still selected; clear removed teams
+        $newPairings = [];
+        for ($i = 1; $i <= $numMatches; $i++) {
+            $existing = $this->bracketPairings[$i] ?? ['home' => null, 'away' => null];
+            $home = in_array((int)($existing['home'] ?? 0), $selected) ? (int)$existing['home'] : null;
+            $away = in_array((int)($existing['away'] ?? 0), $selected) ? (int)$existing['away'] : null;
+            $newPairings[$i] = ['home' => $home, 'away' => $away];
+        }
+
+        // Fill empty slots with unassigned teams (consecutive default)
+        $assigned   = collect($newPairings)->flatMap(fn($p) => array_filter([(int)($p['home'] ?? 0), (int)($p['away'] ?? 0)]))->filter()->unique()->toArray();
+        $unassigned = array_values(array_diff($selected, $assigned));
+
+        $idx = 0;
+        for ($i = 1; $i <= $numMatches; $i++) {
+            if (! $newPairings[$i]['home'] && isset($unassigned[$idx])) {
+                $newPairings[$i]['home'] = $unassigned[$idx++];
+            }
+            if (! $newPairings[$i]['away'] && isset($unassigned[$idx])) {
+                $newPairings[$i]['away'] = $unassigned[$idx++];
+            }
+        }
+
+        $this->bracketPairings = $newPairings;
+    }
+
+    public function quickSelectBracketTeams(int $n): void
+    {
+        if (!$this->bracketPhaseId) return;
+
+        $phase  = TournamentPhase::find($this->bracketPhaseId);
+        $catId  = $phase?->tournament_category_id;
+        $isOpen = $this->tournament->team_type === 'open';
+
+        // Get teams from previous-phase standings in order
+        $prevPhaseIds = TournamentPhase::where('tournament_id', $this->tournament->id)
+            ->when(!$isOpen && $catId, fn($q) => $q->where('tournament_category_id', $catId))
+            ->whereIn('type', ['league', 'group'])
+            ->where('order', '<', $phase->order)
+            ->pluck('id');
+
+        $topTeams = TournamentStanding::whereIn('phase_id', $prevPhaseIds)
+            ->orderBy('position')
+            ->pluck('tournament_team_id')
+            ->unique()
+            ->take($n)
+            ->values()
+            ->toArray();
+
+        // Fill remaining slots from all teams if standings are insufficient
+        if (count($topTeams) < $n) {
+            $allTeamIds = TournamentTeam::where('tournament_id', $this->tournament->id)
+                ->when(!$isOpen && $catId, fn($q) => $q->where('tournament_category_id', $catId))
+                ->pluck('id')->toArray();
+            $remaining  = array_values(array_diff($allTeamIds, $topTeams));
+            $topTeams   = array_slice(array_merge($topTeams, $remaining), 0, $n);
+        }
+
+        $this->bracketSelectedTeams = array_map('intval', $topTeams);
+        $this->initBracketPairings();
+    }
+
+    public function generateKnockoutBracket(): void
+    {
+        $this->validate([
+            'bracketPhaseId'    => 'required|exists:tournament_phases,id',
+            'bracketRoundCount' => 'required|integer|min:1|max:5',
+        ]);
+
+        $phase = TournamentPhase::findOrFail($this->bracketPhaseId);
+        abort_unless($phase->tournament_id === $this->tournament->id, 403);
+
+        if ($this->bracketClearExisting) {
+            TournamentMatch::where('phase_id', $phase->id)->delete();
+        }
+
+        $totalRounds = $this->bracketRoundCount;
+        $slots       = (int) pow(2, $totalRounds);
+
+        $user       = auth()->id();
+        $categoryId = $phase->tournament_category_id;
+
+        // Create all rounds (ascending: round 1 = first round, round N = Final)
+        for ($round = 1; $round <= $totalRounds; $round++) {
+            $matchesInRound = $slots / (int) pow(2, $round);
+
+            for ($matchNum = 1; $matchNum <= $matchesInRound; $matchNum++) {
+                $homeId = $awayId = null;
+
+                // Teams assigned later via assignTeamToSlot()
+
+                TournamentMatch::create([
+                    'tournament_id'          => $this->tournament->id,
+                    'tournament_category_id' => $categoryId,
+                    'phase_id'               => $phase->id,
+                    'round'                  => $round,
+                    'match_number'           => $matchNum,
+                    'home_team_id'           => $homeId,
+                    'away_team_id'           => $awayId,
+                    'status'                 => 'scheduled',
+                    'created_user'           => $user,
+                ]);
+            }
+        }
+
+        // 3rd-place match (same round as semis = totalRounds - 1)
+        if ($this->bracketThirdPlace && $totalRounds >= 2) {
+            TournamentMatch::create([
+                'tournament_id'          => $this->tournament->id,
+                'tournament_category_id' => $categoryId,
+                'phase_id'               => $phase->id,
+                'round'                  => $totalRounds - 1,
+                'match_number'           => 999,
+                'home_team_id'           => null,
+                'away_team_id'           => null,
+                'status'                 => 'scheduled',
+                'created_user'           => $user,
+                'settings'               => ['is_third_place' => true, 'label' => '3º Puesto'],
+            ]);
+        }
+
+        $phase->update([
+            'settings' => array_merge($phase->settings ?? [], ['third_place' => $this->bracketThirdPlace]),
+        ]);
+
+        $this->showBracketModal = false;
+        $this->tournament->refresh();
+        session()->flash('message', "Cuadro generado: {$slots} plazas en {$totalRounds} rondas. Asigna los equipos directamente en el cuadro.");
+    }
+
+    public function assignTeamToSlot(int $matchId, string $side, mixed $teamId): void
+    {
+        $match = TournamentMatch::findOrFail($matchId);
+        abort_unless($match->tournament_id === $this->tournament->id, 403);
+        abort_unless(in_array($side, ['home', 'away']), 422);
+
+        if ($teamId) {
+            $teamId        = (int)$teamId;
+            $opponentField = $side === 'home' ? 'away_team_id' : 'home_team_id';
+
+            // Can't face yourself
+            if ((int)($match->$opponentField ?? 0) === $teamId) {
+                session()->flash('error', 'Un equipo no puede enfrentarse a sí mismo.');
+                return;
+            }
+
+            // Can't appear twice in the same round
+            $alreadyInRound = TournamentMatch::where('phase_id', $match->phase_id)
+                ->where('round', $match->round)
+                ->where('id', '!=', $matchId)
+                ->where(fn($q) => $q->where('home_team_id', $teamId)->orWhere('away_team_id', $teamId))
+                ->exists();
+
+            if ($alreadyInRound) {
+                session()->flash('error', 'Este equipo ya está asignado en otro partido de esta ronda.');
+                return;
+            }
+        }
+
+        $field = $side === 'home' ? 'home_team_id' : 'away_team_id';
+        $match->update([$field => $teamId ?: null]);
+        $this->tournament->refresh();
+    }
+
+    public function advanceWinner(int $matchId): void
+    {
+        $match = TournamentMatch::with(['homeTeam', 'awayTeam'])->findOrFail($matchId);
+        abort_unless($match->tournament_id === $this->tournament->id, 403);
+
+        $winner = $match->winner();
+        if (! $winner) {
+            session()->flash('error', 'No se puede avanzar: el partido no tiene un ganador claro (posible empate).');
+            return;
+        }
+
+        $allKOMatches = TournamentMatch::where('phase_id', $match->phase_id)->get();
+        $maxRound     = $allKOMatches->max('round');
+
+        if ($match->round >= $maxRound) {
+            session()->flash('message', '¡Campeón: ' . $winner->displayName() . '! Este era el partido final.');
+            return;
+        }
+
+        $nextRound    = $match->round + 1;
+        $nextMatchNum = (int) ceil($match->match_number / 2);
+
+        $nextMatch = TournamentMatch::where('phase_id', $match->phase_id)
+            ->where('round', $nextRound)
+            ->where('match_number', $nextMatchNum)
+            ->first();
+
+        if (! $nextMatch) {
+            session()->flash('error', 'No se encontró el partido de la siguiente ronda.');
+            return;
+        }
+
+        // Odd match_number → home slot; even → away slot
+        if ($match->match_number % 2 === 1) {
+            $nextMatch->update(['home_team_id' => $winner->id]);
+        } else {
+            $nextMatch->update(['away_team_id' => $winner->id]);
+        }
+
+        $this->tournament->refresh();
+        session()->flash('message', $winner->displayName() . ' ha avanzado a la siguiente ronda.');
     }
 
     // ==================================================================
@@ -1059,6 +1468,9 @@ class Show extends Component
                 ->get()
             : collect();
 
+        // dd(TournamentStanding::where('tournament_id', $this->tournament->id)->toRawSql());
+
+
         $standings = ($this->activeCategoryId || $isOpen)
             ? TournamentStanding::where('tournament_id', $this->tournament->id)
                 ->when(!$isOpen, fn ($q) => $q->where('tournament_category_id', $this->activeCategoryId))
@@ -1068,6 +1480,8 @@ class Show extends Component
                 ->orderBy('position')
                 ->get()
             : collect();
+
+        // dd($standings);
 
         // Detect if any phase is a league/group type (requires standings to always be visible)
         $hasLeaguePhase = $phases->contains(fn ($p) => in_array($p->type, ['league', 'group']));
@@ -1097,15 +1511,44 @@ class Show extends Component
                 ->orderBy('minute')
                 ->get()
             : collect();
+        $gmCardsForModal = $this->goalsMatchId
+            ? TournamentMatchCard::where('tournament_match_id', $this->goalsMatchId)
+                ->with(['player', 'team'])
+                ->orderBy('minute')
+                ->get()
+            : collect();
         $gmTeamPlayers = $this->gm_team_id
             ? TournamentPlayer::where('tournament_team_id', $this->gm_team_id)
-                ->orderBy('surname')->orderBy('name')->get()
+                ->when($this->gm_player_search !== '', function ($q) {
+                    $s = $this->gm_player_search;
+                    $q->where(function ($q2) use ($s) {
+                        $q2->where('dorsal', $s)
+                           ->orWhere('name', 'like', "%{$s}%")
+                           ->orWhere('surname', 'like', "%{$s}%");
+                    });
+                })
+                ->orderBy('dorsal')->orderBy('surname')->orderBy('name')->get()
             : collect();
         $gmMatchTeams = $goalsModalMatch
             ? TournamentTeam::whereIn('id', array_filter([
                 $goalsModalMatch->home_team_id,
                 $goalsModalMatch->away_team_id,
               ]))->with('team')->get()
+            : collect();
+        $gmAllPlayers = $goalsModalMatch
+            ? TournamentPlayer::whereIn('tournament_team_id', array_filter([
+                    $goalsModalMatch->home_team_id,
+                    $goalsModalMatch->away_team_id,
+                ]))
+                ->when($this->gm_player_search !== '', function ($q) {
+                    $s = $this->gm_player_search;
+                    $q->where(function ($q2) use ($s) {
+                        $q2->where('dorsal', $s)
+                           ->orWhere('name', 'like', "%{$s}%")
+                           ->orWhere('surname', 'like', "%{$s}%");
+                    });
+                })
+                ->orderBy('dorsal')->orderBy('surname')->get()
             : collect();
 
         // Referees data
@@ -1116,12 +1559,77 @@ class Show extends Component
             ->get();
         $assignedReferees = $this->tournament->referees;
 
+        // Knockout bracket data ─────────────────────────────────────────
+        $knockoutPhases = $phases->whereIn('type', ['knockout', 'double_elimination']);
+        $hasKnockoutPhase = $knockoutPhases->isNotEmpty();
+
+        $bracketData = collect();
+        foreach ($knockoutPhases as $kPhase) {
+            $kMatches = $matches->where('phase_id', $kPhase->id)
+                ->filter(fn($m) => ! ($m->settings['is_third_place'] ?? false))
+                ->sortBy([['round', 'asc'], ['match_number', 'asc']])
+                ->values();
+
+            $maxRound             = $kMatches->max('round') ?? 0;
+            $firstRound           = $kMatches->min('round') ?? 1;
+            $numFirstRoundMatches = max($kMatches->where('round', $firstRound)->count(), 1);
+            $totalRounds          = $maxRound > 0 ? $maxRound - $firstRound + 1 : 0;
+
+            $rounds = collect();
+            for ($r = $firstRound; $r <= $maxRound; $r++) {
+                $rounds->put($r, $kMatches->where('round', $r)->sortBy('match_number')->values());
+            }
+
+            $thirdPlace = $matches->where('phase_id', $kPhase->id)
+                ->first(fn($m) => $m->settings['is_third_place'] ?? false);
+
+            $bracketData->put($kPhase->id, [
+                'phase'                => $kPhase,
+                'rounds'               => $rounds,
+                'maxRound'             => $maxRound,
+                'firstRound'           => $firstRound,
+                'numFirstRoundMatches' => $numFirstRoundMatches,
+                'totalRounds'          => $totalRounds,
+                'thirdPlace'           => $thirdPlace,
+                'hasMatches'           => $kMatches->isNotEmpty(),
+            ]);
+        }
+
+        // Bracket modal team data ─────────────────────────────────────────
+        $bracketModalTeams      = collect();
+        $bracketModalStandings  = collect();
+        if ($this->showBracketModal && $this->bracketPhaseId) {
+            $bPhase = TournamentPhase::find($this->bracketPhaseId);
+            if ($bPhase) {
+                $bCatId = $bPhase->tournament_category_id;
+                $bIsOpen = $isOpen;
+
+                $bracketModalTeams = TournamentTeam::where('tournament_id', $this->tournament->id)
+                    ->when(! $bIsOpen && $bCatId, fn($q) => $q->where('tournament_category_id', $bCatId))
+                    ->with('team')
+                    ->get();
+
+                $prevPhaseIds = TournamentPhase::where('tournament_id', $this->tournament->id)
+                    ->when(! $bIsOpen && $bCatId, fn($q) => $q->where('tournament_category_id', $bCatId))
+                    ->whereIn('type', ['league', 'group'])
+                    ->where('order', '<', $bPhase->order)
+                    ->pluck('id');
+
+                $bracketModalStandings = TournamentStanding::whereIn('phase_id', $prevPhaseIds)
+                    ->with(['tournamentTeam', 'phase'])
+                    ->orderBy('position')
+                    ->get()
+                    ->keyBy('tournament_team_id');
+            }
+        }
+
         return view('livewire.tournaments.show', compact(
             'categories', 'activeCategory',
             'phases', 'teams', 'matches', 'standings', 'hasLeaguePhase',
             'schoolTeams', 'schoolCategories',
-            'goalsModalMatch', 'goalsForModal', 'gmTeamPlayers', 'gmMatchTeams',
-            'availableReferees', 'assignedReferees'
+            'goalsModalMatch', 'goalsForModal', 'gmCardsForModal', 'gmTeamPlayers', 'gmMatchTeams', 'gmAllPlayers',
+            'availableReferees', 'assignedReferees',
+            'hasKnockoutPhase', 'bracketData', 'bracketModalTeams', 'bracketModalStandings'
         ));
     }
 }

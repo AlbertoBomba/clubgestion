@@ -272,6 +272,53 @@
         </div>
     </section>
 
+    @if(!$homeConfig || $homeConfig->membership_show)
+    <section class="py-40 bg-primary text-white">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="text-center mb-24" data-aos="fade-up">
+                <h2 class="text-sm md:text-base lg:text-lg uppercase tracking-[0.2em] text-gray-100 font-semibold mb-5">[04] Únete a Nosotros</h2>
+                <h3 class="section-title text-6xl md:text-8xl lg:text-9xl font-bold mb-10">{{ $homeConfig->membership_title ?? 'Hazte Socio' }}</h3>
+                <p class="text-xl md:text-2xl font-light text-gray-100 max-w-3xl mx-auto leading-relaxed">
+                    {{ $homeConfig->membership_subtitle ?? 'Disfruta de beneficios exclusivos y forma parte de nuestra comunidad deportiva' }}
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-16 mb-24">
+                <div class="text-center" data-aos="fade-up" data-aos-delay="100">
+                    <div class="text-6xl md:text-7xl font-bold mb-8 text-gray-100">01</div>
+                    <div class="h-px bg-gray-700 mb-8"></div>
+                    <h4 class="text-2xl md:text-3xl lg:text-4xl font-semibold mb-5 uppercase tracking-[0.15em]">{{ $homeConfig->benefit_1_title ?? 'Descuentos' }}</h4>
+                    <p class="text-gray-100 text-base leading-relaxed">{{ $homeConfig->benefit_1_description ?? 'Acceso a precios especiales en equipación y eventos' }}</p>
+                </div>
+                
+                <div class="text-center" data-aos="fade-up" data-aos-delay="200">
+                    <div class="text-6xl md:text-7xl font-bold mb-8 text-gray-100">02</div>
+                    <div class="h-px bg-gray-700 mb-8"></div>
+                    <h4 class="text-2xl md:text-3xl lg:text-4xl font-semibold mb-5 uppercase tracking-[0.15em]">{{ $homeConfig->benefit_2_title ?? 'Eventos' }}</h4>
+                    <p class="text-gray-100 text-base leading-relaxed">{{ $homeConfig->benefit_2_description ?? 'Invitaciones exclusivas a eventos del club' }}</p>
+                </div>
+                
+                <div class="text-center" data-aos="fade-up" data-aos-delay="300">
+                    <div class="text-6xl md:text-7xl font-bold mb-8 text-gray-100">03</div>
+                    <div class="h-px bg-gray-700 mb-8"></div>
+                    <h4 class="text-2xl md:text-3xl lg:text-4xl font-semibold mb-5 uppercase tracking-[0.15em]">{{ $homeConfig->benefit_3_title ?? 'Prioridad' }}</h4>
+                    <p class="text-gray-100 text-base leading-relaxed">{{ $homeConfig->benefit_3_description ?? 'Acceso prioritario a inscripciones y reservas' }}</p>
+                </div>
+            </div>
+            
+            <div class="text-center" data-aos="fade-up">
+                @php
+                    $membershipUrl = $homeConfig->membership_button_url ?? route('webclubs.registration');
+                    $membershipBtn = $homeConfig->membership_button_text ?? 'Únete Ahora';
+                @endphp
+                <a href="{{ $membershipUrl }}" class="btn-rounded bg-secondary text-white px-14 py-4 font-semibold text-[13px] uppercase tracking-[0.15em] inline-block">
+                    {{ $membershipBtn }}
+                </a>
+            </div>
+        </div>
+    </section>
+    @endif
+
     <!-- Torneos Section -->
     @if($tournaments && $tournaments->count() > 0)
     <section class="pt-20 pb-40 bg-white relative overflow-hidden">
@@ -782,52 +829,7 @@
     <x-webclubs.sponsors />
 
     <!-- Sección de Socios/Membresía -->
-    @if(!$homeConfig || $homeConfig->membership_show)
-    <section class="py-40 bg-primary text-white">
-        <div class="max-w-7xl mx-auto px-6 lg:px-8">
-            <div class="text-center mb-24" data-aos="fade-up">
-                <h2 class="text-sm md:text-base lg:text-lg uppercase tracking-[0.2em] text-gray-400 font-semibold mb-5">[04] Únete a Nosotros</h2>
-                <h3 class="section-title text-6xl md:text-8xl lg:text-9xl font-bold mb-10">{{ $homeConfig->membership_title ?? 'Hazte Socio' }}</h3>
-                <p class="text-xl md:text-2xl font-light text-gray-400 max-w-3xl mx-auto leading-relaxed">
-                    {{ $homeConfig->membership_subtitle ?? 'Disfruta de beneficios exclusivos y forma parte de nuestra comunidad deportiva' }}
-                </p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-16 mb-24">
-                <div class="text-center" data-aos="fade-up" data-aos-delay="100">
-                    <div class="text-6xl md:text-7xl font-bold mb-8 text-gray-300">01</div>
-                    <div class="h-px bg-gray-700 mb-8"></div>
-                    <h4 class="text-2xl md:text-3xl lg:text-4xl font-semibold mb-5 uppercase tracking-[0.15em]">{{ $homeConfig->benefit_1_title ?? 'Descuentos' }}</h4>
-                    <p class="text-gray-400 text-base leading-relaxed">{{ $homeConfig->benefit_1_description ?? 'Acceso a precios especiales en equipación y eventos' }}</p>
-                </div>
-                
-                <div class="text-center" data-aos="fade-up" data-aos-delay="200">
-                    <div class="text-6xl md:text-7xl font-bold mb-8 text-gray-300">02</div>
-                    <div class="h-px bg-gray-700 mb-8"></div>
-                    <h4 class="text-2xl md:text-3xl lg:text-4xl font-semibold mb-5 uppercase tracking-[0.15em]">{{ $homeConfig->benefit_2_title ?? 'Eventos' }}</h4>
-                    <p class="text-gray-400 text-base leading-relaxed">{{ $homeConfig->benefit_2_description ?? 'Invitaciones exclusivas a eventos del club' }}</p>
-                </div>
-                
-                <div class="text-center" data-aos="fade-up" data-aos-delay="300">
-                    <div class="text-6xl md:text-7xl font-bold mb-8 text-gray-300">03</div>
-                    <div class="h-px bg-gray-700 mb-8"></div>
-                    <h4 class="text-2xl md:text-3xl lg:text-4xl font-semibold mb-5 uppercase tracking-[0.15em]">{{ $homeConfig->benefit_3_title ?? 'Prioridad' }}</h4>
-                    <p class="text-gray-400 text-base leading-relaxed">{{ $homeConfig->benefit_3_description ?? 'Acceso prioritario a inscripciones y reservas' }}</p>
-                </div>
-            </div>
-            
-            <div class="text-center" data-aos="fade-up">
-                @php
-                    $membershipUrl = $homeConfig->membership_button_url ?? route('webclubs.registration');
-                    $membershipBtn = $homeConfig->membership_button_text ?? 'Únete Ahora';
-                @endphp
-                <a href="{{ $membershipUrl }}" class="btn-rounded bg-secondary text-white px-14 py-4 font-semibold text-[13px] uppercase tracking-[0.15em] inline-block">
-                    {{ $membershipBtn }}
-                </a>
-            </div>
-        </div>
-    </section>
-    @endif
+    
 
     <!-- Contact CTA -->
     @if(!$homeConfig || $homeConfig->contact_show)

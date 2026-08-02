@@ -30,6 +30,7 @@ class Tournament extends Model
         'settings',
         'created_user',
         'updated_user',
+        'live',
     ];
 
     protected $casts = [
@@ -39,9 +40,10 @@ class Tournament extends Model
         'registration_deadline'         => 'date',
         'player_registration_deadline'  => 'date',
         'registration_fee'              => 'decimal:2',
-        'created_at'            => 'datetime',
-        'updated_at'            => 'datetime',
-        'deleted_at'            => 'datetime',
+        'live'                          => 'boolean',
+        'created_at'                    => 'datetime',
+        'updated_at'                    => 'datetime',
+        'deleted_at'                    => 'datetime',
     ];
 
     // ──────────────────────────────────────── Status helpers

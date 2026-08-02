@@ -75,6 +75,16 @@ class Season extends Model
         return $this->hasMany(Team::class);
     }
 
+    public function memberTypes()
+    {
+        return $this->hasMany(MemberType::class);
+    }
+
+    public function memberSeasons()
+    {
+        return $this->hasMany(MemberSeason::class);
+    }
+
     /**
      * Scope para obtener la temporada en curso
      */

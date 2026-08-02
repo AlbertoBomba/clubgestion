@@ -784,6 +784,48 @@
                 @endif
 
                 @if(auth()->user()->hasRole('school_admin'))
+                <!-- Menú: Socios -->
+                <div class="space-y-1">
+                    <button @click="openMenu = openMenu === 'socios' ? null : 'socios'"
+                            class="flex items-center justify-between w-full px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('members.*') || request()->routeIs('member-types.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2"/>
+                            </svg>
+                            <span>Socios</span>
+                        </div>
+                        <svg class="w-4 h-4 transition-transform duration-200"
+                             :class="{'rotate-180': openMenu === 'socios'}"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div x-show="openMenu === 'socios'"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 transform -translate-y-2"
+                         x-transition:enter-end="opacity-100 transform translate-y-0"
+                         class="pl-4 space-y-1">
+                        <a href="{{ route('members.index') }}"
+                           @click="sidebarOpen = false"
+                           class="flex items-center px-4 py-2 text-sm text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('members.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                            Listado de socios
+                        </a>
+                        <a href="{{ route('member-types.index') }}"
+                           @click="sidebarOpen = false"
+                           class="flex items-center px-4 py-2 text-sm text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('member-types.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                            </svg>
+                            Tipos de socio
+                        </a>
+                    </div>
+                </div>
+                @endif
+
+                @if(auth()->user()->hasRole('school_admin'))
                 <!-- Menú: Tesorería -->
                 <div class="space-y-1">
                     <button @click="openMenu = openMenu === 'tesoreria' ? null : 'tesoreria'" 
