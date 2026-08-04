@@ -218,10 +218,10 @@ class Index extends Component
         
         // Obtener temporada activa
         $activeSeason = Season::where('sports_school_id', auth()->user()->sports_school_id)
-            ->where('start_date', '<=', now())
-            ->where('end_date', '>=', now())
+            ->where('inscription_start_at', '<=', now())
+            ->where('inscription_end_at', '>=', now())
             ->first();
-        
+            
         if (!$activeSeason) {
             return false;
         }

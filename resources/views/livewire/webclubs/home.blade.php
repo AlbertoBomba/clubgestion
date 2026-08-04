@@ -273,7 +273,7 @@
     </section>
 
     @if(!$homeConfig || $homeConfig->membership_show)
-    <section class="py-40 bg-primary text-white">
+    {{-- <section class="py-40 bg-primary text-white">
         <div class="max-w-7xl mx-auto px-6 lg:px-8">
             <div class="text-center mb-24" data-aos="fade-up">
                 <h2 class="text-sm md:text-base lg:text-lg uppercase tracking-[0.2em] text-gray-100 font-semibold mb-5">[04] Únete a Nosotros</h2>
@@ -316,7 +316,7 @@
                 </a>
             </div>
         </div>
-    </section>
+    </section> --}}
     @endif
 
     <!-- Torneos Section -->

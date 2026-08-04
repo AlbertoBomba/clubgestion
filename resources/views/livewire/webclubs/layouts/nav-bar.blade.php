@@ -16,14 +16,15 @@
                 {{-- <a href="{{ route('webclubs.about') }}" class="text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider transition">El Club</a> --}}
                 <a href="{{ route('webclubs.tournaments') }}" class="text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider transition">Torneos</a>
                 {{-- <a href="{{ route('webclubs.contact') }}" class="text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider transition">Contacto</a> --}}
-                {{-- <a href="{{ route('webclubs.registration') }}" class="bg-primary text-white px-8 py-3 text-sm font-semibold uppercase tracking-wider hover:opacity-90 transition rounded-full">
-                    Alta jugadores
-                </a> --}}
+                
                 @auth
                     <a href="{{ route('dashboard') }}" class="text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider transition">Panel</a>
                 @else
                     <a href="{{ route('login') }}" class="text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider transition">Login</a>
                 @endauth
+                <a href="{{ route('webclubs.registration') }}" class="bg-primary text-white px-8 py-3 text-sm font-semibold uppercase tracking-wider hover:opacity-90 transition rounded-full">
+                    Inscripción jugadores
+                </a>
             </div>
             <!-- Mobile menu button -->
             <div class="md:hidden flex items-center">
@@ -44,12 +45,15 @@
             {{-- <a href="{{ route('webclubs.about') }}" class="block py-2 text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider">El Club</a> --}}
             <a href="{{ route('webclubs.tournaments') }}" class="block py-2 text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider">Torneos</a>
             {{-- <a href="{{ route('webclubs.contact') }}" class="block py-2 text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider">Contacto</a> --}}
-            {{-- <a href="{{ route('webclubs.registration') }}" class="block py-2 text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider">Inscríbete</a> --}}
+            
             @auth
                 <a href="{{ route('dashboard') }}" class="block py-2 text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider">Panel</a>
             @else
                 <a href="{{ route('login') }}" class="block py-2 text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider">Login</a>
             @endauth
+
+            <a href="{{ route('webclubs.registration') }}" class="block py-2 text-blue-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider">Incripción jugadores</a>
+
         </div>
     </div>
 </nav>

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Traits\BelongsToSportsSchool;
+use Illuminate\Support\Facades\Storage;
 
 class Player extends Model
 {
@@ -45,6 +46,7 @@ class Player extends Model
         'descPerc',
         'created_user',
         'updated_user',
+        'signature',
     ];
 
     protected $casts = [
@@ -59,6 +61,23 @@ class Player extends Model
         'dorsal' => 'integer',
         'documents' => 'array',
     ];
+
+    public static function docTypes(): array
+    {
+        return [
+            'dni'      => 'DNI',
+            'nie'      => 'NIE',
+            'passport' => 'Pasaporte',
+        ];
+    }
+
+    public static function positions(): array
+    {
+        return [
+            'Portero', 'Defensa', 'Centrocampista', 'Delantero',
+            'Lateral', 'Central', 'Pivote', 'Extremo', 'Mediapunta',
+        ];
+    }
 
     /**
      * Get the sports school that owns the player.
@@ -107,6 +126,11 @@ class Player extends Model
     public function paymentPlayers()
     {
         return $this->hasMany(PaymentPlayer::class, 'player_id');
+    }
+
+     public function signatureUrl(): ?string
+    {
+        return $this->signature ? Storage::url($this->signature) : null;
     }
 
     /**

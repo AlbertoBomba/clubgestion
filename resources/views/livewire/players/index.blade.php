@@ -319,6 +319,7 @@
                                             $hasPayments = \App\Models\PaymentPlayer::where('player_id', $player->id)->exists();
                                             $tooltipMessage = '';
                                             if (!$canDelete) {
+                                              
                                                 if ($hasTeam && $hasPayments) {
                                                     $tooltipMessage = 'No se puede eliminar: el jugador tiene equipo asignado y pagos generados';
                                                 } elseif ($hasTeam) {
@@ -328,6 +329,7 @@
                                                 }
                                             }
                                         @endphp
+                                          
                                         <div class="relative group">
                                             <button wire:click="confirmDelete({{ $player->id }})" 
                                                 wire:loading.attr="disabled"

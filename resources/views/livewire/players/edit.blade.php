@@ -135,7 +135,7 @@
 
                         <div class="flex items-start gap-4 mt-6">
                             <div class="form-group">
-                                <label class="block text-sm font-semibold text-titanium mb-2">Tipo de Descuento</label>
+                                <label class="block text-sm font-semibold text-titanium mb-2">Tipo de Descuento <span class="text-xs text-gray-500">(Solo aplica a no federados)</span></label>
                                 <select wire:model.live="discountType" 
                                     {{ $this->hasPaymentOrders ? 'disabled' : '' }}
                                     class="block w-64 px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm {{ $this->hasPaymentOrders ? 'bg-gray-100 cursor-not-allowed opacity-60' : '' }}">
@@ -356,6 +356,13 @@
                                 class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
                             @error('dnitutor') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
+
+                        <div class="form-group">
+                            <label class="block text-sm font-semibold text-titanium mb-2">Teléfono Tutor</label>
+                            <input wire:model.live="phone2" type="text" 
+                                class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                            @error('phone2') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                        </div>
                     </div>
                     @endif
                     
@@ -400,18 +407,13 @@
 
                             <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                                 <div class="form-group md:col-span-3">
-                                    <label class="block text-sm font-semibold text-titanium mb-2">Teléfono 1</label>
+                                    <label class="block text-sm font-semibold text-titanium mb-2">Teléfono Jugador</label>
                                     <input wire:model.live="phone1" type="text" 
                                         class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
                                     @error('phone1') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                                 </div>
 
-                                <div class="form-group md:col-span-3">
-                                    <label class="block text-sm font-semibold text-titanium mb-2">Teléfono 2</label>
-                                    <input wire:model.live="phone2" type="text" 
-                                        class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
-                                    @error('phone2') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                                </div>
+                                
 
                                 <div class="form-group md:col-span-6">
                                     <label class="block text-sm font-semibold text-titanium mb-2">Email</label>

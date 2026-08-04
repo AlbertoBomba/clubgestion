@@ -19,24 +19,13 @@
 </style>
 
 <div class="reg-outer">
-@if($openInscriptionSeasons->count() >= 2)
-    <div class="mb-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg flex items-start gap-3">
-        <svg class="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-        </svg>
-        <div>
-            <p class="text-sm font-bold text-red-800">Advertencia: No se pueden realizar inscripciones,</p>
-            <p class="text-sm text-red-700 mt-1">Contacte con el {{$school->name}} al teléfono {{$school->phone}} o al correo electrónico {{$school->email}} para comunicar la incidencia. Existen
-                {{ $openInscriptionSeasons->count() }} temporadas que mantienen inscripciones abiertas. Solo puede haber una temporada con inscripciones abiertas a la vez.</p>
-        </div>
-    </div>
-@elseif($openInscriptionSeasons->count() === 1)
+
     {{-- ── White sheet ─────────────────────────────────────────────── --}}
     <div class="reg-sheet sm:mx-auto">
 
         {{-- ── Header inside card ───────────────────────────────────── --}}
         <div class="px-5 pt-5 pb-4 flex items-center gap-3 border-b border-gray-100">
-            {{-- @if($fromDashboard)
+            @if($fromDashboard)
                 <a href="{{ route('webclubs.team.dashboard', $tournament) }}"
                    class="flex items-center gap-1.5 text-gray-400 hover:text-gray-700 text-sm font-medium transition-colors">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
@@ -44,22 +33,22 @@
                 </a>
             @else
                 <div class="w-8"></div>
-            @endif --}}
+            @endif
             <div class="flex-1 flex items-center justify-center gap-2.5">
                 {{-- @if($team->logo)
                     <img src="{{ Storage::url($team->logo) }}" alt="{{ $team->displayName() }}"
                          class="w-9 h-9 rounded-xl object-cover flex-shrink-0">
                 @endif --}}
-                <div>
-                    {{-- <p class="font-black text-sm leading-tight text-gray-900">{{ $team->displayName() }}</p>
-                    <p class="text-xs text-gray-400">{{ $tournament->name }}</p> --}}
-                </div>
+                {{-- <div>
+                    <p class="font-black text-sm leading-tight text-gray-900">{{ $team->displayName() }}</p>
+                    <p class="text-xs text-gray-400">{{ $tournament->name }}</p>
+                </div> --}}
             </div>
             <div class="w-8"></div>
         </div>
 
         {{-- Progress bar --}}
-        {{-- @if(!$done)
+        @if(!$done)
         <div class="px-6 pt-5 pb-4 border-b border-gray-100">
             <div class="flex items-center justify-between mb-3">
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Inscripción de jugador</p>
@@ -73,12 +62,13 @@
                 @endfor
             </div>
             <div class="flex justify-between mt-2">
-                <span class="text-[10px] font-bold {{ $step >= 1 ? 'text-gray-700' : 'text-gray-300' }}">Datos</span>
-                <span class="text-[10px] font-bold {{ $step >= 2 ? 'text-gray-700' : 'text-gray-300' }}">Documento</span>
-                <span class="text-[10px] font-bold {{ $step >= 3 ? 'text-gray-700' : 'text-gray-300' }}">Deportivo</span>
+                <span class="text-[10px] font-bold {{ $step >= 1 ? 'text-gray-700' : 'text-gray-300' }}">Dat.jugador</span>
+                <span class="text-[10px] font-bold {{ $step >= 2 ? 'text-gray-700' : 'text-gray-300' }}">Dat.Contacto</span>
+                <span class="text-[10px] font-bold {{ $step >= 3 ? 'text-gray-700' : 'text-gray-300' }}">Dat. Deportivos</span>
+                <span class="text-[10px] font-bold {{ $step >= 3 ? 'text-gray-700' : 'text-gray-300' }}">Confirmar y firma</span>
             </div>
         </div>
-        @endif --}}
+        @endif
 
         <div class="px-6">
 
@@ -86,175 +76,265 @@
             @if($step === 1 && !$done)
             <div class="pt-6 space-y-4">
                 <div>
-                    <h2 class="text-lg font-black text-gray-900">Datos personales del jugador</h2>
-                    <p class="text-sm text-gray-400 mt-0.5">Introduce tus datos de identificación</p>
+                    <h2 class="text-lg font-black text-gray-900">Datos del Jugador</h2>
+                    <p class="text-sm text-gray-400 mt-0.5">Introduce los datos de identificación</p>
                 </div>
-
-                {{-- Name --}}
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Nombre *</label>
-                    <input wire:model="name" type="text" placeholder="Nombre"
-                           class="w-full px-3 py-3.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
-                    @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                {{-- Surname --}}
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Apellidos *</label>
-                    <input wire:model="surname" type="text" placeholder="Apellidos"
-                           class="w-full px-3 py-3.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
-                    @error('surname') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                {{-- Birthdate --}}
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Fecha de nacimiento</label>
-                    <input wire:model="birthdate" type="hidden" id="pr-birthdate-livewire"/>
-                    <div class="relative">
-                        <input type="text" id="pr-birthdate-text" placeholder="dd/mm/aaaa" maxlength="10"
-                               oninput="prFormatBirthdate(this)"
-                               class="w-full pl-3 pr-10 py-3.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
-                        <input type="date" id="pr-birthdate-picker" tabindex="-1"
-                               style="position:absolute;opacity:0;width:0;height:0;top:0;right:0;"
-                               onchange="prSyncBirthdatePicker(this)"/>
-                        <button type="button" onclick="document.getElementById('pr-birthdate-picker').showPicker()"
-                                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                <line x1="16" y1="2" x2="16" y2="6" stroke-linecap="round"/>
-                                <line x1="8" y1="2" x2="8" y2="6" stroke-linecap="round"/>
-                                <line x1="3" y1="10" x2="21" y2="10"/>
-                            </svg>
-                        </button>
+                <div class="flex gap-3 ">
+                    {{-- Name --}}
+                    <div class="w-full">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Nombre *</label>
+                        <input wire:model="player_name" type="text" placeholder="Nombre"
+                            class="w-full px-3 py-3.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
+                        @error('player_name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
-                    @error('birthdate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+
+                    {{-- Surname --}}
+                    <div class="w-full">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Apellidos *</label>
+                        <input wire:model="player_surname" type="text" placeholder="Apellidos"
+                            class="w-full px-3 py-3.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
+                        @error('player_surname') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    {{-- Phones --}}
+                    <div class="w-full">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Tlf. jugador
+                            {{-- @if(!$isAdult)
+                                <span class="text-xs text-gray-400">(Este teléfono no es obligatorio)</span>
+                            @endif --}}
+                        </label>
+                        <input wire:model="phone1" type="tel" placeholder="6XX XXX XXX"
+                            class="w-full px-3 py-3.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
+                        @error('phone1') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    {{-- Birthdate --}}
+                    <div class="w-full">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">F. Nacimiento</label>
+                        <input wire:model.live="player_birthdate"  type="hidden" id="pr-birthdate-livewire"/>
+                        <div class="relative">
+                            <input type="text" id="pr-birthdate-text" placeholder="dd/mm/aaaa" maxlength="10"
+                                oninput="prFormatBirthdate(this)"
+                                class="w-full pl-3 pr-10 py-3.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
+                            <input type="date" id="pr-birthdate-picker" tabindex="-1"
+                                style="position:absolute;opacity:0;width:0;height:0;top:0;right:0;"
+                                onchange="prSyncBirthdatePicker(this)"/>
+                            <button type="button" onclick="document.getElementById('pr-birthdate-picker').showPicker()"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                    <line x1="16" y1="2" x2="16" y2="6" stroke-linecap="round"/>
+                                    <line x1="8" y1="2" x2="8" y2="6" stroke-linecap="round"/>
+                                    <line x1="3" y1="10" x2="21" y2="10"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        @error('player_birthdate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+
+                        @if($suggestedCategory)
+                            <p class="text-xs font-bold mt-1.5 text-black" >
+                                Categoría: {{ $suggestedCategory }}
+                            </p>
+                        @elseif($player_birthdate)
+                            <p class="text-xs text-red-500 mt-1.5 ">
+                                No se ha encontrado una categoría para esta fecha de nacimiento.
+                            </p>
+                        @endif
+                    </div>
+
+                   
                 </div>
 
-                {{-- Phone --}}
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Teléfono</label>
-                    <input wire:model="phone" type="tel" placeholder="6XX XXX XXX"
-                           class="w-full px-3 py-3.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
-                    @error('phone') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
+                 {{-- Doc number --}}
+                    <div class="w-1/2">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                            Jugador {{ $docTypes[$docType] ?? 'documento' }} *
+                        </label>
+                        <input wire:model="docNumber" type="text"
+                            placeholder="{{ $docType === 'passport' ? 'ABC123456' : ($docType === 'nie' ? 'X1234567Z' : '12345678A') }}"
+                            oninput="this.value=this.value.replace(/\s/g,'').toUpperCase()"
+                            class="w-full px-3 py-3.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                            style="text-transform:uppercase"/>
+                        @error('docNumber') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
 
-                {{-- Email --}}
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Email</label>
-                    <input wire:model="email" type="email" placeholder="correo@ejemplo.com"
-                           class="w-full px-3 py-3.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
-                    @error('email') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
+                @if($federado)
+                    <div class="flex flex-col pt-2 gap-2">
+                        <div>
+                            <h2 class="text-lg font-black text-gray-900">Documento de identidad</h2>
+                            <p class="text-sm text-gray-400 mt-0.5">DNI, NIE o Pasaporte</p>
+                        </div>
+                        {{-- <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+                            <p class="text-sm text-gray-700">Si eres menor de edad, el documento debe ser del tutor legal.</p>
+                        </div> --}}
+                        {{-- Doc type --}}
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Tipo de documento *</label>
+                            <div class="flex gap-2">
+                                @foreach($docTypes as $key => $label)
+                                    <button type="button" wire:click="$set('docType', '{{ $key }}')"
+                                            class="flex-1 py-3 rounded-xl text-sm font-bold border transition-all {{ $docType === $key ? 'text-white border-transparent' : 'text-gray-500 border-gray-200 bg-white hover:border-gray-300' }}"
+                                            style="{{ $docType === $key ? 'background: linear-gradient(135deg, var(--color-primary), var(--color-secondary))' : '' }}">
+                                        {{ $label }}
+                                    </button>
+                                @endforeach
+                            </div>
+                            @error('docType') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
 
-                <button wire:click="nextStep" wire:loading.attr="disabled"
-                        class="w-full py-4 rounded-2xl text-white text-base font-black shadow-lg hover:opacity-90 active:scale-[0.98] transition-all mt-2"
-                        style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary))">
-                    <span wire:loading.remove wire:target="nextStep">Siguiente →</span>
-                    <span wire:loading wire:target="nextStep">Verificando...</span>
-                </button>
+                        
+
+                        {{-- Doc front --}}
+                        <div wire:key="doc-front-block">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                                Foto {{ $docType === 'passport' ? 'página principal' : 'anverso' }}
+                                <span class="text-red-400">*</span>
+                            </label>
+                            <div wire:ignore>
+                                <div id="doc-front-preview-container" class="hidden mb-2 relative">
+                                    <img id="doc-front-preview-img" class="w-full max-h-40 object-cover rounded-xl border border-gray-200" alt="Anverso">
+                                    <button type="button" onclick="clearDocImage('front', 'docFront')"
+                                            class="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center text-xs hover:bg-black/70 transition-colors">✕</button>
+                                </div>
+                                <div id="doc-front-buttons">
+                                    <button type="button" onclick="document.getElementById('doc-front-gallery').click()"
+                                            class="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                        Subir foto del documento
+                                    </button>
+                                </div>
+                                <input type="file" id="doc-front-gallery" accept="image/*,application/pdf" class="hidden" onchange="handleDocSelect(this, 'front', 'docFront')"/>
+                            </div>
+                            @error('docFront') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- Doc back (only for dni/nie) --}}
+                        @if($docType !== 'passport')
+                            <div wire:key="doc-back-block">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                                    Foto reverso
+                                    <span class="text-red-400">*</span>
+                                </label>
+                                <div wire:ignore>
+                                    <div id="doc-back-preview-container" class="hidden mb-2 relative">
+                                        <img id="doc-back-preview-img" class="w-full max-h-40 object-cover rounded-xl border border-gray-200" alt="Reverso">
+                                        <button type="button" onclick="clearDocImage('back', 'docBack')"
+                                                class="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center text-xs hover:bg-black/70 transition-colors">✕</button>
+                                    </div>
+                                    <div id="doc-back-buttons">
+                                        <button type="button" onclick="document.getElementById('doc-back-gallery').click()"
+                                                class="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                            Subir foto del documento
+                                        </button>
+                                    </div>
+                                    <input type="file" id="doc-back-gallery" accept="image/*,application/pdf" class="hidden" onchange="handleDocSelect(this, 'back', 'docBack')"/>
+                                </div>
+                                @error('docBack') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            </div>
+                        @endif
+                    
+                    </div>
+                @endif
+
+                
+                 @if($suggestedCategory)
+                    <button wire:click="nextStep" wire:loading.attr="disabled"
+                            class="w-full py-4 rounded-2xl text-white text-base font-black shadow-lg hover:opacity-90 active:scale-[0.98] transition-all mt-2"
+                            style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary))">
+                        <span wire:loading.remove wire:target="nextStep">Siguiente →</span>
+                        <span wire:loading wire:target="nextStep">Verificando...</span>
+                    </button>
+                @endif
             </div>
             @endif
 
             {{-- ═══════════════════════════════════════════ STEP 2 ═══ --}}
             @if($step === 2 && !$done)
-            {{-- Reactive ref for JS to know the current docType --}}
-            <span id="pr-doctype-ref" class="hidden" data-doctype="{{ $docType }}"></span>
-            <div class="pt-6 space-y-4">
-                <div>
-                    <h2 class="text-lg font-black text-gray-900">Documento de identidad</h2>
-                    <p class="text-sm text-gray-400 mt-0.5">DNI, NIE o Pasaporte</p>
-                </div>
-
-                {{-- Doc type --}}
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Tipo de documento *</label>
-                    <div class="flex gap-2">
-                        @foreach($docTypes as $key => $label)
-                            <button type="button" wire:click="$set('docType', '{{ $key }}')"
-                                    class="flex-1 py-3 rounded-xl text-sm font-bold border transition-all {{ $docType === $key ? 'text-white border-transparent' : 'text-gray-500 border-gray-200 bg-white hover:border-gray-300' }}"
-                                    style="{{ $docType === $key ? 'background: linear-gradient(135deg, var(--color-primary), var(--color-secondary))' : '' }}">
-                                {{ $label }}
-                            </button>
-                        @endforeach
+                {{-- Reactive ref for JS to know the current docType --}}
+                 {{-- nametutor --}}
+                <div class="pt-6 space-y-4">
+                    <div>
+                        <h2 class="text-lg font-black text-gray-900">Contacto</h2>
+                        <p class="text-sm text-gray-400 mt-0.5">Todos los campos son obligatorios</p>
                     </div>
-                    @error('docType') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                {{-- Doc number --}}
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                        Número de {{ $docTypes[$docType] ?? 'documento' }} *
-                    </label>
-                    <input wire:model="docNumber" type="text"
-                           placeholder="{{ $docType === 'passport' ? 'ABC123456' : ($docType === 'nie' ? 'X1234567Z' : '12345678A') }}"
-                           oninput="this.value=this.value.replace(/\s/g,'').toUpperCase()"
-                           class="w-full px-3 py-3.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-                           style="text-transform:uppercase"/>
-                    @error('docNumber') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                {{-- Doc front --}}
-                <div wire:key="doc-front-block">
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                        Foto {{ $docType === 'passport' ? 'página principal' : 'anverso' }}
-                        <span class="text-red-400">*</span>
-                    </label>
-                    <div wire:ignore>
-                        <div id="doc-front-preview-container" class="hidden mb-2 relative">
-                            <img id="doc-front-preview-img" class="w-full max-h-40 object-cover rounded-xl border border-gray-200" alt="Anverso">
-                            <button type="button" onclick="clearDocImage('front', 'docFront')"
-                                    class="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center text-xs hover:bg-black/70 transition-colors">✕</button>
+                    @if(!$isAdult)
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Nombre del tutor</label>
+                            <input wire:model="name_tutor" type="text" placeholder="Nombre del tutor"
+                                class="w-full px-3 py-3.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
+                            @error('name_tutor') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
-                        <div id="doc-front-buttons">
-                            <button type="button" onclick="document.getElementById('doc-front-gallery').click()"
-                                    class="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                Subir foto del documento
-                            </button>
+                        <div class="flex  pt-2 gap-2">
+                            <div class="w-full">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">DNI del tutor</label>
+                                <input wire:model="dnitutor" type="text" placeholder="Escriba aqui el DNI del tutor"
+                                    class="w-full px-3 py-3.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
+                                @error('dnitutor') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            </div>
+                            <div class="w-full">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Teléfono del tutor</label>
+                                <input wire:model="phone2" type="tel" placeholder="6XX XXX XXX"
+                                    class="w-full px-3 py-3.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
+                                @error('phone2') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            </div>
                         </div>
-                        <input type="file" id="doc-front-gallery" accept="image/*,application/pdf" class="hidden" onchange="handleDocSelect(this, 'front', 'docFront')"/>
+                    @endif
+                    <div class="flex gap-3">
+                        <div class="w-full">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Dirección  </label>
+                            <input wire:model="address" type="text" placeholder="Escriba aqui su calle y número de casa"
+                                class="w-full px-3 py-3.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
+                            @error('address') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Código postal</label>
+                            <input wire:model="zip" type="text" placeholder="Escriba código postal"
+                                class="w-full px-3 py-3.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
+                            @error('zip') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror 
+                        </div>
                     </div>
-                    @error('docFront') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                {{-- Doc back (only for dni/nie) --}}
-                @if($docType !== 'passport')
-                <div wire:key="doc-back-block">
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                        Foto reverso
-                        <span class="text-red-400">*</span>
-                    </label>
-                    <div wire:ignore>
-                        <div id="doc-back-preview-container" class="hidden mb-2 relative">
-                            <img id="doc-back-preview-img" class="w-full max-h-40 object-cover rounded-xl border border-gray-200" alt="Reverso">
-                            <button type="button" onclick="clearDocImage('back', 'docBack')"
-                                    class="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center text-xs hover:bg-black/70 transition-colors">✕</button>
+                    <div class="flex gap-3">
+                        <div class="w-full">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Población</label>
+                            <input wire:model="town" type="text" placeholder="Escriba aqui su población"
+                                class="w-full px-3 py-3.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
+                            @error('town') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
-                        <div id="doc-back-buttons">
-                            <button type="button" onclick="document.getElementById('doc-back-gallery').click()"
-                                    class="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                Subir foto del documento
-                            </button>
+                        <div class="w-full">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Provincia</label>
+                            <input wire:model="province" type="text" placeholder="Escriba aqui su provincia"
+                                class="w-full px-3 py-3.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
+                            @error('province') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
-                        <input type="file" id="doc-back-gallery" accept="image/*,application/pdf" class="hidden" onchange="handleDocSelect(this, 'back', 'docBack')"/>
                     </div>
-                    @error('docBack') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-                @endif
 
-                {{-- Navigation --}}
-                <div class="flex gap-3 pt-2">
-                    <button wire:click="prevStep" type="button"
-                            class="flex-1 py-4 rounded-2xl border border-gray-200 text-sm font-bold text-gray-500 hover:bg-gray-50 transition-colors">
-                        ← Anterior
-                    </button>
-                    <button wire:click="nextStep" wire:loading.attr="disabled" type="button"
-                            class="flex-[2] py-4 rounded-2xl text-white text-base font-black shadow-lg hover:opacity-90 active:scale-[0.98] transition-all"
-                            style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary))">
-                        <span wire:loading.remove wire:target="nextStep">Siguiente →</span>
-                        <span wire:loading wire:target="nextStep">Verificando...</span>
-                    </button>
+                    
+                    
+                    {{-- Email --}}
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Email</label>
+                        <input wire:model="email" type="email" placeholder="correo@ejemplo.com"
+                            class="w-full px-3 py-3.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
+                        @error('email') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>              
+                    
+                
+
+                    {{-- Navigation --}}
+                    <div class="flex gap-3 pt-2">
+                        <button wire:click="prevStep" type="button"
+                                class="flex-1 py-4 rounded-2xl border border-gray-200 text-sm font-bold text-gray-500 hover:bg-gray-50 transition-colors">
+                            ← Anterior
+                        </button>
+                        <button wire:click="nextStep" wire:loading.attr="disabled" type="button"
+                                class="flex-[2] py-4 rounded-2xl text-white text-base font-black shadow-lg hover:opacity-90 active:scale-[0.98] transition-all"
+                                style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary))">
+                            <span wire:loading.remove wire:target="nextStep">Siguiente →</span>
+                            <span wire:loading wire:target="nextStep">Verificando...</span>
+                        </button>
+                    </div>
                 </div>
             </div>
             @endif
@@ -264,13 +344,16 @@
             <div class="pt-6 space-y-4">
                 <div>
                     <h2 class="text-lg font-black text-gray-900">Datos deportivos</h2>
-                    <p class="text-sm text-gray-400 mt-0.5">Posición, foto y documentación adicional</p>
+                    <p class="text-sm text-gray-400 mt-0.5">(*) Campos obligatorios</p>
                 </div>
-
                 {{-- Profile photo --}}
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Foto selfi
-                        <span class="text-red-400">*</span>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Foto selfi jugador
+                        @if($federado)
+                            <span class="text-red-400">*</span>
+                        @else
+                            <span class="text-blue-400">(Opcional, aparecerá en la web oficial del club)</span>
+                        @endif
                     </label>
                     <div wire:ignore>
                         <div id="profile-photo-preview-container" class="hidden mb-2 relative">
@@ -289,70 +372,105 @@
                     </div>
                     @error('photo') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
-
-                {{-- Position --}}
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Posición</label>
-                    <select wire:model="position"
-                            class="w-full px-3 py-3.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all appearance-none">
-                        <option value="">Selecciona posición</option>
-                        @foreach($positions as $pos)
-                            <option value="{{ $pos }}">{{ $pos }}</option>
-                        @endforeach
-                    </select>
-                    @error('position') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Secciones a las que se inscribe *</label>
+                    @error('selectedSections') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
+                <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                    
+                    
+                    @php
+                     $count_sections = count($sections);
+                    @endphp
+                    @foreach($sections as $section)
+                        @php
+                            $isSelected = in_array($section->id, $selectedSections);
+                            $isForced   = $count_sections <= 1;
+                            $price      = $sectionPrices[$section->id] ?? null;
+                        @endphp
+                        <label for="section_{{ $section->id }}"
+                            class="rounded-xl p-4 border-2 flex flex-col items-center justify-center text-center gap-2 transition-colors
+                                    {{ $isForced ? 'cursor-default' : 'cursor-pointer' }}
+                                    {{ $isSelected ? 'border-primary bg-primary/5' : 'bg-white-pure border-silver hover:border-gray-300' }}">
+                            
+                            <input type="checkbox"
+                                id="section_{{ $section->id }}"
+                                value="{{ $section->id }}"
+                                wire:model.live="selectedSections"
+                                @if($isForced) checked disabled @endif
+                                class="w-5 h-5 text-primary border-silver rounded focus:ring-primary flex-shrink-0 cursor-pointer">
 
-                {{-- Dorsal --}}
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Dorsal preferido</label>
-                    <input wire:model="dorsal" type="number" min="1" max="99" placeholder="1-99"
-                           class="w-full px-3 py-3.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"/>
-                    @error('dorsal') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
+                            <p class="text-sm font-bold {{ $isSelected ? 'text-primary' : 'text-titanium' }}">
+                                {{ $section->name }}
+                            </p>
 
-                {{-- Federated --}}
-                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-                    <label class="flex items-center gap-3 cursor-pointer select-none">
-                        <div class="relative flex-shrink-0">
-                            <input wire:model="federado" type="checkbox" id="federado-check" class="sr-only peer"/>
-                            <div class="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-amber-400 transition-colors"></div>
-                            <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5"></div>
-                        </div>
-                        <div>
-                            <p class="text-sm font-bold text-gray-900">Estoy federado en otro equipo</p>
-                            <p class="text-xs text-gray-500 mt-0.5">Activa si estás inscrito en otro club de forma federada</p>
-                        </div>
-                    </label>
-                    @if($federado)
-                    <div class="mt-3">
-                        <input wire:model="fedTeam" type="text" placeholder="Nombre del equipo federado"
-                               class="w-full px-3 py-3 text-sm border border-amber-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-amber-300 transition-all"/>
-                    </div>
-                    @endif
-                </div>
-
-                {{-- Extra document --}}
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                        Documento adicional
-                        <span class="text-gray-300 font-normal normal-case">(licencia, autorización, etc. – opcional)</span>
-                    </label>
-                    <div id="extra-doc-preview-container" class="hidden mb-2 flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-xl">
-                        <svg class="w-8 h-8 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        <p id="extra-doc-name" class="text-sm font-bold text-gray-700 flex-1 truncate"></p>
-                        <button type="button" onclick="clearExtraDoc()"
-                                class="text-gray-400 hover:text-red-500 transition-colors text-xs font-bold">✕</button>
-                    </div>
-                    <div id="extra-doc-buttons">
-                        <label onclick="document.getElementById('extra-doc-input').click()" class="flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-gray-200 text-sm font-bold text-gray-500 hover:border-gray-300 hover:bg-gray-50 transition-all cursor-pointer">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                            Adjuntar documento (PDF o imagen)
+                            @if(!$federado)
+                                <p class="text-sm font-semibold {{ $isSelected ? 'text-primary' : 'text-gray-700' }}">
+                                    {{ $price !== null ? number_format((float) $price, 2, ',', '.').' €' : '—' }}
+                                </p>
+                            @endif
                         </label>
-                        <input type="file" id="extra-doc-input" accept="image/*,application/pdf" class="hidden" onchange="handleExtraDocSelect(this)"/>
-                    </div>
-                    @error('extraDoc') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    @endforeach
                 </div>
+
+                {{-- Talla de equipación --}}
+                @if(!empty($availableSizes) && count($availableSizes) > 0)
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                            Talla de equipación *
+                        </label>
+                        @error('sizes') <p class="text-red-500 text-xs mt-1 mb-1">{{ $message }}</p> @enderror
+
+                        @php
+                            $sizesByBrand = collect($availableSizes)->groupBy(fn($s) => $s->brand?->name ?? 'Sin marca');
+                            $multiBrand   = $sizesByBrand->count() > 1;
+                        @endphp
+
+                        <div class="space-y-4">
+                            @foreach($sizesByBrand as $brandName => $brandSizes)
+                                <div>
+                                    @if($multiBrand)
+                                        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                                            {{ $brandName }}
+                                        </p>
+                                    @endif
+                                    <div class="flex flex-wrap gap-2">
+                                        @foreach($brandSizes as $size)
+                                            @php $isSelectedSize = ((string) $sizes === (string) $size->size); @endphp
+                                            <label for="size_{{ $size->id }}"
+                                                   title="{{ $size->description }}"
+                                                   class="cursor-pointer select-none min-w-[3.5rem] px-4 py-3 rounded-xl border-2 text-center transition-colors
+                                                          {{ $isSelectedSize
+                                                                ? 'border-primary bg-primary text-white shadow-md'
+                                                                : 'bg-white-pure border-silver text-titanium hover:border-gray-300' }}">
+                                                <input type="radio"
+                                                       id="size_{{ $size->id }}"
+                                                       name="player_size"
+                                                       value="{{ $size->size }}"
+                                                       wire:model.live="sizes"
+                                                       class="sr-only">
+                                                <span class="block text-sm font-black leading-tight">{{ $size->size }}</span>
+                                                @if($size->description)
+                                                    <span class="block text-[10px] font-medium mt-0.5 {{ $isSelectedSize ? 'text-white/80' : 'text-gray-400' }}">
+                                                        {{ \Illuminate\Support\Str::limit($size->description, 18) }}
+                                                    </span>
+                                                @endif
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                <div>
+
+                </div>
+
+                
+
+    
 
                 {{-- Navigation --}}
                 <div class="flex gap-3 pt-2">
@@ -373,6 +491,48 @@
             {{-- ═══════════════════════════════════════════ STEP 4 ════ --}}
             @if($step === 4 && !$done)
             <div class="space-y-5" wire:key="step-4-signature">
+                 <div>
+                    <h2 class="text-xl font-black text-gray-900 mb-1">¿Los datos son correctos?</h2>
+                    <p class="text-sm text-gray-500">Confirma que todos los datos ingresados son correctos antes de proceder.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 text-xs text-gray-600 leading-relaxed space-y-2">
+                        <p class="font-bold text-gray-700 text-sm">Jugador</p>
+                        <p>Nombre: <span class="font-semibold text-gray-800">{{ $player_name }} {{ $player_surname }}</span></p>
+                        <p>Fecha nacimiento: <span class="font-semibold text-gray-800">{{ $player_birthdate }}</span></p>
+                        @if($federado)
+                            <p>Documento: <span class="font-semibold text-gray-800">{{ $docTypes[$docType] ?? 'Documento' }} {{ $docNumber }}</span></p>
+                        @endif
+                    </div>
+
+                    <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 text-xs text-gray-600 leading-relaxed space-y-2">
+                        <p class="font-bold text-gray-700 text-sm">Datos de contacto</p>
+                        @if(!$isAdult)
+                            <p>Tutor: <span class="font-semibold text-gray-800">{{ $name_tutor }}</span></p>
+                            <p>Teléfono del tutor: <span class="font-semibold text-gray-800">{{ $phone2 }}</span></p>
+                        @endif
+                        <p>Dirección: <span class="font-semibold text-gray-800">{{ $address }}, {{ $zip }}, {{ $town }}, {{ $province }}</span></p>
+                        <p>Teléfono del jugador: <span class="font-semibold text-gray-800">{{ $phone1 }}</span></p>
+                        <p>Email: <span class="font-semibold text-gray-800">{{ $email }}</span></p>
+                    </div>
+
+                    <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 text-xs text-gray-600 leading-relaxed space-y-2">
+                        <p class="font-bold text-gray-700 text-sm">Datos deportivos</p>
+                       
+                        <p>Secciones inscritas:
+                            @foreach($selectedSections as $sectionId)
+                                @php
+                                    $section = collect($sections)->firstWhere('id', $sectionId);
+                                @endphp
+                                @if($section)
+                                    <span class="font-semibold text-gray-800">{{ $section->name }}</span>@if(!$loop->last), @endif
+                                @endif
+                            @endforeach
+                        </p>
+                        <p>Talla de equipación: <span class="font-semibold text-gray-800">{{ $sizes ?? '—' }}</span></p>
+                    </div>
+                </div>
+
                 <div>
                     <h2 class="text-xl font-black text-gray-900 mb-1">Firma de inscripción</h2>
                     <p class="text-sm text-gray-500">Lee el siguiente texto y firma en el recuadro para confirmar tu inscripción.</p>
@@ -381,10 +541,52 @@
                 {{-- Declaración de responsabilidad --}}
                 <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 text-xs text-gray-600 leading-relaxed space-y-2">
                     <p class="font-bold text-gray-700 text-sm">Declaración de participación y responsabilidad</p>
-                    <p>Declaro que participo en <span class="font-semibold text-gray-800">{{ $tournament->name }}</span> de forma voluntaria, bajo mi propia responsabilidad y conociendo los riesgos inherentes a la práctica deportiva. Manifiesto encontrarme en condiciones físicas adecuadas para participar.</p>
-                    <p>Eximo al <span class="font-semibold text-gray-800">{{ $schoolName }}</span>, organización, colaboradores y responsables del torneo de cualquier responsabilidad derivada de lesiones, accidentes, daños personales o materiales que pudieran producirse durante mi participación.</p>
-                    <p>Asimismo, me comprometo a respetar las normas del torneo y mantener una conducta adecuada, asumiendo personalmente la responsabilidad de cualquier altercado o actuación contraria a las normas.</p>
-                    <p>Del mismo modo, autorizo al <span class="font-semibold text-gray-800">{{ $schoolName }}</span> a la captación y uso de imágenes, fotografías o vídeos en los que pueda aparecer durante el desarrollo del torneo, con fines informativos, deportivos o de difusión en medios oficiales del club y redes sociales.</p>
+                    <!-- Declaración explícita de aceptación y consentimiento por firma -->
+                    <p class="font-semibold text-gray-800 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                        Al firmar o enviar este formulario, confirmo que he leído, entiendo y acepto expresamente todos los términos, condiciones y cláusulas que se detallan a continuación, otorgando mi pleno consentimiento.
+                    </p>
+
+                    <!-- Cláusula de Cesión de Derechos de Imagen -->
+                    <div class="space-y-2 mt-4">
+                        <h4 class="font-bold text-gray-900 text-sm uppercase tracking-wide">Cláusula de Cesión de Derechos de Imagen</h4>
+                        <p>
+                            Por la presente, autorizo al <span class="font-semibold text-gray-800">{{ $schoolName ?? 'CLUB DEPORTIVO PUEBLA' }}</span> a utilizar la imagen del jugador aquí descrito en los elementos publicitarios que se utilizarán en las campañas y actividad docente.
+                        </p>
+                        <p>
+                            Dejo expresa constancia de que, por medio del presente documento, cedo al <span class="font-semibold text-gray-800">{{ $schoolName ?? 'CLUB DEPORTIVO PUEBLA' }}</span>, de manera gratuita, el derecho a divulgar mi imagen en los términos del presente documento.
+                        </p>
+                    </div>
+
+                    <!-- Información sobre Protección de Datos -->
+                    <div class="space-y-2 mt-4 pt-4 border-t border-gray-200">
+                        <h4 class="font-bold text-gray-900 text-sm uppercase tracking-wide">Información sobre protección de datos</h4>
+                        <p>
+                            El <span class="font-semibold text-gray-800">{{ $schoolName ?? 'CLUB DEPORTIVO PUEBLA' }}</span> es el Responsable del tratamiento de los datos personales del Interesado y le informa que estos datos serán tratados de conformidad con lo dispuesto en las normativas vigentes en protección de datos personales y en particular del Reglamento (UE) 2016/679 de 27 de abril de 2016 (RGPD), por lo que se le facilita la siguiente información acerca del tratamiento:
+                        </p>
+
+                        <ul class="space-y-1.5 pl-2">
+                            <li>
+                                <strong class="text-gray-800">Fin del tratamiento:</strong> Los datos por usted aportados y de cuya exactitud, veracidad y validez usted mismo responde serán tratados para gestionar las actuaciones administrativas necesarias para la actividad solicitada.
+                            </li>
+                            <li>
+                                <strong class="text-gray-800">Criterios de conservación de los datos:</strong> Los datos se conservarán mientras exista interés legítimo para mantener el fin del tratamiento y cuando ya no sea necesario para tal fin, se suprimirán con medidas de seguridad adecuadas para garantizar la seudonimización de los datos o la destrucción total de los mismos.
+                            </li>
+                            <li>
+                                <strong class="text-gray-800">Comunicación a terceros:</strong> Para dar cumplimiento a la finalidad, los datos podrán ser cedidos a los terceros implicados en el trámite o la actividad solicitada.
+                            </li>
+                            <li>
+                                <strong class="text-gray-800">Derechos que asisten al Interesado:</strong>
+                                <ul class="pl-4 mt-1 space-y-0.5 list-disc list-inside">
+                                    <li>Derecho a retirar el consentimiento en cualquier momento.</li>
+                                    <li>Derecho de acceso, rectificación, portabilidad y supresión de sus datos y a la limitación u oposición a su tratamiento.</li>
+                                    <li>Derecho a presentar una reclamación ante la Autoridad de control (<a href="https://www.agpd.es" target="_blank" rel="noopener noreferrer" class="underline text-blue-600 hover:text-blue-800">www.agpd.es</a>) si considera que el tratamiento no se ajusta a la normativa vigente.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong class="text-gray-800">Datos de contacto para ejercer sus derechos:</strong> <span class="font-semibold text-gray-800">{{ $schoolName ?? 'CLUB DEPORTIVO PUEBLA' }}</span>, Plaza Mayor 1, 45516 - LA PUEBLA DE MONTALBÁN. Correo electrónico: <a href="mailto:cdpuebla@gmail.com" class="underline text-blue-600 hover:text-blue-800">cdpuebla@gmail.com</a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
 
                 <div wire:ignore>
@@ -430,45 +632,24 @@
                 <h2 class="text-2xl font-black text-gray-900">¡Listo!</h2>
                 <p class="text-gray-500 text-sm max-w-xs mx-auto leading-relaxed">{{ $doneMessage }}</p>
 
-                @if($fromDashboard)
-                    <div class="flex flex-col gap-3 w-full mt-4">
-                        <a href="{{ route('webclubs.player.register', [$tournament, $team->registration_token]) }}"
-                           class="w-full py-3.5 rounded-2xl border-2 text-sm font-bold text-center transition-colors hover:bg-gray-50"
-                           style="border-color: var(--color-primary); color: var(--color-primary)">
-                            + Inscribir otro jugador
-                        </a>
-                        <a href="{{ route('webclubs.team.dashboard', $tournament) }}"
-                           class="w-full py-3.5 rounded-2xl text-white text-sm font-bold shadow text-center transition-opacity hover:opacity-90"
-                           style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary))">
-                            Volver al panel del equipo
-                        </a>
-                    </div>
-                @else
-                    <div class="flex flex-col gap-3 w-full mt-4">
-                        <a href="{{ route('webclubs.tournament.detail', $tournament) }}"
-                           class="w-full py-3.5 rounded-2xl text-white text-sm font-bold shadow text-center transition-opacity hover:opacity-90"
-                           style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary))">
-                            Ver el torneo
-                        </a>
-                    </div>
-                    <p class="text-xs text-gray-400">O puedes cerrar esta ventana.</p>
-                @endif
+                <div class="flex flex-col gap-3 w-full mt-4">
+                    <a href="{{ route('webclubs.registration') }}"
+                        class="w-full py-3.5 rounded-2xl border-2 text-sm font-bold text-center transition-colors hover:bg-gray-50"
+                        style="border-color: var(--color-primary); color: var(--color-primary)">
+                        + Inscribir otro jugador
+                    </a>
+                    <a href="{{ route('webclubs.home') }}"
+                        class="w-full py-3.5 rounded-2xl text-white text-sm font-bold shadow text-center transition-opacity hover:opacity-90"
+                        style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary))">
+                        Volver a la home
+                    </a>
+                </div>
+                
             </div>
             @endif
 
         </div>{{-- /px-6 --}}
     </div>{{-- /reg-sheet --}}
-@else
-    <div class="mb-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg flex items-start gap-3">
-        <svg class="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-        </svg>
-        <div>
-            <p class="text-sm font-bold text-red-800">Advertencia: No se pueden realizar inscripciones,</p>
-            <p class="text-sm text-red-700 mt-1">No existe temporada abierta. Consulte con {{$school->name}} al teléfono {{$school->phone}} o al correo electrónico {{$school->email}} para más información.</p>
-        </div>
-    </div>
-@endif
 </div>{{-- /reg-outer --}}
 
 {{-- ─── Document photo cropper overlay ────────────────────────────── --}}
