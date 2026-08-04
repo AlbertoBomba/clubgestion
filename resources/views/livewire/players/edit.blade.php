@@ -259,6 +259,14 @@
                                 @endforelse
                             </div>
                         </div>
+                        <div>
+                            <div class="form-group">
+                                <label class="block text-sm font-semibold text-titanium mb-2">Observaciones</label>
+                                <textarea wire:model.live="observations" rows="2" 
+                                    class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm resize-none"></textarea>
+                                @error('observations') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
                        
                     </div>
                     
@@ -423,13 +431,28 @@
                                 </div>
                             </div>
                             <div class="">
-                            <div class="form-group">
-                                <label class="block text-sm font-semibold text-titanium mb-2">Observaciones</label>
-                                <textarea wire:model.live="observations" rows="2" 
-                                    class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm resize-none"></textarea>
-                                @error('observations') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                @if ($existing_signature)
+                                    <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <div>
+                                                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Firma de inscripción</h2>
+                                                <p class="text-xs text-gray-400 mt-0.5">Firma manuscrita recogida durante el proceso de inscripción del jugador.</p>
+                                            </div>
+                                            <a href="{{ Storage::url($existing_signature) }}" download
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-indigo-500 hover:bg-indigo-600 transition-colors shadow-sm">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                Descargar
+                                            </a>
+                                        </div>
+                                        <div class="rounded-xl border border-gray-200 bg-gray-50 p-3 flex items-center justify-center" style="min-height:120px">
+                                            <img src="{{ Storage::url($existing_signature) }}"
+                                                alt="Firma de inscripción"
+                                                class="max-h-40 max-w-full object-contain">
+                                        </div>
+                                    </div>
+                                @endif
+                                
                             </div>
-                        </div>
                         </div>
                     </div>
                 </div>
@@ -462,6 +485,14 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                                     </svg>
                                                 </button>
+                                            </div>
+                                            <div class="mt-2 text-center">
+                                                {{-- <p class="text-xs text-gray-500"></p> --}}
+                                                <a href="{{ Storage::url($currentPhoto) }}" download
+                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-indigo-500 hover:bg-indigo-600 transition-colors shadow-sm">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                    Descargar Foto
+                                                </a>
                                             </div>
                                         </div>
                                     @else
@@ -1105,8 +1136,8 @@
                         <div class="mt-4">
                             @php
                                 $activeSeason = \App\Models\Season::where('sports_school_id', auth()->user()->sports_school_id)
-                                    ->where('start_date', '<=', now())
-                                    ->where('end_date', '>=', now())
+                                    ->where('inscription_start_at', '<=', now())
+                                    ->where('inscription_end_at', '>=', now())
                                     ->first();
                                 
                                 $availableTeams = collect();

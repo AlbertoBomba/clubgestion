@@ -13,6 +13,9 @@ class Edit extends Component
     use WithFileUploads;
 
     public Player $playerModel;
+
+    // Signature (read-only display from the public registration form)
+    public ?string $existing_signature = null;
     
     // Datos personales
     public $name = '';
@@ -144,8 +147,8 @@ class Edit extends Component
         
         // Obtener temporada activa
         $activeSeason = \App\Models\Season::where('sports_school_id', auth()->user()->sports_school_id)
-            ->where('start_date', '<=', now())
-            ->where('end_date', '>=', now())
+            ->where('inscription_start_at', '<=', now())
+            ->where('inscription_end_at', '>=', now())
             ->first();
 
         if (!$activeSeason) {
@@ -453,8 +456,8 @@ class Edit extends Component
     {
         // Obtener temporada activa
         $activeSeason = \App\Models\Season::where('sports_school_id', auth()->user()->sports_school_id)
-            ->where('start_date', '<=', now())
-            ->where('end_date', '>=', now())
+            ->where('inscription_start_at', '<=', now())
+            ->where('inscription_end_at', '>=', now())
             ->first();
 
         if (!$activeSeason) {
@@ -713,6 +716,7 @@ class Edit extends Component
         $this->observations = $player->observations;
         $this->descEnt = $player->descEnt;
         $this->descPerc = $player->descPerc;
+        $this->existing_signature  = $player->signature;
         
         // Detectar tipo de descuento
         if ($player->descEnt && $player->descEnt > 0) {
