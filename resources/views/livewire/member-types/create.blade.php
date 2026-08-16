@@ -68,6 +68,14 @@
                 <input wire:model="active" type="checkbox" id="active" class="w-5 h-5 rounded border-silver text-primary focus:ring-primary">
                 <label for="active" class="text-sm font-semibold text-titanium">Tipo activo (visible para nuevas inscripciones)</label>
             </div>
+            <div class="flex items-center gap-3">
+                <input wire:model="bank_account" type="checkbox" id="bank_account" class="w-5 h-5 rounded border-silver text-primary focus:ring-primary">
+                <label for="bank_account" class="text-sm font-semibold text-titanium">Cuenta Bancaria <span class="text-gray-400 text-xs">(Marque esta opción si este tipo de socio requiere cobro mediante cuenta bancaria con recibo domiciliado)</span></label>
+            </div>
+            <div class="flex items-center gap-3">
+                <input wire:model="credit_card" type="checkbox" id="credit_card" class="w-5 h-5 rounded border-silver text-primary focus:ring-primary">
+                <label for="credit_card" class="text-sm font-semibold text-titanium">Tarjeta de Crédito para usar cobro recurrente. <span class="text-gray-400 text-xs">(El club debe tener tpv virtual contratado con su banco, o usar el que ofrece vaed.)</span></label>
+            </div>
 
             {{-- Botones --}}
             <div class="flex items-center justify-between pt-4 border-t border-silver/30">

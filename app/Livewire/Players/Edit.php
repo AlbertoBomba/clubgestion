@@ -63,6 +63,8 @@ class Edit extends Component
     // Modal de equipos
     public $showTeamsModal = false;
     public $selectedTeam = null;
+    public $selectedSectionId = null;
+    public $selectedTeamId = null;
     public $showPreviewModal = false;
     public $showRemoveTeamModal = false;
     public $paymentsToDelete = [];
@@ -70,6 +72,7 @@ class Edit extends Component
     public $paymentsPaid = [];
     public $selectedPaymentsToCreate = [];
     public $newTeamId = '';
+    public $teamToRemoveId = null;
     
     // Modal de confirmación eliminar documento
     public $showDeleteModal = false;
@@ -124,9 +127,15 @@ class Edit extends Component
     }
     
     // Métodos para el modal de equipos
-    public function openTeamsModal()
+    public function openTeamsModal( $playerTeam = null, $sectionId = null )
     {
+
         $this->showTeamsModal = true;
+
+        
+        $this->selectedSectionId = $sectionId ?? ($playerTeam['section']['id'] ?? null);
+        $this->selectedTeamId    = $playerTeam['id'] ?? null;
+        
     }
     
     public function closeTeamsModal()
@@ -144,12 +153,17 @@ class Edit extends Component
             session()->flash('info', 'El jugador ya pertenece a este equipo.');
             return;
         }
-        
-        // Obtener temporada activa
+
+       
+        // Obtener temporada jugador
         $activeSeason = \App\Models\Season::where('sports_school_id', auth()->user()->sports_school_id)
-            ->where('inscription_start_at', '<=', now())
-            ->where('inscription_end_at', '>=', now())
+            ->whereHas('players', function ($query) {
+                $query->where('player_id', $this->playerModel->id);
+            })
             ->first();
+
+        
+
 
         if (!$activeSeason) {
             session()->flash('error', 'No hay temporada activa configurada.');
@@ -164,21 +178,27 @@ class Edit extends Component
             return;
         }
 
+        // Sección del nuevo equipo: solo se tocarán equipos/pagos de esta sección
+        $sectionId = $newTeam->section_id;
+
         $this->paymentsToDelete = [];
         $this->paymentsToCreate = [];
         $this->paymentsPaid = [];
         $this->selectedPaymentsToCreate = [];
 
-        // Obtener pagos pendientes a eliminar
+        // Obtener pagos pendientes a eliminar (solo de la misma sección)
         $pendingPayments = \App\Models\PaymentPlayer::with('paymentTeam')
             ->where('player_id', $this->playerModel->id)
             ->where('sports_school_id', auth()->user()->sports_school_id)
             ->where('state', 0)
-            ->whereHas('paymentTeam', function($query) use ($activeSeason) {
-                $query->where('season_id', $activeSeason->id);
+            ->whereHas('paymentTeam', function($query) use ($activeSeason, $sectionId) {
+                $query->where('season_id', $activeSeason->id)
+                    ->whereHas('team', function ($q) use ($sectionId) {
+                        $q->where('section_id', $sectionId);
+                    });
             })
             ->get();
-
+            
         foreach ($pendingPayments as $payment) {
             $this->paymentsToDelete[] = [
                 'id' => $payment->id,
@@ -191,25 +211,31 @@ class Edit extends Component
             ];
         }
 
-        // Obtener cuotas YA PAGADAS para no generarlas de nuevo
+        // Obtener cuotas YA PAGADAS para no generarlas de nuevo (solo de la misma sección)
         $paidCuotas = \App\Models\PaymentPlayer::where('player_id', $this->playerModel->id)
             ->where('sports_school_id', auth()->user()->sports_school_id)
             ->where('state', 1) // Pagadas
-            ->whereHas('paymentTeam', function($query) use ($activeSeason) {
-                $query->where('season_id', $activeSeason->id);
+            ->whereHas('paymentTeam', function($query) use ($activeSeason, $sectionId) {
+                $query->where('season_id', $activeSeason->id)
+                    ->whereHas('team', function ($q) use ($sectionId) {
+                        $q->where('section_id', $sectionId);
+                    });
             })
             ->with('paymentTeam')
             ->get()
             ->pluck('cuota')
             ->toArray();
 
-        // Mostrar pagos pagados que se mantendrán
+        // Mostrar pagos pagados que se mantendrán (solo de la misma sección)
         $paidPayments = \App\Models\PaymentPlayer::with('paymentTeam')
             ->where('player_id', $this->playerModel->id)
             ->where('sports_school_id', auth()->user()->sports_school_id)
             ->where('state', 1)
-            ->whereHas('paymentTeam', function($query) use ($activeSeason) {
-                $query->where('season_id', $activeSeason->id);
+            ->whereHas('paymentTeam', function($query) use ($activeSeason, $sectionId) {
+                $query->where('season_id', $activeSeason->id)
+                    ->whereHas('team', function ($q) use ($sectionId) {
+                        $q->where('section_id', $sectionId);
+                    });
             })
             ->get();
 
@@ -409,8 +435,21 @@ class Edit extends Component
                 }
             }
 
-            // Sincronizar equipo
-            $this->playerModel->teams()->sync([$this->newTeamId]);
+            // Sincronizar equipo: solo reemplazar el equipo asignado en la misma sección
+            // (sin tocar equipos de otras secciones del jugador)
+            $newTeam = \App\Models\Team::find($this->newTeamId);
+            if ($newTeam) {
+                $teamsInSameSection = $this->playerModel->teams()
+                    ->where('teams.section_id', $newTeam->section_id)
+                    ->pluck('teams.id')
+                    ->toArray();
+
+                if (!empty($teamsInSameSection)) {
+                    $this->playerModel->teams()->detach($teamsInSameSection);
+                }
+
+                $this->playerModel->teams()->attach($this->newTeamId);
+            }
 
             \DB::commit();
 
@@ -452,12 +491,27 @@ class Edit extends Component
         }
     }
     
-    public function removeTeam()
+    public function removeTeam($teamId = null)
     {
+        if (!$teamId) {
+            session()->flash('error', 'Equipo no especificado.');
+            return;
+        }
+
+        // Verificar que el jugador tiene ese equipo asignado
+        $team = $this->playerModel->teams()->where('teams.id', $teamId)->first();
+        if (!$team) {
+            session()->flash('error', 'El jugador no tiene ese equipo asignado.');
+            return;
+        }
+
+        $this->teamToRemoveId = $teamId;
+
         // Obtener temporada activa
-        $activeSeason = \App\Models\Season::where('sports_school_id', auth()->user()->sports_school_id)
-            ->where('inscription_start_at', '<=', now())
-            ->where('inscription_end_at', '>=', now())
+            $activeSeason = \App\Models\Season::where('sports_school_id', auth()->user()->sports_school_id)
+            ->whereHas('players', function ($query) {
+                $query->where('player_id', $this->playerModel->id);
+            })
             ->first();
 
         if (!$activeSeason) {
@@ -468,13 +522,14 @@ class Edit extends Component
         $this->paymentsToDelete = [];
         $this->paymentsPaid = [];
 
-        // Obtener pagos pendientes del jugador en la temporada activa
+        // Obtener pagos pendientes del jugador solo del equipo a quitar
         $pendingPayments = \App\Models\PaymentPlayer::with('paymentTeam')
             ->where('player_id', $this->playerModel->id)
             ->where('sports_school_id', auth()->user()->sports_school_id)
             ->where('state', 0)
-            ->whereHas('paymentTeam', function($query) use ($activeSeason) {
-                $query->where('season_id', $activeSeason->id);
+            ->whereHas('paymentTeam', function($query) use ($activeSeason, $teamId) {
+                $query->where('season_id', $activeSeason->id)
+                    ->where('team_id', $teamId);
             })
             ->get();
 
@@ -490,13 +545,14 @@ class Edit extends Component
             ];
         }
 
-        // Obtener pagos pagados para mostrarlos
+        // Obtener pagos pagados del equipo a quitar para mostrarlos
         $paidPayments = \App\Models\PaymentPlayer::with('paymentTeam')
             ->where('player_id', $this->playerModel->id)
             ->where('sports_school_id', auth()->user()->sports_school_id)
             ->where('state', 1)
-            ->whereHas('paymentTeam', function($query) use ($activeSeason) {
-                $query->where('season_id', $activeSeason->id);
+            ->whereHas('paymentTeam', function($query) use ($activeSeason, $teamId) {
+                $query->where('season_id', $activeSeason->id)
+                    ->where('team_id', $teamId);
             })
             ->get();
 
@@ -516,6 +572,12 @@ class Edit extends Component
 
     public function confirmRemoveTeam()
     {
+        if (!$this->teamToRemoveId) {
+            session()->flash('error', 'Equipo no especificado.');
+            $this->showRemoveTeamModal = false;
+            return;
+        }
+
         try {
             \DB::beginTransaction();
 
@@ -530,8 +592,8 @@ class Edit extends Component
                 }
             }
 
-            // Quitar el jugador del equipo
-            $this->playerModel->teams()->detach();
+            // Quitar solo el equipo indicado (sin tocar los otros equipos del jugador)
+            $this->playerModel->teams()->detach($this->teamToRemoveId);
 
             \DB::commit();
 
@@ -553,6 +615,7 @@ class Edit extends Component
         $this->showRemoveTeamModal = false;
         $this->paymentsToDelete = [];
         $this->paymentsPaid = [];
+        $this->teamToRemoveId = null;
     }
     
     // Documentos
@@ -850,14 +913,24 @@ class Edit extends Component
         );
 
         // Sync sections
+        // Forzar que las secciones bloqueadas (con equipo asignado) se mantengan siempre
+        $sectionsToSync = collect($this->selectedSections)
+            ->merge($this->lockedSectionIds)
+            ->unique()
+            ->values()
+            ->toArray();
+
         $this->playerModel->sections()->sync(
-            collect($this->selectedSections)->mapWithKeys(function ($sectionId) {
+            collect($sectionsToSync)->mapWithKeys(function ($sectionId) {
                 return [$sectionId => [
                     'updated_user' => auth()->id(),
                     'updated_at' => now(),
                 ]];
             })->toArray()
         );
+
+        // Reflejar la sincronización real en el estado del componente
+        $this->selectedSections = $sectionsToSync;
 
         // Resetear indicador de cambios
         $this->hasChanges = false;
@@ -1030,9 +1103,9 @@ class Edit extends Component
 
         // Obtener el equipo del jugador (si tiene) con su categoría
         // Refrescar desde la BD para obtener la última información
-        $playerTeam = \App\Models\Team::whereHas('players', function($query) {
+        $playerTeams = \App\Models\Team::whereHas('players', function($query) {
             $query->where('players.id', $this->playerModel->id);
-        })->with('category')->first();
+        })->with('category','section')->get();
 
         // Obtener tallas asociadas a la escuela
         $availableSizes = \App\Models\Size::whereHas('brand.sportsSchools', function($query) {
@@ -1042,7 +1115,7 @@ class Edit extends Component
         return view('livewire.players.edit', [
             'seasons' => $seasons,
             'sections' => $sections,
-            'playerTeam' => $playerTeam,
+            'playerTeams' => $playerTeams,
             'availableSizes' => $availableSizes
         ]);
     }
@@ -1055,5 +1128,21 @@ class Edit extends Component
         return $this->playerModel->paymentPlayers()
             ->where('sports_school_id', auth()->user()->sports_school_id)
             ->exists();
+    }
+
+    /**
+     * Secciones bloqueadas: aquellas en las que el jugador ya tiene un equipo asignado.
+     * No pueden desmarcarse mientras el equipo siga asignado.
+     */
+    public function getLockedSectionIdsProperty()
+    {
+        return \App\Models\Team::whereHas('players', function ($query) {
+                $query->where('players.id', $this->playerModel->id);
+            })
+            ->whereNotNull('section_id')
+            ->pluck('section_id')
+            ->unique()
+            ->values()
+            ->toArray();
     }
 }

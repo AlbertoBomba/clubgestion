@@ -16,6 +16,8 @@ class Create extends Component
     public string $card_template = '';
     public bool $active = true;
     public string $season_id = '';
+    public bool $bank_account = false;
+    public bool $credit_card = false;
 
     public function mount(): void
     {
@@ -40,7 +42,9 @@ class Create extends Component
             'price'       => 'required|numeric|min:0',
             'periodicity' => 'required|in:' . implode(',', array_column(MemberPeriodicity::cases(), 'value')),
             'season_id'   => 'required|exists:seasons,id',
-            'active'      => 'boolean',
+            'active'      => 'nullable|boolean',
+            'bank_account' => 'nullable|boolean',
+            'credit_card' => 'nullable|boolean',
         ];
     }
 
@@ -69,6 +73,8 @@ class Create extends Component
             'periodicity'      => $this->periodicity,
             'card_template'    => $this->card_template ?: null,
             'active'           => $this->active,
+            'bank_account'     => $this->bank_account,
+            'credit_card'      => $this->credit_card,
         ]);
 
         session()->flash('message', 'Tipo de socio creado correctamente.');

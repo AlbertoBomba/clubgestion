@@ -292,8 +292,8 @@ class Edit extends Component
         
         // Obtener temporada activa
         $activeSeason = \App\Models\Season::where('sports_school_id', auth()->user()->sports_school_id)
-            ->where('start_date', '<=', now())
-            ->where('end_date', '>=', now())
+            ->where('inscription_start_at', '<=', now())
+            ->where('inscription_end_at', '>=', now())
             ->first();
 
         if (!$activeSeason) {
@@ -749,8 +749,34 @@ class Edit extends Component
         $player = \App\Models\Player::find($this->playerToMove);
         
         if ($player && $player->sports_school_id === auth()->user()->sports_school_id) {
-            // Sync the player with the new team
-            $player->teams()->sync([$this->targetTeamId]);
+            // Solo desvinculamos el equipo origen (esta sección) para preservar pertenencias a equipos de otras secciones.
+            $player->teams()->updateExistingPivot($this->team->id, [
+                'deleted_at' => now(),
+                'updated_user' => auth()->id(),
+            ]);
+
+            // Restaurar si existe un pivote soft-deleted con el equipo destino, si no, adjuntar.
+            $existingPivot = \DB::table('teams_players')
+                ->where('team_id', $this->targetTeamId)
+                ->where('player_id', $player->id)
+                ->first();
+
+            if ($existingPivot) {
+                \DB::table('teams_players')
+                    ->where('id', $existingPivot->id)
+                    ->update([
+                        'deleted_at' => null,
+                        'updated_user' => auth()->id(),
+                        'updated_at' => now(),
+                    ]);
+            } else {
+                $player->teams()->attach($this->targetTeamId, [
+                    'created_user' => auth()->id(),
+                    'updated_user' => auth()->id(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
         }
         
         $this->playerToMove = null;
@@ -1093,16 +1119,25 @@ class Edit extends Component
         if (!$sportsSchoolId || !$this->season_id) {
             return $availablePlayers;
         }
-        
+
+        // dd($this->season_id, $this->section_id);
+
+        // Un jugador puede pertenecer a varios equipos siempre que sean de secciones distintas.
+        // Por eso solo lo excluimos si ya está en un equipo de la MISMA sección y temporada.
         $query = \App\Models\Player::where('active', true)
             ->where('sports_school_id', $sportsSchoolId)
-            ->whereDoesntHave('teams')
+            ->whereDoesntHave('teams', function($q) {
+                $q->where('teams.section_id', $this->section_id)
+                  ->where('teams.season_id', $this->season_id);
+            })
             ->whereHas('seasons', function($q) {
                 $q->where('seasons.id', $this->season_id);
             })
             ->whereHas('sections', function($q) {
                 $q->where('sections.id', $this->section_id);
             });
+
+
             
         // Aplicar búsqueda si existe
         if ($this->searchAvailablePlayer) {
@@ -1335,7 +1370,8 @@ class Edit extends Component
                         $valueExpression = '$record->shirt_number ?? ""';
                         break;
                     case 'sizes':
-                        $valueExpression = '(function($p) { $s = []; if ($p->size_shirt) $s[] = "Cam: ".$p->size_shirt; if ($p->size_pants) $s[] = "Pan: ".$p->size_pants; if ($p->size_shoes) $s[] = "Cal: ".$p->size_shoes; return implode(", ", $s); })($record)';
+                        // $valueExpression = '(function($p) { $s = []; if ($p->size_shirt) $s[] = "Cam: ".$p->size_shirt; if ($p->size_pants) $s[] = "Pan: ".$p->size_pants; if ($p->size_shoes) $s[] = "Cal: ".$p->size_shoes; return implode(", ", $s); })($record)';
+                        $valueExpression = '$record->sizes ?? ""';
                         break;
                     case 'nametutor':
                         $valueExpression = '$record->nametutor ?? ""';

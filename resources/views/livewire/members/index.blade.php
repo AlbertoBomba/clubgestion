@@ -30,13 +30,13 @@
             <option value="active">Activos</option>
             <option value="inactive">Inactivos</option>
         </select>
-        <a href="{{ route('members.create') }}"
+        {{-- <a href="{{ route('members.create') }}"
            class="inline-flex items-center px-4 py-3 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-night-blue transition-colors shadow-sm whitespace-nowrap">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
             Nuevo Socio
-        </a>
+        </a> --}}
     </div>
 
     {{-- Tabla --}}
@@ -50,7 +50,8 @@
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">DNI</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Email</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Teléfono</th>
-                        <th class="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider">Temporadas</th>
+                        {{-- <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Temporada</th>
+                        <th class="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider">Tipo</th> --}}
                         <th class="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider">Estado</th>
                         <th class="px-6 py-4 text-right text-xs font-semibold text-primary uppercase tracking-wider"></th>
                     </tr>
@@ -69,19 +70,24 @@
                                         </div>
                                     @endif
                                     <div>
-                                        <div class="text-sm font-semibold text-titanium">{{ $member->surname }}</div>
-                                        <div class="text-xs text-gray-400">{{ $member->name }}</div>
+                                        <div class="text-sm font-semibold text-titanium">{{ $member->name }}</div>
+                                        {{-- <div class="text-xs text-gray-400">{{ $member->name }}</div> --}}
                                     </div>
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-sm text-black-deep">{{ $member->dni ?? '-' }}</td>
                             <td class="px-6 py-4 text-sm text-black-deep">{{ $member->email ?? '-' }}</td>
                             <td class="px-6 py-4 text-sm text-black-deep">{{ $member->phone ?? '-' }}</td>
-                            <td class="px-6 py-4 text-center">
+                            {{-- <td class="px-6 py-4 text-sm text-black-deep">
+                                {{ $seasonSelected->season ?? '-' }}
+                            </td> --}}
+                            {{-- <td class="px-6 py-4 text-center">
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">
                                     {{ $member->member_seasons_count }}
+                                    
+                                    {{ $member->memberSeasons->first()?->memberType?->name ?? 'Sin tipo asignado' }}
                                 </span>
-                            </td>
+                            </td> --}}
                             <td class="px-6 py-4 text-center">
                                 @if($member->active)
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">Activo</span>
@@ -98,12 +104,12 @@
                                         </svg>
                                         Ficha
                                     </a>
-                                    <button wire:click="confirmDelete({{ $member->id }})"
+                                    {{-- <button wire:click="confirmDelete({{ $member->id }})"
                                             class="inline-flex items-center px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors text-xs font-semibold">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                         </svg>
-                                    </button>
+                                    </button> --}}
                                 </div>
                             </td>
                         </tr>

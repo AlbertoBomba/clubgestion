@@ -45,6 +45,11 @@ Route::get('/vaed-sport', function () {
 // Ruta específica para clubs (tenant)
 Route::get('/club', WebClubsHome::class)->name('webclubs.home');
 
+//Ruta para alta de socios MemberRegister pasando el ID del tipo de socio como parámetro
+Route::get('/club/inscripcion/{memberTypeId}', App\Livewire\WebClubs\MemberRegister::class)->name('webclubs.member.register');
+
+
+
 // Ruta específica para clubs (tenant)
 Route::get('/live', App\Livewire\WebClubs\Live::class)->name('webclubs.live');
 Route::get('/live/{tournament}', App\Livewire\WebClubs\LiveDetail::class)->name('webclubs.live.detail');
@@ -385,7 +390,7 @@ Route::middleware([
 
         // ── Gestión de Socios ──────────────────────────────────────────────────
 
-        // Tipos de socio
+        //  Tarjetas de socio
         Route::get('/member-types', function () {
             return view('member-types.index');
         })->name('member-types.index');

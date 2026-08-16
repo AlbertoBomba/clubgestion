@@ -256,20 +256,22 @@ class Index extends Component
     public function deletePlayer()
     {
         $player = Player::find($this->playerToDelete);
+        $player_id = $player ? $player->id : null;
         
-        if ($player && $player->sports_school_id === auth()->user()->sports_school_id) {
+        if ($player && $player->sports_school_id === auth()->user()->sports_school_id ) {
             // Eliminar foto si existe
             if ($player->player_photo && \Storage::disk('public')->exists($player->player_photo)) {
                 \Storage::disk('public')->delete($player->player_photo);
             }
             
             // Marcar como eliminadas las relaciones con temporadas (soft delete en tabla pivote seasons_players)
-            DB::table('seasons_players')
-                ->where('player_id', $player->id)
-                ->whereNull('deleted_at')
-                ->update(['deleted_at' => now()]);
+            
             
             $player->delete();
+            DB::table('seasons_players')
+                ->where('player_id', $player_id)
+                ->whereNull('deleted_at')
+                ->update(['deleted_at' => now(), 'updated_user' => auth()->id()]);
             session()->flash('message', 'Jugador eliminado correctamente.');
         }
         
@@ -735,7 +737,7 @@ class Index extends Component
 
         // Obtener temporada activa
         $activeSeason = Season::where('sports_school_id', auth()->user()->sports_school_id)
-            ->where('start_date', '<=', now())
+            ->where('inscription_start_at', '<=', now())
             ->where('end_date', '>=', now())
             ->first();
 
@@ -782,6 +784,9 @@ class Index extends Component
             return;
         }
 
+        // Sección del nuevo equipo: solo se tocarán equipos/pagos de esta sección
+        $sectionId = $newTeam->section_id;
+
         $this->paymentsToDelete = [];
         $this->paymentsToCreate = [];
         $this->paymentsPaid = [];
@@ -792,13 +797,16 @@ class Index extends Component
             $player = Player::find($playerId);
             if (!$player) continue;
 
-            // Obtener pagos pendientes a eliminar
+            // Obtener pagos pendientes a eliminar (solo de la misma sección)
             $pendingPayments = PaymentPlayer::with('paymentTeam')
                 ->where('player_id', $playerId)
                 ->where('sports_school_id', auth()->user()->sports_school_id)
                 ->where('state', 0)
-                ->whereHas('paymentTeam', function($query) use ($activeSeason) {
-                    $query->where('season_id', $activeSeason->id);
+                ->whereHas('paymentTeam', function($query) use ($activeSeason, $sectionId) {
+                    $query->where('season_id', $activeSeason->id)
+                        ->whereHas('team', function ($q) use ($sectionId) {
+                            $q->where('section_id', $sectionId);
+                        });
                 })
                 ->get();
 
@@ -816,25 +824,31 @@ class Index extends Component
                 $this->selectedPaymentsToDelete[] = $paymentId;
             }
 
-            // Obtener cuotas YA PAGADAS para no generarlas de nuevo
+            // Obtener cuotas YA PAGADAS para no generarlas de nuevo (solo de la misma sección)
             $paidCuotas = PaymentPlayer::where('player_id', $playerId)
                 ->where('sports_school_id', auth()->user()->sports_school_id)
                 ->where('state', 1) // Pagadas
-                ->whereHas('paymentTeam', function($query) use ($activeSeason) {
-                    $query->where('season_id', $activeSeason->id);
+                ->whereHas('paymentTeam', function($query) use ($activeSeason, $sectionId) {
+                    $query->where('season_id', $activeSeason->id)
+                        ->whereHas('team', function ($q) use ($sectionId) {
+                            $q->where('section_id', $sectionId);
+                        });
                 })
                 ->with('paymentTeam')
                 ->get()
                 ->pluck('cuota')
                 ->toArray();
 
-            // Mostrar pagos pagados que se mantendrán
+            // Mostrar pagos pagados que se mantendrán (solo de la misma sección)
             $paidPayments = PaymentPlayer::with('paymentTeam')
                 ->where('player_id', $playerId)
                 ->where('sports_school_id', auth()->user()->sports_school_id)
                 ->where('state', 1)
-                ->whereHas('paymentTeam', function($query) use ($activeSeason) {
-                    $query->where('season_id', $activeSeason->id);
+                ->whereHas('paymentTeam', function($query) use ($activeSeason, $sectionId) {
+                    $query->where('season_id', $activeSeason->id)
+                        ->whereHas('team', function ($q) use ($sectionId) {
+                            $q->where('section_id', $sectionId);
+                        });
                 })
                 ->get();
 
@@ -1133,13 +1147,29 @@ class Index extends Component
     private function executeTeamChange()
     {
         $changed = 0;
-        
+        $newTeam = Team::find($this->newTeamId);
+
+        if (!$newTeam) {
+            session()->flash('error', 'Equipo no encontrado.');
+            return;
+        }
+
         foreach ($this->selectedPlayers as $playerId) {
             $player = Player::find($playerId);
-            
+
             if ($player && $player->sports_school_id === auth()->user()->sports_school_id) {
-                // Sync the player with the new team (replace existing teams)
-                $player->teams()->sync([$this->newTeamId]);
+                // Solo desasociar equipos de la MISMA sección del nuevo equipo,
+                // dejando intactos los equipos de otras secciones del jugador
+                $teamsInSameSection = $player->teams()
+                    ->where('teams.section_id', $newTeam->section_id)
+                    ->pluck('teams.id')
+                    ->toArray();
+
+                if (!empty($teamsInSameSection)) {
+                    $player->teams()->detach($teamsInSameSection);
+                }
+
+                $player->teams()->attach($this->newTeamId);
                 $changed++;
             }
         }

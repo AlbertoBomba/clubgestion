@@ -30,6 +30,7 @@ class Index extends Component
             if ($active) {
                 $this->seasonFilter = $active->id;
             }
+            
         }
     }
 
@@ -68,7 +69,28 @@ class Index extends Component
             ->orderByDesc('from_year')
             ->get();
 
+       
+
+        //  = Season::find($this->seasonFilter)?->name ?? 'Sin temporada seleccionada';
+        $seasonSelected = Season::where('sports_school_id', auth()->user()->sports_school_id)
+                ->where('id', $this->seasonFilter)
+                ->where('start_date', '<=', now())
+                ->where('end_date', '>=', now())
+                ->orderByDesc('created_at')
+                ->first();
+
+        //  dd($this->seasonSelected);
+        
+
         $query = Member::withCount('memberSeasons')
+            // Carga memberSeasons y dentro de cada season carga su memberType
+            ->with(['memberSeasons' => function ($q) {
+                $q->with('memberType'); // 👈 Relación anidada
+
+                if ($this->seasonFilter) {
+                    $q->where('season_id', $this->seasonFilter);
+                }
+            }])
             ->when($this->search, function ($q) {
                 $q->where(function ($inner) {
                     $inner->where('name', 'like', '%' . $this->search . '%')
@@ -90,6 +112,7 @@ class Index extends Component
         return view('livewire.members.index', [
             'members' => $query,
             'seasons' => $seasons,
+            'seasonSelected' => $seasonSelected,
         ]);
     }
 }

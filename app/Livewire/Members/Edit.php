@@ -12,6 +12,10 @@ use App\Models\Season;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\Attributes\Validate;
+use App\Services\SchoolMailer;
+use App\Mail\MemberRegisteredMail;
+use App\Models\SportsSchool;
 
 class Edit extends Component
 {
@@ -21,12 +25,19 @@ class Edit extends Component
 
     // Datos personales
     public string $name = '';
-    public string $surname = '';
     public string $dni = '';
     public string $email = '';
     public string $phone = '';
     public string $birth_date = '';
     public string $address = '';
+    public string $town = '';
+    public string $province = '';
+    public string $zip = '';
+    public string $bank_account = '';
+    public string $bank_account_holder = '';
+    public string $sepa_mandate_ref = '';
+    public string $sepa_mandate_date = '';
+    public string $sepa_mandate_ip = '';
     public bool $active = true;
     public $photo = null;
     public string $currentPhoto = '';
@@ -58,7 +69,6 @@ class Edit extends Component
     {
         $this->member       = $member;
         $this->name         = $member->name;
-        $this->surname      = $member->surname;
         $this->dni          = $member->dni ?? '';
         $this->email        = $member->email ?? '';
         $this->phone        = $member->phone ?? '';
@@ -66,29 +76,54 @@ class Edit extends Component
         $this->address      = $member->address ?? '';
         $this->active       = $member->active;
         $this->currentPhoto = $member->photo ?? '';
+        $this->town         = $member->town ?? '';
+        $this->province     = $member->province ?? '';
+        $this->zip          = $member->zip ?? '';
+        $this->bank_account          = $member->bank_account ?? '';
+        $this->bank_account_holder    = $member->bank_account_holder ?? '';
+        $this->sepa_mandate_ref       = $member->sepa_mandate_ref ?? '';
+        $this->sepa_mandate_date = $member->sepa_mandate_date  ? \Carbon\Carbon::parse($member->sepa_mandate_date)->format('Y-m-d') : '';
+        $this->sepa_mandate_ip        = $member->sepa_mandate_ip ?? '';
     }
 
     protected function rules(): array
     {
         return [
             'name'       => 'required|string|max:255',
-            'surname'    => 'required|string|max:255',
-            'dni'        => 'nullable|string|max:20',
-            'email'      => 'nullable|email|max:255',
+            'dni'        => 'required|string|max:20',
+            'email'      => 'required|email|max:255',
             'phone'      => 'nullable|string|max:30',
-            'birth_date' => 'nullable|date',
-            'address'    => 'nullable|string|max:500',
+            'birth_date' => 'required|date',
+            'address'    => 'required|string|max:500',
             'active'     => 'boolean',
-            'photo'      => 'nullable|image|max:2048',
+            'photo'      => 'required|image|max:2048',
+            'town'       => 'required|string|max:255',
+            'province'   => 'required|string|max:255',
+            'zip'        => 'required|string|max:20',
+            'bank_account'        => 'required|string|max:34',
+            'bank_account_holder' => 'required|string|max:255',
+            'sepa_mandate_ref'    => 'required|string|max:255',
+            'sepa_mandate_date'   => 'required|date',
+            'sepa_mandate_ip'     => 'required|ip',
         ];
     }
 
     protected $messages = [
         'name.required'    => 'El nombre es obligatorio.',
-        'surname.required' => 'Los apellidos son obligatorios.',
         'email.email'      => 'El email no es válido.',
         'photo.image'      => 'La foto debe ser una imagen.',
         'photo.max'        => 'La foto no puede superar 2MB.',
+        'dni.required'     => 'El DNI es obligatorio.',
+        'birth_date.date'  => 'La fecha de nacimiento no es válida.',
+        'address.required' => 'La dirección es obligatoria.',
+        'town.required'    => 'La localidad es obligatoria.',
+        'province.required'=> 'La provincia es obligatoria.',
+        'zip.required'     => 'El código postal es obligatorio.',
+        'bank_account.required'        => 'El número de cuenta bancaria es obligatorio.',
+        'bank_account_holder.required' => 'El titular de la cuenta bancaria es obligatorio.',
+        'sepa_mandate_ref.required'    => 'La referencia del mandato SEPA es obligatoria.',
+        'sepa_mandate_date.required'   => 'La fecha del mandato SEPA es obligatoria.',
+        'sepa_mandate_ip.required'     => 'La IP del mandato SEPA es obligatoria.',
     ];
 
     protected function seasonRules(): array
@@ -125,7 +160,6 @@ class Edit extends Component
 
         $this->member->update([
             'name'       => $this->name,
-            'surname'    => $this->surname,
             'dni'        => $this->dni ?: null,
             'email'      => $this->email ?: null,
             'phone'      => $this->phone ?: null,
@@ -180,7 +214,21 @@ class Edit extends Component
             MemberSeason::find($this->editingSeasonId)?->update($data);
             session()->flash('message', 'Inscripción actualizada.');
         } else {
-            $this->member->memberSeasons()->create($data);
+            // Buscamos si la inscripción ya existe (incluyendo eliminados con SoftDelete)
+            $existingSeason = $this->member->memberSeasons()
+                ->withTrashed()
+                ->where('season_id', $this->ms_season_id)
+                ->first();
+
+            if ($existingSeason) {
+                if ($existingSeason->trashed()) {
+                    $existingSeason->restore(); // Si estaba en la papelera, lo restauramos
+                }
+                $existingSeason->update($data); // Actualizamos el registro restaurado
+            } else {
+                $this->member->memberSeasons()->create($data); // Creación normal si no existía
+            }
+
             session()->flash('message', 'Inscripción añadida.');
         }
 
@@ -278,6 +326,47 @@ class Edit extends Component
         $this->ms_join_date      = '';
         $this->ms_price          = '';
         $this->ms_observations   = '';
+    }
+
+    public function sendSepaEmail(int $memberTypeId): void
+    {
+        if (empty($this->member->email)) {
+            session()->flash('error', 'El socio no tiene email registrado.');
+            return;
+        }
+
+        $school = SportsSchool::find($this->member->sports_school_id);
+        if (! $school) {
+            session()->flash('error', 'No se ha encontrado la escuela del socio.');
+            \Illuminate\Support\Facades\Log::warning('sendSepaEmail: SportsSchool no encontrado', [
+                'member_id'        => $this->member->id,
+                'sports_school_id' => $this->member->sports_school_id,
+            ]);
+            return;
+        }
+
+        $memberType = MemberType::find($memberTypeId) ?? new MemberType();
+
+        $mailable = new MemberRegisteredMail(
+            member: $this->member,
+            school: $school,
+            memberType: $memberType
+        );
+
+        try {
+            SchoolMailer::forSchool($school)
+                ->to($this->member->email, $this->member->name)
+                ->send($mailable);
+
+            session()->flash('message', 'Email de domiciliación SEPA enviado a ' . $this->member->email);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Error enviando email de confirmación de inscripción', [
+                'member_id' => $this->member->id,
+                'error'     => $e->getMessage(),
+                'trace'     => $e->getTraceAsString(),
+            ]);
+            session()->flash('error', 'No se pudo enviar el email: ' . $e->getMessage());
+        }
     }
 
     public function render(): \Illuminate\View\View

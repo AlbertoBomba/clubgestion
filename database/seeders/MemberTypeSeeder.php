@@ -62,6 +62,6 @@ class MemberTypeSeeder extends Seeder
             );
         }
 
-        $this->command->info('MemberTypeSeeder: tipos de socio creados correctamente.');
+        $this->command->info('MemberTypeSeeder:  Tarjetas de socio creadas correctamente.');
     }
 }

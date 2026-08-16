@@ -430,7 +430,7 @@ class Index extends Component
                 $query->where('season_id', $this->seasonFilter);
             })
             ->orderBy('team')
-            ->paginate(10);
+            ->paginate(50);
 
         $categories = Category::orderBy('category')->get();
         $seasons = Season::orderBy('from_year', 'desc')->get();

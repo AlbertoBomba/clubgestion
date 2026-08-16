@@ -7,7 +7,7 @@
                 </a>
             <span class="text-lg sm:text-2xl text-gray-400 font-bold">/</span>
             <h2 class="font-bold text-lg sm:text-2xl text-titanium leading-tight truncate">
-                <span class="hidden sm:inline">Actualizar </span>{{ $playerModel->name }} {{ $playerModel->surname }}
+                <span class="hidden sm:inline"> </span>#{{ $playerModel->cod_matricula }} || {{ $playerModel->name }} {{ $playerModel->surname }}
             </h2>
         </div>
         <div class="flex gap-2 sm:gap-3 flex-wrap sm:flex-nowrap">
@@ -184,28 +184,28 @@
 
                     <!-- Datos Deportivos -->
                     <div class="mt-8 ">
-                        <h3 class="text-lg font-semibold text-titanium flex items-center border-b border-silver/30 pb-3 mb-4">
+                        <h3 class="text-lg font-semibold text-titanium flex items-center border-b border-silver/30 pb-3 ">
                             <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
                             </svg>
                             Datos Deportivos
                         </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                            <div class="form-group md:col-span-6">
+                        {{-- <div class="grid grid-cols-1 md:grid-cols-12 gap-4"> --}}
+                            {{-- <div class="form-group md:col-span-6">
                                 <label class="block text-sm font-semibold text-titanium mb-2">Posición</label>
                                 <input wire:model.live="position" type="text" placeholder="Ej: Delantero, Defensa, etc."
                                     class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
                                 @error('position') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                            </div>
+                            </div> --}}
 
-                            <div class="form-group md:col-span-6">
+                            {{-- <div class="form-group md:col-span-6">
                                 <label class="block text-sm font-semibold text-titanium mb-2">Código Matrícula</label>
                                 <input wire:model.live="cod_matricula" type="text" disabled
                                     class="w-full px-3 py-2 border border-silver rounded-xl bg-gray-100 text-gray-500 text-sm cursor-not-allowed">
                                 @error('cod_matricula') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+                            </div> --}}
+                        {{-- </div> --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-2">
                             <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
                                 <input wire:model.live="active" type="checkbox" id="active"
                                     class="w-5 h-5 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
@@ -236,21 +236,59 @@
                             <p class="text-sm text-gray-600 mb-4">Seleccione las secciones en las que participa el jugador</p>
                             
                             @error('selectedSections') <span class="text-red-500 text-sm block mb-3">{{ $message }}</span> @enderror
+
+                            @php $lockedSectionIds = $this->lockedSectionIds; @endphp
                             
-                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 @forelse($sections as $section)
-                                    <label class="relative flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200
-                                        {{ in_array($section->id, $selectedSections) ? 'border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-md' : 'border-silver bg-white hover:border-primary/30' }}">
-                                        <input type="checkbox" wire:model.live="selectedSections" value="{{ $section->id }}"
-                                            class="w-5 h-5 text-primary border-silver rounded focus:ring-primary">
-                                        <span class="ml-3 text-sm font-semibold {{ in_array($section->id, $selectedSections) ? 'text-primary' : 'text-titanium' }}">
-                                            {{ $section->name }}
-                                        </span>
-                                        @if(in_array($section->id, $selectedSections))
-                                            <svg class="w-4 h-4 ml-auto text-primary" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                            </svg>
-                                        @endif
+                                    @php $isLocked = in_array($section->id, $lockedSectionIds); @endphp
+                                    <label
+                                        @if($isLocked) title="Esta sección tiene un equipo asignado y no puede desmarcarse. Quita el equipo primero." @endif
+                                            class="relative flex items-center p-4 border-2 rounded-xl transition-all duration-200
+                                            {{ $isLocked ? 'cursor-not-allowed' : 'cursor-pointer' }}
+                                            {{ in_array($section->id, $selectedSections) ? 'border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-md' : 'border-silver bg-white hover:border-primary/30' }}">
+                                            
+                                            <div class="flex flex-col items-center justify-center gap-2.5">
+                                                <!-- Checkbox y Nombre de la Sección -->
+                                                <label for="section_{{ $section->id }}" class="flex items-center gap-2 select-none {{ $isLocked ? 'cursor-not-allowed' : 'cursor-pointer' }}">
+                                                    <input type="checkbox"
+                                                        id="section_{{ $section->id }}"
+                                                        wire:model.live="selectedSections"
+                                                        value="{{ $section->id }}"
+                                                        @if($isLocked) disabled @endif
+                                                        class="w-5 h-5 text-primary border-silver rounded focus:ring-primary transition-colors {{ $isLocked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer' }}">
+                                                    
+                                                    <span class="text-sm font-semibold transition-colors {{ in_array($section->id, $selectedSections) ? 'text-primary' : 'text-titanium' }}">
+                                                        {{ $section->name }}
+                                                    </span>
+                                                    @if($isLocked)
+                                                    <svg class="w-4 h-4 ml-auto text-primary/70" fill="currentColor" viewBox="0 0 20 20" title="Sección bloqueada">
+                                                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                                                    </svg>
+                                                    @elseif(in_array($section->id, $selectedSections))
+                                                        <svg class="w-4 h-4 ml-auto text-primary" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                    @endif
+                                                </label>
+                                                 
+                                                 @if(in_array($section->id, $selectedSections))
+                                                    @if($isLocked)
+                                                       <span class="text-xs text-gray-500">El jugador ya tiene un equipo asignado</span>
+                                                    @else
+                                                     <!-- Botón de Acción -->
+                                                        <button type="button"
+                                                                wire:click="openTeamsModal(null, {{ $section->id }})"
+                                                                class="px-3.5 py-1.5 text-xs font-semibold bg-primary hover:bg-primary/90 text-white rounded-lg transition-all active:scale-95 flex items-center gap-1.5 shadow-sm">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                                            </svg>
+                                                            <span>Asignar Equipo</span>
+                                                        </button>
+                                                    @endif
+                                                @endif
+                                            </div>
+                                       
                                     </label>
                                 @empty
                                     <div class="col-span-full">
@@ -258,6 +296,15 @@
                                     </div>
                                 @endforelse
                             </div>
+
+                            @if(count($lockedSectionIds) > 0)
+                                <p class="text-xs text-gray-500 mt-3 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 text-primary/70" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                    Las secciones marcadas con candado tienen un equipo asignado y no se pueden desmarcar. Quita el equipo primero.
+                                </p>
+                            @endif
                         </div>
                         <div>
                             <div class="form-group">
@@ -275,44 +322,48 @@
                 <div>
                     @if($playerModel->active)
                     <!-- Equipo del Jugador -->
-                    <div class="mb-8">
-                        @if($playerTeam)
-                            <div class="bg-gradient-to-br from-blue-50 to-blue-100/50 border-2 border-blue-200 rounded-xl p-4">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-3">
-                                        @if($playerTeam->team_image)
-                                            <img src="{{ asset('storage/' . $playerTeam->team_image) }}" alt="{{ $playerTeam->team }}" class="w-12 h-12 rounded-full object-cover border-2 border-blue-300">
-                                        @else
-                                            <div class="w-12 h-12 rounded-full bg-blue-200 flex items-center justify-center border-2 border-blue-300">
-                                                <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
-                                                </svg>
-                                            </div>
-                                        @endif
-                                        <div>
-                                            <p class="text-sm text-gray-600 font-medium">Equipo asignado</p>
-                                            <p class="text-lg font-bold text-blue-700">{{ $playerTeam->team }}</p>
-                                            @if($playerTeam->category)
-                                                <p class="text-xs text-gray-500">Categoría: {{ $playerTeam->category->name }}</p>
+                    <div class="mb-8 gap-2 flex flex-col">
+                        @if(count($playerTeams) > 0)
+                            @foreach($playerTeams as $playerTeam)
+                                <div class="bg-gradient-to-br from-blue-50 to-blue-100/50 border-2 border-blue-200 rounded-xl p-4">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            @if($playerTeam->team_image)
+                                                <img src="{{ asset('storage/' . $playerTeam->team_image) }}" alt="{{ $playerTeam->team }}" class="w-12 h-12 rounded-full object-cover border-2 border-blue-300">
+                                            @else
+                                                <div class="w-12 h-12 rounded-full bg-blue-200 flex items-center justify-center border-2 border-blue-300">
+                                                    <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                                                    </svg>
+                                                </div>
                                             @endif
+                                            <div>
+                                                @if($playerTeam->category)
+                                                    <p class="text-xs text-blue-700 font-bold">Categoría: {{ $playerTeam->category->category }} | Sección: {{ $playerTeam->section->name ?? 'N/A' }}</p>
+                                                @else
+                                                    <p class="text-xs text-blue-700 font-bold">Categoría: N/A | Sección: {{ $playerTeam->section->name ?? 'N/A' }}</p>
+                                                @endif
+                                                <p class="text-sm text-gray-600 font-medium">Equipo asignado</p>
+                                                <p class="text-lg font-bold text-blue-700">{{ $playerTeam->team }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <button type="button" wire:click="openTeamsModal({{ $playerTeam }})" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors flex items-center gap-2">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                                                </svg>
+                                                Cambiar
+                                            </button>
+                                            <button type="button" wire:click="removeTeam({{ $playerTeam->id }})" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors flex items-center gap-2">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                                Quitar
+                                            </button>
                                         </div>
                                     </div>
-                                    <div class="flex gap-2">
-                                        <button type="button" wire:click="openTeamsModal" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors flex items-center gap-2">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-                                            </svg>
-                                            Cambiar
-                                        </button>
-                                        <button type="button" wire:click="removeTeam" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors flex items-center gap-2">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                            </svg>
-                                            Quitar
-                                        </button>
-                                    </div>
                                 </div>
-                            </div>
+                            @endforeach
                         @else
                             <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg">
                                 <div class="flex items-center justify-between">
@@ -324,12 +375,12 @@
                                             <p class="text-sm font-semibold text-yellow-800">El jugador no tiene equipo asignado</p>
                                         </div>
                                     </div>
-                                    <button type="button" wire:click="openTeamsModal" class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors flex items-center gap-2">
+                                    {{-- <button type="button" wire:click="openTeamsModal" class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors flex items-center gap-2">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                                         </svg>
                                         Asignar Equipo
-                                    </button>
+                                    </button> --}}
                                 </div>
                             </div>
                         @endif
@@ -351,12 +402,12 @@
                             @error('nametutor') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
 
-                        <div class="form-group">
+                        {{-- <div class="form-group">
                             <label class="block text-sm font-semibold text-titanium mb-2">Apellidos Tutor</label>
                             <input wire:model.live="surnametutor" type="text" 
                                 class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
                             @error('surnametutor') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                        </div>
+                        </div> --}}
 
                         <div class="form-group">
                             <label class="block text-sm font-semibold text-titanium mb-2">DNI Tutor</label>
@@ -1135,15 +1186,24 @@
 
                         <div class="mt-4">
                             @php
-                                $activeSeason = \App\Models\Season::where('sports_school_id', auth()->user()->sports_school_id)
-                                    ->where('inscription_start_at', '<=', now())
-                                    ->where('inscription_end_at', '>=', now())
+                                $seasonPlayer = \App\Models\SeasonPlayer::where('player_id', $playerModel->id)
+                                    ->whereHas('season', function ($query) {
+                                        $query->where('sports_school_id', auth()->user()->sports_school_id)
+                                              ->where('start_date', '<=', now())
+                                              ->where('end_date', '>=', now());
+                                    })
                                     ->first();
+
+                                // $activeSeason = \App\Models\Season::where('sports_school_id', auth()->user()->sports_school_id)
+                                //     ->where('inscription_start_at', '<=', now())
+                                //     ->where('inscription_end_at', '>=', now())
+                                //     ->first();
                                 
                                 $availableTeams = collect();
-                                if ($activeSeason) {
-                                    $availableTeams = \App\Models\Team::where('season_id', $activeSeason->id)
-                                        ->with('category')
+                                if ($seasonPlayer) {
+                                    $availableTeams = \App\Models\Team::where('season_id', $seasonPlayer->season_id)
+                                        ->where('section_id', $selectedSectionId)
+                                        ->with('category' ,'section')
                                         ->orderBy('team')
                                         ->get();
                                 }
@@ -1156,7 +1216,7 @@
                                     </svg>
                                     <p class="mt-2 text-sm text-gray-500">No hay equipos disponibles.</p>
                                     <p class="text-xs text-gray-400 mt-1">
-                                        @if(!$activeSeason)
+                                        @if(!$seasonPlayer)
                                             No hay temporada activa configurada.
                                         @else
                                             Por favor, crea equipos para la temporada actual.
@@ -1166,34 +1226,34 @@
                             @else
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
                                     @foreach($availableTeams as $team)
-                                        <button type="button" wire:click="assignTeam({{ $team->id }})"
-                                            class="p-4 border-2 rounded-xl transition-all duration-200 hover:border-primary hover:bg-primary/5 hover:shadow-md
-                                                {{ $playerTeam && $playerTeam->id === $team->id ? 'border-primary bg-primary/10' : 'border-gray-200' }}
-                                                flex items-center gap-4 text-left">
-                                            @if($team->team_image)
-                                                <img src="{{ asset('storage/' . $team->team_image) }}" alt="{{ $team->team }}" class="w-14 h-14 rounded-full object-cover border-2 border-gray-300">
-                                            @else
-                                                <div class="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-300">
-                                                    <svg class="w-7 h-7 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
-                                                    </svg>
+                                            <button type="button" wire:click="assignTeam({{ $team->id }})"
+                                                class="p-4 border-2 rounded-xl transition-all duration-200 hover:border-primary hover:bg-primary/5 hover:shadow-md
+                                                    {{ $playerTeams && $selectedTeamId === $team->id ? 'border-primary bg-primary/10' : 'border-gray-200' }}
+                                                    flex items-center gap-4 text-left">
+                                                @if($team->team_image)
+                                                    <img src="{{ asset('storage/' . $team->team_image) }}" alt="{{ $team->team }}" class="w-14 h-14 rounded-full object-cover border-2 border-gray-300">
+                                                @else
+                                                    <div class="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-300">
+                                                        <svg class="w-7 h-7 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                                                        </svg>
+                                                    </div>
+                                                @endif
+                                                <div class="flex-1">
+                                                    <p class="text-lg font-bold text-titanium">{{ $team->team }}</p>
+                                                    @if($team->category)
+                                                        <p class="text-sm text-gray-600">{{ $team->category->name }}</p>
+                                                    @endif
+                                                    @if($playerTeams && $selectedTeamId === $team->id)
+                                                        <span class="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-primary/20 text-primary rounded-full">
+                                                            Equipo actual
+                                                        </span>
+                                                    @endif
                                                 </div>
-                                            @endif
-                                            <div class="flex-1">
-                                                <p class="text-lg font-bold text-titanium">{{ $team->team }}</p>
-                                                @if($team->category)
-                                                    <p class="text-sm text-gray-600">{{ $team->category->name }}</p>
-                                                @endif
-                                                @if($playerTeam && $playerTeam->id === $team->id)
-                                                    <span class="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-primary/20 text-primary rounded-full">
-                                                        Equipo actual
-                                                    </span>
-                                                @endif
-                                            </div>
-                                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                            </svg>
-                                        </button>
+                                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                                </svg>
+                                            </button>
                                     @endforeach
                                 </div>
                             @endif

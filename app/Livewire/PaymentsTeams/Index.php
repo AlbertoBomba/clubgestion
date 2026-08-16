@@ -869,20 +869,22 @@ class Index extends Component
             $userSchoolId = auth()->user()->sports_school_id;
             $userId = auth()->user()->id;
             $totalSaved = 0;
+            $totalPlayersGenerated = 0;
+            $totalPlayersRestored = 0;
             $teamsProcessed = 0;
 
             // Recorrer los datos de previsualización y guardar en la BD
             foreach ($this->previewData as $data) {
                 $team = $data['team'];
-                
+
                 // Eliminar todos los pagos existentes de este equipo en esta temporada
                 PaymentTeam::where('team_id', $team->id)
                     ->where('season_id', $this->selectedSeasonId)
                     ->delete();
-                
-                // Crear los nuevos pagos
+
+                // Crear los nuevos PaymentTeam
                 foreach ($data['payments'] as $payment) {
-                    $paymentTeam = PaymentTeam::create([
+                    PaymentTeam::create([
                         'team_id' => $team->id,
                         'season_id' => $this->selectedSeasonId,
                         'sports_school_id' => $userSchoolId,
@@ -895,36 +897,35 @@ class Index extends Component
                         'created_user' => $userId,
                         'updated_user' => $userId,
                     ]);
-                    
-                    // Crear pagos para cada jugador del equipo
-                    $players = $team->players; // Obtener jugadores del equipo
-                    foreach ($players as $player) {
-                        PaymentPlayer::create([
-                            'player_id' => $player->id,
-                            'payment_id' => $paymentTeam->id,
-                            'sports_school_id' => $userSchoolId,
-                            'cuota' => $payment['cuota'],
-                            'price' => $payment['price'],
-                            'amount' => $payment['amount'],
-                            'amount_original' => $payment['amount'],
-                            'state' => 0, // Estado pendiente
-                            'descEnt' => 0,
-                            'descPerc' => 0,
-                            'created_user' => $userId,
-                            'updated_user' => $userId,
-                        ]);
-                    }
-                    
+
                     $totalSaved++;
                 }
-                
+
+                // Recargar los pagos y jugadores del equipo para el helper
+                $team->load('payments', 'players');
+
+                // Generar los PaymentPlayer usando el helper (respeta cuotas pagadas y descuentos)
+                foreach ($team->players as $player) {
+                    $result = generatePlayerPayments($player, $team, $userSchoolId, $userId);
+                    $totalPlayersGenerated += $result['generated'];
+                    $totalPlayersRestored += $result['restored'];
+                }
+
                 $teamsProcessed++;
             }
 
-            session()->flash('message', "Se generaron correctamente {$totalSaved} pagos para {$teamsProcessed} equipos.");
-            
+            $message = "Se generaron correctamente {$totalSaved} pagos para {$teamsProcessed} equipos.";
+            if ($totalPlayersGenerated > 0) {
+                $message .= " Se crearon {$totalPlayersGenerated} cartas de pago para jugadores.";
+            }
+            if ($totalPlayersRestored > 0) {
+                $message .= " Se restauraron {$totalPlayersRestored} cartas de pago.";
+            }
+
+            session()->flash('message', $message);
+
             $this->closeModal();
-            
+
         } catch (\Exception $e) {
             session()->flash('error', 'Error al generar los pagos: ' . $e->getMessage());
         }

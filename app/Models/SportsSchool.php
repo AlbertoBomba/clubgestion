@@ -27,6 +27,8 @@ class SportsSchool extends Model
         'primary_color',
         'secondary_color',
         'is_active',
+        'nif',
+        'bank_account',
         'api_key',
         'api_key_generated_at',
         'api_requests_count',

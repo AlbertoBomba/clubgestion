@@ -25,7 +25,7 @@ class Index extends Component
     public $seasonFilter = '';
     public $teamFilter = '';
     public $cuotaFilter = '';
-    public $pendingPaymentsOnly = true;
+    public $pendingPaymentsOnly = false;
     public $showDeleteModal = false;
     public $playerToDeleteId = null;
     public $playerToDelete = null;
@@ -63,8 +63,8 @@ class Index extends Component
     public function mount()
     {
         // Obtener la temporada activa
-        $activeSeason = Season::where('start_date', '<=', now())
-            ->where('end_date', '>=', now())
+        $activeSeason = Season::where('inscription_start_at', '<=', now())
+            ->where('inscription_end_at', '>=', now())
             ->first();
             
         // Recuperar filtros de sesión
@@ -123,8 +123,8 @@ class Index extends Component
     {
         try {
             // Obtener temporada activa
-            $activeSeason = Season::where('start_date', '<=', now())
-                ->where('end_date', '>=', now())
+            $activeSeason = Season::where('inscription_start_at', '<=', now())
+                ->where('inscription_end_at', '>=', now())
                 ->first();
 
             if (!$activeSeason) {
@@ -232,8 +232,8 @@ class Index extends Component
             DB::beginTransaction();
 
             // Obtener temporada activa
-            $activeSeason = Season::where('start_date', '<=', now())
-                ->where('end_date', '>=', now())
+            $activeSeason = Season::where('inscription_start_at', '<=', now())
+                ->where('inscription_end_at', '>=', now())
                 ->first();
 
             if (!$activeSeason) {
@@ -301,8 +301,8 @@ class Index extends Component
             }
 
             // Obtener temporada activa
-            $activeSeason = Season::where('start_date', '<=', now())
-                ->where('end_date', '>=', now())
+            $activeSeason = Season::where('inscription_start_at', '<=', now())
+                ->where('inscription_end_at', '>=', now())
                 ->first();
 
             if (!$activeSeason) {
@@ -1126,8 +1126,8 @@ class Index extends Component
     public function render()
     {
         // Obtener la temporada activa por defecto
-        $activeSeason = Season::where('start_date', '<=', now())
-            ->where('end_date', '>=', now())
+        $activeSeason = Season::where('inscription_start_at', '<=', now())
+            ->where('inscription_end_at', '>=', now())
             ->first();
 
         // Si no hay filtro de temporada, usar la activa

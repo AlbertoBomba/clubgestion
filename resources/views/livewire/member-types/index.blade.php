@@ -45,6 +45,7 @@
             <table class="min-w-full divide-y divide-silver/30">
                 <thead class="bg-gradient-to-r from-gray-50 to-primary/5">
                     <tr>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider"></th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Nombre</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Temporada</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Precio</th>
@@ -57,6 +58,15 @@
                 <tbody class="bg-white-pure divide-y divide-silver/30">
                     @forelse($types as $type)
                         <tr class="hover:bg-primary/5 transition-colors">
+                            <td class="px-6 py-4">
+                                @if($type->card_template)
+                                    <img src="{{ asset('storage/' . $type->card_template) }}" alt="Imagen de la tarjeta" class="h-12 w-12 object-cover rounded-lg border border-silver">
+                                @else
+                                    <div class="h-12 w-12 rounded-lg border border-silver bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
+                                        Sin imagen
+                                    </div>
+                                @endif
+                            </td>
                             <td class="px-6 py-4">
                                 <div class="text-sm font-semibold text-titanium">{{ $type->name }}</div>
                                 @if($type->description)
@@ -109,7 +119,7 @@
                     @empty
                         <tr>
                             <td colspan="7" class="px-6 py-12 text-center text-gray-400">
-                                No se encontraron tipos de socio
+                                No se encontraron tarjetas de socio
                             </td>
                         </tr>
                     @endforelse
@@ -135,7 +145,7 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-gray-900">Eliminar tipo de socio</h3>
+                        <h3 class="text-lg font-bold text-gray-900">Eliminar tarjeta de socio</h3>
                         <p class="text-sm text-gray-500">Esta acción no se puede deshacer.</p>
                     </div>
                 </div>

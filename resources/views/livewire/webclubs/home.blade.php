@@ -273,144 +273,199 @@
     </section>
 
     @if(!$homeConfig || $homeConfig->membership_show)
-    {{-- <section class="py-40 bg-primary text-white">
-        <div class="max-w-7xl mx-auto px-6 lg:px-8">
-            <div class="text-center mb-24" data-aos="fade-up">
-                <h2 class="text-sm md:text-base lg:text-lg uppercase tracking-[0.2em] text-gray-100 font-semibold mb-5">[04] Únete a Nosotros</h2>
-                <h3 class="section-title text-6xl md:text-8xl lg:text-9xl font-bold mb-10">{{ $homeConfig->membership_title ?? 'Hazte Socio' }}</h3>
-                <p class="text-xl md:text-2xl font-light text-gray-100 max-w-3xl mx-auto leading-relaxed">
-                    {{ $homeConfig->membership_subtitle ?? 'Disfruta de beneficios exclusivos y forma parte de nuestra comunidad deportiva' }}
-                </p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-16 mb-24">
-                <div class="text-center" data-aos="fade-up" data-aos-delay="100">
-                    <div class="text-6xl md:text-7xl font-bold mb-8 text-gray-100">01</div>
-                    <div class="h-px bg-gray-700 mb-8"></div>
-                    <h4 class="text-2xl md:text-3xl lg:text-4xl font-semibold mb-5 uppercase tracking-[0.15em]">{{ $homeConfig->benefit_1_title ?? 'Descuentos' }}</h4>
-                    <p class="text-gray-100 text-base leading-relaxed">{{ $homeConfig->benefit_1_description ?? 'Acceso a precios especiales en equipación y eventos' }}</p>
+        <section class="py-40 bg-primary text-white">
+            <div class="max-w-7xl mx-auto px-6 lg:px-8">
+                <div class="text-center mb-24" data-aos="fade-up">
+                    <h2 class="text-sm md:text-base lg:text-lg uppercase tracking-[0.2em] text-gray-100 font-semibold mb-5">[04] Únete a Nosotros</h2>
+                    <h3 class="section-title text-6xl md:text-8xl lg:text-9xl font-bold mb-10">{{ $homeConfig->membership_title ?? 'Hazte Socio' }}</h3>
+                    <p class="text-xl md:text-2xl font-light text-gray-100 max-w-3xl mx-auto leading-relaxed">
+                        {{ $homeConfig->membership_subtitle ?? 'Disfruta de beneficios exclusivos y forma parte de nuestra comunidad deportiva' }}
+                    </p>
                 </div>
                 
-                <div class="text-center" data-aos="fade-up" data-aos-delay="200">
-                    <div class="text-6xl md:text-7xl font-bold mb-8 text-gray-100">02</div>
-                    <div class="h-px bg-gray-700 mb-8"></div>
-                    <h4 class="text-2xl md:text-3xl lg:text-4xl font-semibold mb-5 uppercase tracking-[0.15em]">{{ $homeConfig->benefit_2_title ?? 'Eventos' }}</h4>
-                    <p class="text-gray-100 text-base leading-relaxed">{{ $homeConfig->benefit_2_description ?? 'Invitaciones exclusivas a eventos del club' }}</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-16 mb-24">
+                    <div class="text-center" data-aos="fade-up" data-aos-delay="100">
+                        <div class="text-6xl md:text-7xl font-bold mb-8 text-gray-100">01</div>
+                        <div class="h-px bg-gray-700 mb-8"></div>
+                        <h4 class="text-2xl md:text-3xl lg:text-4xl font-semibold mb-5 uppercase tracking-[0.15em]">{{ $homeConfig->benefit_1_title ?? 'Descuentos' }}</h4>
+                        <p class="text-gray-100 text-base leading-relaxed">{{ $homeConfig->benefit_1_description ?? 'Acceso a precios especiales en equipación y eventos' }}</p>
+                    </div>
+                    
+                    <div class="text-center" data-aos="fade-up" data-aos-delay="200">
+                        <div class="text-6xl md:text-7xl font-bold mb-8 text-gray-100">02</div>
+                        <div class="h-px bg-gray-700 mb-8"></div>
+                        <h4 class="text-2xl md:text-3xl lg:text-4xl font-semibold mb-5 uppercase tracking-[0.15em]">{{ $homeConfig->benefit_2_title ?? 'Eventos' }}</h4>
+                        <p class="text-gray-100 text-base leading-relaxed">{{ $homeConfig->benefit_2_description ?? 'Invitaciones exclusivas a eventos del club' }}</p>
+                    </div>
+                    
+                    <div class="text-center" data-aos="fade-up" data-aos-delay="300">
+                        <div class="text-6xl md:text-7xl font-bold mb-8 text-gray-100">03</div>
+                        <div class="h-px bg-gray-700 mb-8"></div>
+                        <h4 class="text-2xl md:text-3xl lg:text-4xl font-semibold mb-5 uppercase tracking-[0.15em]">{{ $homeConfig->benefit_3_title ?? 'Prioridad' }}</h4>
+                        <p class="text-gray-100 text-base leading-relaxed">{{ $homeConfig->benefit_3_description ?? 'Acceso prioritario a inscripciones y reservas' }}</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-16 mb-24">
+                    @if($membersTypes && $membersTypes->count() > 0)
+                        @foreach($membersTypes as $index => $memberType)
+                            <div class="group relative bg-white rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/50 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between overflow-hidden p-6 sm:p-8 text-center" 
+                                data-aos="fade-up" 
+                                data-aos-delay="{{ ($index + 1) * 100 }}">
+                                
+                                <div>
+                                    <!-- Vista previa de la tarjeta/carnet -->
+                                    <div class="relative mb-6 rounded-2xl bg-gradient-to-b from-gray-50 to-gray-100/50 p-4 border border-gray-100 group-hover:border-primary/20 transition-colors">
+                                        <img src="{{ $memberType->card_template ? Storage::url($memberType->card_template) : asset('images/default-member.png') }}" 
+                                            alt="{{ $memberType->name }}" 
+                                            class="mx-auto h-36 sm:h-40 object-contain drop-shadow-lg group-hover:scale-105 transition-transform duration-500">
+                                    </div>
+
+                                    <!-- Nombre de la suscripción -->
+                                    <h3 class="text-2xl font-bold text-gray-900 tracking-tight mb-2">
+                                        {{ $memberType->name }}
+                                    </h3>
+
+                                    <!-- Precio -->
+                                    <div class="flex items-baseline justify-center gap-1 my-4">
+                                        <span class="text-4xl sm:text-5xl font-extrabold text-gray-900 tracking-tight">
+                                            {{ $memberType->price }}
+                                        </span>
+                                        <span class="text-2xl font-bold text-primary">€</span>
+                                    </div>
+
+                                    <!-- Descripción -->
+                                    <p class="text-gray-600 text-sm leading-relaxed mb-6">
+                                        {{ $memberType->description }}
+                                    </p>
+                                </div>
+
+                                <!-- Botón de Acción -->
+                                @if($memberType->bank_account)
+                                    <div class="pt-4 border-t border-gray-100">
+                                        <a href="{{route('webclubs.member.register', ['memberTypeId' => $memberType->id])}}" 
+                                        class="w-full py-3.5 px-6 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-xs uppercase tracking-widest shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2">
+                                            <span>{{ $memberType->button_text ?? '¡¡Únete!!' }}</span>
+                                            <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    @else
+                        <div class="col-span-full text-center text-gray-100" data-aos="fade-up">
+                            <p>No hay tipos de socios creados para esta temporada.</p>
+                        </div>
+                    @endif
                 </div>
                 
-                <div class="text-center" data-aos="fade-up" data-aos-delay="300">
-                    <div class="text-6xl md:text-7xl font-bold mb-8 text-gray-100">03</div>
-                    <div class="h-px bg-gray-700 mb-8"></div>
-                    <h4 class="text-2xl md:text-3xl lg:text-4xl font-semibold mb-5 uppercase tracking-[0.15em]">{{ $homeConfig->benefit_3_title ?? 'Prioridad' }}</h4>
-                    <p class="text-gray-100 text-base leading-relaxed">{{ $homeConfig->benefit_3_description ?? 'Acceso prioritario a inscripciones y reservas' }}</p>
+                <div class="text-center" data-aos="fade-up">
+                    @php
+                        $membershipUrl = $homeConfig->membership_button_url ?? route('webclubs.registration');
+                        $membershipBtn = $homeConfig->membership_button_text ?? 'Únete Ahora';
+                    @endphp
+                    <a href="{{ $membershipUrl }}" class="btn-rounded bg-secondary text-white px-14 py-4 font-semibold text-[13px] uppercase tracking-[0.15em] inline-block">
+                        {{ $membershipBtn }}
+                    </a>
                 </div>
             </div>
-            
-            <div class="text-center" data-aos="fade-up">
-                @php
-                    $membershipUrl = $homeConfig->membership_button_url ?? route('webclubs.registration');
-                    $membershipBtn = $homeConfig->membership_button_text ?? 'Únete Ahora';
-                @endphp
-                <a href="{{ $membershipUrl }}" class="btn-rounded bg-secondary text-white px-14 py-4 font-semibold text-[13px] uppercase tracking-[0.15em] inline-block">
-                    {{ $membershipBtn }}
-                </a>
-            </div>
-        </div>
-    </section> --}}
+        </section>
     @endif
 
     <!-- Torneos Section -->
     @if($tournaments && $tournaments->count() > 0)
-    <section class="pt-20 pb-40 bg-white relative overflow-hidden">
-        <div class="max-w-[1920px] mx-auto px-6 lg:px-12">
-            <div class="mb-16" data-aos="fade-up">
-                <h2 class="text-sm md:text-base lg:text-lg uppercase tracking-[0.2em] text-black/40 font-semibold mb-5">[02] Competición</h2>
-                <h3 class="section-title text-6xl md:text-8xl lg:text-9xl font-bold text-gray-900">Torneos</h3>
-            </div>
+        <section class="pt-20 pb-40 bg-white relative overflow-hidden">
+            <div class="max-w-[1920px] mx-auto px-6 lg:px-12">
+                <div class="mb-16" data-aos="fade-up">
+                    <h2 class="text-sm md:text-base lg:text-lg uppercase tracking-[0.2em] text-black/40 font-semibold mb-5">[02] Competición</h2>
+                    <h3 class="section-title text-6xl md:text-8xl lg:text-9xl font-bold text-gray-900">Torneos</h3>
+                </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
-                @foreach($tournaments as $index => $tournament)
-                    @php
-                        $statusColors = [
-                            'registration_open' => ['bg' => 'bg-blue-100',   'text' => 'text-blue-700',   'label' => 'Inscripciones abiertas'],
-                            'in_progress'       => ['bg' => 'bg-green-100',  'text' => 'text-green-700',  'label' => 'En curso'],
-                            'completed'         => ['bg' => 'bg-purple-100', 'text' => 'text-purple-700', 'label' => 'Finalizado'],
-                            'draft'             => ['bg' => 'bg-gray-100',   'text' => 'text-gray-500',   'label' => 'Próximamente'],
-                        ];
-                        $sc = $statusColors[$tournament->status] ?? $statusColors['draft'];
-                    @endphp
-                    <a href="{{ route('webclubs.tournament.detail', $tournament) }}"
-                       class="group bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm shadow-gray-200/60 hover:shadow-xl hover:shadow-gray-200/80 hover:-translate-y-1 transition-all duration-500 flex flex-col"
-                       data-aos="fade-up" data-aos-delay="{{ $index * 100 }}">
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+                    @foreach($tournaments as $index => $tournament)
+                        @php
+                            $statusColors = [
+                                'registration_open' => ['bg' => 'bg-blue-100',   'text' => 'text-blue-700',   'label' => 'Inscripciones abiertas'],
+                                'in_progress'       => ['bg' => 'bg-green-100',  'text' => 'text-green-700',  'label' => 'En curso'],
+                                'completed'         => ['bg' => 'bg-purple-100', 'text' => 'text-purple-700', 'label' => 'Finalizado'],
+                                'draft'             => ['bg' => 'bg-gray-100',   'text' => 'text-gray-500',   'label' => 'Próximamente'],
+                            ];
+                            $sc = $statusColors[$tournament->status] ?? $statusColors['draft'];
+                        @endphp
+                        <a href="{{ route('webclubs.tournament.detail', $tournament) }}"
+                        class="group bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm shadow-gray-200/60 hover:shadow-xl hover:shadow-gray-200/80 hover:-translate-y-1 transition-all duration-500 flex flex-col"
+                        data-aos="fade-up" data-aos-delay="{{ $index * 100 }}">
 
-                        {{-- Banner --}}
-                        <div class="relative h-36 sm:h-44 flex items-center justify-center overflow-hidden"
-                             style="background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);">
-                            @if($tournament->logo)
-                                <img src="{{ Storage::url($tournament->logo) }}"
-                                     alt="{{ $tournament->name }}"
-                                     class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                            @else
-                                <div class="text-white/30 text-8xl font-black select-none group-hover:scale-105 transition-transform duration-500">🏆</div>
-                            @endif
-                            <span class="absolute top-3 right-3 {{ $sc['bg'] }} {{ $sc['text'] }} text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
-                                {{ $sc['label'] }}
-                            </span>
-                        </div>
-
-                        {{-- Content --}}
-                        <div class="p-4 sm:p-6 flex flex-col flex-1">
-                            <h2 class="text-base sm:text-xl font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors duration-300">
-                                {{ $tournament->name }}
-                            </h2>
-
-                            @if($tournament->description)
-                                <p class="text-sm text-gray-500 leading-relaxed mb-4 line-clamp-2">{{ $tournament->description }}</p>
-                            @endif
-
-                            <div class="space-y-2 text-xs text-gray-400 font-semibold uppercase tracking-wider mt-auto">
-                                @if($tournament->start_date)
-                                    <div class="flex items-center gap-2">
-                                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                        </svg>
-                                        <span>{{ $tournament->start_date->locale('es')->translatedFormat('d M Y') }}@if($tournament->end_date) — {{ $tournament->end_date->locale('es')->translatedFormat('d M Y') }}@endif</span>
-                                    </div>
+                            {{-- Banner --}}
+                            <div class="relative h-36 sm:h-44 flex items-center justify-center overflow-hidden"
+                                style="background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);">
+                                @if($tournament->logo)
+                                    <img src="{{ Storage::url($tournament->logo) }}"
+                                        alt="{{ $tournament->name }}"
+                                        class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                @else
+                                    <div class="text-white/30 text-8xl font-black select-none group-hover:scale-105 transition-transform duration-500">🏆</div>
                                 @endif
-                                @if($tournament->location)
-                                    <div class="flex items-center gap-2">
-                                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        </svg>
-                                        <span>{{ $tournament->location }}</span>
-                                    </div>
-                                @endif
-                                @if($tournament->registration_deadline && $tournament->status === 'registration_open')
-                                    <div class="flex items-center gap-2">
-                                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                        <span>Inscripción hasta {{ $tournament->registration_deadline->locale('es')->translatedFormat('d M') }}</span>
-                                    </div>
-                                @endif
+                                <span class="absolute top-3 right-3 {{ $sc['bg'] }} {{ $sc['text'] }} text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
+                                    {{ $sc['label'] }}
+                                </span>
                             </div>
 
-                            <div class="mt-5 flex items-center gap-1.5 font-bold text-sm text-primary/60 group-hover:text-primary transition-colors duration-300">
-                                <span>Ver torneo</span>
-                                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                </svg>
-                            </div>
-                        </div>
+                            {{-- Content --}}
+                            <div class="p-4 sm:p-6 flex flex-col flex-1">
+                                <h2 class="text-base sm:text-xl font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors duration-300">
+                                    {{ $tournament->name }}
+                                </h2>
 
-                        {{-- Bottom accent --}}
-                        <div class="h-0.5 w-0 group-hover:w-full transition-all duration-500"
-                             style="background: linear-gradient(to right, var(--color-primary), var(--color-secondary))"></div>
-                    </a>
-                @endforeach
+                                @if($tournament->description)
+                                    <p class="text-sm text-gray-500 leading-relaxed mb-4 line-clamp-2">{{ $tournament->description }}</p>
+                                @endif
+
+                                <div class="space-y-2 text-xs text-gray-400 font-semibold uppercase tracking-wider mt-auto">
+                                    @if($tournament->start_date)
+                                        <div class="flex items-center gap-2">
+                                            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                            </svg>
+                                            <span>{{ $tournament->start_date->locale('es')->translatedFormat('d M Y') }}@if($tournament->end_date) — {{ $tournament->end_date->locale('es')->translatedFormat('d M Y') }}@endif</span>
+                                        </div>
+                                    @endif
+                                    @if($tournament->location)
+                                        <div class="flex items-center gap-2">
+                                            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            </svg>
+                                            <span>{{ $tournament->location }}</span>
+                                        </div>
+                                    @endif
+                                    @if($tournament->registration_deadline && $tournament->status === 'registration_open')
+                                        <div class="flex items-center gap-2">
+                                            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            <span>Inscripción hasta {{ $tournament->registration_deadline->locale('es')->translatedFormat('d M') }}</span>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div class="mt-5 flex items-center gap-1.5 font-bold text-sm text-primary/60 group-hover:text-primary transition-colors duration-300">
+                                    <span>Ver torneo</span>
+                                    <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+
+                            {{-- Bottom accent --}}
+                            <div class="h-0.5 w-0 group-hover:w-full transition-all duration-500"
+                                style="background: linear-gradient(to right, var(--color-primary), var(--color-secondary))"></div>
+                        </a>
+                    @endforeach
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
     @endif
 
     <!-- Próximos Partidos style="background: linear-gradient(to bottom right, {{ $primaryColor }}, {{ $secondaryColor }});"-->

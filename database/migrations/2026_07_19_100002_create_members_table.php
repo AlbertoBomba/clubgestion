@@ -14,7 +14,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->string('member_number')->nullable();
             $table->string('name');
-            $table->string('surname');
+            $table->string('surname')->nullable();
             $table->string('dni')->nullable();
             $table->string('email')->nullable();
             $table->string('phone')->nullable();

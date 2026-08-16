@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable; 
 
 class Member extends Model
 {
-    use HasFactory, SoftDeletes, BelongsToSportsSchool;
+    use HasFactory, SoftDeletes, BelongsToSportsSchool, Notifiable;
 
     protected $fillable = [
         'sports_school_id',
@@ -26,11 +27,21 @@ class Member extends Model
         'address',
         'photo',
         'active',
+        'town',
+        'zip',
+        'province',
+        'bank_account',
+        'bank_account_holder',
+        'sepa_mandate_ref',
+        'sepa_mandate_date',
+        'sepa_mandate_ip',
+
     ];
 
     protected $casts = [
         'birth_date' => 'date',
         'active'     => 'boolean',
+        'sepa_mandate_date' => 'datetime',
     ];
 
     public function sportsSchool(): BelongsTo

@@ -12,6 +12,7 @@ use App\Models\WebHomeSlide;
 use App\Models\WebHomeConfig;
 use Livewire\Component;
 use Carbon\Carbon;
+use App\Models\MemberType;
 
 class Home extends Component
 {
@@ -28,6 +29,7 @@ class Home extends Component
     public $heroSlides;
     public $homeConfig;
     public $tournaments;
+    public $membersTypes;
     
     // Filtros
     public $searchTeam = '';
@@ -105,7 +107,19 @@ class Home extends Component
             ->orderByRaw("FIELD(status, 'registration_open', 'in_progress', 'completed', 'draft')")
             ->orderBy('start_date', 'asc')
             ->get();
-        
+
+        $season = Season::where('sports_school_id', $this->school->id)
+            ->where('inscription_start_at', '<=', now())
+            ->where('inscription_end_at', '>=', now())
+            ->first();
+
+        //Carga tarjetas de socioes si existen
+        $this->membersTypes = MemberType::where('active', true )
+            ->where('sports_school_id', $this->school->id)
+            ->where('season_id', $season ? $season->id : null)
+            ->orderBy('id', 'asc')
+            ->get();
+
         // Cargar partidos y resultados
         $this->loadMatches();
     }

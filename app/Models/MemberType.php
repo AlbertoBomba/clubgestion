@@ -23,12 +23,16 @@ class MemberType extends Model
         'periodicity',
         'card_template',
         'active',
+        'bank_account',
+        'credit_card',
     ];
 
     protected $casts = [
-        'price'       => 'decimal:2',
-        'active'      => 'boolean',
-        'periodicity' => MemberPeriodicity::class,
+        'price'        => 'decimal:2',
+        'active'       => 'boolean',
+        'bank_account' => 'boolean',
+        'credit_card'  => 'boolean',
+        'periodicity'  => MemberPeriodicity::class,
     ];
 
     public function sportsSchool(): BelongsTo

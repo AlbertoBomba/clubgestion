@@ -9,22 +9,22 @@
 
     {{-- Header del socio --}}
     <div class="bg-white-pure rounded-2xl shadow-xl border border-primary/10 mb-6 p-6">
-        <div class="flex items-center gap-5">
+        {{-- <div class="flex items-center gap-5">
             @if($currentPhoto)
                 <img src="{{ asset('storage/' . $currentPhoto) }}" alt="" class="w-16 h-16 rounded-full object-cover shadow">
             @else
                 <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xl font-bold shadow">
-                    {{ strtoupper(substr($member->name, 0, 1) . substr($member->surname, 0, 1)) }}
+                    {{ strtoupper(substr($member->name, 0, 1)) }}
                 </div>
             @endif
             <div>
-                <h2 class="text-xl font-bold text-titanium">{{ $member->surname }}, {{ $member->name }}</h2>
+                <h2 class="text-xl font-bold text-titanium"> {{ $member->name }} </h2>
                 <p class="text-sm text-gray-400">Nº {{ $member->member_number ?? '-' }}</p>
                 @if(!$member->active)
                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-600 mt-1">Inactivo</span>
                 @endif
             </div>
-        </div>
+        </div> --}}
 
         {{-- Tabs --}}
         <div class="flex gap-2 mt-6 border-b border-silver/30">
@@ -43,106 +43,238 @@
 
     {{-- Tab: Datos personales --}}
     <div x-show="tab === 'data'">
-        <div class="bg-white-pure rounded-2xl shadow-xl border border-primary/10 p-6 max-w-2xl">
+        <div class="w-full space-y-6">
 
-            @if ($errors->any())
-                <div class="mb-4 p-4 bg-red-50 border-l-4 border-red-400 rounded-lg">
-                    <ul class="text-sm text-red-700 space-y-1 list-disc list-inside">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
+        <form wire:submit="save" class="space-y-6">
 
-            <form wire:submit="save" class="space-y-5">
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-titanium mb-1">Nombre <span class="text-red-500">*</span></label>
-                        <input wire:model="name" type="text"
-                               class="block w-full border border-silver rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary text-titanium">
-                        @error('name') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-titanium mb-1">Apellidos <span class="text-red-500">*</span></label>
-                        <input wire:model="surname" type="text"
-                               class="block w-full border border-silver rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary text-titanium">
-                        @error('surname') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
-                    </div>
-                </div>
-
+            {{-- BARRA SUPERIOR DE CABECERA Y ACCIONES --}}
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
                 <div>
-                    <label class="block text-sm font-semibold text-titanium mb-1">DNI / NIF</label>
-                    <input wire:model="dni" type="text"
-                           class="block w-full border border-silver rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary text-titanium">
-                    @error('dni') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                    <h1 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                        <span class="text-blue-600">Socios</span>
+                        <span class="text-gray-400 font-normal">/</span>
+                        <span class="text-gray-700">#{{ $sepa_mandate_ref ?? 'NUEVO' }}</span>
+                        <span class="text-gray-400 font-normal">||</span>
+                        <span class="text-gray-900">{{ $name ?: 'Nuevo Socio' }}</span>
+                    </h1>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-titanium mb-1">Email</label>
-                        <input wire:model="email" type="email"
-                               class="block w-full border border-silver rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary text-titanium">
-                        @error('email') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-titanium mb-1">Teléfono</label>
-                        <input wire:model="phone" type="text"
-                               class="block w-full border border-silver rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary text-titanium">
-                        @error('phone') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-titanium mb-1">Fecha de nacimiento</label>
-                    <input wire:model="birth_date" type="date"
-                           class="block w-full border border-silver rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary text-titanium">
-                    @error('birth_date') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-titanium mb-1">Dirección</label>
-                    <input wire:model="address" type="text"
-                           class="block w-full border border-silver rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary text-titanium">
-                    @error('address') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-titanium mb-1">Foto</label>
-                    @if($currentPhoto)
-                        <img src="{{ asset('storage/' . $currentPhoto) }}" alt="" class="w-16 h-16 rounded-xl object-cover mb-2">
-                    @endif
-                    <input wire:model="photo" type="file" accept="image/*"
-                           class="block w-full text-sm text-titanium file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
-                    @error('photo') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <input wire:model="active" type="checkbox" id="active" class="w-5 h-5 rounded border-silver text-primary focus:ring-primary">
-                    <label for="active" class="text-sm font-semibold text-titanium">Socio activo</label>
-                </div>
-
-                <div class="flex items-center justify-between pt-4 border-t border-silver/30">
+                <div class="flex items-center gap-2">
                     <a href="{{ route('members.index') }}"
-                       class="px-5 py-2.5 bg-gray-100 text-titanium rounded-xl font-semibold text-sm hover:bg-gray-200 transition-colors">
-                        Volver
+                    class="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 rounded-xl font-semibold text-sm transition-colors shadow-sm flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        Salir
                     </a>
+
                     <button type="submit"
-                            class="px-6 py-2.5 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-night-blue transition-colors shadow-sm"
-                            wire:loading.attr="disabled" wire:loading.class="opacity-70 cursor-not-allowed">
-                        <span wire:loading.remove>Guardar Cambios</span>
-                        <span wire:loading class="flex items-center gap-2">
-                            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                            </svg>
+                            wire:loading.attr="disabled"
+                            wire:target="save"
+                            class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-sm transition-colors shadow-sm flex items-center gap-1.5 disabled:opacity-70 disabled:cursor-not-allowed">
+                        <span wire:loading.remove wire:target="save" class="flex items-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            Guardar
+                        </span>
+                        <span wire:loading wire:target="save" class="flex items-center gap-2">
+                            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
                             Guardando...
                         </span>
                     </button>
                 </div>
-            </form>
-        </div>
+            </div>
+
+            {{-- REJILLA PRINCIPAL DE 3 COLUMNAS --}}
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                {{-- COLUMNA 1: DATOS PERSONALES Y ESTADO (4 Cols) --}}
+                <div class="lg:col-span-5 space-y-6">
+                    <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm space-y-4">
+
+
+
+                        
+                        <div class="flex items-center gap-2 text-sm font-bold text-gray-900 border-b border-gray-100 pb-3">
+                            <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            Foto del Socio
+                        </div>
+
+                        {{-- CAJA DE SUBIDA ESTILO IMAGEN DE REFERENCIA --}}
+                        <div class="flex items-start gap-4 p-3 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                            <div class="w-20 h-20 flex-shrink-0 border border-gray-200 rounded-xl bg-white flex flex-col items-center justify-center text-center overflow-hidden">
+                                @if ($photo)
+                                    <img src="{{ $photo->temporaryUrl() }}" class="w-full h-full object-cover">
+                                @elseif($currentPhoto)
+                                    <img src="{{ asset('storage/' . $currentPhoto) }}" class="w-full h-full object-cover">
+                                @else
+                                    <svg class="w-6 h-6 text-gray-300 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                    <span class="text-[10px] text-gray-400">Sin imagen</span>
+                                @endif
+                            </div>
+
+                            <div class="flex-1 min-w-0 space-y-1">
+                                <p class="text-xs font-semibold text-gray-800">Subir foto del socio</p>
+                                
+                                <label class="inline-block cursor-pointer px-2.5 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors">
+                                    Seleccionar archivo
+                                    <input type="file" wire:model="photo" accept="image/*" class="hidden">
+                                </label>
+
+                                <p class="text-[10px] text-gray-400">Máximo 2MB. JPG, PNG</p>
+                            </div>
+                        </div>
+                        @error('photo') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                    
+                        <div class="flex items-center gap-2 text-sm font-bold text-gray-900 border-b border-gray-100 pb-3">
+                            <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            Datos del Socio
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">Nombre Completo *</label>
+                                <input type="text" wire:model="name" class="w-full px-3 py-2 bg-white border @error('name') border-red-500 @else border-gray-200 @enderror rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                @error('name') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">DNI / NIF *</label>
+                                <input type="text" wire:model="dni" class="w-full px-3 py-2 bg-white border @error('dni') border-red-500 @else border-gray-200 @enderror rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                @error('dni') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">Fecha Nacimiento *</label>
+                                <input type="date" wire:model="birth_date" class="w-full px-3 py-2 bg-white border @error('birth_date') border-red-500 @else border-gray-200 @enderror rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                @error('birth_date') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
+
+                        {{-- TARJETAS ESTILO BADGE (Igual a la imagen) --}}
+                        <div class="pt-2">
+                            <label class="block text-xs font-semibold text-gray-700 mb-2">Estado del Registro</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <label class="flex items-center gap-2.5 p-3 bg-gray-50/80 hover:bg-gray-100/80 border border-gray-100 rounded-xl cursor-pointer transition-colors">
+                                    <input type="checkbox" wire:model="active" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300">
+                                    <span class="text-xs font-semibold text-gray-800">Socio Activo</span>
+                                </label>
+                            </div>
+                            @error('active') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+
+
+                </div>
+
+                {{-- COLUMNA 2: DIRECCIÓN Y BANCO / SEPA (4 Cols) --}}
+                <div class="lg:col-span-4 space-y-6">
+
+                    {{-- DIRECCIÓN --}}
+                    <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm space-y-4">
+                        <div class="flex items-center gap-2 text-sm font-bold text-gray-900 border-b border-gray-100 pb-3">
+                            <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            Ubicación y Domicilio
+                        </div>
+
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">Dirección *</label>
+                                <input type="text" wire:model="address" class="w-full px-3 py-2 bg-white border @error('address') border-red-500 @else border-gray-200 @enderror rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                @error('address') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Población *</label>
+                                    <input type="text" wire:model="town" class="w-full px-3 py-2 bg-white border @error('town') border-red-500 @else border-gray-200 @enderror rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                    @error('town') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">C.P. *</label>
+                                    <input type="text" wire:model="zip" class="w-full px-3 py-2 bg-white border @error('zip') border-red-500 @else border-gray-200 @enderror rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                    @error('zip') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">Provincia *</label>
+                                <input type="text" wire:model="province" class="w-full px-3 py-2 bg-white border @error('province') border-red-500 @else border-gray-200 @enderror rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                @error('province') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                            </div>
+                            <div class="flex items-center gap-2 text-sm font-bold text-gray-900 border-b border-gray-100 pb-3">
+                                <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                Datos de Contacto
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Email *</label>
+                                    <input type="email" wire:model="email" class="w-full px-3 py-2 bg-white border @error('email') border-red-500 @else border-gray-200 @enderror rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                    @error('email') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Teléfono</label>
+                                    <input type="text" wire:model="phone" class="w-full px-3 py-2 bg-white border @error('phone') border-red-500 @else border-gray-200 @enderror rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                    @error('phone') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- BANCO SEPA --}}
+                    
+
+                </div>
+
+                {{-- COLUMNA 3: FOTO DE SOCIO (3 Cols - Réplica exacta del módulo derecho) --}}
+                <div class="lg:col-span-3 space-y-6">
+                    <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm space-y-4">
+                        <div class="flex items-center gap-2 text-sm font-bold text-gray-900 border-b border-gray-100 pb-3">
+                            <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                            Datos Bancarios y SEPA
+                        </div>
+
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">Titular de la Cuenta *</label>
+                                <input type="text" wire:model="bank_account_holder" class="w-full px-3 py-2 bg-white border @error('bank_account_holder') border-red-500 @else border-gray-200 @enderror rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                @error('bank_account_holder') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">IBAN Cuenta Bancaria *</label>
+                                <input type="text" wire:model="bank_account" class="w-full px-3 py-2 bg-white border @error('bank_account') border-red-500 @else border-gray-200 @enderror rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                @error('bank_account') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Ref. SEPA *</label>
+                                    <input type="text" wire:model="sepa_mandate_ref" class="w-full px-3 py-2 bg-white border @error('sepa_mandate_ref') border-red-500 @else border-gray-200 @enderror rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                    @error('sepa_mandate_ref') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Fecha Firma *</label>
+                                    <input type="date" wire:model="sepa_mandate_date" class="w-full px-3 py-2 bg-white border @error('sepa_mandate_date') border-red-500 @else border-gray-200 @enderror rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                    @error('sepa_mandate_date') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">IP Registro *</label>
+                                <input type="text" wire:model="sepa_mandate_ip" class="w-full px-3 py-2 bg-white border @error('sepa_mandate_ip') border-red-500 @else border-gray-200 @enderror rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                @error('sepa_mandate_ip') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    
+
+                </div>
+
+            </div>
+
+        </form>
+    </div>
     </div>
 
     {{-- Tab: Inscripciones --}}
@@ -208,6 +340,23 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                 </svg>
                             </button>
+                            {{-- <button wire:click.prevent="sendSepaEmail({{ $ms->member_type_id }})"
+                                    wire:loading.attr="disabled"
+                                    wire:target="sendSepaEmail" 
+                                    class="px-6 py-2.5 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-night-blue transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
+                                
+                                <span wire:loading.remove wire:target="sendSepaEmail">
+                                    Enviar email domiciliación SEPA
+                                </span>
+                                
+                                <span wire:loading wire:target="sendSepaEmail" class="flex items-center gap-2"> 
+                                    <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                                    </svg>
+                                    Enviando...
+                                </span>
+                            </button> --}}
                         </div>
                     </div>
 
