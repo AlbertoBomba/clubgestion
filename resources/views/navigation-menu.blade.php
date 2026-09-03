@@ -468,7 +468,7 @@
                 </a>
                 @endif
 
-                @if(auth()->user()->hasRole('school_admin'))
+                {{-- @if(auth()->user()->hasRole('school_admin'))
                 <a href="{{ route('training-fields.index') }}" class="sidebar-link block pl-3 pr-4 py-2 text-base font-medium {{ request()->routeIs('training-fields.*') ? 'active text-white-pure' : 'text-titanium' }}">
                     <div class="flex items-center">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -477,9 +477,9 @@
                         Campos
                     </div>
                 </a>
-                @endif
+                @endif --}}
 
-                @if(auth()->user()->hasRole('school_admin'))
+                {{-- @if(auth()->user()->hasRole('school_admin'))
                 <a href="{{ route('training-schedule.index') }}" class="sidebar-link block pl-3 pr-4 py-2 text-base font-medium {{ request()->routeIs('training-schedule.index') ? 'active text-white-pure' : 'text-titanium' }}">
                     <div class="flex items-center">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -498,7 +498,7 @@
                         Ver Horarios
                     </div>
                 </a>
-                @endif
+                @endif --}}
 
                 @if(auth()->user()->hasRole(['master', 'school_admin', 'coach']))
                 <a href="{{ route('exercises.index') }}" class="sidebar-link block pl-3 pr-4 py-2 text-base font-medium {{ request()->routeIs('exercises.*') ? 'active text-white-pure' : 'text-titanium' }}">
@@ -721,7 +721,7 @@
                             Equipos
                         </a>
 
-                        @if(auth()->user()->hasRole('school_admin'))
+                        {{-- @if(auth()->user()->hasRole('school_admin'))
                         <a href="{{ route('training-fields.index') }}" 
                            @click="sidebarOpen = false"
                            class="flex items-center px-4 py-2 text-sm text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('training-fields.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
@@ -729,9 +729,9 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>
                             </svg>
                             Campos
-                        </a>
+                        </a> --}}
 
-                        <a href="{{ route('training-schedule.index') }}" 
+                        {{-- <a href="{{ route('training-schedule.index') }}" 
                            @click="sidebarOpen = false"
                            class="flex items-center px-4 py-2 text-sm text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('training-schedule.index') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
                             <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -749,7 +749,7 @@
                             </svg>
                             Ver Horarios
                         </a>
-                        @endif
+                        @endif --}}
                     </div>
                 </div>
                 @endif
@@ -879,8 +879,8 @@
                 </div>
                 @endif
 
-                @if(auth()->user()->hasRole(['master', 'school_admin', 'coach']))
-                <!-- Menú: Entrenador -->
+                {{-- @if(auth()->user()->hasRole(['master', 'school_admin', 'coach']))
+               
                 <div class="space-y-1">
                     <button @click="openMenu = openMenu === 'entrenador' ? null : 'entrenador'" 
                             class="flex items-center justify-between w-full px-4 py-3 text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200"
@@ -922,7 +922,7 @@
                         </a>
                     </div>
                 </div>
-                @endif
+                @endif --}}
 
                 @if(auth()->user()->hasAnyRole(['school_admin', 'coach']))
                 <!-- Menú: Configuración -->
@@ -966,8 +966,7 @@
                             </svg>
                             Categorías
                         </a>
-
-                        @if(auth()->user()->hasRole(['master', 'school_admin', 'coach']))
+                        {{-- @if(auth()->user()->hasRole(['master', 'school_admin', 'coach']))
                         <a href="{{ route('exercise-types.index') }}" 
                            @click="sidebarOpen = false"
                            class="flex items-center px-4 py-2 text-sm text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('exercise-types.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
@@ -976,7 +975,7 @@
                             </svg>
                             Tipos de entrenamiento
                         </a>
-                        @endif
+                        @endif --}}
                     </div>
                 </div>
                 @endif

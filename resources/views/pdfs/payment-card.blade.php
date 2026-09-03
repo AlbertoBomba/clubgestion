@@ -353,8 +353,8 @@
 
     <!-- Footer -->
     <div class="footer">
-        Este documento ha sido generado automáticamente el {{ $generatedDate }}.<br>
-        Para cualquier consulta o aclaración, póngase en contacto con nosotros.
+        <p>Este documento ha sido generado automáticamente el {{ $generatedDate }}.</p>
+        <p>Para cualquier consulta o aclaración, póngase en contacto con nosotros.</p>
         @if($sportsSchool)
             <br>
             @if($sportsSchool->phone)
@@ -364,6 +364,9 @@
                 - Email: {{ $sportsSchool->email }}
             @endif
         @endif
+        <p>
+            www.vaed.es digitalización de escuelas deportivas.
+        </p>
     </div>
 </body>
 </html>

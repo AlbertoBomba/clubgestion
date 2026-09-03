@@ -32,8 +32,8 @@ class Index extends Component
     public function render()
     {
         // Obtener la temporada activa por defecto
-        $activeSeason = Season::where('start_date', '<=', now())
-            ->where('end_date', '>=', now())
+        $activeSeason = Season::where('inscription_start_at', '<=', now())
+            ->where('inscription_end_at', '>=', now())
             ->first();
 
         // Si no hay filtro de temporada, usar la activa

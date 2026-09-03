@@ -266,6 +266,9 @@
         <div class="document-footer">
             <p>Este documento ha sido generado automáticamente por el sistema de gestión del club.</p>
             <p>Total de equipos con pagos: {{ $data['teams']->count() }}</p>
+            <p>
+                www.vaed.es digitalización de escuelas deportivas.
+            </p>
         </div>
     @else
         <div class="no-payments">

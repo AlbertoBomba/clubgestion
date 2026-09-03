@@ -185,7 +185,7 @@
 
         <!-- Estadísticas por Equipo -->
         <div class="bg-white border border-silver rounded-xl shadow-sm p-6">
-            <h3 class="text-lg font-bold text-black-deep mb-4">Estadísticas por Equipo</h3>
+            <h3 class="text-lg font-bold text-black-deep mb-4">Estadísticas por Equipo <span class="text-sm text-red-500">(Revisar esta consulta, los datos que devuelve no están bien)</span></h3>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-silver/30">
                     <thead class="bg-gradient-to-r from-gray-50 to-primary/5">

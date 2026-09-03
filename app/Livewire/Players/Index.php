@@ -547,6 +547,11 @@ class Index extends Component
                             'value' => '$record->surname',
                             'type' => 'eval'
                         ],
+                        'phone1' => [
+                            'title' => 'Teléfono jugador',
+                            'value' => '$record->phone1',
+                            'type' => 'eval'
+                        ],
                         'dbirth' => [
                             'title' => 'F. Nacimiento',
                             'value' => '$record->dbirth',
@@ -567,16 +572,6 @@ class Index extends Component
                             'value' => '$record->sections->pluck("name")->implode(", ")',
                             'type' => 'eval'
                         ],
-                        // 'soccer' => [
-                        //     'title' => 'Futbol',
-                        //     'value' => '$record->soccer',
-                        //     'type' => 'eval'
-                        // ],
-                        // 'paddle' => [
-                        //     'title' => 'Pádel',
-                        //     'value' => '$record->paddle',
-                        //     'type' => 'eval'
-                        // ],
                         'sizes' => [
                             'title' => 'Talla',
                             'value' => '$record->sizes',
@@ -592,11 +587,6 @@ class Index extends Component
                             'value' => '$record->goalie',
                             'type' => 'eval'
                         ],
-                        // 'file' => [
-                        //     'title' => 'Ficha',
-                        //     'value' => '$record->file',
-                        //     'type' => 'eval'
-                        // ],
                         'dnitutor' => [
                             'title' => 'DNI/NIE Tutor',
                             'value' => '$record->dnitutor',
@@ -605,6 +595,11 @@ class Index extends Component
                         'nametutor' => [
                             'title' => 'Nombre Tutor',
                             'value' => '$record->nametutor',
+                            'type' => 'eval'
+                        ],
+                        'phone2' => [
+                            'title' => 'Teléfono tutor',
+                            'value' => '$record->phone2',
                             'type' => 'eval'
                         ],
                         'address' => [
@@ -620,11 +615,6 @@ class Index extends Component
                         'town' => [
                             'title' => 'Población',
                             'value' => '$record->town',
-                            'type' => 'eval'
-                        ],
-                        'phone1' => [
-                            'title' => 'Teléfono',
-                            'value' => '$record->phone1',
                             'type' => 'eval'
                         ],
                         'email' => [

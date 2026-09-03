@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\Season;
 use App\Models\Section;
 use App\Models\User;
+use App\Models\Player;
 use App\Classes\PdfFile;
 use App\Classes\ExcelFile;
 use Illuminate\Support\Facades\Storage;
@@ -53,6 +54,8 @@ class Edit extends Component
     public $editPlayerDbanio = '';
     public $editPlayerShirtNumber = '';
     public $editPlayerSize = '';
+    public $file = false; // Nueva propiedad para la ficha completa
+    public $observations = '';
     public $showSizesModal = false;
     
     // Previsualización de pagos al mover jugador
@@ -85,6 +88,7 @@ class Edit extends Component
         'name' => 'Nombre',
         'surname' => 'Apellidos',
         'dni' => 'DNI',
+        'phone1' => 'Teléfono jugador',
         'dbirth' => 'Fecha Nacimiento',
         'dbanio' => 'Año Nacimiento',
         'position' => 'Posición',
@@ -92,12 +96,12 @@ class Edit extends Component
         'sizes' => 'Tallas',
         'nametutor' => 'Nombre Tutor',
         'surnametutor' => 'Apellidos Tutor',
+        'phone2' => 'Teléfono tutor',
         'dnitutor' => 'DNI Tutor',
         'address' => 'Dirección',
         'town' => 'Localidad',
         'province' => 'Provincia',
-        'cp' => 'Código Postal',
-        'phone' => 'Teléfono',
+        'zip' => 'Código Postal',
         'email' => 'Email',
     ];
     
@@ -983,7 +987,9 @@ class Edit extends Component
         $this->editPlayerDbirth = $player->dbirth ? $player->dbirth->format('Y-m-d') : '';
         $this->editPlayerDbanio = $player->dbanio ?? '';
         $this->editPlayerShirtNumber = $player->dorsal ?? '';
+        $this->observations = $player->observations ?? '';
         $this->editPlayerSize = $player->sizes ?? '';
+        $this->file = $player->file ?? false;
         
         $this->showEditPlayerModal = true;
     }
@@ -999,6 +1005,7 @@ class Edit extends Component
         $this->editPlayerDbanio = '';
         $this->editPlayerShirtNumber = '';
         $this->editPlayerSize = '';
+        $this->file = false;
     }
     
     public function openSizesModal()
@@ -1030,6 +1037,8 @@ class Edit extends Component
             'editPlayerDbanio' => 'nullable|integer|min:1900|max:' . date('Y'),
             'editPlayerShirtNumber' => 'nullable|integer|min:0|max:99',
             'editPlayerSize' => 'nullable|string|max:50',
+            'file' => 'nullable|boolean',
+            'observations' => 'nullable|string|max:1000',
         ], [
             'editPlayerName.required' => 'El nombre es obligatorio.',
             'editPlayerSurname.required' => 'Los apellidos son obligatorios.',
@@ -1055,6 +1064,8 @@ class Edit extends Component
             $player->dbanio = $this->editPlayerDbanio ?: null;
             $player->dorsal = $this->editPlayerShirtNumber ?: null;
             $player->sizes = $this->editPlayerSize ?: null;
+            $player->file = $this->file ?: false;
+            $player->observations = $this->observations ?: null;
             $player->save();
             
             $this->closeEditPlayerModal();
@@ -1264,10 +1275,95 @@ class Edit extends Component
         ]);
     }
     
+    public function downloadPlayerDocuments($playerId)
+    {
+        $player = Player::where('id', $playerId)
+            ->where('sports_school_id', auth()->user()->sports_school_id)
+            ->first();
+
+        if (!$player) {
+            session()->flash('error', 'Jugador no encontrado.');
+            return;
+        }
+
+        // Verificar que el jugador pertenece a este equipo
+        if (!$this->team->players()->where('players.id', $player->id)->exists()) {
+            session()->flash('error', 'El jugador no pertenece a este equipo.');
+            return;
+        }
+
+        $disk = Storage::disk('public');
+        $filesToZip = [];
+
+        // Foto del jugador
+        if ($player->player_photo && $disk->exists($player->player_photo)) {
+            $ext = pathinfo($player->player_photo, PATHINFO_EXTENSION) ?: 'jpg';
+            $filesToZip[] = [
+                'source' => $disk->path($player->player_photo),
+                'name'   => 'foto_jugador.' . $ext,
+            ];
+        }
+
+        // Documentos adjuntos
+        $documents = $player->documents ?? [];
+        $usedNames = [];
+        foreach ($documents as $index => $doc) {
+            if (empty($doc['path']) || !$disk->exists($doc['path'])) {
+                continue;
+            }
+
+            $ext = pathinfo($doc['path'], PATHINFO_EXTENSION);
+            $label = $doc['label'] ?? ('documento_' . ($index + 1));
+            $safeLabel = preg_replace('/[^A-Za-z0-9_\- ]/u', '', $label);
+            $safeLabel = trim($safeLabel) !== '' ? trim($safeLabel) : 'documento_' . ($index + 1);
+            $baseName = $safeLabel . ($ext ? '.' . $ext : '');
+
+            // Evitar nombres duplicados dentro del ZIP
+            $finalName = $baseName;
+            $counter = 1;
+            while (isset($usedNames[$finalName])) {
+                $finalName = $safeLabel . '_' . $counter . ($ext ? '.' . $ext : '');
+                $counter++;
+            }
+            $usedNames[$finalName] = true;
+
+            $filesToZip[] = [
+                'source' => $disk->path($doc['path']),
+                'name'   => $finalName,
+            ];
+        }
+
+        if (empty($filesToZip)) {
+            session()->flash('error', 'Este jugador no tiene documentación para descargar.');
+            return;
+        }
+
+        $zipName = 'documentacion_' . preg_replace('/[^A-Za-z0-9_\-]/u', '_', $player->surname . '_' . $player->name) . '.zip';
+        $tmpPath = tempnam(sys_get_temp_dir(), 'playerdocs_') . '.zip';
+
+        $zip = new \ZipArchive();
+        if ($zip->open($tmpPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+            session()->flash('error', 'No se pudo generar el archivo ZIP.');
+            return;
+        }
+
+        foreach ($filesToZip as $file) {
+            $zip->addFile($file['source'], $file['name']);
+        }
+        $zip->close();
+
+        return response()->streamDownload(function () use ($tmpPath) {
+            readfile($tmpPath);
+            @unlink($tmpPath);
+        }, $zipName, [
+            'Content-Type' => 'application/zip',
+        ]);
+    }
+
     public function openPdfModal()
     {
         // Seleccionar columnas básicas por defecto
-        $this->selectedColumns = ['name', 'surname', 'dni', 'dbirth', 'position', 'shirt_number'];
+        $this->selectedColumns = ['name', 'surname', 'dni', 'dbirth', 'phone1', 'phone2'];
         $this->showPdfModal = true;
     }
     
@@ -1312,14 +1408,42 @@ class Edit extends Component
         
         $pdf->records = ['data' => $data];
         
+
+        
         $content = $pdf->generateFromTemplate($pdf->templates[0]);
         
         $this->closePdfModal();
         
-        return response()->streamDownload(
-            fn () => print($content),
-            $pdf->getFileName()
-        );
+        // return response()->streamDownload(
+        //     fn () => print($content),
+        //     $pdf->getFileName()
+        // );
+         // Abre el PDF en el visor del navegador (nueva pestaña) en vez de descargarlo.
+        $base64 = base64_encode($content);
+        $fileName = $pdf->getFileName();
+
+        $this->js(<<<JS
+            (() => {
+                const bin = atob('{$base64}');
+                const bytes = new Uint8Array(bin.length);
+                for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+                const blob = new Blob([bytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                const win = window.open(url, '_blank');
+                if (!win) {
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.target = '_blank';
+                    a.rel = 'noopener';
+                    a.download = '{$fileName}';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                }
+                setTimeout(() => URL.revokeObjectURL(url), 60000);
+            })();
+        JS);
+
     }
     
     public function generateExcel()
@@ -1354,6 +1478,9 @@ class Edit extends Component
                     case 'surname':
                         $valueExpression = '$record->surname';
                         break;
+                    case 'phone':
+                        $valueExpression = '$record->phone1 ?? ""';
+                        break;
                     case 'dni':
                         $valueExpression = '$record->dni';
                         break;
@@ -1367,7 +1494,7 @@ class Edit extends Component
                         $valueExpression = '$record->position ?? ""';
                         break;
                     case 'shirt_number':
-                        $valueExpression = '$record->shirt_number ?? ""';
+                        $valueExpression = '$record->dorsal ?? ""';
                         break;
                     case 'sizes':
                         // $valueExpression = '(function($p) { $s = []; if ($p->size_shirt) $s[] = "Cam: ".$p->size_shirt; if ($p->size_pants) $s[] = "Pan: ".$p->size_pants; if ($p->size_shoes) $s[] = "Cal: ".$p->size_shoes; return implode(", ", $s); })($record)';
@@ -1382,6 +1509,9 @@ class Edit extends Component
                     case 'dnitutor':
                         $valueExpression = '$record->dnitutor ?? ""';
                         break;
+                    case 'phone2':
+                        $valueExpression = '$record->phone2 ?? ""';
+                        break;
                     case 'address':
                         $valueExpression = '$record->address ?? ""';
                         break;
@@ -1392,10 +1522,10 @@ class Edit extends Component
                         $valueExpression = '$record->province ?? ""';
                         break;
                     case 'cp':
-                        $valueExpression = '$record->cp ?? ""';
+                        $valueExpression = '$record->zip ?? ""';
                         break;
                     case 'phone':
-                        $valueExpression = '$record->phone ?? ""';
+                        $valueExpression = '$record->phone1 ?? ""';
                         break;
                     case 'email':
                         $valueExpression = '$record->email ?? ""';

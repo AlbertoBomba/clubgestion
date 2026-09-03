@@ -151,6 +151,9 @@
             @if(auth()->user()->sportsSchool) - {{ strtoupper(auth()->user()->sportsSchool->name) }}@endif
             - TEMPORADA {{ strtoupper($data['match']->season->season ?? '') }}
         </p>
+        <p>
+            www.vaed.es digitalización de escuelas deportivas.
+        </p>
     </div>
 </body>
 </html>

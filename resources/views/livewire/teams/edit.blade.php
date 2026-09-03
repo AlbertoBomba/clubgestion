@@ -394,10 +394,16 @@
                                 Fecha Nacimiento
                             </th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-titanium uppercase tracking-wider">
+                                Ficha
+                            </th>
+                             <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-titanium uppercase tracking-wider">
                                 Dorsal
                             </th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-titanium uppercase tracking-wider">
                                 Posición
+                            </th>
+                             <th scope="col" class="px-6 py-3 text-center text-xs font-bold text-titanium uppercase tracking-wider">
+                                Observaciones
                             </th>
                             <th scope="col" class="px-6 py-3 text-center text-xs font-bold text-titanium uppercase tracking-wider">
                                 Estado
@@ -440,10 +446,42 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
+                                    @if($player->file)
+                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            Completa
+                                        </span>
+                                    @else
+                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                            Incompleta
+                                        </span>
+                                    @endif
+                                    {{-- @if($player->player_photo || !empty($player->documents))
+                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            Completa
+                                        </span>
+                                    @else
+                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                            Incompleta
+                                        </span>
+                                    @endif --}}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-semibold text-primary">{{ $player->dorsal ?? '-' }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-titanium">{{ $player->position ?? '-' }}</div>
+                                </td>
+                                <td>
+                                    @if(!empty($player->observations))
+                                        <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 text-red-700 rounded-lg text-xs font-semibold animate-pulse">
+                                            <svg class="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                            </svg>
+                                            <span>{{ $player->observations }}</span>
+                                        </div>
+                                    @else
+                                        <span class="text-sm text-slate-400">-</span>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
                                     @if($player->active)
@@ -457,10 +495,10 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
-                                    <div class="flex items-center justify-center gap-2">
+                                    <div class="flex items-end justify-end gap-2">
                                         <!-- Botón Editar jugador -->
                                         <button type="button" wire:click="openEditPlayerModal({{ $player->id }})"
-                                            class="inline-flex items-center px-3 py-1.5 bg-amber-50 text-amber-700 rounded-lg text-xs font-semibold hover:bg-amber-100 transition-colors"
+                                            class="inline-flex border items-center px-3 py-1.5 bg-amber-50 text-amber-700 rounded-lg text-xs font-semibold hover:bg-amber-100 transition-colors"
                                             title="Editar jugador">
                                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -468,9 +506,26 @@
                                             <span>Editar</span>
                                         </button>
                                         
+                                        @if($player->player_photo || !empty($player->documents))
+                                            <!-- Botón Descargar documentación -->
+                                            <button type="button" wire:click="downloadPlayerDocuments({{ $player->id }})" wire:loading.attr="disabled" wire:target="downloadPlayerDocuments({{ $player->id }})"
+                                                class="inline-flex border items-center px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-semibold hover:bg-emerald-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                title="Descargar documentación del jugador">
+                                                <svg wire:loading.remove wire:target="downloadPlayerDocuments({{ $player->id }})" class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                                </svg>
+                                                <svg wire:loading wire:target="downloadPlayerDocuments({{ $player->id }})" class="animate-spin w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                <span wire:loading.remove wire:target="downloadPlayerDocuments({{ $player->id }})">Documentación</span>
+                                                <span wire:loading wire:target="downloadPlayerDocuments({{ $player->id }})">...</span>
+                                            </button>
+                                        @endif
+                                        
                                         <!-- Botón Mover a otro equipo -->
                                         <button type="button" wire:click="openMovePlayerModal({{ $player->id }})" wire:loading.attr="disabled" wire:target="openMovePlayerModal({{ $player->id }})"
-                                            class="inline-flex items-center px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-xs font-semibold hover:bg-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            class="inline-flex border items-center px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-xs font-semibold hover:bg-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             title="Mover a otro equipo">
                                             <svg wire:loading.remove wire:target="openMovePlayerModal({{ $player->id }})" class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
@@ -485,7 +540,7 @@
                                         
                                         <!-- Botón Quitar del equipo -->
                                         <button type="button" wire:click="confirmRemovePlayer({{ $player->id }})" wire:loading.attr="disabled" wire:target="confirmRemovePlayer({{ $player->id }})"
-                                            class="inline-flex items-center px-3 py-1.5 bg-red-50 text-red-700 rounded-lg text-xs font-semibold hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            class="inline-flex border items-center px-3 py-1.5 bg-red-50 text-red-700 rounded-lg text-xs font-semibold hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             title="Quitar del equipo">
                                             <svg wire:loading.remove wire:target="confirmRemovePlayer({{ $player->id }})" class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -893,6 +948,23 @@
                         <!-- Nombre y Apellidos -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
+                                <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+                                    <input wire:model.live="file" type="checkbox" id="file"
+                                        class="w-5 h-5 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
+                                    <label for="file" class="text-sm font-semibold text-titanium cursor-pointer">Ficha Completa</label>
+                                </div>
+                            </div>
+                            <div>
+                                 <label class="block text-sm font-medium text-gray-700 mb-1">
+                                DNI/NIE
+                                </label>
+                                <input type="text" wire:model.defer="editPlayerDni" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                                @error('editPlayerDni') 
+                                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span> 
+                                @enderror
+                            </div>
+                            <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">
                                     Nombre <span class="text-red-500">*</span>
                                 </label>
@@ -913,18 +985,7 @@
                                 @enderror
                             </div>
                         </div>
-
-                        <!-- DNI -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                DNI/NIE
-                            </label>
-                            <input type="text" wire:model.defer="editPlayerDni" 
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
-                            @error('editPlayerDni') 
-                                <span class="text-red-500 text-xs mt-1">{{ $message }}</span> 
-                            @enderror
-                        </div>
+                        
 
                         <!-- Fecha de Nacimiento, Año de Nacimiento, Dorsal y Talla -->
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -976,6 +1037,14 @@
                                 @error('editPlayerSize') 
                                     <span class="text-red-500 text-xs mt-1">{{ $message }}</span> 
                                 @enderror
+                            </div>
+                        </div>
+                        <div>
+                            <div class="form-group">
+                                <label class="block text-sm font-semibold text-titanium mb-2">Observaciones</label>
+                                <textarea wire:model.live="observations" rows="2" 
+                                    class="w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm resize-none"></textarea>
+                               
                             </div>
                         </div>
                     </div>

@@ -250,8 +250,8 @@
                             {{ $player->sizes ?? '-' }}
                         @elseif($column === 'position')
                             {{ $player->position ? strtoupper($player->position) : '-' }}
-                        @elseif($column === 'shirt_number')
-                            {{ $player->shirt_number ?? '-' }}
+                        @elseif($column === 'dorsal')
+                            {{ $player->dorsal ?? '-' }}
                         @else
                             {{ $player->$column ?? '-' }}
                         @endif
@@ -271,6 +271,8 @@
         </p>
         <p class="footer-text text-small">
             Generado automáticamente el {{ \Carbon\Carbon::now()->format('d/m/Y') }} a las {{ \Carbon\Carbon::now()->format('H:i') }}
+            <br>
+            www.vaed.es digitalización de escuelas deportivas.
         </p>
     </div>
 </body>
