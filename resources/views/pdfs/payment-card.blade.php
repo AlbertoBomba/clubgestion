@@ -1,372 +1,554 @@
-<!DOCTYPE html>
-<html lang="es">
 @php
     $payment = $data['payment'];
     $player = $data['player'];
     $sportsSchool = $data['sportsSchool'];
     $generatedDate = $data['generatedDate'];
 @endphp
+<!DOCTYPE html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Carta de Pago - Cuota {{ $payment->cuota }}</title>
+    <title>Carta de Pago {{ $payment->code }}</title>
     <style>
         @page {
-            margin: 12mm;
+            margin: 18mm 16mm;
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'DejaVu Sans', Arial, sans-serif;
             font-size: 10pt;
-            color: #333333;
+            color: #1f2937;
             background: #ffffff;
-            line-height: 1.3;
+            line-height: 1.5;
         }
-        
-        /* Header Banner */
-        .header-banner {
-            background: #ffffff;
-            padding: 8px 0;
-            text-align: center;
-            border-bottom: 3px solid #2c5f8d;
-            margin-bottom: 12px;
-        }
-        
-        .club-info {
-            margin-bottom: 5px;
-        }
-        
-        .club-title {
-            font-size: 16pt;
-            font-weight: bold;
-            color: #2c5f8d;
-            margin-bottom: 3px;
-        }
-        
-        .club-details {
-            font-size: 8pt;
-            color: #666666;
-            line-height: 1.2;
-        }
-        
-        .document-title {
-            font-size: 13pt;
-            font-weight: bold;
-            color: #333333;
-            margin-top: 5px;
-            margin-bottom: 2px;
-        }
-        
-        .generation-date {
-            font-size: 8pt;
-            color: #666666;
-        }
-        
-        /* Payment Code Box */
-        .payment-code-box {
-            background: #f0f7ff;
-            border: 2px solid #2c5f8d;
-            border-radius: 5px;
-            padding: 8px;
-            margin-bottom: 12px;
-            text-align: center;
-        }
-        
-        .code-label {
-            font-size: 9pt;
-            color: #666666;
-            margin-bottom: 3px;
-        }
-        
-        .code-value {
-            font-size: 18pt;
-            font-weight: bold;
-            color: #2c5f8d;
-            letter-spacing: 1px;
-        }
-        
-        /* Info Section */
-        .info-section {
-            margin-bottom: 10px;
-            border: 1px solid #e0e0e0;
-            border-radius: 5px;
-            padding: 8px;
-        }
-        
-        .section-title {
-            font-size: 11pt;
-            font-weight: bold;
-            color: #2c5f8d;
-            margin-bottom: 6px;
-            border-bottom: 1px solid #2c5f8d;
-            padding-bottom: 3px;
-        }
-        
-        .info-grid {
-            display: table;
+
+        /* ============ HEADER ============ */
+        .header {
             width: 100%;
+            border-bottom: 2px solid #1e3a5f;
+            padding-bottom: 12px;
+            margin-bottom: 24px;
         }
-        
-        .info-row {
-            display: table-row;
+
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .header-club {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #1e3a5f;
             margin-bottom: 4px;
         }
-        
-        .info-label {
-            display: table-cell;
-            font-weight: bold;
-            color: #555555;
-            padding: 2px 10px 2px 0;
-            width: 35%;
+
+        .header-info {
             font-size: 9pt;
-        }
-        
-        .info-value {
-            display: table-cell;
-            color: #333333;
-            padding: 2px 0;
-            font-size: 9pt;
-        }
-        
-        /* Amount Box */
-        .amount-box {
-            background: #e8f5e9;
-            border: 2px solid #4caf50;
-            border-radius: 5px;
-            padding: 10px;
-            margin: 10px 0;
-            text-align: center;
-        }
-        
-        .amount-label {
-            font-size: 10pt;
-            color: #666666;
-            margin-bottom: 4px;
-        }
-        
-        .amount-value {
-            font-size: 24pt;
-            font-weight: bold;
-            color: #2e7d32;
-        }
-        
-        .amount-detail {
-            font-size: 8pt;
-            color: #666666;
-            margin-top: 4px;
-            font-style: italic;
-        }
-        
-        /* Payment Methods */
-        .payment-methods {
-            margin-top: 12px;
-            border: 1px solid #e0e0e0;
-            border-radius: 5px;
-            padding: 8px;
-        }
-        
-        .method-item {
-            margin-bottom: 6px;
-            padding: 6px;
-            background: #fafafa;
-            border-left: 3px solid #2c5f8d;
-        }
-        
-        .method-item:last-child {
-            margin-bottom: 0;
-        }
-        
-        .method-title {
-            font-weight: bold;
-            color: #2c5f8d;
-            font-size: 10pt;
-            margin-bottom: 2px;
-        }
-        
-        .method-description {
-            font-size: 8pt;
-            color: #555555;
-            line-height: 1.3;
-        }
-        
-        /* Footer */
-        .footer {
-            margin-top: 12px;
-            padding-top: 8px;
-            border-top: 1px solid #e0e0e0;
-            text-align: center;
-            font-size: 8pt;
-            color: #666666;
-        }
-        
-        .important-note {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            border-radius: 5px;
-            padding: 6px;
-            margin: 10px 0;
-            font-size: 8pt;
-            color: #856404;
-        }
-        
-        .important-note strong {
-            color: #856404;
-        }
-        
-        .inline-text {
-            font-size: 9pt;
-            color: #333333;
+            color: #6b7280;
             line-height: 1.4;
         }
-        
-        .inline-text strong {
-            color: #2c5f8d;
+
+        .header-right {
+            text-align: right;
+            vertical-align: top;
+        }
+
+        .doc-label {
+            font-size: 9pt;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #6b7280;
+            margin-bottom: 2px;
+        }
+
+        .doc-code {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 6px;
+        }
+
+        .doc-date {
+            font-size: 9pt;
+            color: #4b5563;
+        }
+
+        /* ============ TITLE ============ */
+        .title-row {
+            margin-bottom: 22px;
+        }
+
+        .title-row table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .title-main {
+            font-size: 22pt;
+            font-weight: bold;
+            color: #1f2937;
+            letter-spacing: -0.5px;
+        }
+
+        .title-sub {
+            font-size: 10pt;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: #d97706;
+            color: #ffffff;
+            font-size: 10pt;
+            font-weight: bold;
+            padding: 6px 16px;
+            border-radius: 4px;
+            letter-spacing: 1px;
+        }
+
+        /* ============ AMOUNT SUMMARY ============ */
+        .amount-box {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-left: 4px solid #1e3a5f;
+            padding: 18px 22px;
+            margin-bottom: 24px;
+        }
+
+        .amount-box table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .amount-label {
+            font-size: 10pt;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .amount-concept {
+            font-size: 12pt;
+            color: #1f2937;
+            font-weight: bold;
+        }
+
+        .amount-value {
+            font-size: 26pt;
+            font-weight: bold;
+            color: #1e3a5f;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .amount-detail {
+            font-size: 9pt;
+            color: #6b7280;
+            text-align: right;
+            margin-top: 4px;
+        }
+
+        /* ============ SECTIONS ============ */
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 9pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #1e3a5f;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #d1d5db;
+            margin-bottom: 10px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table td {
+            padding: 7px 0;
+            vertical-align: top;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-label {
+            font-size: 9pt;
+            color: #6b7280;
+            width: 38%;
+        }
+
+        .data-value {
+            font-size: 10pt;
+            color: #1f2937;
+            font-weight: bold;
+        }
+
+        /* ============ TWO COLUMNS ============ */
+        .two-col {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .two-col > tbody > tr > td {
+            width: 50%;
+            vertical-align: top;
+            padding: 0;
+        }
+
+        .two-col > tbody > tr > td:first-child {
+            padding-right: 12px;
+        }
+
+        .two-col > tbody > tr > td:last-child {
+            padding-left: 12px;
+        }
+
+        /* ============ PAYMENT METHODS ============ */
+        .method {
+            border: 1px solid #e5e7eb;
+            border-left: 3px solid #1e3a5f;
+            border-radius: 4px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            background: #ffffff;
+        }
+
+        .method-header {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 6px;
+        }
+
+        .method-number {
+            display: inline-block;
+            background: #1e3a5f;
+            color: #ffffff;
+            width: 18px;
+            height: 18px;
+            line-height: 18px;
+            text-align: center;
+            border-radius: 50%;
+            font-size: 8pt;
+            margin-right: 6px;
+        }
+
+        .method-body {
+            font-size: 9pt;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        .method-body a {
+            color: #1e3a5f;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .method-body strong {
+            color: #1f2937;
+        }
+
+        .method-fields {
+            margin-top: 6px;
+            padding: 8px 10px;
+            background: #f8fafc;
+            border-radius: 3px;
+            font-size: 9pt;
+        }
+
+        .method-fields div {
+            padding: 2px 0;
+        }
+
+        .code-highlight {
+            display: inline-block;
+            background: #1e3a5f;
+            color: #ffffff;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        /* ============ NOTES ============ */
+        .note {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            padding: 12px 16px;
+            margin-top: 22px;
+            font-size: 9pt;
+            color: #4b5563;
+            line-height: 1.5;
+        }
+
+        .note strong {
+            color: #1f2937;
+        }
+
+        .warning-note {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-left: 3px solid #d97706;
+            border-radius: 3px;
+            padding: 8px 12px;
+            margin-top: 8px;
+            font-size: 8.5pt;
+            color: #78350f;
+            line-height: 1.5;
+        }
+
+        .warning-note strong {
+            color: #92400e;
+        }
+
+        .warning-note a {
+            color: #92400e;
+            font-weight: bold;
+        }
+
+        /* ============ FOOTER ============ */
+        .footer {
+            margin-top: 32px;
+            padding-top: 14px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            font-size: 8pt;
+            color: #9ca3af;
+            line-height: 1.5;
+        }
+
+        .footer .brand {
+            color: #6b7280;
             font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="header-banner">
-        @if($sportsSchool)
-            <div class="club-info">
-                <div class="club-title">{{ $sportsSchool->name }}</div>
-                <div class="club-details">
-                    @if($sportsSchool->address)
-                        {{ $sportsSchool->address }}<br>
+
+    {{-- ============ HEADER ============ --}}
+    <div class="header">
+        <table class="header-table">
+            <tr>
+                <td>
+                    @if($sportsSchool)
+                        <div class="header-club">{{ $sportsSchool->name }}</div>
+                        <div class="header-info">
+                            @if($sportsSchool->address){{ $sportsSchool->address }}<br>@endif
+                            @if($sportsSchool->phone)Tel: {{ $sportsSchool->phone }}@endif
+                            @if($sportsSchool->email) &nbsp;·&nbsp; {{ $sportsSchool->email }}@endif
+                        </div>
                     @endif
-                    @if($sportsSchool->phone)
-                        Teléfono: {{ $sportsSchool->phone }}
+                </td>
+                <td class="header-right">
+                    <div class="doc-label">Código de pago</div>
+                    <div class="doc-code">{{ $payment->code }}</div>
+                    {{-- <div class="doc-date">{{ $generatedDate }}</div> --}}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    {{-- ============ TITLE + STATUS ============ --}}
+    <div class="title-row">
+        <table>
+            <tr>
+                <td>
+                    <div class="title-main">Carta de pago</div>
+                    <div class="title-sub">Instrucciones para el abono de la cuota</div>
+                </td>
+                <td style="text-align: right; vertical-align: middle;">
+                    <span class="status-badge">PENDIENTE DE PAGO</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    {{-- ============ AMOUNT ============ --}}
+    <div class="amount-box">
+        <table>
+            <tr>
+                <td>
+                    <div class="amount-label">Importe a pagar</div>
+                    <div class="amount-concept">Cuota {{ $payment->cuota }}</div>
+                    @if($payment->paymentTeam)
+                        <div style="font-size: 9pt; color: #6b7280; margin-top: 4px;">
+                            Período: {{ \Carbon\Carbon::parse($payment->paymentTeam->date_start)->format('d/m/Y') }}
+                            – {{ \Carbon\Carbon::parse($payment->paymentTeam->date_end)->format('d/m/Y') }}
+                        </div>
                     @endif
-                    @if($sportsSchool->email)
-                        - Email: {{ $sportsSchool->email }}
+                </td>
+                <td>
+                    <div class="amount-value">{{ number_format($payment->amount, 2, ',', '.') }} €</div>
+                    @if($payment->amount_original && $payment->amount_original != $payment->amount)
+                        <div class="amount-detail">
+                            Original: {{ number_format($payment->amount_original, 2, ',', '.') }} € ·
+                            Descuento: -{{ number_format($payment->amount_original - $payment->amount, 2, ',', '.') }} €
+                        </div>
                     @endif
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    {{-- ============ TWO COLUMN INFO ============ --}}
+    <table class="two-col">
+        <tr>
+            <td>
+                <div class="section">
+                    <div class="section-title">Datos del jugador</div>
+                    <table class="data-table">
+                        <tr>
+                            <td class="data-label">Nombre</td>
+                            <td class="data-value">{{ $player->name }} {{ $player->surname }}</td>
+                        </tr>
+                        @if($player->dni)
+                            <tr>
+                                <td class="data-label">DNI</td>
+                                <td class="data-value">{{ $player->dni }}</td>
+                            </tr>
+                        @endif
+                        @if($player->dbirth)
+                            <tr>
+                                <td class="data-label">Edad</td>
+                                <td class="data-value">{{ $player->dbirth->age }} años</td>
+                            </tr>
+                        @endif
+                        @if($player->phone1 || $player->phone2)
+                            <tr>
+                                <td class="data-label">Teléfono</td>
+                                <td class="data-value">{{ $player->phone1 ?? $player->phone2 }}</td>
+                            </tr>
+                        @endif
+                    </table>
+                </div>
+            </td>
+            <td>
+                <div class="section">
+                    <div class="section-title">Detalles del pago</div>
+                    <table class="data-table">
+                        <tr>
+                            <td class="data-label">Código</td>
+                            <td class="data-value">{{ $payment->code }}</td>
+                        </tr>
+                        <tr>
+                            <td class="data-label">Cuota</td>
+                            <td class="data-value">Nº {{ $payment->cuota }}</td>
+                        </tr>
+                        <tr>
+                            <td class="data-label">Importe</td>
+                            <td class="data-value">{{ number_format($payment->amount, 2, ',', '.') }} €</td>
+                        </tr>
+                        @if($payment->amount_original && $payment->amount_original != $payment->amount)
+                            <tr>
+                                <td class="data-label">Importe original</td>
+                                <td class="data-value">{{ number_format($payment->amount_original, 2, ',', '.') }} €</td>
+                            </tr>
+                        @endif
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    {{-- ============ PAYMENT METHODS ============ --}}
+    <div class="section">
+        <div class="section-title">Formas de pago disponibles</div>
+
+        @php $methodIndex = 0; @endphp
+
+        @if($sportsSchool && $sportsSchool->payments_enabled)
+            @php $methodIndex++; @endphp
+            <div class="method">
+                <div class="method-header">
+                    <span class="method-number">{{ $methodIndex }}</span> Tarjeta de crédito o débito
+                </div>
+                <div class="method-body">
+                    Realice el pago de forma segura desde nuestra plataforma online.
+                    <div class="method-fields">
+                        <div><strong>Enlace de pago:</strong> <a href="https://{{ $sportsSchool->domain }}/search-pay" target="_blank">https://{{ $sportsSchool->domain }}/search-pay</a></div>
+                        <div><strong>Código de pago:</strong> <span class="code-highlight">{{ $payment->code }}</span></div>
+                    </div>
                 </div>
             </div>
         @endif
-        <div class="document-title">CARTA DE PAGO</div>
-        <div class="generation-date">Generada el {{ $generatedDate }}</div>
-    </div>
 
-    <!-- Payment Code -->
-    <div class="payment-code-box">
-        <div class="code-label">Código de Pago</div>
-        <div class="code-value">{{ $payment->code }}</div>
-    </div>
-
-    <!-- Player Information -->
-    <div class="info-section">
-        <div class="section-title">Datos del Jugador</div>
-        <div class="inline-text">
-            <strong>{{ $player->name }} {{ $player->surname }}</strong>
-            @if($player->dni) | DNI: {{ $player->dni }} @endif
-            @if($player->dbirth) | Edad: {{ $player->dbirth->age }} años @endif
-            @if($player->phone1 || $player->phone2) | Tel: {{ $player->phone1 ?? $player->phone2 }} @endif
-        </div>
-    </div>
-
-    <!-- Tutor Information -->
-    @if($player->nametutor)
-        <div class="info-section">
-            <div class="section-title">Datos del Tutor</div>
-            <div class="inline-text">
-                <strong>{{ $player->nametutor }} {{ $player->surnametutor ?? '' }}</strong>
-                @if($player->dnitutor) | DNI: {{ $player->dnitutor }} @endif
-                @if($player->phonetutor) | Tel: {{ $player->phonetutor }} @endif
-            </div>
-        </div>
-    @endif
-
-    <!-- Payment Details -->
-    <div class="info-section">
-        <div class="section-title">Detalles del Pago</div>
-        <div class="inline-text">
-            <strong>Cuota {{ $payment->cuota }}</strong>
-            @if($payment->paymentTeam)
-                | Período: {{ \Carbon\Carbon::parse($payment->paymentTeam->date_start)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($payment->paymentTeam->date_end)->format('d/m/Y') }}
-            @endif
-            @if($payment->amount_original && $payment->amount_original != $payment->amount)
-                | Importe original: {{ number_format($payment->amount_original, 2, ',', '.') }} €
-                @if($payment->descEnt) | Desc. (€): -{{ number_format($payment->descEnt, 2, ',', '.') }} € @endif
-                @if($payment->descPerc) | Desc. (%): {{ number_format($payment->descPerc, 2, ',', '.') }}% @endif
-            @endif
-        </div>
-    </div>
-
-    <!-- Amount to Pay -->
-    <div class="amount-box">
-        <div class="amount-label">Importe Total a Pagar</div>
-        <div class="amount-value">{{ number_format($payment->amount, 2, ',', '.') }} €</div>
-        @if($payment->amount_original && $payment->amount_original != $payment->amount)
-            <div class="amount-detail">
-                (Precio original: {{ number_format($payment->amount_original, 2, ',', '.') }} € 
-                - Descuento: {{ number_format($payment->amount_original - $payment->amount, 2, ',', '.') }} €)
+        @if($sportsSchool && $sportsSchool->bank_account_enabled)
+            @php $methodIndex++; @endphp
+            <div class="method">
+                <div class="method-header">
+                    <span class="method-number">{{ $methodIndex }}</span> Transferencia bancaria
+                </div>
+                <div class="method-body">
+                    Realice una transferencia con los siguientes datos:
+                    <div class="method-fields">
+                        <div><strong>Beneficiario:</strong> {{ $sportsSchool->name ?? 'Escuela Deportiva' }}</div>
+                        <div><strong>IBAN:</strong> {{ wordwrap($sportsSchool->bank_account, 4, ' ', true) }}</div>
+                        <div><strong>Concepto:</strong> Carta de pago {{ $payment->code }}</div>
+                        <div><strong>Importe:</strong> {{ number_format($payment->amount, 2, ',', '.') }} €</div>
+                    </div>
+                    <div class="warning-note">
+                        <strong>Importante:</strong> tras realizar la transferencia debe acceder a
+                        <a href="https://{{ $sportsSchool->domain }}/search-pay" target="_blank">https://{{ $sportsSchool->domain }}/search-pay</a>,
+                        seleccionar "transferencia bancaria" y adjuntar el justificante.
+                        La verificación puede tardar hasta 7 días hábiles.
+                    </div>
+                </div>
             </div>
         @endif
-    </div>
 
-    <!-- Important Note -->
-    <div class="important-note">
-        <strong>IMPORTANTE:</strong> Por favor, conserve esta carta de pago como comprobante. 
-        Al realizar el pago, indique el código de pago mostrado arriba para facilitar la identificación de su transacción.
-    </div>
-
-    <!-- Payment Methods -->
-    <div class="payment-methods">
-        <div class="section-title">Formas de Pago Disponibles</div>
-        
-        <div class="method-item">
-            <div class="method-title">💳 Tarjeta de Crédito/Débito</div>
-            <div class="method-description">
-                Puede realizar el pago con tarjeta de crédito o débito en nuestras oficinas o a través de la plataforma online.
-                <br><strong>Código de pago:</strong> {{ $payment->code }}
+        @php $methodIndex++; @endphp
+        <div class="method">
+            <div class="method-header">
+                <span class="method-number">{{ $methodIndex }}</span> Efectivo
             </div>
-        </div>
-        
-        <div class="method-item">
-            <div class="method-title">🏦 Transferencia Bancaria</div>
-            <div class="method-description">
-                Realice una transferencia bancaria indicando en el concepto el <strong>código de pago: {{ $payment->code }}</strong>
-                @if($sportsSchool && $sportsSchool->iban)
-                    <br><strong>IBAN:</strong> {{ $sportsSchool->iban }}
-                @endif
-                <br><strong>Beneficiario:</strong> {{ $sportsSchool->name ?? 'Escuela Deportiva' }}
-            </div>
-        </div>
-        
-        <div class="method-item">
-            <div class="method-title">💵 Efectivo</div>
-            <div class="method-description">
-                Puede realizar el pago en efectivo en nuestras oficinas durante el horario de atención.
-                <br><strong>Código de pago:</strong> {{ $payment->code }}
-                @if($sportsSchool && $sportsSchool->address)
-                    <br><strong>Dirección:</strong> {{ $sportsSchool->address }}
-                @endif
+            <div class="method-body">
+                Puede abonar el importe en efectivo en las oficinas del club.
+                <div class="method-fields">
+                    <div><strong>Código de pago:</strong> <span class="code-highlight">{{ $payment->code }}</span></div>
+                    {{-- @if($sportsSchool && $sportsSchool->address)
+                        <div><strong>Dirección:</strong> {{ $sportsSchool->address }}</div>
+                    @endif --}}
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
+    {{-- ============ NOTE ============ --}}
+    <div class="note">
+        <strong>Conserve este documento como referencia.</strong><br>
+        Indique siempre el código de pago <strong>{{ $payment->code }}</strong> al realizar el abono
+        para poder identificar correctamente su transacción.
+    </div>
+
+    {{-- ============ FOOTER ============ --}}
     <div class="footer">
-        <p>Este documento ha sido generado automáticamente el {{ $generatedDate }}.</p>
-        <p>Para cualquier consulta o aclaración, póngase en contacto con nosotros.</p>
+        Documento generado el {{ $generatedDate }}<br>
         @if($sportsSchool)
+            {{ $sportsSchool->name }}
+            @if($sportsSchool->phone) · Tel: {{ $sportsSchool->phone }}@endif
+            @if($sportsSchool->email) · {{ $sportsSchool->email }}@endif
             <br>
-            @if($sportsSchool->phone)
-                Teléfono: {{ $sportsSchool->phone }}
-            @endif
-            @if($sportsSchool->email)
-                - Email: {{ $sportsSchool->email }}
-            @endif
         @endif
-        <p>
-            www.vaed.es digitalización de escuelas deportivas.
-        </p>
+        <span class="brand">www.vaed.es</span> · Digitalización de escuelas deportivas
     </div>
+
 </body>
 </html>

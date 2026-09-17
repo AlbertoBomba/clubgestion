@@ -28,6 +28,7 @@ class PaymentPlayer extends Model
         'payment_order',
         'payment_auth',
         'payment_type',
+        'payment_receipt',
         'dtnotification',
         'notification',
         'created_user',

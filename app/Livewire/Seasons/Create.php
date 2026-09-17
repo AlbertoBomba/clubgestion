@@ -5,9 +5,12 @@ namespace App\Livewire\Seasons;
 use Livewire\Component;
 use App\Models\Season;
 use App\Models\Section;
+use App\Traits\DetectsDevice;
 
 class Create extends Component
 {
+
+    use DetectsDevice;
     public $season = '';
     public $description = '';
     public $from_year = '';
@@ -123,6 +126,12 @@ class Create extends Component
     {
         $sections = Section::where('active', true)->orderBy('name')->get();
         
+        if ($this->isMobile()) {
+            return view('livewire.seasons.create_mobile', [
+                'sections' => $sections
+            ]);
+        }
+
         return view('livewire.seasons.create', [
             'sections' => $sections
         ]);

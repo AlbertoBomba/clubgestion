@@ -16,6 +16,11 @@ use App\Livewire\WebClubs\TeamLogin as WebClubsTeamLogin;
 use App\Livewire\WebClubs\TeamDashboard as WebClubsTeamDashboard;
 use App\Livewire\WebClubs\TeamRegister as WebClubsTeamRegister;
 use App\Livewire\WebClubs\TeamPlayerRegister as WebClubsTeamPlayerRegister;
+use App\Livewire\WebClubs\ExpressPay as WebClubsExpressPay;
+use App\Livewire\WebClubs\PanelPlayerSchool as WebClubsPanelPlayerSchool;
+use App\Livewire\WebClubs\PanelSearchPay as WebClubsPanelSearchPay;
+use App\Http\Controllers\WebClubs\PaymentTestController;
+use App\Http\Controllers\WebClubs\PaymentSearchController;
 use App\Models\SportsSchool;
 use App\Models\User;
 use App\Models\Category;
@@ -30,6 +35,27 @@ use App\Livewire\TrainingSessions\Create as TrainingSessionsCreate;
 use App\Livewire\TrainingSessions\Edit as TrainingSessionsEdit;
 use App\Livewire\Tournaments\TeamPlayers as TournamentTeamPlayers;
 use App\Livewire\Tournaments\TeamPlayerForm as TournamentTeamPlayerForm;
+use App\Mail\NotificacionPrueba;
+use Illuminate\Support\Facades\Mail;
+
+
+Route::get('/test-masivo', function () {
+    // Pon TUS correos aquí. Hasta que AWS te apruebe, 
+    // no uses correos falsos o de clientes, o SES dará error.
+    $correos = [
+        'jamartinbomba@hotmail.com',
+        'notify@vaed.es',
+        'alberto.martin@dev-lab.es' // Repetido a propósito para probar el bucle
+    ];
+
+    foreach ($correos as $email) {
+        // El método queue() lo manda a la tabla 'jobs' de la BD
+        Mail::to($email)->queue(new NotificacionPrueba());
+    }
+
+    return "Se han encolado " . count($correos) . " correos correctamente. Revisa la tabla 'jobs' de tu base de datos.";
+});
+
 
 // Public routes
 Route::get('/convocatoria/{token}', PublicConvocatoria::class)->name('public.convocatoria');
@@ -48,8 +74,6 @@ Route::get('/club', WebClubsHome::class)->name('webclubs.home');
 //Ruta para alta de socios MemberRegister pasando el ID del tipo de socio como parámetro
 Route::get('/club/inscripcion/{memberTypeId}', App\Livewire\WebClubs\MemberRegister::class)->name('webclubs.member.register');
 
-
-
 // Ruta específica para clubs (tenant)
 Route::get('/live', App\Livewire\WebClubs\Live::class)->name('webclubs.live');
 Route::get('/live/{tournament}', App\Livewire\WebClubs\LiveDetail::class)->name('webclubs.live.detail');
@@ -57,13 +81,30 @@ Route::get('/live/{tournament}', App\Livewire\WebClubs\LiveDetail::class)->name(
 // Tenant Public Routes
 Route::get('/sobre-nosotros', WebClubsAbout::class)->name('webclubs.about');
 Route::get('/contacto', WebClubsContact::class)->name('webclubs.contact');
-Route::get('/inscripcion', WebClubsPlayerRegistration::class)->name('webclubs.registration');
+
 Route::get('/torneos', WebClubsTournaments::class)->name('webclubs.tournaments');
 Route::get('/torneos/{tournament}', WebClubsTournamentDetail::class)->name('webclubs.tournament.detail');
 Route::get('/torneos/{tournament}/equipo/login', WebClubsTeamLogin::class)->name('webclubs.team.login');
 Route::get('/torneos/{tournament}/equipo', WebClubsTeamDashboard::class)->name('webclubs.team.dashboard');
 Route::get('/torneos/{tournament}/inscripcion', WebClubsTeamRegister::class)->name('webclubs.team.register');
 Route::get('/torneos/{tournament}/jugador/{token}', WebClubsTeamPlayerRegister::class)->name('webclubs.player.register');
+// ExpressPay página pago de cartas.
+Route::get('/express-pay', WebClubsExpressPay::class)->name('webclubs.express-pay');
+Route::get('/express-pay/ok', [PaymentTestController::class, 'success'])->name('webclubs.express-pay.ok');
+Route::get('/express-pay/ko', [PaymentTestController::class, 'cancel'])->name('webclubs.express-pay.ko');
+Route::match(['get', 'post'], '/express-pay/redsys/notify', [PaymentTestController::class, 'redsysNotify'])
+    ->name('webclubs.express-pay.redsys-notify');
+
+// Panel options players school
+Route::get('/panel-player-school', WebClubsPanelPlayerSchool::class)->name('webclubs.panel-player-school');
+    //inscription
+    Route::get('/inscripcion', WebClubsPlayerRegistration::class)->name('webclubs.registration');
+    Route::get('/search-pay', WebClubsPanelSearchPay::class)->name('webclubs.payment');
+    Route::get('/search-pay/ok', [PaymentSearchController::class, 'paymentOk'])->name('webclubs.payment.ok');
+    Route::get('/search-pay/ko', [PaymentSearchController::class, 'paymentKo'])->name('webclubs.payment.ko');
+    Route::match(['get', 'post'], '/search-pay/redsys/notify', [PaymentSearchController::class, 'redsysNotify'])
+        ->name('webclubs.payment.redsys-notify');
+
 
 // Legal Pages
 Route::get('/privacy', function () {

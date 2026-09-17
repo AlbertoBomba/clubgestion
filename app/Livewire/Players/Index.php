@@ -14,16 +14,19 @@ use App\Models\PaymentCodeSequentials;
 use Illuminate\Support\Facades\DB;
 use Mpdf\Mpdf;
 use ZipArchive;
+use App\Traits\DetectsDevice;
 
 class Index extends Component
 {
     use WithPagination;
+    use DetectsDevice;
 
     public $search = '';
     public $dniFilter = '';
     public $matriculaFilter = '';
     public $seasonFilter = '';
     public $teamFilter = '';
+    public $sectionFilter = '';
     public $withoutTeam = false;
     public $highlightPlayer = null;
     public $sortField = 'surname';
@@ -52,7 +55,7 @@ class Index extends Component
     public $showPlayerViewModal = false;
     public $playerToView = null;
 
-    protected $queryString = ['search', 'dniFilter', 'matriculaFilter', 'seasonFilter', 'teamFilter', 'withoutTeam', 'sortField', 'sortDirection'];
+    protected $queryString = ['search', 'dniFilter', 'matriculaFilter', 'seasonFilter', 'teamFilter', 'sectionFilter', 'withoutTeam', 'sortField', 'sortDirection'];
 
     public function mount()
     {
@@ -69,6 +72,7 @@ class Index extends Component
             $this->matriculaFilter = $filters['matriculaFilter'] ?? '';
             $this->seasonFilter = $filters['seasonFilter'] ?? '';
             $this->teamFilter = $filters['teamFilter'] ?? '';
+            $this->sectionFilter = $filters['sectionFilter'] ?? '';
             $this->withoutTeam = $filters['withoutTeam'] ?? false;
             $this->sortField = $filters['sortField'] ?? 'surname';
             $this->sortDirection = $filters['sortDirection'] ?? 'asc';
@@ -120,6 +124,12 @@ class Index extends Component
         $this->saveFilters();
     }
 
+    public function updatingSectionFilter()
+    {
+        $this->resetPage();
+        $this->saveFilters();
+    }
+
     public function updatingWithoutTeam()
     {
         $this->resetPage();
@@ -135,6 +145,7 @@ class Index extends Component
             'matriculaFilter' => $this->matriculaFilter,
             'seasonFilter' => $this->seasonFilter,
             'teamFilter' => $this->teamFilter,
+            'sectionFilter' => $this->sectionFilter,
             'withoutTeam' => $this->withoutTeam,
             'sortField' => $this->sortField,
             'sortDirection' => $this->sortDirection,
@@ -153,6 +164,8 @@ class Index extends Component
             $this->seasonFilter = '';
         } elseif ($field === 'teamFilter') {
             $this->teamFilter = '';
+        } elseif ($field === 'sectionFilter') {
+            $this->sectionFilter = '';
         } elseif ($field === 'withoutTeam') {
             $this->withoutTeam = false;
         }
@@ -167,6 +180,7 @@ class Index extends Component
         $this->matriculaFilter = '';
         $this->seasonFilter = '';
         $this->teamFilter = '';
+        $this->sectionFilter = '';
         $this->withoutTeam = false;
         $this->resetPage();
         $this->saveFilters();
@@ -281,7 +295,7 @@ class Index extends Component
 
     public function viewPlayer($playerId)
     {
-        $player = Player::with(['teams.category', 'seasons'])
+        $player = Player::with(['teams.category', 'seasons', 'sections'])
             ->find($playerId);
         
         if ($player && $player->sports_school_id === auth()->user()->sports_school_id) {
@@ -510,6 +524,11 @@ class Index extends Component
             ->when($this->teamFilter, function ($query) {
                 $query->whereHas('teams', function ($q) {
                     $q->where('teams.id', $this->teamFilter);
+                });
+            })
+            ->when($this->sectionFilter, function ($query) {
+                $query->whereHas('sections', function ($q) {
+                    $q->where('sections.id', $this->sectionFilter);
                 });
             })
             ->when($this->withoutTeam, function ($query) {
@@ -1203,7 +1222,7 @@ class Index extends Component
     public function render()
     {
         $players = Player::where('sports_school_id', auth()->user()->sports_school_id)
-            ->with(['seasons', 'teams'])
+            ->with(['seasons', 'teams', 'sections'])
             ->withCount(['paymentPlayers as payment_players_count' => function ($query) {
                 $query->whereNull('payments_players.deleted_at');
             }])
@@ -1246,11 +1265,18 @@ class Index extends Component
                     $q->where('teams.id', $this->teamFilter);
                 });
             })
+            ->when($this->sectionFilter, function ($query) {
+                $query->whereHas('sections', function ($q) {
+                    $q->where('sections.id', $this->sectionFilter);
+                });
+            })
             ->when($this->withoutTeam, function ($query) {
                 $query->doesntHave('teams');
             })
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate(15);
+
+        // dd($players);
 
         $seasons = Season::where('sports_school_id', auth()->user()->sports_school_id)
             ->orderBy('season')
@@ -1272,11 +1298,30 @@ class Index extends Component
             ->orderBy('team')
             ->get();
 
+        $sections = \App\Models\Section::whereHas('seasons', function ($query) {
+                $query->where('sports_school_id', auth()->user()->sports_school_id);
+            })
+            ->orderBy('name')
+            ->get();
+
+        if ($this->isMobile()) {
+            return view('livewire.players.index_mobile', [
+                'players' => $players,
+                'seasons' => $seasons,
+                'activeSeason' => $activeSeason,
+                'teams' => $teams,
+                'sections' => $sections,
+                'playerToDeleteModel' => $this->playerToDelete ? Player::find($this->playerToDelete) : null,
+                'selectedPlayersModels' => Player::whereIn('id', $this->selectedPlayers)->get(),
+            ]);
+        }
+
         return view('livewire.players.index', [
             'players' => $players,
             'seasons' => $seasons,
             'activeSeason' => $activeSeason,
             'teams' => $teams,
+            'sections' => $sections,
             'playerToDeleteModel' => $this->playerToDelete ? Player::find($this->playerToDelete) : null,
             'selectedPlayersModels' => Player::whereIn('id', $this->selectedPlayers)->get(),
         ]);

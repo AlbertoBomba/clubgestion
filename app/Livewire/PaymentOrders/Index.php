@@ -13,7 +13,11 @@ use App\Models\PaymentPlayer;
 use App\Models\PaymentCodeSequentials;
 use App\Models\ExcelImportRow;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use App\Classes\ExcelFile;
+use App\Mail\PaymentPlayerLetter;
+use App\Models\SportsSchool;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class Index extends Component
@@ -26,6 +30,7 @@ class Index extends Component
     public $teamFilter = '';
     public $cuotaFilter = '';
     public $pendingPaymentsOnly = false;
+    public $pendingTransferValidationOnly = false;
     public $showDeleteModal = false;
     public $playerToDeleteId = null;
     public $playerToDelete = null;
@@ -58,6 +63,23 @@ class Index extends Component
     public $previewTeamsCount = 0;
     public $previewPlayersCount = 0;
 
+    //Modal notificaciones
+    public $showNotifyModal = false;
+    public $cuotaNotify = ''; // Filtro de cuota para notificaciones
+    public $teamNotify = ''; // Filtro de equipo para notificaciones
+    public $resultNotify = true;
+
+    // Canales de envío (solo email operativo en esta fase)
+    public $notifyChannelEmail = true;
+    public $notifyChannelWhatsapp = false;
+    public $notifyChannelSms = false;
+    public $notifyChannelPush = false;
+
+    // Resultado del último envío (para feedback UI)
+    public $notifySentCount = 0;
+    public $notifyFailedCount = 0;
+    public $notifySkippedCount = 0;
+
     protected $queryString = ['search'];
 
     public function mount()
@@ -73,12 +95,13 @@ class Index extends Component
         $this->teamFilter = session('paymentOrders.teamFilter', '');
         $this->cuotaFilter = session('paymentOrders.cuotaFilter', '');
         $this->pendingPaymentsOnly = session('paymentOrders.pendingPaymentsOnly', true);
+        $this->pendingTransferValidationOnly = session('paymentOrders.pendingTransferValidationOnly', false);
     }
 
     public function updated($property)
     {
         // Guardar filtros en sesión cuando cambien
-        if (in_array($property, ['search', 'seasonFilter', 'teamFilter', 'cuotaFilter', 'pendingPaymentsOnly'])) {
+        if (in_array($property, ['search', 'seasonFilter', 'teamFilter', 'cuotaFilter', 'pendingPaymentsOnly', 'pendingTransferValidationOnly'])) {
             session(['paymentOrders.' . $property => $this->$property]);
         }
         
@@ -410,7 +433,174 @@ class Index extends Component
         $this->transferCuotaFilter = '';
         $this->showTransferModal = true;
     }
-    
+
+    public function openNotifyModal()
+    {
+        $this->resultNotify = true;
+        $this->notifySentCount = 0;
+        $this->notifyFailedCount = 0;
+        $this->notifySkippedCount = 0;
+        $this->showNotifyModal = true;
+    }
+
+    public function closeNotifyModal()
+    {
+        $this->showNotifyModal = false;
+        $this->notifySentCount = 0;
+        $this->notifyFailedCount = 0;
+        $this->notifySkippedCount = 0;
+    }
+
+    /**
+     * Construye la query de jugadores que serán notificados según los filtros
+     * $cuotaNotify y $teamNotify. Sólo jugadores con cartas de pago pendientes
+     * (state = 0) de la temporada activa.
+     */
+    protected function getNotifyPlayersQuery()
+    {
+        $activeSeason = Season::where('inscription_start_at', '<=', now())
+            ->where('inscription_end_at', '>=', now())
+            ->first();
+
+        $activeSeasonId = $activeSeason ? $activeSeason->id : null;
+
+        $paymentPlayersQuery = function ($query) {
+            $query->whereNull('deleted_at')->where('state', 0);
+            if ($this->cuotaNotify) {
+                $query->where('cuota', $this->cuotaNotify);
+            }
+        };
+
+        return Player::with([
+                'paymentPlayers' => $paymentPlayersQuery,
+                'paymentPlayers.paymentTeam',
+                'teams.category',
+                'teams.season',
+            ])
+            ->when($activeSeasonId, function ($query) use ($activeSeasonId) {
+                $query->where(function ($q) use ($activeSeasonId) {
+                    $q->whereHas('teams', function ($teamQ) use ($activeSeasonId) {
+                        $teamQ->where('season_id', $activeSeasonId);
+                    })
+                    ->orWhereHas('paymentPlayers', function ($paymentQ) use ($activeSeasonId) {
+                        $paymentQ->whereHas('paymentTeam', function ($teamPaymentQ) use ($activeSeasonId) {
+                            $teamPaymentQ->whereHas('team', function ($teamQ) use ($activeSeasonId) {
+                                $teamQ->where('season_id', $activeSeasonId);
+                            });
+                        });
+                    });
+                });
+            })
+            ->when($this->teamNotify, function ($query) {
+                $query->whereHas('teams', function ($q) {
+                    $q->where('teams.id', $this->teamNotify);
+                });
+            })
+            ->whereHas('paymentPlayers', function ($q) {
+                $q->whereNull('deleted_at')->where('state', 0);
+                if ($this->cuotaNotify) {
+                    $q->where('cuota', $this->cuotaNotify);
+                }
+            })
+            ->orderBy('name')
+            ->orderBy('surname');
+    }
+
+    public function searchNotify()
+    {
+        $count = $this->getNotifyPlayersQuery()->count();
+        $this->resultNotify = $count > 0;
+    }
+
+    /**
+     * Envía masivamente las cartas de pago pendientes por email usando la cola
+     * de Laravel (tabla `jobs`). El PDF se genera de forma perezosa dentro del
+     * mailable PaymentPlayerLetter cuando el worker procesa el job.
+     */
+    public function sendNotifications()
+    {
+        $this->notifySentCount = 0;
+        $this->notifyFailedCount = 0;
+        $this->notifySkippedCount = 0;
+
+        if (! $this->notifyChannelEmail) {
+            session()->flash('error', 'Debes seleccionar al menos un canal de envío operativo.');
+            return;
+        }
+
+        $school = SportsSchool::find(auth()->user()->sports_school_id);
+        if (! $school) {
+            session()->flash('error', 'No se encontró la escuela del usuario autenticado.');
+            return;
+        }
+
+        $players = $this->getNotifyPlayersQuery()->get();
+
+        if ($players->isEmpty()) {
+            $this->resultNotify = false;
+            session()->flash('error', 'No hay cartas de pago pendientes que coincidan con los filtros seleccionados.');
+            return;
+        }
+
+        foreach ($players as $player) {
+            $paymentsToSend = $player->paymentPlayers->filter(function ($payment) {
+                if ((int) $payment->state !== 0) {
+                    return false;
+                }
+                if ($this->cuotaNotify && (int) $payment->cuota !== (int) $this->cuotaNotify) {
+                    return false;
+                }
+                return true;
+            });
+
+            if ($paymentsToSend->isEmpty()) {
+                $this->notifySkippedCount++;
+                continue;
+            }
+
+            // MODO PRUEBA: Cambiar 'notify@vaed.es' por $player->email en producción
+            $emailDestino = 'notify@vaed.es';
+
+            foreach ($paymentsToSend as $payment) {
+                try {
+                    // El método queue() lo manda a la tabla 'jobs' de la BD
+                    Mail::to($emailDestino)->queue(new PaymentPlayerLetter($payment, $school));
+                    $this->notifySentCount++;
+                    $notifyPayment = PaymentPlayer::find($payment->id);
+                    $notifyPayment->email_notification = true;
+                    $notifyPayment->whatsapp_notification = false;
+                    $notifyPayment->sms_notification =false;
+                    $notifyPayment->push_notification = false;
+                    $notifyPayment->dtnotification = now();
+                    $notifyPayment->notification = $notifyPayment->notification +1;
+                    $notifyPayment->save();
+                   
+
+                } catch (\Throwable $e) {
+                    Log::error('Error encolando carta de pago (envío masivo)', [
+                        'payment_player_id' => $payment->id,
+                        'player_id' => $player->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                    $this->notifyFailedCount++;
+                }
+            }
+        }
+
+        if ($this->notifySentCount > 0) {
+            $msg = "Se encolaron {$this->notifySentCount} " .
+                ($this->notifySentCount === 1 ? 'carta de pago' : 'cartas de pago') .
+                " en la tabla `jobs` para envío por email.";
+            if ($this->notifyFailedCount > 0) {
+                $msg .= " {$this->notifyFailedCount} fallaron al encolarse.";
+            }
+            session()->flash('message', $msg);
+            $this->showNotifyModal = false;
+        } else {
+            session()->flash('error', 'No se pudo encolar ninguna carta de pago.');
+        }
+    }
+
     public function closeTransferModal()
     {
         $this->showTransferModal = false;
@@ -421,7 +611,7 @@ class Index extends Component
         $this->excelFile = null;
         $this->transferCuotaFilter = '';
     }
-    
+
     public function clearTransferResults()
     {
         $this->transferSearch = '';
@@ -446,21 +636,21 @@ class Index extends Component
             $this->selectedTransferPayments = $validIds;
         }
     }
-    
+
     public function searchTransfers()
     {
         $this->transferResults = [];
-        
+
         if (empty($this->transferSearch)) {
             return;
         }
-        
+
         $sportsSchoolId = auth()->user()->sports_school_id;
         $searchTerm = trim($this->transferSearch);
-        
+
         // Dividir el término de búsqueda en palabras individuales
         $searchWords = array_filter(explode(' ', $searchTerm));
-        
+
         // Buscar pagos pendientes por código, nombre jugador, apellido jugador y nombre tutor
         $payments = PaymentPlayer::with(['player', 'paymentTeam'])
             ->where('sports_school_id', $sportsSchoolId)
@@ -487,7 +677,7 @@ class Index extends Component
             })
             ->orderBy('cuota')
             ->get();
-        
+
         $this->transferResults = $payments->map(function($payment) {
             return [
                 'id' => $payment->id,
@@ -1144,13 +1334,13 @@ class Index extends Component
         $sportsSchoolId = auth()->user()->sports_school_id;
         $teams = Team::whereHas('season', function($query) use ($sportsSchoolId) {
                 $query->where('sports_school_id', $sportsSchoolId);
-            })
-            ->when($this->seasonFilter, function($query) {
-                $query->where('season_id', $this->seasonFilter);
-            })
-            ->with('category')
-            ->orderBy('team')
-            ->get();
+        })
+        ->when($this->seasonFilter, function($query) {
+            $query->where('season_id', $this->seasonFilter);
+        })
+        ->with('category')
+        ->orderBy('team')
+        ->get();
 
         // Verificar si hay jugadores sin cartas de pago en la temporada activa
         $hasPlayersWithoutPayments = false;
@@ -1182,6 +1372,24 @@ class Index extends Component
             $maxCuotas = $activeSeason->cuota;
         }
 
+        // Preview de destinatarios/cartas del modal de notificaciones
+        $notifyPlayersCount = 0;
+        $notifyLettersCount = 0;
+        if ($this->showNotifyModal) {
+            $notifyPlayersCount = $this->getNotifyPlayersQuery()->count();
+            $notifyLettersCount = PaymentPlayer::whereNull('deleted_at')
+                ->where('sports_school_id', auth()->user()->sports_school_id)
+                ->where('state', 0)
+                ->when($this->cuotaNotify, fn ($q) => $q->where('cuota', $this->cuotaNotify))
+                ->when($this->teamNotify, function ($q) {
+                    $q->whereHas('player.teams', fn ($tq) => $tq->where('teams.id', $this->teamNotify));
+                })
+                ->when($activeSeason, function ($q) use ($activeSeason) {
+                    $q->whereHas('paymentTeam.team', fn ($tq) => $tq->where('season_id', $activeSeason->id));
+                })
+                ->count();
+        }
+
         return view('livewire.payment-orders.index', [
             'players' => $players,
             'seasons' => $seasons,
@@ -1189,21 +1397,35 @@ class Index extends Component
             'activeSeason' => $activeSeason,
             'hasPlayersWithoutPayments' => $hasPlayersWithoutPayments,
             'maxCuotas' => $maxCuotas,
+            'notifyPlayersCount' => $notifyPlayersCount,
+            'notifyLettersCount' => $notifyLettersCount,
         ]);
     }
     
     private function getPlayersQuery()
     {
+        // Estados a filtrar según los checkboxes activos
+        // "Solo pagos pendientes" incluye tanto pendientes (0) como pendientes de validar transferencia (6)
+        $stateFilters = [];
+        if ($this->pendingPaymentsOnly) {
+            $stateFilters[] = 0;
+            $stateFilters[] = 6;
+        }
+        if ($this->pendingTransferValidationOnly) {
+            $stateFilters[] = 6;
+        }
+        $stateFilters = array_values(array_unique($stateFilters));
+
         // Construir el eager loading condicional para paymentPlayers
-        $paymentPlayersQuery = function($query) {
+        $paymentPlayersQuery = function($query) use ($stateFilters) {
             // Excluir explícitamente los pagos soft deleted
             $query->whereNull('deleted_at');
             
             if ($this->cuotaFilter) {
                 $query->where('cuota', $this->cuotaFilter);
             }
-            if ($this->pendingPaymentsOnly) {
-                $query->where('state', 0);
+            if (!empty($stateFilters)) {
+                $query->whereIn('state', $stateFilters);
             }
         };
 
@@ -1254,13 +1476,13 @@ class Index extends Component
                     $q->where('teams.id', $this->teamFilter);
                 });
             })
-            // Aplicar filtros de pagos: si hay cuotaFilter o pendingPaymentsOnly, aplicarlos juntos
-            ->when($this->pendingPaymentsOnly || $this->cuotaFilter, function($query) {
-                $query->whereHas('paymentPlayers', function($q) {
+            // Aplicar filtros de pagos: si hay cuotaFilter o algún filtro de estado, aplicarlos juntos
+            ->when(!empty($stateFilters) || $this->cuotaFilter, function($query) use ($stateFilters) {
+                $query->whereHas('paymentPlayers', function($q) use ($stateFilters) {
                     // Excluir pagos soft deleted
                     $q->whereNull('deleted_at');
-                    if ($this->pendingPaymentsOnly) {
-                        $q->where('state', 0);
+                    if (!empty($stateFilters)) {
+                        $q->whereIn('state', $stateFilters);
                     }
                     if ($this->cuotaFilter) {
                         $q->where('cuota', $this->cuotaFilter);

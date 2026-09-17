@@ -51,6 +51,10 @@
                                         </h2>
                                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px; color:#374151;">
                                             <tr>
+                                                <td style="padding:6px 0; color:#6b7280; width:40%;">Matricula</td>
+                                                <td style="padding:6px 0; font-weight:600;">{{ $player->cod_matricula }}</td>
+                                            </tr>
+                                            <tr>
                                                 <td style="padding:6px 0; color:#6b7280; width:40%;">Nombre</td>
                                                 <td style="padding:6px 0; font-weight:600;">{{ $player->name }} {{ $player->surname }}</td>
                                             </tr>
@@ -155,8 +159,13 @@
                                 @endif
                             </p>
                             <p style="margin:8px 0 0 0; font-size:11px; color:#9ca3af;">
-                                Este mensaje ha sido enviado automáticamente. Por favor, no respondas si no es necesario.
+                                Si tiene alguna incidencia contacte con {{ $school->email }}.
                             </p>
+                            <p style="margin:8px 0 0 0; font-size:11px; color:#9ca3af;">
+                                Este mensaje ha sido enviado automáticamente. Por favor, no respondas.
+                            </p>
+
+                            
                         </td>
                     </tr>
                 </table>

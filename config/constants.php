@@ -21,6 +21,7 @@ return [
         'Baja' => 3,
         'Cancelado' => 4,
         'Abonada' => 5,
+        'Pendiente de validar' => 6,
     ],
      
 

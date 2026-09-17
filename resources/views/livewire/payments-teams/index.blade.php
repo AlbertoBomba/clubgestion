@@ -1414,7 +1414,7 @@
                                     Revisión de Cuotas a eliminar
                                 </p>
                                 <p class="text-sm text-amber-700 mt-1">
-                                    Solo se eliminarán las cuotas que no estén en vigor y no tengan Cuotas realizados.
+                                    Solo se eliminarán las cuotas que no estén en vigor y no tengan cartas de pago realizados.
                                 </p>
                             </div>
                         </div>

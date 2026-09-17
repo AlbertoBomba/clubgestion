@@ -6,6 +6,10 @@ use Livewire\Component;
 use App\Models\Player;
 use App\Models\PaymentPlayer;
 use App\Classes\PdfFile;
+use Illuminate\Support\Facades\Log;
+use App\Mail\PaymentPlayerLetter;
+use App\Services\SchoolMailer;
+use Illuminate\Support\Str;
 
 class Show extends Component
 {
@@ -61,7 +65,7 @@ class Show extends Component
                 'generatedDate' => now()->format('d/m/Y H:i'),
             ];
 
-            // Generar PDF
+            // Generar carta de pago en
             $pdf = new PdfFile();
             $pdf->file_name = 'carta_pago_' . $player->name . '_' . $player->surname . '_cuota_' . $payment->cuota;
             $pdf->templates[0] = 'pdfs.payment-card';
@@ -153,7 +157,10 @@ class Show extends Component
                 0 => 'Pendiente de pago',
                 1 => 'Pagado',
                 2 => 'Lesión',
-                3 => 'Baja Jugador'
+                3 => 'Baja Jugador',
+                4 => 'Cancelado',
+                5 => 'Abonada',
+                6 => 'Pendiente de validar',
             ];
 
             session()->flash('message', 'Estado actualizado a: ' . $stateNames[$newState]);
@@ -163,8 +170,78 @@ class Show extends Component
         }
     }
 
+    public function sendPaymentLetters($paymentId)
+    {
+        $email_notification = true;
+        $whatsapp_notification = false;
+        $sms_notification = false;
+        $push_notification = false;
+            
+            $payment = PaymentPlayer::where('id', $paymentId)
+                ->where('sports_school_id', auth()->user()->sports_school_id)
+                ->firstOrFail();
+
+            $school = $payment->player->sportsSchool;
+            //  try {
+                $pdfContent = $this->buildPaymentPdf($payment);
+                
+                $mailable = new PaymentPlayerLetter(
+                    payment: $payment,
+                    school: $school,
+                    pdfContent: $pdfContent,
+                    pdfFilename: 'carta_pago_' . Str::slug($payment->code ?: (string) $payment->id) . '.pdf',
+                );
+
+                SchoolMailer::forSchool($school)
+                    ->to(
+                        $payment->player->email,
+                        trim(($payment->player->name ?? '') . ' ' . ($payment->player->surname ?? ''))
+                    )
+                    ->send($mailable);
+            
+                $payment->email_notification = $email_notification;
+                $payment->whatsapp_notification = $whatsapp_notification;
+                $payment->sms_notification = $sms_notification;
+                $payment->push_notification = $push_notification;
+                $payment->dtnotification = now();
+                $payment->notification = $payment->notification +1;
+                $payment->save();
+                session()->flash('mail_message', " Notificación de carta enviada correctamente ");
+
+            //   } catch (\Throwable $e) {
+            //     Log::error('Error enviando carta de pago pública', [
+            //         'payment_player_id' => $payment->id,
+            //         'error'             => $e->getMessage(),
+            //     ]);
+            // }  
+            // Lógica para enviar las cartas de pago al jugador
+            // Por ejemplo, enviar un correo electrónico o notificación
+
+          
+    }
+
+    protected function buildPaymentPdf(PaymentPlayer $payment): string
+    {
+        $data = [
+            'payment'       => $payment,
+            'player'        => $payment->player,
+            'sportsSchool'  => $payment->player->sportsSchool,
+            'generatedDate' => now()->format('d/m/Y H:i'),
+        ];
+
+        $pdf = new PdfFile();
+        $pdf->file_name = 'carta_pago_' . ($payment->code ?: $payment->id);
+        $pdf->templates[0] = 'pdfs.payment-card';
+        $pdf->records = ['data' => $data];
+
+        return (string) $pdf->generateFromTemplate($pdf->templates[0]);
+    }
+
     public function render()
     {
         return view('livewire.payment-orders.show');
     }
 }
+
+
+   

@@ -1,4 +1,97 @@
-<div class="w-full px-4">
+<div class="w-full px-4 space-y-6" x-data="{ tab: 'general' }" x-cloak>
+
+    {{-- ═══════════════════════════════════════════════════════════════════════════
+         HERO HEADER + NAVEGACIÓN POR PESTAÑAS
+         ═══════════════════════════════════════════════════════════════════════════ --}}
+    <div class="card-modern rounded-2xl shadow-xl border border-primary/10 overflow-hidden">
+        <div class="relative p-5 sm:p-6 flex flex-col sm:flex-row items-center gap-4 sm:gap-6"
+             style="background: linear-gradient(135deg, {{ $primary_color ?? '#1E40AF' }} 0%, {{ $secondary_color ?? '#10B981' }} 100%);">
+            <div class="shrink-0">
+                @if ($currentLogo)
+                    <img src="{{ asset('storage/' . $currentLogo) }}" alt="{{ $name }}"
+                         class="h-20 w-20 sm:h-24 sm:w-24 object-contain rounded-2xl bg-white p-2 shadow-lg ring-2 ring-white/40">
+                @else
+                    <div class="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-white text-3xl font-bold ring-2 ring-white/40">
+                        {{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($name ?: '?', 0, 1)) }}
+                    </div>
+                @endif
+            </div>
+            <div class="flex-1 min-w-0 text-center sm:text-left">
+                <p class="text-[11px] font-semibold text-white/80 uppercase tracking-wider">Escuela deportiva</p>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-white break-words">{{ $name ?: 'Sin nombre' }}</h1>
+                <div class="mt-2 flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                    @if($is_active)
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur text-white text-[11px] font-semibold ring-1 ring-white/30">
+                            <span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span> Activa
+                        </span>
+                    @else
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur text-white/80 text-[11px] font-semibold ring-1 ring-white/30">
+                            <span class="w-2 h-2 rounded-full bg-gray-300"></span> Inactiva
+                        </span>
+                    @endif
+                    @if($school->payments_enabled && $school->payment_gateway && $school->payment_gateway !== 'none')
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur text-white text-[11px] font-semibold ring-1 ring-white/30">💳 {{ ucfirst($school->payment_gateway) }}</span>
+                    @endif
+                    @if($school->bank_account_enabled ?? false)
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur text-white text-[11px] font-semibold ring-1 ring-white/30">🏦 SEPA</span>
+                    @endif
+                    @if($school->api_enabled && $school->api_key)
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur text-white text-[11px] font-semibold ring-1 ring-white/30">🔑 API</span>
+                    @endif
+                    @if($school->mail_host && $mail_has_password)
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur text-white text-[11px] font-semibold ring-1 ring-white/30">✉ SMTP</span>
+                    @endif
+                </div>
+            </div>
+            <div class="shrink-0">
+                <a href="{{ route('sports-schools.index') }}"
+                   class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/15 hover:bg-white/25 backdrop-blur text-white text-sm font-semibold transition-colors ring-1 ring-white/20">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Volver
+                </a>
+            </div>
+        </div>
+
+        {{-- Tabs --}}
+        <div class="border-t border-gray-100 bg-white">
+            <nav class="flex overflow-x-auto no-scrollbar px-2">
+                @php
+                    $tabs = [
+                        ['id' => 'general', 'label' => 'General',           'icon' => 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+                        ['id' => 'banco',   'label' => 'Cuenta bancaria',   'icon' => 'M3 10h18M5 6h14a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2zm2 8h2m4 0h4'],
+                        ['id' => 'correo',  'label' => 'Correo',            'icon' => 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'],
+                        ['id' => 'pagos',   'label' => 'Pasarelas',         'icon' => 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z'],
+                        ['id' => 'api',     'label' => 'API',               'icon' => 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'],
+                    ];
+                @endphp
+                @foreach($tabs as $t)
+                    <button type="button" @click="tab = '{{ $t['id'] }}'"
+                            :class="tab === '{{ $t['id'] }}' ? 'text-primary border-primary bg-primary/5' : 'text-gray-500 border-transparent hover:text-gray-800 hover:bg-gray-50'"
+                            class="shrink-0 flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $t['icon'] }}"/>
+                        </svg>
+                        {{ $t['label'] }}
+                    </button>
+                @endforeach
+            </nav>
+        </div>
+    </div>
+
+    {{-- Flash message (global) --}}
+    @if(session()->has('message'))
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 flex items-center gap-2">
+            <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            {{ session('message') }}
+        </div>
+    @endif
+
+    {{-- ═══════════════════════════════════════════════════════════════════════════
+         PESTAÑA: GENERAL
+         ═══════════════════════════════════════════════════════════════════════════ --}}
+    <div x-show="tab === 'general'" x-transition.opacity>
     <div class="card-modern rounded-2xl shadow-xl border border-primary/10 p-4 w-full">
         <form wire:submit.prevent="save" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="space-y-3">
@@ -8,13 +101,24 @@
                     </svg>
                     Información Básica
                 </h3>
-                <div>
-                    <label for="name" class="block text-sm font-semibold text-gray-700 mb-1">
-                        Nombre de la Escuela <span class="text-red-500">*</span>
-                    </label>
-                    <input wire:model.live="name" type="text" id="name" required
-                        class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
-                    @error('name') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                <div class="flex gap-4">
+                    <div>
+                        <label for="nif">
+                            NIF <span class="text-red-500">*</span>
+                        </label>
+                        <input wire:model.live="nif" type="text" id="nif" required
+                            class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
+                        @error('nif') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label for="name" class="block text-sm font-semibold text-gray-700 mb-1">
+                            Nombre de la Escuela <span class="text-red-500">*</span>
+                        </label>
+                        <input wire:model.live="name" type="text" id="name" required
+                            class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
+                        @error('name') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                    </div>
+                    
                 </div>
 
                 <div>
@@ -231,9 +335,146 @@
             </div>
         </form>
     </div>
+    </div>{{-- /general panel --}}
 
+    {{-- ═══════════════════════════════════════════════════════════════════════════
+         PESTAÑA: CUENTA BANCARIA (SEPA / IBAN)
+         ═══════════════════════════════════════════════════════════════════════════ --}}
+    <div x-show="tab === 'banco'" x-transition.opacity>
+    <div class="card-modern rounded-2xl shadow-xl border border-primary/10 p-4 w-full">
+        <div class="space-y-5">
+
+            {{-- Header --}}
+            <div class="flex items-center justify-between pb-4 border-b border-gray-200">
+                <h3 class="text-base font-semibold text-gray-900 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M5 6h14a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2zm2 8h2m4 0h4"/>
+                    </svg>
+                    Cuenta bancaria de la escuela
+                </h3>
+                @if($school->bank_account_enabled && $school->bank_account)
+                    <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-800">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                        Pago por domiciliación activo
+                    </span>
+                @elseif($school->bank_account)
+                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-800">Configurada pero desactivada</span>
+                @else
+                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">Sin configurar</span>
+                @endif
+            </div>
+
+            {{-- Info banner --}}
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-800">
+                <p class="font-semibold mb-1">¿Para qué se usa esta cuenta?</p>
+                <p>El IBAN configurado se usa como cuenta emisora en los ficheros <strong>SEPA (pain.008.001.02)</strong> para generar remesas de domiciliaciones a los socios que hayan elegido este método de pago. Puedes desactivar temporalmente el uso del pago por cuenta bancaria sin borrar el IBAN.</p>
+            </div>
+
+            {{-- Flash message --}}
+            @if(session()->has('bank_message'))
+                <div class="bg-green-50 border border-green-200 rounded-xl p-3 text-sm text-green-800 font-medium flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                    {{ session('bank_message') }}
+                </div>
+            @endif
+
+            {{-- Toggle activar --}}
+            <label class="flex items-start gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer
+                          {{ $bank_account_enabled ? 'border-primary bg-primary/5' : 'border-gray-200 bg-white hover:bg-gray-50' }}">
+                <input type="checkbox" wire:model.live="bank_account_enabled"
+                       class="mt-0.5 w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer">
+                <div class="flex-1">
+                    <p class="text-sm font-semibold text-gray-900">Aceptar pagos por cuenta bancaria (domiciliación SEPA)</p>
+                    <p class="text-xs text-gray-500 mt-0.5">Activa esta opción para permitir a los socios pagar mediante recibo domiciliado desde su cuenta bancaria.</p>
+                </div>
+            </label>
+
+            {{-- IBAN input --}}
+            <div>
+                <label for="bank_account" class="block text-sm font-semibold text-gray-700 mb-1">
+                    IBAN de la escuela
+                    @if($bank_account_enabled) <span class="text-red-500">*</span> @endif
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M5 6h14a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"/>
+                        </svg>
+                    </div>
+                    <input wire:model="bank_account" type="text" id="bank_account"
+                           x-mask="ES99 9999 9999 9999 9999 9999"
+                           placeholder="ES00 0000 0000 0000 0000 0000"
+                           class="input-field block w-full pl-10 pr-3 py-2.5 text-sm font-mono uppercase tracking-wider border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
+                </div>
+                @error('bank_account') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                <p class="text-[11px] text-gray-500 mt-1.5 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Se valida el formato español (ES + 22 dígitos) con dígito de control módulo 97.
+                </p>
+            </div>
+
+            {{-- Preview IBAN enmascarado --}}
+            @if($school->bank_account)
+                <div class="rounded-xl border border-gray-200 bg-gradient-to-br from-slate-50 to-slate-100 p-4">
+                    <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">IBAN guardado</p>
+                    <p class="text-lg font-mono font-bold text-gray-800 tracking-widest">
+                        {{ substr($school->bank_account, 0, 4) }} **** **** **** **** {{ substr($school->bank_account, -4) }}
+                    </p>
+                </div>
+            @endif
+
+            {{-- Requisitos SEPA --}}
+            <div class="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                <p class="text-xs font-semibold text-amber-900 mb-2 flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                    Requisitos para generar remesas SEPA
+                </p>
+                <ul class="text-xs text-amber-800 space-y-1 list-disc list-inside">
+                    <li>El <strong>NIF de la escuela</strong> debe estar cumplimentado
+                        @if($school->nif)
+                            <span class="text-green-700 font-semibold">✓ ({{ $school->nif }})</span>
+                        @else
+                            <span class="text-red-700 font-semibold">✗ pendiente</span>
+                        @endif
+                    </li>
+                    <li>El <strong>IBAN</strong> debe estar validado
+                        @if($school->bank_account)
+                            <span class="text-green-700 font-semibold">✓</span>
+                        @else
+                            <span class="text-red-700 font-semibold">✗ pendiente</span>
+                        @endif
+                    </li>
+                    <li>El <strong>tipo de socio</strong> debe tener marcada la opción "Cuenta bancaria"</li>
+                    <li>Cada socio debe tener su IBAN y titular registrados</li>
+                </ul>
+            </div>
+
+            {{-- Save button --}}
+            <div class="flex justify-end pt-2 border-t border-gray-100">
+                <button type="button" wire:click="saveBankAccount"
+                        wire:loading.attr="disabled" wire:target="saveBankAccount"
+                        class="btn-primary px-5 py-2 rounded-lg text-sm text-white font-semibold shadow hover:shadow-md disabled:opacity-70 transition-all inline-flex items-center gap-2">
+                    <svg wire:loading wire:target="saveBankAccount" class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    <svg wire:loading.remove wire:target="saveBankAccount" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span wire:loading.remove wire:target="saveBankAccount">Guardar cuenta bancaria</span>
+                    <span wire:loading wire:target="saveBankAccount">Guardando...</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    </div>{{-- /banco panel --}}
+
+    {{-- ═══════════════════════════════════════════════════════════════════════════
+         PESTAÑA: API
+         ═══════════════════════════════════════════════════════════════════════════ --}}
+    <div x-show="tab === 'api'" x-transition.opacity>
     <!-- API Security Section -->
-    <div class="card-modern rounded-2xl shadow-xl border border-primary/10 p-4 w-full mt-6">
+    <div class="card-modern rounded-2xl shadow-xl border border-primary/10 p-4 w-full">
         <div class="space-y-4">
             <div class="flex items-center justify-between pb-4 border-b border-gray-200">
                 <h3 class="text-base font-semibold text-gray-900 flex items-center">
@@ -384,9 +625,14 @@ X-API-Key: tu_api_key_aqui<br><br>
             </div>
         </div>
     </div>
+    </div>{{-- /api panel --}}
 
+    {{-- ═══════════════════════════════════════════════════════════════════════════
+         PESTAÑA: CORREO
+         ═══════════════════════════════════════════════════════════════════════════ --}}
+    <div x-show="tab === 'correo'" x-transition.opacity>
     {{-- ─── Mail configuration card ──────────────────────────────────────────────── --}}
-    <div class="card-modern rounded-2xl shadow-xl border border-primary/10 p-4 w-full mt-6">
+    <div class="card-modern rounded-2xl shadow-xl border border-primary/10 p-4 w-full">
     <div class="space-y-5">
 
         {{-- Header --}}
@@ -768,6 +1014,189 @@ X-API-Key: tu_api_key_aqui<br><br>
         </div>
 
     </div>
+    </div>{{-- /mail card outer --}}
+    </div>{{-- /correo panel --}}
+
+    {{-- ═══════════════════════════════════════════════════════════════════════════
+         PESTAÑA: PASARELAS DE PAGO
+         ═══════════════════════════════════════════════════════════════════════════ --}}
+    <div x-show="tab === 'pagos'" x-transition.opacity>
+    {{-- ─── Payment gateway configuration card ─────────────────────────────────── --}}
+    <div class="card-modern rounded-2xl shadow-xl border border-primary/10 p-4 w-full">
+        <div class="space-y-5">
+
+            {{-- Header --}}
+            <div class="flex items-center justify-between pb-4 border-b border-gray-200">
+                <h3 class="text-base font-semibold text-gray-900 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                    </svg>
+                    Configuración de pasarelas de pago
+                </h3>
+                @if($school->payments_enabled && $school->payment_gateway && $school->payment_gateway !== 'none')
+                    <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-800">
+                        {{ ucfirst($school->payment_gateway) }} activa
+                    </span>
+                @else
+                    <span class="text-xs font-semibold px-2 py-1 rounded-full bg-gray-100 text-gray-600">
+                        Sin configurar
+                    </span>
+                @endif
+            </div>
+
+            @if(session()->has('payment_message'))
+                <div class="bg-green-50 border border-green-200 text-green-800 text-sm rounded-lg px-3 py-2">
+                    {{ session('payment_message') }}
+                </div>
+            @endif
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {{-- Gateway selector --}}
+                <div>
+                    <label for="payment_gateway" class="block text-sm font-semibold text-gray-700 mb-1">
+                        Pasarela de pago <span class="text-red-500">*</span>
+                    </label>
+                    <select wire:model.live="payment_gateway" id="payment_gateway"
+                        class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
+                        <option value="none">— Ninguna —</option>
+                        <option value="stripe">Stripe (Tarjeta + Bizum)</option>
+                        <option value="redsys">Redsys (Tarjeta + Bizum)</option>
+                    </select>
+                    @error('payment_gateway') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                </div>
+
+                {{-- Enable toggle --}}
+                <div class="flex items-end">
+                    <label class="inline-flex items-center gap-2 text-sm text-gray-700 select-none">
+                        <input type="checkbox" wire:model.live="payments_enabled"
+                               @if($payment_gateway === 'none') disabled @endif
+                               class="rounded border-gray-300 text-primary focus:ring-primary">
+                        <span>Aceptar pagos con esta pasarela</span>
+                    </label>
+                </div>
+            </div>
+
+            {{-- Stripe fields --}}
+            @if($payment_gateway === 'stripe')
+                <div class="rounded-xl border border-indigo-200 bg-indigo-50/40 p-4 space-y-3">
+                    <p class="text-xs font-semibold text-indigo-800 flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M13.5 4.5c-2.6 0-5.1 1.2-5.1 3.8 0 2.7 2.6 3.3 4.6 3.9 1.6.5 3 .9 3 2.1 0 1-1 1.7-2.7 1.7-1.9 0-4-.7-5.3-1.5v3.8c1.7.7 3.6 1.2 5.6 1.2 3 0 5.5-1.4 5.5-4.1 0-2.9-2.7-3.6-4.8-4.2-1.4-.4-2.7-.8-2.7-1.9 0-.9.9-1.4 2.2-1.4 1.8 0 3.6.6 4.9 1.3V5.2c-1.4-.5-3.1-.7-5.2-.7z"/></svg>
+                        Credenciales de Stripe
+                    </p>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Public Key (pk_...)</label>
+                        <input wire:model="stripe_key" type="text" placeholder="pk_live_..."
+                               class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
+                        @error('stripe_key') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">
+                            Secret Key (sk_...)
+                            @if($stripe_secret_stored)
+                                <span class="ml-1 text-[10px] font-normal text-green-700">✓ almacenada (déjala en blanco para conservarla)</span>
+                            @endif
+                        </label>
+                        <input wire:model="stripe_secret" type="password" autocomplete="new-password"
+                               placeholder="{{ $stripe_secret_stored ? '••••••••••••' : 'sk_live_...' }}"
+                               class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
+                        @error('stripe_secret') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">
+                            Webhook Secret (whsec_...)
+                            @if($stripe_webhook_secret_stored)
+                                <span class="ml-1 text-[10px] font-normal text-green-700">✓ almacenado</span>
+                            @endif
+                        </label>
+                        <input wire:model="stripe_webhook_secret" type="password" autocomplete="new-password"
+                               placeholder="{{ $stripe_webhook_secret_stored ? '••••••••••••' : 'whsec_...' }}"
+                               class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
+                        @error('stripe_webhook_secret') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+
+                    <p class="text-[11px] text-gray-500">
+                        Bizum se activa en Stripe habilitando <strong>Payment Methods → Bizum</strong> desde tu dashboard. Se usará la misma Secret Key.
+                    </p>
+                </div>
+            @endif
+
+            {{-- Redsys fields --}}
+            @if($payment_gateway === 'redsys')
+                <div class="rounded-xl border border-red-200 bg-red-50/40 p-4 space-y-3">
+                    <p class="text-xs font-semibold text-red-800 flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .672-3 1.5S10.343 11 12 11s3 .672 3 1.5S13.657 14 12 14m0-6V6m0 8v2m9-4a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Credenciales de Redsys
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Código de comercio (FUC)</label>
+                            <input wire:model="redsys_merchant_code" type="text" maxlength="9" placeholder="999008881"
+                                   class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
+                            @error('redsys_merchant_code') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Terminal</label>
+                            <input wire:model="redsys_terminal" type="text" maxlength="3" placeholder="1"
+                                   class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
+                            @error('redsys_terminal') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">
+                            Clave secreta (SHA-256)
+                            @if($redsys_secret_stored)
+                                <span class="ml-1 text-[10px] font-normal text-green-700">✓ almacenada (déjala en blanco para conservarla)</span>
+                            @endif
+                        </label>
+                        <input wire:model="redsys_secret_key" type="password" autocomplete="new-password"
+                               placeholder="{{ $redsys_secret_stored ? '••••••••••••' : 'sq7HjrUOBfKmC576ILgskD5srU870gJ7' }}"
+                               class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
+                        @error('redsys_secret_key') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Entorno</label>
+                        <select wire:model="redsys_environment"
+                            class="input-field block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900">
+                            <option value="test">Pruebas (sis-t.redsys.es)</option>
+                            <option value="production">Producción (sis.redsys.es)</option>
+                        </select>
+                        @error('redsys_environment') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+
+                    <p class="text-[11px] text-gray-500">
+                        Bizum en Redsys se activa enviando <code class="bg-white px-1 rounded border">DS_MERCHANT_PAYMETHODS=z</code> en la petición.
+                        Debes tener el método contratado con tu entidad.
+                    </p>
+                </div>
+            @endif
+
+            {{-- Save button --}}
+            <div class="flex justify-end pt-2 border-t border-gray-100">
+                <button type="button" wire:click="savePaymentSettings"
+                        wire:loading.attr="disabled" wire:target="savePaymentSettings"
+                        class="btn-primary px-5 py-2 rounded-lg text-sm text-white font-semibold shadow hover:shadow-md disabled:opacity-70 transition-all">
+                    <svg wire:loading wire:target="savePaymentSettings" class="animate-spin -ml-1 mr-2 h-4 w-4 inline" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    <span wire:loading.remove wire:target="savePaymentSettings">Guardar configuración de pagos</span>
+                    <span wire:loading wire:target="savePaymentSettings">Guardando...</span>
+                </button>
+            </div>
+
+            <p class="text-[11px] text-gray-400">
+                Las credenciales sensibles se almacenan cifradas con la <code>APP_KEY</code> de Laravel (<code>encrypted:array</code>).
+            </p>
+        </div>
+    </div>
+    </div>{{-- /pagos panel --}}
 
     <script>
     function copyApiKey() {

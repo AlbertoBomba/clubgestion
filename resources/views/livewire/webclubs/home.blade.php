@@ -382,88 +382,111 @@
                     <h2 class="text-sm md:text-base lg:text-lg uppercase tracking-[0.2em] text-black/40 font-semibold mb-5">[02] Competición</h2>
                     <h3 class="section-title text-6xl md:text-8xl lg:text-9xl font-bold text-gray-900">Torneos</h3>
                 </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+                        @foreach($tournaments as $index => $tournament)
+                            @php
+                                $statusColors = [
+                                    'registration_open' => ['bg' => 'bg-blue-100',   'text' => 'text-blue-700',   'label' => 'Inscripciones abiertas'],
+                                    'in_progress'       => ['bg' => 'bg-green-100',  'text' => 'text-green-700',  'label' => 'En curso'],
+                                    'completed'         => ['bg' => 'bg-purple-100', 'text' => 'text-purple-700', 'label' => 'Finalizado'],
+                                    'draft'             => ['bg' => 'bg-gray-100',   'text' => 'text-gray-500',   'label' => 'Próximamente'],
+                                ];
+                                $sc = $statusColors[$tournament->status] ?? $statusColors['draft'];
+                            @endphp
+                            
+                            <a href="{{ route('webclubs.tournament.detail', $tournament) }}"
+                            class="group relative bg-white rounded-3xl overflow-hidden border border-slate-200/80 transition-all duration-500 shadow-xl shadow-slate-200/60 hover:shadow-2xl hover:shadow-slate-300/80 hover:-translate-y-1 flex flex-col"
+                            data-aos="fade-up" data-aos-delay="{{ $index * 100 }}">
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
-                    @foreach($tournaments as $index => $tournament)
-                        @php
-                            $statusColors = [
-                                'registration_open' => ['bg' => 'bg-blue-100',   'text' => 'text-blue-700',   'label' => 'Inscripciones abiertas'],
-                                'in_progress'       => ['bg' => 'bg-green-100',  'text' => 'text-green-700',  'label' => 'En curso'],
-                                'completed'         => ['bg' => 'bg-purple-100', 'text' => 'text-purple-700', 'label' => 'Finalizado'],
-                                'draft'             => ['bg' => 'bg-gray-100',   'text' => 'text-gray-500',   'label' => 'Próximamente'],
-                            ];
-                            $sc = $statusColors[$tournament->status] ?? $statusColors['draft'];
-                        @endphp
-                        <a href="{{ route('webclubs.tournament.detail', $tournament) }}"
-                        class="group bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm shadow-gray-200/60 hover:shadow-xl hover:shadow-gray-200/80 hover:-translate-y-1 transition-all duration-500 flex flex-col"
-                        data-aos="fade-up" data-aos-delay="{{ $index * 100 }}">
-
-                            {{-- Banner --}}
-                            <div class="relative h-36 sm:h-44 flex items-center justify-center overflow-hidden"
-                                style="background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);">
-                                @if($tournament->logo)
-                                    <img src="{{ Storage::url($tournament->logo) }}"
-                                        alt="{{ $tournament->name }}"
-                                        class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                                @else
-                                    <div class="text-white/30 text-8xl font-black select-none group-hover:scale-105 transition-transform duration-500">🏆</div>
-                                @endif
-                                <span class="absolute top-3 right-3 {{ $sc['bg'] }} {{ $sc['text'] }} text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
-                                    {{ $sc['label'] }}
-                                </span>
-                            </div>
-
-                            {{-- Content --}}
-                            <div class="p-4 sm:p-6 flex flex-col flex-1">
-                                <h2 class="text-base sm:text-xl font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors duration-300">
-                                    {{ $tournament->name }}
-                                </h2>
-
-                                @if($tournament->description)
-                                    <p class="text-sm text-gray-500 leading-relaxed mb-4 line-clamp-2">{{ $tournament->description }}</p>
-                                @endif
-
-                                <div class="space-y-2 text-xs text-gray-400 font-semibold uppercase tracking-wider mt-auto">
-                                    @if($tournament->start_date)
-                                        <div class="flex items-center gap-2">
-                                            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                            </svg>
-                                            <span>{{ $tournament->start_date->locale('es')->translatedFormat('d M Y') }}@if($tournament->end_date) — {{ $tournament->end_date->locale('es')->translatedFormat('d M Y') }}@endif</span>
-                                        </div>
+                                {{-- Banner con Degradado de Fusión --}}
+                                <div class="relative h-48 sm:h-52 flex items-center justify-center overflow-hidden"
+                                    style="background: linear-gradient(135deg, var(--color-primary, #1e293b) 0%, var(--color-secondary, #0f172a) 100%);">
+                                    @if($tournament->logo)
+                                        <img src="{{ Storage::url($tournament->logo) }}"
+                                            alt="{{ $tournament->name }}"
+                                            class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out opacity-90">
+                                    @else
+                                        <div class="text-white/30 text-8xl font-black select-none group-hover:scale-110 transition-transform duration-700 ease-out">🏆</div>
                                     @endif
-                                    @if($tournament->location)
-                                        <div class="flex items-center gap-2">
-                                            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                            </svg>
-                                            <span>{{ $tournament->location }}</span>
-                                        </div>
-                                    @endif
-                                    @if($tournament->registration_deadline && $tournament->status === 'registration_open')
-                                        <div class="flex items-center gap-2">
-                                            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                            </svg>
-                                            <span>Inscripción hasta {{ $tournament->registration_deadline->locale('es')->translatedFormat('d M') }}</span>
-                                        </div>
-                                    @endif
+                                    
+                                    <!-- Degradado blanco suave hacia abajo para fusionar con la card -->
+                                    <div class="absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent z-10"></div>
+
+                                    <!-- Etiqueta de Estado -->
+                                    <span class="absolute top-4 right-4 z-20 {{ $sc['bg'] }} {{ $sc['text'] }} text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm">
+                                        {{ $sc['label'] }}
+                                    </span>
                                 </div>
 
-                                <div class="mt-5 flex items-center gap-1.5 font-bold text-sm text-primary/60 group-hover:text-primary transition-colors duration-300">
-                                    <span>Ver torneo</span>
-                                    <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                    </svg>
-                                </div>
-                            </div>
+                                {{-- Contenido --}}
+                                <div class="p-6 sm:p-8 flex-grow flex flex-col relative z-20 -mt-6">
+                                    <!-- Título -->
+                                    <h2 class="text-xl sm:text-2xl font-black text-slate-900 mb-3 uppercase tracking-wide group-hover:text-blue-600 transition-colors duration-300 line-clamp-2">
+                                        {{ $tournament->name }}
+                                    </h2>
 
-                            {{-- Bottom accent --}}
-                            <div class="h-0.5 w-0 group-hover:w-full transition-all duration-500"
-                                style="background: linear-gradient(to right, var(--color-primary), var(--color-secondary))"></div>
-                        </a>
-                    @endforeach
-                </div>
+                                    <!-- Descripción -->
+                                    @if($tournament->description)
+                                        <p class="text-sm text-slate-600 font-medium leading-relaxed mb-6 line-clamp-2">
+                                            {{ $tournament->description }}
+                                        </p>
+                                    @endif
+
+                                    <!-- Meta Información (Fechas, Ubicación) -->
+                                    <div class="space-y-3 text-xs sm:text-sm text-slate-500 font-semibold mt-auto mb-8">
+                                        @if($tournament->start_date)
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                                    </svg>
+                                                </div>
+                                                <span>{{ $tournament->start_date->locale('es')->translatedFormat('d M Y') }}@if($tournament->end_date) — {{ $tournament->end_date->locale('es')->translatedFormat('d M Y') }}@endif</span>
+                                            </div>
+                                        @endif
+                                        
+                                        @if($tournament->location)
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                    </svg>
+                                                </div>
+                                                <span class="truncate">{{ $tournament->location }}</span>
+                                            </div>
+                                        @endif
+                                        
+                                        @if($tournament->registration_deadline && $tournament->status === 'registration_open')
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                    </svg>
+                                                </div>
+                                                <span>Inscripción hasta {{ $tournament->registration_deadline->locale('es')->translatedFormat('d M') }}</span>
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    <!-- Botón Simulado "Ver Torneo" -->
+                                    <div class="mt-auto block w-full relative overflow-hidden rounded-xl bg-slate-50 border border-slate-100 group-hover:border-blue-200 transition-colors duration-300">
+                                        <div class="absolute inset-0 bg-blue-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                        <div class="relative flex items-center justify-center gap-2 py-3 px-4 text-slate-600 group-hover:text-blue-700 font-bold uppercase tracking-widest text-sm transition-colors">
+                                            <span>Ver torneo</span>
+                                            <svg class="w-5 h-5 group-hover:translate-x-1.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Línea de acento inferior (Se mantiene pero absoluta para no romper el layout) --}}
+                                <div class="absolute bottom-0 left-0 h-1 w-0 group-hover:w-full transition-all duration-500 z-30"
+                                    style="background: linear-gradient(to right, var(--color-primary, #2563eb), var(--color-secondary, #4f46e5))"></div>
+                            </a>
+                        @endforeach
+                    </div>
+                
             </div>
         </section>
     @endif

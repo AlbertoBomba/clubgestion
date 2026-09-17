@@ -29,6 +29,7 @@ class SportsSchool extends Model
         'is_active',
         'nif',
         'bank_account',
+        'bank_account_enabled',
         'api_key',
         'api_key_generated_at',
         'api_requests_count',
@@ -42,15 +43,22 @@ class SportsSchool extends Model
         'mail_password',
         'mail_from_address',
         'mail_from_name',
+        // Payment gateway configuration
+        'payment_gateway',
+        'payment_settings',
+        'payments_enabled',
     ];
 
     protected $casts = [
         'is_active'            => 'boolean',
+        'bank_account_enabled' => 'boolean',
         'api_enabled'          => 'boolean',
         'api_key_generated_at' => 'datetime',
         'last_api_request_at'  => 'datetime',
         'mail_port'            => 'integer',
         'mail_password'        => 'encrypted',  // stored encrypted at rest
+        'payments_enabled'     => 'boolean',
+        'payment_settings'     => 'encrypted:array', // credentials encrypted at rest
     ];
 
     // Boot method para generar slug automáticamente
@@ -184,5 +192,62 @@ class SportsSchool extends Model
     public function enableApi(): void
     {
         $this->update(['api_enabled' => true]);
+    }
+
+    // ── Payment gateway helpers ───────────────────────────────────────
+
+    /**
+     * Devuelve el array de credenciales desencriptadas.
+     */
+    public function paymentSettings(): array
+    {
+        return is_array($this->payment_settings) ? $this->payment_settings : [];
+    }
+
+    /**
+     * ¿La escuela tiene una pasarela activa y correctamente configurada?
+     */
+    public function hasActivePayment(): bool
+    {
+        if (! $this->payments_enabled) {
+            return false;
+        }
+
+        return match ($this->payment_gateway) {
+            'stripe' => $this->isStripeConfigured(),
+            'redsys' => $this->isRedsysConfigured(),
+            default  => false,
+        };
+    }
+
+    /**
+     * ¿Están presentes las credenciales mínimas de Stripe?
+     */
+    public function isStripeConfigured(): bool
+    {
+        if ($this->payment_gateway !== 'stripe') {
+            return false;
+        }
+
+        $s = $this->paymentSettings();
+
+        return ! empty($s['stripe_key']) && ! empty($s['stripe_secret']);
+    }
+
+    /**
+     * ¿Están presentes las credenciales mínimas de Redsys?
+     */
+    public function isRedsysConfigured(): bool
+    {
+        if ($this->payment_gateway !== 'redsys') {
+            return false;
+        }
+
+        $s = $this->paymentSettings();
+
+        return ! empty($s['merchant_code'])
+            && ! empty($s['terminal'])
+            && ! empty($s['secret_key'])
+            && in_array($s['environment'] ?? null, ['test', 'production'], true);
     }
 }

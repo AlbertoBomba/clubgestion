@@ -22,8 +22,9 @@
                 @else
                     <a href="{{ route('login') }}" class="text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider transition">Login</a>
                 @endauth
-                <a href="{{ route('webclubs.registration') }}" class="bg-primary text-white px-8 py-3 text-sm font-semibold uppercase tracking-wider hover:opacity-90 transition rounded-full">
-                    Inscripción jugadores
+                <a href="{{ route('webclubs.panel-player-school') }}" class="bg-primary text-white px-8 py-3 text-sm font-semibold uppercase tracking-wider hover:opacity-90 transition rounded-full">
+                   
+                    Inscripciones {{ tenantName() }}
                 </a>
             </div>
             <!-- Mobile menu button -->
@@ -51,8 +52,7 @@
             @else
                 <a href="{{ route('login') }}" class="block py-2 text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider">Login</a>
             @endauth
-
-            <a href="{{ route('webclubs.registration') }}" class="block py-2 text-blue-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider">Incripción jugadores</a>
+            <a href="{{ route('webclubs.panel-player-school') }}" class="block py-2 text-blue-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider">Inscripciones {{ tenantName() }}</a>
 
         </div>
     </div>

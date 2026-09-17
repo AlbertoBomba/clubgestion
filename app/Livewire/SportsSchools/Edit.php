@@ -5,6 +5,7 @@ namespace App\Livewire\SportsSchools;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\SportsSchool;
+use App\Rules\ValidIban;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -29,6 +30,11 @@ class Edit extends Component
     public $currentLogo;
     public $primary_color;
     public $secondary_color;
+    public $nif;
+
+    // ── Bank account (SEPA / IBAN) ──────────────────────────────
+    public string $bank_account         = '';
+    public bool   $bank_account_enabled = false;
 
     // ── Mail configuration ────────────────────────────────────────────
     public string $mail_host         = '';
@@ -41,8 +47,27 @@ class Edit extends Component
     public bool   $mail_has_password = false; // read-only flag
     public string $mail_test_to      = '';
 
+    // ── Payment gateway configuration ───────────────────────────────────
+    public string $payment_gateway  = 'none';       // 'none' | 'stripe' | 'redsys'
+    public bool   $payments_enabled = false;
+
+    // Stripe fields
+    public string $stripe_key            = '';
+    public string $stripe_secret         = '';   // blank on load = keep existing
+    public string $stripe_webhook_secret = '';   // blank on load = keep existing
+    public bool   $stripe_secret_stored          = false;
+    public bool   $stripe_webhook_secret_stored  = false;
+
+    // Redsys fields
+    public string $redsys_merchant_code = '';
+    public string $redsys_terminal      = '1';
+    public string $redsys_secret_key    = '';   // blank on load = keep existing
+    public string $redsys_environment   = 'test'; // 'test' | 'production'
+    public bool   $redsys_secret_stored = false;
+
     protected $rules = [
         'name' => 'required|string|max:255',
+        'nif' => 'required|string|max:20',
         'description' => 'nullable|string',
         'address' => 'nullable|string|max:255',
         'city' => 'nullable|string|max:100',
@@ -69,10 +94,15 @@ class Edit extends Component
         $this->phone = $school->phone;
         $this->email = $school->email;
         $this->contact_person = $school->contact_person;
+        $this->nif = $school->nif;
         $this->primary_color = $school->primary_color ?? '#1E40AF';
         $this->secondary_color = $school->secondary_color ?? '#10B981';
         $this->is_active = $school->is_active;
         $this->currentLogo = $school->logo;
+
+        // Bank account
+        $this->bank_account         = $school->bank_account ?? '';
+        $this->bank_account_enabled = (bool) ($school->bank_account_enabled ?? false);
 
         // Mail config
         $this->mail_host         = $school->mail_host ?? '';
@@ -83,6 +113,25 @@ class Edit extends Component
         $this->mail_from_name    = $school->mail_from_name ?? '';
         $this->mail_has_password = !empty($school->mail_password);
         $this->mail_test_to      = $school->email ?? '';
+
+        // Payment gateway config
+        $this->payment_gateway  = $school->payment_gateway ?: 'none';
+        $this->payments_enabled = (bool) $school->payments_enabled;
+
+        $settings = is_array($school->payment_settings) ? $school->payment_settings : [];
+        
+        // Stripe
+        $this->stripe_key                    = (string) ($settings['stripe_key'] ?? '');
+        $this->stripe_secret_stored          = ! empty($settings['stripe_secret']);
+        $this->stripe_webhook_secret_stored  = ! empty($settings['stripe_webhook_secret']);
+
+        // Redsys
+        $this->redsys_merchant_code = (string) ($settings['merchant_code'] ?? '');
+        $this->redsys_terminal      = (string) ($settings['terminal'] ?? '1');
+        $this->redsys_environment   = in_array($settings['environment'] ?? null, ['test', 'production'], true)
+            ? $settings['environment']
+            : 'test';
+        $this->redsys_secret_stored = ! empty($settings['secret_key']);
     }
 
     public function deleteLogo()
@@ -181,6 +230,42 @@ class Edit extends Component
         $this->school->disableApi();
         session()->flash('message', 'API deshabilitada correctamente.');
         $this->school = $this->school->fresh();
+    }
+
+    // ── Bank account (SEPA / IBAN) ────────────────────────────────────
+
+    /** Persist the SEPA bank account and its enabled flag. */
+    public function saveBankAccount(): void
+    {
+        // Normalize before validation so users can enter it with spaces
+        $this->bank_account = strtoupper(str_replace(' ', '', trim($this->bank_account)));
+
+        $rules = [
+            'bank_account_enabled' => 'boolean',
+        ];
+
+        if ($this->bank_account_enabled) {
+            $rules['bank_account'] = ['required', 'string', 'max:34', new ValidIban()];
+        } else {
+            $rules['bank_account'] = ['nullable', 'string', 'max:34'];
+            if ($this->bank_account !== '') {
+                $rules['bank_account'][] = new ValidIban();
+            }
+        }
+
+        $this->validate($rules, [
+            'bank_account.required' => 'El IBAN es obligatorio para activar el cobro por cuenta bancaria.',
+            'bank_account.max'      => 'El IBAN no puede superar los 34 caracteres.',
+        ]);
+
+        $this->school->update([
+            'bank_account'         => $this->bank_account ?: null,
+            'bank_account_enabled' => $this->bank_account_enabled,
+        ]);
+
+        $this->school = $this->school->fresh();
+
+        session()->flash('bank_message', 'Cuenta bancaria guardada correctamente.');
     }
 
     // ── Mail configuration ────────────────────────────────────────────
@@ -304,6 +389,97 @@ class Edit extends Component
         } catch (\Exception $e) {
             $this->addError('mail_test_to', 'Error SMTP: ' . $e->getMessage());
         }
+    }
+
+    // ── Payment gateway configuration ───────────────────────────────────
+
+    /** Reset gateway-specific values when the user changes the selected gateway. */
+    public function updatedPaymentGateway(string $value): void
+    {
+        if ($value === 'none') {
+            $this->payments_enabled = false;
+        }
+    }
+
+    /** Persist payment gateway configuration in the encrypted payment_settings JSON. */
+    public function savePaymentSettings(): void
+    {
+        $rules = [
+            'payment_gateway'  => 'required|in:none,stripe,redsys',
+            'payments_enabled' => 'boolean',
+        ];
+
+        if ($this->payment_gateway === 'stripe') {
+            $rules = array_merge($rules, [
+                'stripe_key'            => 'required|string|max:255',
+                'stripe_secret'         => $this->stripe_secret_stored ? 'nullable|string|max:500' : 'required|string|max:500',
+                'stripe_webhook_secret' => 'nullable|string|max:500',
+            ]);
+        }
+
+        if ($this->payment_gateway === 'redsys') {
+            $rules = array_merge($rules, [
+                'redsys_merchant_code' => 'required|string|max:20',
+                'redsys_terminal'      => 'required|string|max:5',
+                'redsys_secret_key'    => $this->redsys_secret_stored ? 'nullable|string|max:500' : 'required|string|max:500',
+                'redsys_environment'   => 'required|in:test,production',
+            ]);
+        }
+
+        $this->validate($rules, [
+            'payment_gateway.required' => 'Selecciona una pasarela de pago.',
+            'payment_gateway.in'       => 'Pasarela de pago no válida.',
+            'stripe_key.required'      => 'La Public Key de Stripe es obligatoria.',
+            'stripe_secret.required'   => 'La Secret Key de Stripe es obligatoria.',
+            'redsys_merchant_code.required' => 'El código de comercio (FUC) es obligatorio.',
+            'redsys_terminal.required'      => 'El terminal es obligatorio.',
+            'redsys_secret_key.required'    => 'La clave secreta de Redsys es obligatoria.',
+            'redsys_environment.in'         => 'El entorno debe ser test o production.',
+        ]);
+
+        // Start from the currently stored settings so we don't wipe secrets when
+        // the user leaves the *_secret / secret_key fields blank on edit.
+        $current = is_array($this->school->payment_settings) ? $this->school->payment_settings : [];
+        $settings = [];
+
+        if ($this->payment_gateway === 'stripe') {
+            $settings['stripe_key'] = trim($this->stripe_key);
+
+            $settings['stripe_secret'] = $this->stripe_secret !== ''
+                ? trim($this->stripe_secret)
+                : ($current['stripe_secret'] ?? null);
+
+            $settings['stripe_webhook_secret'] = $this->stripe_webhook_secret !== ''
+                ? trim($this->stripe_webhook_secret)
+                : ($current['stripe_webhook_secret'] ?? null);
+        }
+
+        if ($this->payment_gateway === 'redsys') {
+            $settings['merchant_code'] = trim($this->redsys_merchant_code);
+            $settings['terminal']      = trim($this->redsys_terminal);
+            $settings['environment']   = $this->redsys_environment;
+
+            $settings['secret_key'] = $this->redsys_secret_key !== ''
+                ? trim($this->redsys_secret_key)
+                : ($current['secret_key'] ?? null);
+        }
+
+        $this->school->update([
+            'payment_gateway'  => $this->payment_gateway,
+            'payment_settings' => $this->payment_gateway === 'none' ? null : $settings,
+            'payments_enabled' => $this->payment_gateway === 'none' ? false : $this->payments_enabled,
+        ]);
+
+        // Refresh state and never echo secrets back to the browser.
+        $this->school = $this->school->fresh();
+        $this->stripe_secret          = '';
+        $this->stripe_webhook_secret  = '';
+        $this->redsys_secret_key      = '';
+        $this->stripe_secret_stored          = ! empty($settings['stripe_secret'] ?? null);
+        $this->stripe_webhook_secret_stored  = ! empty($settings['stripe_webhook_secret'] ?? null);
+        $this->redsys_secret_stored          = ! empty($settings['secret_key'] ?? null);
+
+        session()->flash('payment_message', 'Configuración de pagos guardada correctamente.');
     }
 
     public function render()

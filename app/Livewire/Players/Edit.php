@@ -7,10 +7,12 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\Player;
 use Mpdf\Mpdf;
+use App\Traits\DetectsDevice;
 
 class Edit extends Component
 {
     use WithFileUploads;
+    use DetectsDevice;
 
     public Player $playerModel;
 
@@ -1111,6 +1113,15 @@ class Edit extends Component
         $availableSizes = \App\Models\Size::whereHas('brand.sportsSchools', function($query) {
             $query->where('sports_schools.id', auth()->user()->sports_school_id);
         })->with('brand')->orderBy('brand_id')->orderBy('order')->orderBy('size')->get();
+
+        if ($this->isMobile()) {
+            return view('livewire.players.edit_mobile', [
+                'seasons' => $seasons,
+                'sections' => $sections,
+                'playerTeams' => $playerTeams,
+                'availableSizes' => $availableSizes
+            ]);
+        }
 
         return view('livewire.players.edit', [
             'seasons' => $seasons,

@@ -62,7 +62,8 @@
         
         * {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
+        } 
+    
         
         /* Clases utility para usar los colores dinámicos */
         .bg-primary { background-color: var(--color-primary) !important; }

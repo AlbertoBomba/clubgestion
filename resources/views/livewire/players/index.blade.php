@@ -72,7 +72,7 @@
                     </span>
                 @endif --}}
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -123,6 +123,15 @@
                         @endforeach
                     </select>
                 </div>
+                <div>
+                    <select wire:model.live="sectionFilter"
+                        class="block w-full px-3 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                        <option value="">Todas las secciones</option>
+                        @foreach($sections as $section)
+                            <option value="{{ $section->id }}">{{ $section->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="flex items-center">
                     <label class="inline-flex items-center cursor-pointer">
                         <input type="checkbox" wire:model.live="withoutTeam" class="w-4 h-4 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
@@ -168,6 +177,7 @@
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Edad</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Temporada</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Equipo</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Sección</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Tutor</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Contacto</th>
                         <th wire:click="sortBy('active')" class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider cursor-pointer hover:bg-primary/10 transition">
@@ -265,6 +275,20 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                                         </svg>
                                         Sin equipo
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4">
+                                @if($player->sections->count() > 0)
+                                    @foreach($player->sections as $section)
+                                        <span class="inline-block px-2 py-1 rounded-lg text-xs font-semibold mb-1 mr-1"
+                                              style="{{ $section->color ? 'background-color: ' . $section->color . '20; color: ' . $section->color . ';' : 'background-color: #DCFCE7; color: #166534;' }}">
+                                            {{ $section->name }}
+                                        </span>
+                                    @endforeach
+                                @else
+                                    <span class="inline-flex items-center px-2 py-1 bg-red-100 text-red-800 rounded-lg text-xs font-semibold">
+                                        Sin sección
                                     </span>
                                 @endif
                             </td>
@@ -1131,6 +1155,26 @@
                             </div>
                         @endif
                     </div>
+
+                    <!-- Secciones -->
+                    @if($playerToView->sections->count() > 0)
+                        <div class="bg-white border border-gray-200 rounded-lg p-4">
+                            <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wide mb-3 flex items-center">
+                                <svg class="w-4 h-4 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                                </svg>
+                                Secciones
+                            </h4>
+                            <div class="flex flex-wrap gap-2">
+                                @foreach($playerToView->sections as $section)
+                                    <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold"
+                                          style="{{ $section->color ? 'background-color: ' . $section->color . '20; color: ' . $section->color . ';' : 'background-color: #DCFCE7; color: #166534;' }}">
+                                        {{ $section->name }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
 
                     <!-- Observaciones -->
                     @if($playerToView->observations)

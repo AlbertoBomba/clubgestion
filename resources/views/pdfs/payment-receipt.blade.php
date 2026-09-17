@@ -1,353 +1,379 @@
-<!DOCTYPE html>
-<html lang="es">
 @php
     $payment = $data['payment'];
     $player = $data['player'];
     $sportsSchool = $data['sportsSchool'];
     $generatedDate = $data['generatedDate'];
 @endphp
+<!DOCTYPE html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Recibo de Pago - Cuota {{ $payment->cuota }}</title>
+    <title>Recibo de Pago {{ $payment->code }}</title>
     <style>
         @page {
-            margin: 15mm;
+            margin: 18mm 16mm;
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'DejaVu Sans', Arial, sans-serif;
             font-size: 10pt;
-            color: #333333;
+            color: #1f2937;
             background: #ffffff;
+            line-height: 1.5;
+        }
+
+        /* ============ HEADER ============ */
+        .header {
+            width: 100%;
+            border-bottom: 2px solid #1e3a5f;
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+        }
+
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .header-club {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 4px;
+        }
+
+        .header-info {
+            font-size: 9pt;
+            color: #6b7280;
             line-height: 1.4;
         }
-        
-        /* Header Banner */
-        .header-banner {
-            background: linear-gradient(to right, #2c5f8d, #4a7ba7);
-            color: white;
-            padding: 15px;
-            text-align: center;
-            border-radius: 8px;
-            margin-bottom: 20px;
+
+        .header-right {
+            text-align: right;
+            vertical-align: top;
         }
-        
-        .club-title {
-            font-size: 18pt;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .club-details {
+
+        .doc-label {
             font-size: 9pt;
-            line-height: 1.3;
-        }
-        
-        .document-title {
-            font-size: 20pt;
-            font-weight: bold;
-            color: #2c5f8d;
-            text-align: center;
-            margin: 20px 0;
-            padding: 10px;
-            border: 3px solid #2c5f8d;
-            border-radius: 8px;
-            background: #f0f7ff;
-        }
-        
-        /* Receipt Info Box */
-        .receipt-info {
-            background: #e8f5e9;
-            border: 3px solid #4caf50;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .receipt-number {
-            font-size: 11pt;
-            color: #666666;
-            margin-bottom: 5px;
-        }
-        
-        .receipt-code {
-            font-size: 20pt;
-            font-weight: bold;
-            color: #2e7d32;
+            text-transform: uppercase;
             letter-spacing: 2px;
+            color: #6b7280;
+            margin-bottom: 2px;
         }
-        
-        .paid-stamp {
-            background: #4caf50;
-            color: white;
-            font-size: 24pt;
+
+        .doc-code {
+            font-size: 16pt;
             font-weight: bold;
-            text-align: center;
-            padding: 10px;
-            border-radius: 8px;
-            margin: 15px 0;
-            transform: rotate(-5deg);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        
-        /* Info Sections */
-        .info-section {
-            margin-bottom: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 12px;
-            background: #fafafa;
-        }
-        
-        .section-title {
-            font-size: 12pt;
-            font-weight: bold;
-            color: #2c5f8d;
-            margin-bottom: 8px;
-            border-bottom: 2px solid #2c5f8d;
-            padding-bottom: 4px;
-        }
-        
-        .info-row {
+            color: #1e3a5f;
             margin-bottom: 6px;
-            padding: 4px 0;
         }
-        
-        .info-label {
+
+        .doc-date {
+            font-size: 9pt;
+            color: #4b5563;
+        }
+
+        /* ============ TITLE ============ */
+        .title-row {
+            margin-bottom: 22px;
+        }
+
+        .title-row table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .title-main {
+            font-size: 22pt;
             font-weight: bold;
-            color: #555555;
+            color: #1f2937;
+            letter-spacing: -0.5px;
+        }
+
+        .title-sub {
+            font-size: 10pt;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        .status-badge {
             display: inline-block;
-            width: 40%;
+            background: #059669;
+            color: #ffffff;
+            font-size: 10pt;
+            font-weight: bold;
+            padding: 6px 16px;
+            border-radius: 4px;
+            letter-spacing: 1px;
         }
-        
-        .info-value {
-            color: #333333;
-            display: inline-block;
+
+        /* ============ AMOUNT SUMMARY ============ */
+        .amount-box {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-left: 4px solid #059669;
+            padding: 18px 22px;
+            margin-bottom: 24px;
         }
-        
-        /* Amount Box */
-        .amount-paid-box {
-            background: linear-gradient(135deg, #4caf50, #66bb6a);
-            border: 3px solid #2e7d32;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-            text-align: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+
+        .amount-box table {
+            width: 100%;
+            border-collapse: collapse;
         }
-        
+
         .amount-label {
+            font-size: 10pt;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .amount-concept {
             font-size: 12pt;
-            color: white;
-            margin-bottom: 8px;
+            color: #1f2937;
             font-weight: bold;
         }
-        
+
         .amount-value {
-            font-size: 32pt;
+            font-size: 26pt;
             font-weight: bold;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            color: #059669;
+            text-align: right;
+            white-space: nowrap;
         }
-        
-        /* Payment Details */
-        .payment-details {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            border-radius: 8px;
-            padding: 12px;
-            margin: 15px 0;
+
+        /* ============ SECTIONS ============ */
+        .section {
+            margin-bottom: 20px;
         }
-        
-        .payment-details-title {
-            font-size: 12pt;
+
+        .section-title {
+            font-size: 9pt;
             font-weight: bold;
-            color: #856404;
-            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #1e3a5f;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #d1d5db;
+            margin-bottom: 10px;
         }
-        
-        /* Footer */
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table td {
+            padding: 7px 0;
+            vertical-align: top;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-label {
+            font-size: 9pt;
+            color: #6b7280;
+            width: 38%;
+        }
+
+        .data-value {
+            font-size: 10pt;
+            color: #1f2937;
+            font-weight: bold;
+        }
+
+        /* ============ TWO COLUMNS ============ */
+        .two-col {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .two-col > tbody > tr > td {
+            width: 50%;
+            vertical-align: top;
+            padding: 0;
+        }
+
+        .two-col > tbody > tr > td:first-child {
+            padding-right: 12px;
+        }
+
+        .two-col > tbody > tr > td:last-child {
+            padding-left: 12px;
+        }
+
+        /* ============ VALIDITY NOTE ============ */
+        .note {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            padding: 12px 16px;
+            margin-top: 22px;
+            font-size: 9pt;
+            color: #4b5563;
+            line-height: 1.5;
+        }
+
+        .note strong {
+            color: #1f2937;
+        }
+
+        /* ============ FOOTER ============ */
         .footer {
-            margin-top: 30px;
-            padding-top: 15px;
-            border-top: 2px solid #2c5f8d;
+            margin-top: 32px;
+            padding-top: 14px;
+            border-top: 1px solid #e5e7eb;
             text-align: center;
+            font-size: 8pt;
+            color: #9ca3af;
+            line-height: 1.5;
         }
-        
-        .signature-line {
-            margin-top: 40px;
-            padding-top: 2px;
-            border-top: 2px solid #333333;
-            width: 60%;
-            margin-left: auto;
-            margin-right: auto;
-            text-align: center;
-            font-size: 9pt;
-            color: #666666;
-        }
-        
-        .validity-note {
-            background: #e3f2fd;
-            border: 2px solid #2196f3;
-            border-radius: 8px;
-            padding: 10px;
-            margin: 20px 0;
-            font-size: 9pt;
-            text-align: center;
-            color: #0d47a1;
-        }
-        
-        .validity-note strong {
-            color: #0d47a1;
+
+        .footer .brand {
+            color: #6b7280;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="header-banner">
-        @if($sportsSchool)
-            <div class="club-title">{{ $sportsSchool->name }}</div>
-            <div class="club-details">
-                @if($sportsSchool->address)
-                    {{ $sportsSchool->address }}<br>
-                @endif
-                @if($sportsSchool->phone)
-                    Teléfono: {{ $sportsSchool->phone }}
-                @endif
-                @if($sportsSchool->email)
-                    | Email: {{ $sportsSchool->email }}
-                @endif
-            </div>
-        @endif
+
+    {{-- ============ HEADER ============ --}}
+    <div class="header">
+        <table class="header-table">
+            <tr>
+                <td>
+                    @if($sportsSchool)
+                        <div class="header-club">{{ $sportsSchool->name }}</div>
+                        <div class="header-info">
+                            @if($sportsSchool->address){{ $sportsSchool->address }}<br>@endif
+                            @if($sportsSchool->phone)Tel: {{ $sportsSchool->phone }}@endif
+                            @if($sportsSchool->email) &nbsp;·&nbsp; {{ $sportsSchool->email }}@endif
+                        </div>
+                    @endif
+                </td>
+                <td class="header-right">
+                    <div class="doc-label">Nº Recibo</div>
+                    <div class="doc-code">{{ $payment->code }}</div>
+                    <div class="doc-date">{{ \Carbon\Carbon::parse($payment->payment_date)->format('d/m/Y') }}</div>
+                </td>
+            </tr>
+        </table>
     </div>
 
-    <!-- Document Title -->
-    <div class="document-title">RECIBO DE PAGO</div>
-
-    <!-- Paid Stamp -->
-    <div class="paid-stamp">✓ PAGADO</div>
-
-    <!-- Receipt Info -->
-    <div class="receipt-info">
-        <div class="receipt-number">Código de Recibo</div>
-        <div class="receipt-code">{{ $payment->code }}</div>
+    {{-- ============ TITLE + STATUS ============ --}}
+    <div class="title-row">
+        <table>
+            <tr>
+                <td>
+                    <div class="title-main">Recibo de pago</div>
+                    <div class="title-sub">Justificante de cuota abonada</div>
+                </td>
+                <td style="text-align: right; vertical-align: middle;">
+                    <span class="status-badge">PAGADO</span>
+                </td>
+            </tr>
+        </table>
     </div>
 
-    <!-- Player Information -->
-    <div class="info-section">
-        <div class="section-title">Datos del Jugador</div>
-        <div class="info-row">
-            <span class="info-label">Nombre completo:</span>
-            <span class="info-value">{{ $player->name }} {{ $player->surname }}</span>
-        </div>
-        @if($player->dni)
-            <div class="info-row">
-                <span class="info-label">DNI:</span>
-                <span class="info-value">{{ $player->dni }}</span>
-            </div>
-        @endif
-        @if($player->phone1 || $player->phone2)
-            <div class="info-row">
-                <span class="info-label">Teléfono:</span>
-                <span class="info-value">{{ $player->phone1 ?? $player->phone2 }}</span>
-            </div>
-        @endif
+    {{-- ============ AMOUNT ============ --}}
+    <div class="amount-box">
+        <table>
+            <tr>
+                <td>
+                    <div class="amount-label">Importe abonado</div>
+                    <div class="amount-concept">Cuota {{ $payment->cuota }}</div>
+                </td>
+                <td class="amount-value">
+                    {{ number_format($payment->amount, 2, ',', '.') }} €
+                </td>
+            </tr>
+        </table>
     </div>
 
-    <!-- Payment Details -->
-    <div class="info-section">
-        <div class="section-title">Detalles del Pago</div>
-        <div class="info-row">
-            <span class="info-label">Concepto:</span>
-            <span class="info-value">Cuota número {{ $payment->cuota }}</span>
-        </div>
-        @if($payment->paymentTeam)
-            <div class="info-row">
-                <span class="info-label">Período:</span>
-                <span class="info-value">
-                    {{ \Carbon\Carbon::parse($payment->paymentTeam->date_start)->format('d/m/Y') }} 
-                    - 
-                    {{ \Carbon\Carbon::parse($payment->paymentTeam->date_end)->format('d/m/Y') }}
-                </span>
-            </div>
-        @endif
-        @if($payment->amount_original && $payment->amount_original != $payment->amount)
-            <div class="info-row">
-                <span class="info-label">Importe original:</span>
-                <span class="info-value">{{ number_format($payment->amount_original, 2, ',', '.') }} €</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Descuento aplicado:</span>
-                <span class="info-value">-{{ number_format($payment->amount_original - $payment->amount, 2, ',', '.') }} €</span>
-            </div>
-        @endif
+    {{-- ============ TWO COLUMN INFO ============ --}}
+    <table class="two-col">
+        <tr>
+            <td>
+                <div class="section">
+                    <div class="section-title">Datos del jugador</div>
+                    <table class="data-table">
+                        <tr>
+                            <td class="data-label">Nombre</td>
+                            <td class="data-value">{{ $player->name }} {{ $player->surname }}</td>
+                        </tr>
+                        @if($player->dni)
+                            <tr>
+                                <td class="data-label">DNI</td>
+                                <td class="data-value">{{ $player->dni }}</td>
+                            </tr>
+                        @endif
+                        @if($player->phone1 || $player->phone2)
+                            <tr>
+                                <td class="data-label">Teléfono</td>
+                                <td class="data-value">{{ $player->phone1 ?? $player->phone2 }}</td>
+                            </tr>
+                        @endif
+                    </table>
+                </div>
+            </td>
+            <td>
+                <div class="section">
+                    <div class="section-title">Detalles del pago</div>
+                    <table class="data-table">
+                        <tr>
+                            <td class="data-label">Fecha</td>
+                            <td class="data-value">{{ \Carbon\Carbon::parse($payment->payment_date)->format('d/m/Y H:i') }}</td>
+                        </tr>
+                        <tr>
+                            <td class="data-label">Cuota</td>
+                            <td class="data-value">Nº {{ $payment->cuota }}</td>
+                        </tr>
+                        @if($payment->payment_type)
+                            <tr>
+                                <td class="data-label">Método</td>
+                                <td class="data-value">{{ ucfirst($payment->payment_type) }}</td>
+                            </tr>
+                        @endif
+                        @if($payment->payment_auth)
+                            <tr>
+                                <td class="data-label">Nº autorización</td>
+                                <td class="data-value">{{ $payment->payment_auth }}</td>
+                            </tr>
+                        @endif
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    {{-- ============ NOTE ============ --}}
+    <div class="note">
+        <strong>Documento válido como justificante de pago.</strong><br>
+        Este recibo certifica que el importe indicado ha sido recibido y procesado correctamente.
+        Le recomendamos conservarlo para cualquier consulta futura.
     </div>
 
-    <!-- Amount Paid -->
-    <div class="amount-paid-box">
-        <div class="amount-label">IMPORTE PAGADO</div>
-        <div class="amount-value">{{ number_format($payment->amount, 2, ',', '.') }} €</div>
-    </div>
-
-    <!-- Payment Transaction Details -->
-    <div class="payment-details">
-        <div class="payment-details-title">Información de la Transacción</div>
-        <div class="info-row">
-            <span class="info-label">Fecha de pago:</span>
-            <span class="info-value">{{ \Carbon\Carbon::parse($payment->payment_date)->format('d/m/Y H:i') }}</span>
-        </div>
-        @if($payment->payment_type)
-            <div class="info-row">
-                <span class="info-label">Método de pago:</span>
-                <span class="info-value">{{ ucfirst($payment->payment_type) }}</span>
-            </div>
-        @endif
-        @if($payment->payment_auth)
-            <div class="info-row">
-                <span class="info-label">Número de autorización:</span>
-                <span class="info-value">{{ $payment->payment_auth }}</span>
-            </div>
-        @endif
-    </div>
-
-    <!-- Validity Note -->
-    <div class="validity-note">
-        <strong>DOCUMENTO VÁLIDO</strong><br>
-        Este recibo certifica que el pago ha sido recibido y procesado correctamente.<br>
-        Conserve este documento como justificante de pago.
-    </div>
-
-    <!-- Footer -->
+    {{-- ============ FOOTER ============ --}}
     <div class="footer">
-        <p style="font-size: 9pt; color: #666666; margin-bottom: 10px;">
-            Recibo generado el {{ $generatedDate }}
-        </p>
-        
-        <div class="signature-line">
-            Firma autorizada
-        </div>
-        
+        Documento generado el {{ $generatedDate }}<br>
         @if($sportsSchool)
-            <p style="font-size: 8pt; color: #888888; margin-top: 20px;">
-                {{ $sportsSchool->name }}
-                @if($sportsSchool->address)
-                    <br>{{ $sportsSchool->address }}
-                @endif
-                @if($sportsSchool->phone)
-                    <br>Tel: {{ $sportsSchool->phone }}
-                @endif
-            </p>
+            {{ $sportsSchool->name }}
+            @if($sportsSchool->address) · {{ $sportsSchool->address }}@endif
+            @if($sportsSchool->phone) · Tel: {{ $sportsSchool->phone }}@endif
+            <br>
         @endif
-        <p>
-            www.vaed.es digitalización de escuelas deportivas.
-        </p>
+        <span class="brand">www.vaed.es</span> · Digitalización de escuelas deportivas
     </div>
+
 </body>
 </html>

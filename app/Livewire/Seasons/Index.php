@@ -5,10 +5,12 @@ namespace App\Livewire\Seasons;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Season;
+use App\Traits\DetectsDevice;
 
 class Index extends Component
 {
     use WithPagination;
+    use DetectsDevice;
 
     public $search = '';
     public $confirmingDeletion = false;
@@ -56,6 +58,12 @@ class Index extends Component
             })
             ->orderBy('from_year', 'desc')
             ->paginate(10);
+
+            if ($this->isMobile()) {
+                return view('livewire.seasons.index_mobile', [
+                    'seasons' => $seasons
+                ]);
+            }
     
         return view('livewire.seasons.index', [
             'seasons' => $seasons

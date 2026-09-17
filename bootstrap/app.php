@@ -17,6 +17,12 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\HandleImpersonation::class,
         ]);
 
+        // Redsys sends server-to-server POSTs without CSRF token.
+        $middleware->validateCsrfTokens(except: [
+            'express-pay/redsys/notify',
+            'search-pay/redsys/notify',
+        ]);
+
         // Registrar alias para middlewares de API y tenant
         $middleware->alias([
             'api.key' => \App\Http\Middleware\ValidateApiKey::class,

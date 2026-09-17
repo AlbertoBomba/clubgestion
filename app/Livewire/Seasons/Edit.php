@@ -5,9 +5,11 @@ namespace App\Livewire\Seasons;
 use Livewire\Component;
 use App\Models\Season;
 use App\Models\Section;
+use App\Traits\DetectsDevice;
 
 class Edit extends Component
 {
+    use DetectsDevice;
     public Season $seasonModel;
     
     public $season = '';
@@ -238,6 +240,12 @@ class Edit extends Component
     public function render()
     {
         $sections = Section::where('active', true)->orderBy('name')->get();
+
+        if ($this->isMobile()) {
+            return view('livewire.seasons.edit_mobile', [
+                'sections' => $sections
+            ]);
+        }
         
         return view('livewire.seasons.edit', [
             'sections' => $sections
