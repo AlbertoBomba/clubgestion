@@ -9,10 +9,11 @@ use App\Models\PaymentPlayer;
 use App\Models\Season;
 use App\Models\Team;
 use App\Classes\PdfFile;
+use App\Traits\DetectsDevice;
 
 class Index extends Component
 {
-    use WithPagination;
+    use WithPagination, DetectsDevice;
 
     public $search = '';
     public $seasonFilter = '';
@@ -302,7 +303,8 @@ class Index extends Component
         $hasErrors = false;
         foreach ($this->plazos as $index => $plazo) {
             if (empty($plazo['date_start']) || empty($plazo['date_end'])) {
-                $this->plazoErrors[$index] = 'Debe introducir la fecha del plazo ' . ($index + 1);
+                $this->plazoErrors[$index] = 'Debe introducir la fecha del plazo ' ;
+                // . ($index + 1);
                 $hasErrors = true;
             }
         }
@@ -955,7 +957,9 @@ class Index extends Component
         $teams = $query->withCount('payments')
             ->with(['season.sportsSchool', 'category', 'section', 'payments' => function($query) {
                 $query->orderBy('cuota', 'asc');
-            }])
+            },
+            'payments.paymentPlayers' // <--- Carga diferida crucial para calcular recaudaciones
+            ])
             ->having('payments_count', '>', 0)
             ->orderBy('seasons.from_year', 'desc')
             ->orderBy('teams.team', 'asc')
@@ -1024,6 +1028,16 @@ class Index extends Component
         $teamsPendingPayments = $teams->filter(function($team) {
             return $team->price && $team->price > 0 && $team->payments_count == 0;
         });
+
+        if ($this->isMobile()) {
+            return view('livewire.payments-teams.index_mobile', [
+                'teams' => $teams,
+                'seasons' => $seasons,
+                'activeSeason' => $activeSeason,
+                'isActiveSeason' => $isActiveSeason,
+                'teamsPendingPayments' => $teamsPendingPayments,
+            ]);
+        }
 
         return view('livewire.payments-teams.index', [
             'teams' => $teams,

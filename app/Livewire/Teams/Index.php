@@ -11,10 +11,12 @@ use App\Models\Season;
 use App\Models\Section;
 use App\Models\User;
 use App\Classes\ExcelFile;
+use App\Traits\DetectsDevice;
+
 
 class Index extends Component
 {
-    use WithPagination, WithFileUploads;
+    use WithPagination, WithFileUploads, DetectsDevice;
 
     public $search = '';
     public $categoryFilter = '';
@@ -460,6 +462,17 @@ class Index extends Component
                     ->get();
             }
         }
+
+          if ($this->isMobile()) {
+                return view('livewire.teams.index_mobile', [
+                    'teams' => $teams,
+                    'categories' => $categories,
+                    'seasons' => $seasons,
+                    'activeSeason' => $activeSeason,
+                    'sections' => $sections,
+                    'availableCoaches' => $availableCoaches,
+                ]);
+            }
 
         return view('livewire.teams.index', [
             'teams' => $teams,

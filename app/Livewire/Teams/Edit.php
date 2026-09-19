@@ -13,10 +13,12 @@ use App\Models\Player;
 use App\Classes\PdfFile;
 use App\Classes\ExcelFile;
 use Illuminate\Support\Facades\Storage;
+use App\Traits\DetectsDevice;
 
 class Edit extends Component
 {
     use WithFileUploads;
+    use DetectsDevice;
     
     public Team $team;
     
@@ -1243,6 +1245,36 @@ class Edit extends Component
 
         // Obtener jugadores disponibles para agregar (no están en el equipo)
         $availablePlayers = $this->getAvailablePlayersForModal();
+
+         if ($this->isMobile()) {
+                return view('livewire.teams.edit_mobile', [
+                'categories' => $categories,
+                'seasons' => $seasons,
+                'sections' => $sections,
+                'assignedCoaches' => $assignedCoaches,
+                'availableCoaches' => $availableCoaches,
+                'teamPlayers' => $this->team->players()
+                    ->when($this->searchPlayer, function($query) {
+                        $query->where(function($q) {
+                            $q->where('name', 'like', '%' . $this->searchPlayer . '%')
+                            ->orWhere('surname', 'like', '%' . $this->searchPlayer . '%')
+                            ->orWhere('dni', 'like', '%' . $this->searchPlayer . '%');
+                        });
+                    })
+                    ->orderBy('name')
+                    ->orderBy('surname')
+                    ->get(),
+                'availableTeams' => Team::where('season_id', $this->team->season_id)
+                    ->where('section_id', $this->team->section_id)
+                    ->where('id', '!=', $this->team->id)
+                    ->orderBy('team')
+                    ->get(),
+                'availablePlayers' => $availablePlayers,
+                'availableSizes' => \App\Models\Size::whereHas('brand.sportsSchools', function($query) {
+                    $query->where('sports_schools.id', auth()->user()->sports_school_id);
+                })->with('brand')->orderBy('brand_id')->orderBy('order')->orderBy('size')->get(),
+            ]);
+            }
 
        
 

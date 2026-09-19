@@ -559,7 +559,7 @@ class Index extends Component
             }
 
             // MODO PRUEBA: Cambiar 'notify@vaed.es' por $player->email en producción
-            $emailDestino = 'notify@vaed.es';
+            $emailDestino = $player->email;
 
             foreach ($paymentsToSend as $payment) {
                 try {
