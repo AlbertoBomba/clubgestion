@@ -185,58 +185,118 @@
 
         <!-- Estadísticas por Equipo -->
         <div class="bg-white border border-silver rounded-xl shadow-sm p-6">
-            <h3 class="text-lg font-bold text-black-deep mb-4">Estadísticas por Equipo <span class="text-sm text-red-500">(Revisar esta consulta, los datos que devuelve no están bien)</span></h3>
+            <h3 class="text-lg font-bold text-black-deep mb-4">Estadísticas por Equipo</h3>
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-silver/30">
-                    <thead class="bg-gradient-to-r from-gray-50 to-primary/5">
+                <!-- Nota informativa sobre 'Otros' y Leyenda del gráfico -->
+                <!-- Nota informativa sobre 'Otros' y Leyenda del gráfico -->
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-4 p-3 bg-blue-50 border border-blue-100 rounded-lg text-xs text-blue-800">
+                <div class="flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span><strong>Nota:</strong> El estado <strong>Otros</strong> incluye jugadores lesionados, bajas, abonos o estados especiales.</span>
+                </div>
+                <div class="flex items-center gap-3 font-medium">
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Pagados</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Pendientes</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span> Otros</span>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">Equipo</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">Categoría</th>
-                            <th class="px-6 py-3 text-right text-xs font-semibold text-primary uppercase tracking-wider">Total</th>
-                            <th class="px-6 py-3 text-right text-xs font-semibold text-primary uppercase tracking-wider">Pagados</th>
-                            <th class="px-6 py-3 text-right text-xs font-semibold text-primary uppercase tracking-wider">Pendientes</th>
-                            <th class="px-6 py-3 text-right text-xs font-semibold text-primary uppercase tracking-wider">% Cobrado</th>
-                            <th class="px-6 py-3 text-right text-xs font-semibold text-primary uppercase tracking-wider">Recaudado</th>
-                            <th class="px-6 py-3 text-right text-xs font-semibold text-primary uppercase tracking-wider">Pendiente</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Equipo / Cat.</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Recibos</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Pagados</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Pendientes</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Otros</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Total (€)</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-44">Distribución (%)</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white-pure divide-y divide-silver/30">
+                    <tbody class="bg-white divide-y divide-gray-200">
                         @forelse($statsByTeam as $stat)
                             @php
-                                $percentPaid = $stat->total > 0 ? ($stat->paid / $stat->total) * 100 : 0;
+                                $totalCount = $stat->total > 0 ? $stat->total : 1;
+                                $percentPaid = ($stat->paid / $totalCount) * 100;
+                                $percentPending = ($stat->pending / $totalCount) * 100;
+                                $percentOther = ($stat->other / $totalCount) * 100;
+                                
+                                // Suma total de los importes de pagados, pendientes y otros
+                                $totalAmount = $stat->collected + $stat->pending_amount + $stat->other_amount;
                             @endphp
-                            <tr class="hover:bg-primary/5">
-                                <td class="px-6 py-4 text-sm font-semibold text-black-deep">{{ $stat->team }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-600">{{ $stat->category }}</td>
-                                <td class="px-6 py-4 text-sm text-right text-gray-900">{{ number_format($stat->total, 0, ',', '.') }}</td>
-                                <td class="px-6 py-4 text-sm text-right">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <tr class="hover:bg-gray-50/80 transition-colors">
+                                {{-- Equipo y Categoría --}}
+                                <td class="px-4 py-3 text-sm">
+                                    <div class="font-semibold text-gray-900">{{ $stat->team }}</div>
+                                    <div class="text-xs text-gray-500">{{ $stat->category }}</div>
+                                </td>
+
+                                {{-- Total recibos (Nº) --}}
+                                <td class="px-4 py-3 text-sm text-center font-bold text-gray-700">
+                                    {{ number_format($stat->total, 0, ',', '.') }}
+                                </td>
+
+                                {{-- Pagados (Cantidad + Importe) --}}
+                                <td class="px-4 py-3 text-sm text-right whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">
                                         {{ number_format($stat->paid, 0, ',', '.') }}
                                     </span>
-                                </td>
-                                <td class="px-6 py-4 text-sm text-right">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                                        {{ number_format($stat->pending, 0, ',', '.') }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 text-sm text-right">
-                                    <div class="flex items-center justify-end">
-                                        <div class="w-24 bg-gray-200 rounded-full h-2 mr-2">
-                                            <div class="bg-green-600 h-2 rounded-full" style="width: {{ $percentPaid }}%"></div>
-                                        </div>
-                                        <span class="text-xs font-semibold text-gray-700">{{ number_format($percentPaid, 1) }}%</span>
+                                    <div class="text-xs font-semibold text-emerald-700 mt-0.5">
+                                        {{ number_format($stat->collected, 2, ',', '.') }}€
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 text-sm text-right font-semibold text-green-700">{{ number_format($stat->collected, 2, ',', '.') }}€</td>
-                                <td class="px-6 py-4 text-sm text-right font-semibold text-amber-700">{{ number_format($stat->pending_amount, 2, ',', '.') }}€</td>
+
+                                {{-- Pendientes (Cantidad + Importe) --}}
+                                <td class="px-4 py-3 text-sm text-right whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
+                                        {{ number_format($stat->pending, 0, ',', '.') }}
+                                    </span>
+                                    <div class="text-xs font-semibold text-amber-700 mt-0.5">
+                                        {{ number_format($stat->pending_amount, 2, ',', '.') }}€
+                                    </div>
+                                </td>
+
+                                {{-- Otros (Cantidad + Importe) --}}
+                                <td class="px-4 py-3 text-sm text-right whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700">
+                                        {{ number_format($stat->other, 0, ',', '.') }}
+                                    </span>
+                                    <div class="text-xs font-semibold text-slate-600 mt-0.5">
+                                        {{ number_format($stat->other_amount, 2, ',', '.') }}€
+                                    </div>
+                                </td>
+
+                                {{-- Total Importe (€) (Suma de los 3 estados) --}}
+                                <td class="px-4 py-3 text-sm text-right font-bold text-gray-900 whitespace-nowrap bg-gray-50/50">
+                                    {{ number_format($totalAmount, 2, ',', '.') }}€
+                                </td>
+
+                                {{-- Barra de Porcentaje Segmentada --}}
+                                <td class="px-4 py-3 text-sm">
+                                    <div class="w-full bg-gray-100 rounded-full h-2.5 flex overflow-hidden" title="Pagado: {{ number_format($percentPaid, 1) }}% | Pendiente: {{ number_format($percentPending, 1) }}% | Otros: {{ number_format($percentOther, 1) }}%">
+                                        <div class="bg-emerald-500 h-2.5 transition-all duration-300" style="width: {{ $percentPaid }}%"></div>
+                                        <div class="bg-amber-400 h-2.5 transition-all duration-300" style="width: {{ $percentPending }}%"></div>
+                                        <div class="bg-slate-400 h-2.5 transition-all duration-300" style="width: {{ $percentOther }}%"></div>
+                                    </div>
+                                    <div class="flex justify-between text-[10px] text-gray-500 font-medium mt-1">
+                                        <span class="text-emerald-700">{{ number_format($percentPaid, 0) }}%</span>
+                                        <span class="text-amber-700">{{ number_format($percentPending, 0) }}%</span>
+                                        <span class="text-slate-600">{{ number_format($percentOther, 0) }}%</span>
+                                    </div>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-6 py-8 text-center text-sm text-gray-500">No hay datos disponibles</td>
+                                <td colspan="7" class="px-6 py-8 text-center text-sm text-gray-500">No hay datos disponibles</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+
             </div>
         </div>
     </div>

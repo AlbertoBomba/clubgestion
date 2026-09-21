@@ -19,9 +19,11 @@ use App\Classes\ExcelFile;
 use App\Mail\PaymentPlayerLetter;
 use App\Models\SportsSchool;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use App\Traits\DetectsDevice;
 
 class Index extends Component
 {
+    use DetectsDevice;
     use WithPagination;
     use WithFileUploads;
 
@@ -186,6 +188,7 @@ class Index extends Component
                     }
                 }
 
+                
                 // Contar jugadores del equipo que necesitan pagos
                 foreach ($team->players as $player) {
                     // Verificar cuántas cuotas del equipo no están generadas para este jugador
@@ -1389,6 +1392,20 @@ class Index extends Component
                 })
                 ->count();
         }
+
+        if ($this->isMobile()) {
+             return view('livewire.payment-orders.index_mobile', [
+                'players' => $players,
+                'seasons' => $seasons,
+                'teams' => $teams,
+                'activeSeason' => $activeSeason,
+                'hasPlayersWithoutPayments' => $hasPlayersWithoutPayments,
+                'maxCuotas' => $maxCuotas,
+                'notifyPlayersCount' => $notifyPlayersCount,
+                'notifyLettersCount' => $notifyLettersCount,
+            ]);
+        }
+
 
         return view('livewire.payment-orders.index', [
             'players' => $players,

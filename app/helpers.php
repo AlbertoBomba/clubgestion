@@ -276,23 +276,21 @@ if (!function_exists('dl_var_export')) {
 
 if (!function_exists('generatePlayerPayments')) {
 	/**
-	 * Generar órdenes de pago para un jugador cuando se asigna a un equipo
-	 * 
-	 * Esta función:
-	 * 1. Detecta cuotas ya PAGADAS por el jugador en la temporada
-	 * 2. Calcula el precio restante: Total equipo nuevo - Ya pagado
-	 * 3. Distribuye el precio restante entre las cuotas que faltan
-	 * 4. NO genera cuotas que ya están pagadas
-	 * 
-	 * Ejemplo: Equipo cuesta 100€, jugador pagó cuota 1 (20€)
-	 * - Precio restante: 80€
-	 * - Si hay 2 cuotas pendientes (2 y 3): 40€ cada una
-	 * 
-	 * @param \App\Models\Player $player El jugador para el que generar los pagos
-	 * @param \App\Models\Team $team El equipo al que se asigna el jugador
-	 * @param int $sportsSchoolId El ID de la escuela deportiva
-	 * @param int $userId El ID del usuario que crea los pagos
-	 * @return array Array con el conteo 'generated', 'restored' y 'skipped'
+	 * Generar órdenes de pago para un jugador cuando se asigna a un equipo.
+	 *
+	 * - El importe original de cada cuota se toma de payments_teams.amount
+	 *   (cada cuota puede tener un importe distinto).
+	 * - Las cuotas ya pagadas por el jugador en la temporada NO se regeneran.
+	 * - Descuentos del jugador:
+	 *     · descPerc: se aplica a cada cuota sobre su propio amount_original.
+	 *     · descEnt : se reparte proporcionalmente entre las cuotas a generar
+	 *                 según el peso de cada una.
+	 *
+	 * @param \App\Models\Player $player
+	 * @param \App\Models\Team   $team
+	 * @param int                $sportsSchoolId
+	 * @param int                $userId
+	 * @return array{generated:int,restored:int,skipped:int}
 	 */
 	function generatePlayerPayments($player, $team, $sportsSchoolId, $userId)
 	{
@@ -300,96 +298,62 @@ if (!function_exists('generatePlayerPayments')) {
 		$restoredCount = 0;
 		$skippedCount = 0;
 
-		// Cargar pagos del equipo si no están cargados
 		if (!$team->relationLoaded('payments')) {
 			$team->load('payments');
 		}
 
-		// Si el equipo no tiene pagos, no hay nada que generar
 		if ($team->payments->isEmpty()) {
 			return ['generated' => 0, 'restored' => 0, 'skipped' => 0];
 		}
 
-		// Obtener la temporada del equipo
-		if (!$team->relationLoaded('season')) {
-			$team->load('season');
-		}
 		$seasonId = $team->season_id;
 
-		// Buscar todas las cuotas PAGADAS del jugador en la temporada actual
-		$paidPayments = \App\Models\PaymentPlayer::where('player_id', $player->id)
+		// Cuotas de la temporada ya pagadas por el jugador (para no regenerarlas)
+		$paidCuotas = \App\Models\PaymentPlayer::where('player_id', $player->id)
 			->where('sports_school_id', $sportsSchoolId)
-			->where('state', 1) // Solo pagadas
-			->whereHas('paymentTeam', function($query) use ($seasonId) {
-				$query->whereHas('team', function($q) use ($seasonId) {
+			->where('state', 1)
+			->whereHas('paymentTeam', function ($query) use ($seasonId) {
+				$query->whereHas('team', function ($q) use ($seasonId) {
 					$q->where('season_id', $seasonId);
 				});
 			})
-			->get();
+			->pluck('cuota')
+			->unique()
+			->toArray();
 
-		// Calcular el total ya pagado por el jugador (usar amount_original para saber cuánto del precio total cubrió)
-		// Esto es importante porque si el jugador tiene descuentos, el 'amount' sería menor pero debe cubrir
-		// la misma proporción del precio total del equipo nuevo
-		$totalPaid = $paidPayments->sum('amount_original');
-		
-		// Obtener los números de cuota que están pagadas (para no regenerarlas)
-		$paidCuotas = $paidPayments->pluck('cuota')->unique()->toArray();
+		// Descuentos del jugador
+		$totalDiscountEnt = $player->descEnt ? floatval($player->descEnt) : 0;
+		$discountPercentage = $player->descPerc ? floatval($player->descPerc) : 0;
 
-		// Calcular descuentos totales del jugador
-		$totalDiscount = 0;
-		$discountPercentage = 0;
-		
-		if ($player->descEnt) {
-			$totalDiscount += floatval($player->descEnt);
-		}
-		
-		if ($player->descPerc) {
-			$discountPercentage = floatval($player->descPerc);
-		}
-
-		// Obtener el precio total del equipo nuevo
-		$totalTeamPrice = floatval($team->price ?? 0);
-
-		// Calcular el precio restante después de descontar lo ya pagado
-		$remainingPrice = $totalTeamPrice - $totalPaid;
-		
-		// Si ya pagó todo o más, no hay nada que generar
-		if ($remainingPrice <= 0) {
-			return ['generated' => 0, 'restored' => 0, 'skipped' => 0];
-		}
-
-		// Filtrar los pagos del equipo, excluyendo cuotas ya pagadas
-		$paymentsToGenerate = $team->payments->filter(function($payment) use ($paidCuotas) {
+		// Cuotas del equipo a generar (excluyendo las ya pagadas)
+		$paymentsToGenerate = $team->payments->filter(function ($payment) use ($paidCuotas) {
 			return !in_array($payment->cuota, $paidCuotas);
 		});
 
-		// Si no hay pagos que generar, salir
 		if ($paymentsToGenerate->isEmpty()) {
 			return ['generated' => 0, 'restored' => 0, 'skipped' => 0];
 		}
 
-		// Calcular el número de cuotas a generar
-		$paymentsCount = $paymentsToGenerate->count();
+		// Suma total de importes originales para el reparto proporcional del descuento fijo
+		$totalAmountToGenerate = $paymentsToGenerate->sum(function ($payment) {
+			return floatval($payment->amount ?? 0);
+		});
 
-		// Calcular el precio por cuota SIN descuentos del jugador (amount_original)
-		$amountOriginalPerPayment = $remainingPrice / $paymentsCount;
-
-		// Aplicar descuentos del jugador al precio restante
-		$totalDiscountToApply = $totalDiscount + ($remainingPrice * $discountPercentage / 100);
-		$remainingPriceWithDiscount = $remainingPrice - $totalDiscountToApply;
-		
-		// Asegurar que no sea negativo
-		$remainingPriceWithDiscount = max(0, $remainingPriceWithDiscount);
-
-		// Calcular el precio por cuota CON descuentos (amount)
-		$amountPerPayment = $remainingPriceWithDiscount / $paymentsCount;
-		
-		// Calcular descuentos en euros por cuota
-		$discountPerPayment = $totalDiscount / $paymentsCount;
-
-		// Procesar cada pago del equipo (solo los que NO están pagados)
 		foreach ($paymentsToGenerate as $payment) {
-			// Verificar si ya existe un pago activo (no eliminado) para este jugador y pago
+			// Importe original de esta cuota tal cual está en payments_teams
+			$amountOriginal = floatval($payment->amount ?? 0);
+
+			// Reparto proporcional del descuento fijo según el peso de la cuota
+			$discountEnt = ($totalAmountToGenerate > 0)
+				? $totalDiscountEnt * ($amountOriginal / $totalAmountToGenerate)
+				: 0;
+
+			// Descuento porcentual aplicado sobre el importe de esta cuota
+			$discountPerc = $amountOriginal * $discountPercentage / 100;
+
+			// Importe final tras descuentos (nunca negativo)
+			$amountFinal = max(0, $amountOriginal - $discountEnt - $discountPerc);
+
 			$existsActive = \App\Models\PaymentPlayer::where('player_id', $player->id)
 				->where('payment_id', $payment->id)
 				->whereNull('deleted_at')
@@ -400,24 +364,22 @@ if (!function_exists('generatePlayerPayments')) {
 				continue;
 			}
 
-			// Verificar si hay un pago eliminado (soft deleted) para restaurar
 			$deletedPayment = \App\Models\PaymentPlayer::where('player_id', $player->id)
 				->where('payment_id', $payment->id)
 				->whereNotNull('deleted_at')
 				->first();
 
 			if ($deletedPayment) {
-				// Restaurar el pago eliminado con los nuevos valores recalculados
 				$deletedPayment->deleted_at = null;
-				$deletedPayment->state = 0; // Volver a pendiente
+				$deletedPayment->state = 0;
 				$deletedPayment->payment_date = null;
 				$deletedPayment->payment_order = null;
 				$deletedPayment->payment_auth = null;
 				$deletedPayment->payment_type = null;
 				$deletedPayment->price = $team->price;
-				$deletedPayment->amount_original = round($amountOriginalPerPayment, 2);
-				$deletedPayment->amount = round($amountPerPayment, 2);
-				$deletedPayment->descEnt = round($discountPerPayment, 2);
+				$deletedPayment->amount_original = round($amountOriginal, 2);
+				$deletedPayment->amount = round($amountFinal, 2);
+				$deletedPayment->descEnt = round($discountEnt, 2);
 				$deletedPayment->descPerc = $discountPercentage;
 				$deletedPayment->updated_user = $userId;
 				$deletedPayment->save();
@@ -425,22 +387,20 @@ if (!function_exists('generatePlayerPayments')) {
 				continue;
 			}
 
-			// Generar código de pago
 			$code = \App\Models\PaymentCodeSequentials::getCode();
 
-			// Crear orden de pago para el jugador con importes recalculados
 			\App\Models\PaymentPlayer::create([
 				'player_id' => $player->id,
 				'payment_id' => $payment->id,
 				'sports_school_id' => $sportsSchoolId,
 				'code' => $code,
-				'state' => 0, // Pendiente
+				'state' => 0,
 				'cuota' => $payment->cuota,
-				'price' => $team->price, // Precio total de matrícula del equipo
-				'amount_original' => round($amountOriginalPerPayment, 2), // Precio por cuota sin descuentos
-				'amount' => round($amountPerPayment, 2), // Precio por cuota con descuentos
-				'descEnt' => round($discountPerPayment, 2), // Descuento en euros por cuota
-				'descPerc' => $discountPercentage, // Descuento en porcentaje
+				'price' => $team->price,
+				'amount_original' => round($amountOriginal, 2),
+				'amount' => round($amountFinal, 2),
+				'descEnt' => round($discountEnt, 2),
+				'descPerc' => $discountPercentage,
 				'created_user' => $userId,
 			]);
 

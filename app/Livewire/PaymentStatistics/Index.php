@@ -8,9 +8,11 @@ use App\Models\Season;
 use App\Models\Team;
 use App\Models\Category;
 use Illuminate\Support\Facades\DB;
+use App\Traits\DetectsDevice;
 
 class Index extends Component
 {
+    use DetectsDevice;
     public $seasonFilter = '';
     public $categoryFilter = '';
     
@@ -141,53 +143,64 @@ class Index extends Component
             ->orderBy('cuota')
             ->get();
         
-        // Estadísticas por equipo
+        // Estadísticas por equipo (misma lógica que el PDF de printPayments():
+        // se agrupa por el equipo dueño de la cuota (payments_teams.team_id),
+        // no por los equipos del jugador, para evitar duplicados).
         $statsByTeam = PaymentPlayer::select(
-                'teams.id as team_id',
-                'teams.team',
-                'categories.category',
-                DB::raw('COUNT(*) as total'),
-                DB::raw('SUM(CASE WHEN payments_players.state = 1 THEN 1 ELSE 0 END) as paid'),
-                DB::raw('SUM(CASE WHEN payments_players.state = 0 THEN 1 ELSE 0 END) as pending'),
-                DB::raw('SUM(CASE WHEN payments_players.state = 1 THEN payments_players.amount ELSE 0 END) as collected'),
-                DB::raw('SUM(CASE WHEN payments_players.state = 0 THEN payments_players.amount ELSE 0 END) as pending_amount')
-            )
-            ->join('players', 'payments_players.player_id', '=', 'players.id')
-            ->join('teams_players', 'players.id', '=', 'teams_players.player_id')
-            ->join('teams', 'teams_players.team_id', '=', 'teams.id')
-            ->join('categories', 'teams.category_id', '=', 'categories.id')
-            ->where('payments_players.sports_school_id', $sportsSchoolId)
-            ->when($this->seasonFilter, function($query) {
-                $query->where('teams.season_id', $this->seasonFilter);
-            })
-            ->when($this->categoryFilter, function($query) {
-                $query->where('teams.category_id', $this->categoryFilter);
-            })
-            ->groupBy('teams.id', 'teams.team', 'categories.category')
-            ->orderBy('categories.category')
-            ->orderBy('teams.team')
-            ->get();
+        'teams.id as team_id',
+        'teams.team',
+        'categories.category',
+        DB::raw('COUNT(*) as total'),
         
-        // Estadísticas por estado
-        $statsByState = PaymentPlayer::select(
-                'state',
-                DB::raw('COUNT(*) as total'),
-                DB::raw('SUM(amount) as total_amount')
-            )
-            ->where('sports_school_id', $sportsSchoolId)
-            ->when($this->seasonFilter, function($query) {
-                $query->whereHas('player.teams', function($q) {
-                    $q->where('season_id', $this->seasonFilter);
-                });
-            })
-            ->when($this->categoryFilter, function($query) {
-                $query->whereHas('player.teams', function($q) {
-                    $q->where('category_id', $this->categoryFilter);
-                });
-            })
-            ->groupBy('state')
-            ->get()
-            ->keyBy('state');
+        // Todas las expresiones SQL con ceros deben ir en DB::raw
+        DB::raw('SUM(CASE WHEN payments_players.state = 1 THEN 1 ELSE 0 END) as paid'),
+        DB::raw('SUM(CASE WHEN payments_players.state = 1 THEN payments_players.amount ELSE 0 END) as collected'),
+        
+        DB::raw('SUM(CASE WHEN payments_players.state = 0 THEN 1 ELSE 0 END) as pending'),
+        DB::raw('SUM(CASE WHEN payments_players.state = 0 THEN payments_players.amount ELSE 0 END) as pending_amount'),
+        
+        DB::raw('SUM(CASE WHEN payments_players.state > 1 THEN 1 ELSE 0 END) as other'),
+        DB::raw('SUM(CASE WHEN payments_players.state > 1 THEN payments_players.amount ELSE 0 END) as other_amount')
+    )
+    ->join('payments_teams', 'payments_players.payment_id', '=', 'payments_teams.id')
+    ->join('teams', 'payments_teams.team_id', '=', 'teams.id')
+    ->leftJoin('categories', 'teams.category_id', '=', 'categories.id')
+    ->where('payments_players.sports_school_id', $sportsSchoolId)
+    ->when($this->seasonFilter, function($query) {
+        $query->where('teams.season_id', $this->seasonFilter);
+    })
+    ->when($this->categoryFilter, function($query) {
+        $query->where('teams.category_id', $this->categoryFilter);
+    })
+    ->groupBy('teams.id', 'teams.team', 'categories.category')
+    ->orderBy('categories.category')
+    ->orderBy('teams.team')
+    ->get();
+        
+        // Estadísticas por estado (devuelve una Colección indexada por estado)
+$statsByState = PaymentPlayer::select(
+        'state',
+        DB::raw('COUNT(*) as total'),
+        DB::raw('SUM(amount) as total_amount')
+    )
+    ->where('sports_school_id', $sportsSchoolId)
+    ->when($this->seasonFilter, function($query) {
+        $query->whereHas('player.teams', function($q) {
+            $q->where('season_id', $this->seasonFilter);
+        });
+    })
+    ->when($this->categoryFilter, function($query) {
+        $query->whereHas('player.teams', function($q) {
+            $q->where('category_id', $this->categoryFilter);
+        });
+    })
+    ->groupBy('state')
+    ->get()
+    ->keyBy('state');
+
+
+        
+            
         
         // Obtener temporadas y categorías para los filtros
         $seasons = Season::orderBy('from_year', 'desc')->get();
@@ -199,6 +212,22 @@ class Index extends Component
             })
             ->orderBy('category')
             ->get();
+
+        if($this->isMobile()) {
+                return view('livewire.payment-statistics.index_mobile', [
+                'totalPayments' => $totalPayments,
+                'paidPayments' => $paidPayments,
+                'pendingPayments' => $pendingPayments,
+                'totalCollected' => $totalCollected,
+                'totalPending' => $totalPending,
+                'statsByQuota' => $statsByQuota,
+                'statsByTeam' => $statsByTeam,
+                'statsByState' => $statsByState,
+                'seasons' => $seasons,
+                'categories' => $categories,
+                'activeSeason' => $activeSeason,
+            ]);
+        }
         
         return view('livewire.payment-statistics.index', [
             'totalPayments' => $totalPayments,
@@ -213,5 +242,6 @@ class Index extends Component
             'categories' => $categories,
             'activeSeason' => $activeSeason,
         ]);
+
     }
 }

@@ -10,9 +10,12 @@ use Illuminate\Support\Facades\Log;
 use App\Mail\PaymentPlayerLetter;
 use App\Services\SchoolMailer;
 use Illuminate\Support\Str;
+use App\Traits\DetectsDevice;
+
 
 class Show extends Component
 {
+    use DetectsDevice;
     public $playerId;
     public $player;
     public $payments;
@@ -67,15 +70,19 @@ class Show extends Component
 
             // Generar carta de pago en
             $pdf = new PdfFile();
-            $pdf->file_name = 'carta_pago_' . $player->name . '_' . $player->surname . '_cuota_' . $payment->cuota;
+            $pdf->file_name = 'carta_pago_' . Str::slug($player->name . '_' . $player->surname) . '_cuota_' . $payment->cuota;
             $pdf->templates[0] = 'pdfs.payment-card';
             $pdf->records = ['data' => $data];
             
             $content = $pdf->generateFromTemplate($pdf->templates[0]);
-            
+
             return response()->streamDownload(
                 fn () => print($content),
-                $pdf->getFileName()
+                $pdf->getFileName(),
+                [
+                    'Content-Type'        => 'application/pdf',
+                    'Content-Disposition' => 'attachment; filename="' . $pdf->getFileName() . '"',
+                ]
             );
 
         } catch (\Exception $e) {
@@ -109,15 +116,19 @@ class Show extends Component
 
             // Generar PDF
             $pdf = new PdfFile();
-            $pdf->file_name = 'recibo_pago_' . $player->name . '_' . $player->surname . '_cuota_' . $payment->cuota;
+            $pdf->file_name = 'recibo_pago_' . Str::slug($player->name . '_' . $player->surname) . '_cuota_' . $payment->cuota;
             $pdf->templates[0] = 'pdfs.payment-receipt';
             $pdf->records = ['data' => $data];
             
             $content = $pdf->generateFromTemplate($pdf->templates[0]);
-            
+
             return response()->streamDownload(
                 fn () => print($content),
-                $pdf->getFileName()
+                $pdf->getFileName(),
+                [
+                    'Content-Type'        => 'application/pdf',
+                    'Content-Disposition' => 'attachment; filename="' . $pdf->getFileName() . '"',
+                ]
             );
 
         } catch (\Exception $e) {
@@ -239,7 +250,14 @@ class Show extends Component
 
     public function render()
     {
+
+        if ($this->isMobile()) {
+            return view('livewire.payment-orders.show_mobile');
+        }
+
         return view('livewire.payment-orders.show');
+
+
     }
 }
 
