@@ -249,8 +249,8 @@
                         @elseif($column === 'sizes')
                             {{ $player->sizes ?? '-' }}
                         @elseif($column === 'position')
-                            {{ $player->goalie ? 'Portero' : '-' }}
-                        @elseif($column === 'dorsal')
+                            {{ $player->goalie ? 'Portero' : 'Jugador de campo' }}
+                        @elseif($column === 'shirt_number')
                             {{ $player->dorsal ?? '-' }}
                         @else
                             {{ $player->$column ?? '-' }}

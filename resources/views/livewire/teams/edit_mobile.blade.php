@@ -304,12 +304,18 @@
                             {{-- Fila 2: Ficha y Fecha de nacimiento --}}
                             <div class="grid grid-cols-2 gap-2 bg-gray-50 rounded-2xl p-2.5 text-xs">
                                 {{-- 3. Ficha --}}
-                                <div>
-                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Ficha</span>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Estado y posición</span>
                                     @if($player->file)
                                         <span class="px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-[10px] font-bold inline-block">Completa</span>
                                     @else
                                         <span class="px-2 py-0.5 rounded-full bg-gray-200 text-gray-600 text-[10px] font-bold inline-block">Incompleta</span>
+                                    @endif
+                                    
+                                    @if($player->goalie)
+                                        <span class="px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-[10px] font-bold inline-block">Portero - {{ $player->dorsal ?? '-' }}</span>
+                                    @else
+                                        <span class="px-2 py-0.5 rounded-full bg-gray-200 text-gray-600 text-[10px] font-bold inline-block">J. Campo - {{ $player->dorsal ?? '-' }}</span>
                                     @endif
                                 </div>
 

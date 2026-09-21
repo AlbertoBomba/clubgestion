@@ -1532,9 +1532,7 @@ class Edit extends Component
                         $valueExpression = '$record->dbanio';
                         break;
                     case 'position':
-                        
-                        $valueExpression = '$record->goalie ? "Portero" : ""';
-                       
+                        $valueExpression = '$record->goalie ? "Portero" : "Jugador de campo"';
                         break;
                     case 'shirt_number':
                         $valueExpression = '$record->dorsal ?? ""';

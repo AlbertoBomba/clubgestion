@@ -469,7 +469,16 @@
                                     <div class="text-sm font-semibold text-primary">{{ $player->dorsal ?? '-' }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-titanium">{{ $player->position ?? '-' }}</div>
+                                    @if($player->goalie)
+                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            Portero
+                                        </span>
+                                    @else
+                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                            Jugador de campo
+                                        </span>
+                                    @endif
+                                    {{-- <div class="text-sm text-titanium">{{ $player->position ?? '-' }}</div> --}}
                                 </td>
                                 <td>
                                     @if(!empty($player->observations))
