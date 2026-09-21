@@ -993,6 +993,8 @@ class Edit extends Component
         $this->editPlayerShirtNumber = $player->dorsal ?? '';
         $this->observations = $player->observations ?? '';
         $this->editPlayerSize = $player->sizes ?? '';
+        $this->active = $player->active ?? false;
+        $this->goalie = $player->goalie ?? false;
         $this->file = $player->file ?? false;
         
         $this->showEditPlayerModal = true;
@@ -1009,6 +1011,8 @@ class Edit extends Component
         $this->editPlayerDbanio = '';
         $this->editPlayerShirtNumber = '';
         $this->editPlayerSize = '';
+        $this->active = false;
+        $this->goalie = false;
         $this->file = false;
     }
     
