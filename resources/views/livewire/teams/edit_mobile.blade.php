@@ -561,6 +561,25 @@
                             </button>
                         </div>
                     </div>
+                    <div class="grid grid-cols-3 gap-2">
+                            <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+                                <input wire:model.live="active" type="checkbox" id="active"
+                                    class="w-5 h-5 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
+                                <label for="active" class="text-sm font-semibold text-titanium cursor-pointer">Activo</label>
+                            </div>
+
+                            <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+                                <input wire:model.live="goalie" type="checkbox" id="goalie"
+                                    class="w-5 h-5 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
+                                <label for="goalie" class="text-sm font-semibold text-titanium cursor-pointer">Portero</label>
+                            </div>
+
+                            <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+                                <input wire:model.live="file" type="checkbox" id="file"
+                                    class="w-5 h-5 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
+                                <label for="file" class="text-sm font-semibold text-titanium cursor-pointer">Ficha Completa</label>
+                            </div>
+                        </div>  
 
                     <div>
                         <label class="block text-[10px] font-bold text-titanium uppercase mb-1">Observaciones</label>

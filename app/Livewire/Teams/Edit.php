@@ -59,6 +59,8 @@ class Edit extends Component
     public $file = false; // Nueva propiedad para la ficha completa
     public $observations = '';
     public $showSizesModal = false;
+    public $active = false;
+    public $goalie = false;
     
     // Previsualización de pagos al mover jugador
     public $showPreviewModal = false;
@@ -1068,6 +1070,9 @@ class Edit extends Component
             $player->sizes = $this->editPlayerSize ?: null;
             $player->file = $this->file ?: false;
             $player->observations = $this->observations ?: null;
+            $player->active = $this->active ?: false;
+            $player->goalie = $this->goalie ?: false;
+            $player->file = $this->file ?: false;
             $player->save();
             
             $this->closeEditPlayerModal();
@@ -1523,7 +1528,9 @@ class Edit extends Component
                         $valueExpression = '$record->dbanio';
                         break;
                     case 'position':
-                        $valueExpression = '$record->position ?? ""';
+                        
+                        $valueExpression = '$record->goalie ? "Portero" : ""';
+                       
                         break;
                     case 'shirt_number':
                         $valueExpression = '$record->dorsal ?? ""';

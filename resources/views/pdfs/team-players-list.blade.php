@@ -249,7 +249,7 @@
                         @elseif($column === 'sizes')
                             {{ $player->sizes ?? '-' }}
                         @elseif($column === 'position')
-                            {{ $player->position ? strtoupper($player->position) : '-' }}
+                            {{ $player->goalie ? 'Portero' : '-' }}
                         @elseif($column === 'dorsal')
                             {{ $player->dorsal ?? '-' }}
                         @else
