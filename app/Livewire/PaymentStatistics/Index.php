@@ -213,6 +213,8 @@ $statsByState = PaymentPlayer::select(
             ->orderBy('category')
             ->get();
 
+            
+
         if($this->isMobile()) {
                 return view('livewire.payment-statistics.index_mobile', [
                 'totalPayments' => $totalPayments,
