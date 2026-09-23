@@ -8,6 +8,7 @@ use App\Models\PaymentPlayer;
 use App\Classes\PdfFile;
 use Illuminate\Support\Facades\Log;
 use App\Mail\PaymentPlayerLetter;
+use App\Mail\PaymentPlayerPaidConfirmation;
 use App\Services\SchoolMailer;
 use Illuminate\Support\Str;
 use App\Traits\DetectsDevice;
@@ -19,6 +20,17 @@ class Show extends Component
     public $playerId;
     public $player;
     public $payments;
+
+    // Modal de selección de forma de pago al marcar como "Pagado"
+    public $showPaymentTypeModal = false;
+    public $pendingPaymentId = null;
+    public $selectedPaymentType = 'transferencia';
+    public $sendReceiptEmail = true;
+
+    protected $paymentTypes = [
+        'transferencia' => 'Pago por transferencia',
+        'efectivo' => 'Pago en efectivo',
+    ];
 
     public function mount($playerId)
     {
@@ -139,25 +151,80 @@ class Show extends Component
 
     public function updatePaymentState($paymentId, $newState)
     {
+        // Si se marca como "Pagado" pedimos primero la forma de pago
+        if ((int) $newState === 1) {
+            $this->pendingPaymentId = $paymentId;
+            $this->selectedPaymentType = 'transferencia';
+            $this->sendReceiptEmail = true;
+            $this->resetErrorBag();
+            $this->showPaymentTypeModal = true;
+            return;
+        }
+
+        $this->savePaymentState($paymentId, (int) $newState);
+    }
+
+    public function confirmPaymentAsPaid()
+    {
+        $this->validate([
+            'selectedPaymentType' => 'required|in:transferencia,efectivo',
+        ], [
+            'selectedPaymentType.required' => 'Debes seleccionar una forma de pago.',
+            'selectedPaymentType.in' => 'La forma de pago seleccionada no es válida.',
+        ]);
+
+        if (!$this->pendingPaymentId) {
+            $this->closePaymentTypeModal();
+            return;
+        }
+
+        $paymentId = $this->pendingPaymentId;
+        $this->savePaymentState($paymentId, 1, $this->selectedPaymentType);
+
+        if ($this->sendReceiptEmail) {
+            $this->sendReceiptEmailForPayment($paymentId);
+        }
+
+        $this->closePaymentTypeModal(false);
+    }
+
+    public function closePaymentTypeModal($reload = true)
+    {
+        $this->showPaymentTypeModal = false;
+        $this->pendingPaymentId = null;
+        $this->selectedPaymentType = 'transferencia';
+        $this->sendReceiptEmail = true;
+        $this->resetErrorBag();
+
+        // Recargar para revertir el select del estado en la vista si el usuario canceló
+        if ($reload) {
+            $this->loadPlayer();
+        }
+    }
+
+    protected function savePaymentState($paymentId, $newState, $paymentType = null)
+    {
         try {
             $payment = PaymentPlayer::where('id', $paymentId)
                 ->where('sports_school_id', auth()->user()->sports_school_id)
                 ->firstOrFail();
 
             $payment->state = $newState;
-            
-            // Si se marca como pagado, guardar fecha de pago
-            if ($newState == 1 && !$payment->payment_date) {
-                $payment->payment_date = now();
-            }
-            
-            // Si se cambia de pagado a otro estado, limpiar fecha de pago
-            if ($newState != 1) {
+
+            if ($newState == 1) {
+                if (!$payment->payment_date) {
+                    $payment->payment_date = now();
+                }
+                if ($paymentType) {
+                    $payment->payment_type = $paymentType;
+                }
+            } else {
+                // Si se cambia de pagado a otro estado, limpiar datos de pago
                 $payment->payment_date = null;
                 $payment->payment_type = null;
                 $payment->payment_auth = null;
             }
-            
+
             $payment->updated_user = auth()->id();
             $payment->save();
 
@@ -246,6 +313,69 @@ class Show extends Component
         $pdf->records = ['data' => $data];
 
         return (string) $pdf->generateFromTemplate($pdf->templates[0]);
+    }
+
+    protected function buildPaymentReceiptPdf(PaymentPlayer $payment): string
+    {
+        $data = [
+            'payment'       => $payment,
+            'player'        => $payment->player,
+            'sportsSchool'  => $payment->player->sportsSchool,
+            'generatedDate' => now()->format('d/m/Y H:i'),
+        ];
+
+        $pdf = new PdfFile();
+        $pdf->file_name = 'recibo_pago_' . ($payment->code ?: $payment->id);
+        $pdf->templates[0] = 'pdfs.payment-receipt';
+        $pdf->records = ['data' => $data];
+
+        return (string) $pdf->generateFromTemplate($pdf->templates[0]);
+    }
+
+    protected function sendReceiptEmailForPayment($paymentId): void
+    {
+        try {
+            $payment = PaymentPlayer::with(['player', 'paymentTeam'])
+                ->where('id', $paymentId)
+                ->where('sports_school_id', auth()->user()->sports_school_id)
+                ->first();
+
+            if (!$payment || !$payment->player) {
+                return;
+            }
+
+            $recipient = $payment->player->email;
+            if (empty($recipient)) {
+                session()->flash('error', 'No se pudo enviar el recibo: el jugador no tiene email registrado.');
+                return;
+            }
+
+            $school = $payment->player->sportsSchool;
+            $pdfContent = $this->buildPaymentReceiptPdf($payment);
+            $pdfFilename = 'recibo_pago_' . Str::slug($payment->code ?: (string) $payment->id) . '.pdf';
+
+            $mailable = new PaymentPlayerPaidConfirmation(
+                payment: $payment,
+                school: $school,
+                pdfContent: $pdfContent,
+                pdfFilename: $pdfFilename,
+            );
+
+            SchoolMailer::forSchool($school)
+                ->to(
+                    $recipient,
+                    trim(($payment->player->name ?? '') . ' ' . ($payment->player->surname ?? ''))
+                )
+                ->send($mailable);
+
+            session()->flash('mail_message', 'Recibo enviado por email a ' . $recipient);
+        } catch (\Throwable $e) {
+            Log::error('Error enviando recibo de pago', [
+                'payment_player_id' => $paymentId,
+                'error'             => $e->getMessage(),
+            ]);
+            session()->flash('error', 'El pago se guardó, pero no se pudo enviar el recibo por email: ' . $e->getMessage());
+        }
     }
 
     public function render()

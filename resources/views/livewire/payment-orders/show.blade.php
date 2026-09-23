@@ -364,4 +364,78 @@
             </div>
         </div>
     </div>
+
+    {{-- Modal: seleccionar forma de pago al marcar como Pagado --}}
+    @if($showPaymentTypeModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center px-4"
+             wire:key="payment-type-modal"
+             x-data
+             @keydown.escape.window="$wire.closePaymentTypeModal()">
+            <div class="absolute inset-0 bg-black/50" wire:click="closePaymentTypeModal"></div>
+
+            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+                <div class="flex items-start justify-between mb-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-black-deep">Confirmar pago</h3>
+                        <p class="text-sm text-gray-600 mt-1">Selecciona la forma de pago para marcar la cuota como pagada.</p>
+                    </div>
+                    <button type="button" wire:click="closePaymentTypeModal"
+                            class="text-gray-400 hover:text-gray-600 p-1 -mr-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="space-y-3">
+                    <label class="flex items-center gap-3 border-2 rounded-lg p-3 cursor-pointer transition-colors {{ $selectedPaymentType === 'transferencia' ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-gray-300' }}">
+                        <input type="radio" wire:model.live="selectedPaymentType" value="transferencia"
+                               class="w-4 h-4 text-primary focus:ring-primary">
+                        <div class="flex-1">
+                            <div class="font-semibold text-gray-900">Pago por transferencia</div>
+                            <div class="text-xs text-gray-500">Transferencia bancaria</div>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center gap-3 border-2 rounded-lg p-3 cursor-pointer transition-colors {{ $selectedPaymentType === 'efectivo' ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-gray-300' }}">
+                        <input type="radio" wire:model.live="selectedPaymentType" value="efectivo"
+                               class="w-4 h-4 text-primary focus:ring-primary">
+                        <div class="flex-1">
+                            <div class="font-semibold text-gray-900">Pago en efectivo</div>
+                            <div class="text-xs text-gray-500">Efectivo entregado en mano</div>
+                        </div>
+                    </label>
+                </div>
+
+                @error('selectedPaymentType')
+                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+
+                <label class="mt-4 flex items-start gap-3 border border-gray-200 rounded-lg p-3 cursor-pointer hover:bg-gray-50">
+                    <input type="checkbox" wire:model.live="sendReceiptEmail"
+                           class="mt-0.5 w-4 h-4 text-primary rounded focus:ring-primary">
+                    <div class="flex-1">
+                        <div class="font-semibold text-gray-900 text-sm">Enviar recibo por email</div>
+                        <div class="text-xs text-gray-500">
+                            Se enviará el recibo de pago adjunto a
+                            <span class="font-semibold">{{ $player->email ?? 'el email del jugador' }}</span>.
+                        </div>
+                    </div>
+                </label>
+
+                <div class="mt-6 flex justify-end gap-2">
+                    <button type="button" wire:click="closePaymentTypeModal"
+                            class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-semibold">
+                        Cancelar
+                    </button>
+                    <button type="button" wire:click="confirmPaymentAsPaid"
+                            wire:loading.attr="disabled" wire:target="confirmPaymentAsPaid"
+                            class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 text-sm font-semibold shadow disabled:opacity-60">
+                        <span wire:loading.remove wire:target="confirmPaymentAsPaid">Confirmar pago</span>
+                        <span wire:loading wire:target="confirmPaymentAsPaid">Guardando...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

@@ -305,4 +305,75 @@
         </a>
     </div>
 
+    {{-- Modal: seleccionar forma de pago al marcar como Pagado --}}
+    @if($showPaymentTypeModal)
+        <div class="fixed inset-0 z-[60] flex items-end sm:items-center justify-center"
+             wire:key="payment-type-modal-mobile">
+            <div class="absolute inset-0 bg-black/50" wire:click="closePaymentTypeModal"></div>
+
+            <div class="relative bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 space-y-4">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h3 class="text-base font-black text-titanium">Confirmar pago</h3>
+                        <p class="text-xs text-gray-500 font-bold mt-0.5">Selecciona la forma de pago</p>
+                    </div>
+                    <button type="button" wire:click="closePaymentTypeModal"
+                            class="p-2 -mr-2 text-gray-400 active:scale-95">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="flex items-center gap-3 border-2 rounded-2xl p-3 transition-colors {{ $selectedPaymentType === 'transferencia' ? 'border-primary bg-primary/5' : 'border-gray-200' }}">
+                        <input type="radio" wire:model.live="selectedPaymentType" value="transferencia"
+                               class="w-4 h-4 text-primary focus:ring-primary">
+                        <div class="flex-1">
+                            <div class="font-black text-sm text-titanium">Pago por transferencia</div>
+                            <div class="text-[11px] text-gray-500 font-bold">Transferencia bancaria</div>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center gap-3 border-2 rounded-2xl p-3 transition-colors {{ $selectedPaymentType === 'efectivo' ? 'border-primary bg-primary/5' : 'border-gray-200' }}">
+                        <input type="radio" wire:model.live="selectedPaymentType" value="efectivo"
+                               class="w-4 h-4 text-primary focus:ring-primary">
+                        <div class="flex-1">
+                            <div class="font-black text-sm text-titanium">Pago en efectivo</div>
+                            <div class="text-[11px] text-gray-500 font-bold">Efectivo entregado en mano</div>
+                        </div>
+                    </label>
+                </div>
+
+                @error('selectedPaymentType')
+                    <p class="text-xs text-red-600 font-bold">{{ $message }}</p>
+                @enderror
+
+                <label class="flex items-start gap-3 border border-gray-200 rounded-2xl p-3">
+                    <input type="checkbox" wire:model.live="sendReceiptEmail"
+                           class="mt-0.5 w-4 h-4 text-primary rounded focus:ring-primary">
+                    <div class="flex-1">
+                        <div class="font-black text-sm text-titanium">Enviar recibo por email</div>
+                        <div class="text-[11px] text-gray-500 font-bold">
+                            Adjunto a <span class="font-black">{{ $player->email ?? 'email del jugador' }}</span>
+                        </div>
+                    </div>
+                </label>
+
+                <div class="flex gap-2 pt-1">
+                    <button type="button" wire:click="closePaymentTypeModal"
+                            class="flex-1 py-3 rounded-2xl bg-gray-100 text-titanium font-black text-xs active:scale-95">
+                        Cancelar
+                    </button>
+                    <button type="button" wire:click="confirmPaymentAsPaid"
+                            wire:loading.attr="disabled" wire:target="confirmPaymentAsPaid"
+                            class="flex-1 py-3 rounded-2xl bg-green-600 text-white font-black text-xs active:scale-95 disabled:opacity-60">
+                        <span wire:loading.remove wire:target="confirmPaymentAsPaid">Confirmar</span>
+                        <span wire:loading wire:target="confirmPaymentAsPaid">Guardando...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
 </div>

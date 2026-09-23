@@ -20,6 +20,7 @@ use App\Mail\PaymentPlayerLetter;
 use App\Models\SportsSchool;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Traits\DetectsDevice;
+use Mccarlosen\LaravelMpdf\Facades\LaravelMpdf;
 
 class Index extends Component
 {
@@ -32,7 +33,9 @@ class Index extends Component
     public $teamFilter = '';
     public $cuotaFilter = '';
     public $pendingPaymentsOnly = false;
+    public $PaymentsOnly = false;
     public $pendingTransferValidationOnly = false;
+    public $paidOnly = false;
     public $showDeleteModal = false;
     public $playerToDeleteId = null;
     public $playerToDelete = null;
@@ -64,6 +67,11 @@ class Index extends Component
     public $previewGenerateCount = 0;
     public $previewTeamsCount = 0;
     public $previewPlayersCount = 0;
+
+    // Modal de exportación (Excel / PDF con campos configurables)
+    public $showExportModal = false;
+    public $exportFormat = 'excel';
+    public $exportFields = ['player_name', 'team', 'code', 'payment_type', 'payment_date', 'amount'];
 
     //Modal notificaciones
     public $showNotifyModal = false;
@@ -98,13 +106,37 @@ class Index extends Component
         $this->cuotaFilter = session('paymentOrders.cuotaFilter', '');
         $this->pendingPaymentsOnly = session('paymentOrders.pendingPaymentsOnly', true);
         $this->pendingTransferValidationOnly = session('paymentOrders.pendingTransferValidationOnly', false);
+        $this->paidOnly = session('paymentOrders.paidOnly', false);
     }
 
     public function updated($property)
     {
         // Guardar filtros en sesión cuando cambien
-        if (in_array($property, ['search', 'seasonFilter', 'teamFilter', 'cuotaFilter', 'pendingPaymentsOnly', 'pendingTransferValidationOnly'])) {
+        if (in_array($property, ['search', 'seasonFilter', 'teamFilter', 'cuotaFilter', 'pendingPaymentsOnly', 'pendingTransferValidationOnly', 'paidOnly'])) {
             session(['paymentOrders.' . $property => $this->$property]);
+        }
+
+        // Los 3 filtros de estado son mutuamente excluyentes: al activar uno, se desactivan los otros
+        if ($property === 'pendingPaymentsOnly' && $this->pendingPaymentsOnly) {
+            $this->pendingTransferValidationOnly = false;
+            $this->paidOnly = false;
+            session(['paymentOrders.pendingTransferValidationOnly' => false]);
+            session(['paymentOrders.paidOnly' => false]);
+            $this->resetPage();
+        }
+        if ($property === 'pendingTransferValidationOnly' && $this->pendingTransferValidationOnly) {
+            $this->pendingPaymentsOnly = false;
+            $this->paidOnly = false;
+            session(['paymentOrders.pendingPaymentsOnly' => false]);
+            session(['paymentOrders.paidOnly' => false]);
+            $this->resetPage();
+        }
+        if ($property === 'paidOnly' && $this->paidOnly) {
+            $this->pendingPaymentsOnly = false;
+            $this->pendingTransferValidationOnly = false;
+            session(['paymentOrders.pendingPaymentsOnly' => false]);
+            session(['paymentOrders.pendingTransferValidationOnly' => false]);
+            $this->resetPage();
         }
         
         // Manejar selección de todos
@@ -1421,15 +1453,25 @@ class Index extends Component
     
     private function getPlayersQuery()
     {
-        // Estados a filtrar según los checkboxes activos
+        // Estados a filtrar según los checkboxes activos (mutuamente excluyentes)
         // "Solo pagos pendientes" incluye tanto pendientes (0) como pendientes de validar transferencia (6)
         $stateFilters = [];
+
         if ($this->pendingPaymentsOnly) {
             $stateFilters[] = 0;
             $stateFilters[] = 6;
+            $this->pendingTransferValidationOnly = false;
+            $this->paidOnly = false;
         }
         if ($this->pendingTransferValidationOnly) {
             $stateFilters[] = 6;
+            $this->pendingPaymentsOnly = false;
+            $this->paidOnly = false;
+        }
+        if ($this->paidOnly) {
+            $stateFilters[] = 1;
+            $this->pendingPaymentsOnly = false;
+            $this->pendingTransferValidationOnly = false;
         }
         $stateFilters = array_values(array_unique($stateFilters));
 
@@ -1550,19 +1592,80 @@ class Index extends Component
         return $highlightedText;
     }
 
-    public function exportExcel()
+    public function openExportModal()
     {
-        // Obtener los jugadores con sus pagos usando la misma query que la vista
-        $query = $this->getPlayersQuery()->get();
+        $this->showExportModal = true;
+    }
 
-        // Preparar los datos para exportar
+    public function closeExportModal()
+    {
+        $this->showExportModal = false;
+    }
+
+    /**
+     * Definición central de campos disponibles para el informe.
+     */
+    public function availableExportFields(): array
+    {
+        return [
+            'player_name'     => 'Jugador',
+            'player_dni'      => 'DNI Jugador',
+            'tutor_name'      => 'Tutor',
+            'tutor_dni'       => 'DNI Tutor',
+            'phone'           => 'Teléfono',
+            'team'            => 'Equipo',
+            'season'          => 'Temporada',
+            'code'            => 'Código de Pago',
+            'cuota'           => 'Cuota',
+            'status'          => 'Estado',
+            'payment_type'    => 'Forma de Pago',
+            'payment_date'    => 'Fecha de Pago',
+            'amount_original' => 'Importe Original',
+            'amount'          => 'Importe con Descuento',
+            'descEnt'         => 'Descuento (€)',
+            'descPerc'        => 'Descuento (%)',
+            'date_start'      => 'Fecha Inicio',
+            'date_end'        => 'Fecha Fin',
+        ];
+    }
+
+    public function exportReport()
+    {
+        // Validar formato
+        if (!in_array($this->exportFormat, ['excel', 'pdf'])) {
+            $this->exportFormat = 'excel';
+        }
+
+        // Validar campos (al menos uno)
+        $available = $this->availableExportFields();
+        $this->exportFields = array_values(array_intersect(array_keys($available), $this->exportFields ?? []));
+
+        if (empty($this->exportFields)) {
+            session()->flash('error', 'Debes seleccionar al menos un campo para el informe.');
+            return;
+        }
+
+        $records = $this->buildExportRecords();
+
+        $this->showExportModal = false;
+
+        if ($this->exportFormat === 'pdf') {
+            return $this->downloadReportPdf($records, $available);
+        }
+
+        return $this->downloadReportExcel($records, $available);
+    }
+
+    private function buildExportRecords(): array
+    {
+        $players = $this->getPlayersQuery()->get();
+
         $records = [];
-        foreach ($query as $player) {
+        foreach ($players as $player) {
             foreach ($player->paymentPlayers->sortBy('cuota') as $payment) {
                 $dateStart = $payment->paymentTeam ? \Carbon\Carbon::parse($payment->paymentTeam->date_start) : null;
-                $dateEnd = $payment->paymentTeam ? \Carbon\Carbon::parse($payment->paymentTeam->date_end) : null;
-                
-                // Determinar el estado de la cuota
+                $dateEnd   = $payment->paymentTeam ? \Carbon\Carbon::parse($payment->paymentTeam->date_end) : null;
+
                 $now = now();
                 if ($payment->state == 1) {
                     $status = 'Pagada';
@@ -1570,6 +1673,8 @@ class Index extends Component
                     $status = 'Lesión';
                 } elseif ($payment->state == 3) {
                     $status = 'Baja Jugador';
+                } elseif ($payment->state == 6) {
+                    $status = 'Pendiente de validar';
                 } elseif ($dateEnd && $now->isAfter($dateEnd)) {
                     $status = 'Impagada';
                 } elseif ($dateStart && $dateEnd && $now->between($dateStart, $dateEnd)) {
@@ -1580,119 +1685,50 @@ class Index extends Component
                     $status = 'Pendiente';
                 }
 
-                $records[] = (object)[
-                    'player_name' => trim(($player->name ?? '') . ' ' . ($player->surname ?? '')),
-                    'player_dni' => $player->dni,
-                    'tutor_name' => trim(($player->nametutor ?? '') . ' ' . ($player->surnametutor ?? '')),
-                    'tutor_dni' => $player->dnitutor,
-                    'phone' => $player->phone1 ?? $player->phone2 ?? '',
-                    'team' => $player->teams->first()->team ?? '-',
-                    'season' => $player->teams->first()->season->season ?? '-',
-                    'code' => $payment->code,
-                    'cuota' => 'Cuota ' . $payment->cuota,
-                    'status' => $status,
+                $records[] = (object) [
+                    'player_name'     => trim(($player->name ?? '') . ' ' . ($player->surname ?? '')),
+                    'player_dni'      => $player->dni,
+                    'tutor_name'      => trim(($player->nametutor ?? '') . ' ' . ($player->surnametutor ?? '')),
+                    'tutor_dni'       => $player->dnitutor,
+                    'phone'           => $player->phone1 ?? $player->phone2 ?? '',
+                    'team'            => $player->teams->first()->team ?? '-',
+                    'season'          => $player->teams->first()->season->season ?? '-',
+                    'code'            => $payment->code,
+                    'cuota'           => 'Cuota ' . $payment->cuota,
+                    'status'          => $status,
+                    'payment_type'    => $payment->payment_type ?: '-',
+                    'payment_date'    => $payment->payment_date ? \Carbon\Carbon::parse($payment->payment_date)->format('d/m/Y') : '-',
                     'amount_original' => number_format($payment->amount_original, 2, ',', '.') . ' €',
-                    'amount' => number_format($payment->amount, 2, ',', '.') . ' €',
-                    'descEnt' => $payment->descEnt ? number_format($payment->descEnt, 2, ',', '.') . ' €' : '-',
-                    'descPerc' => $payment->descPerc ? $payment->descPerc . '%' : '-',
-                    'date_start' => $dateStart ? $dateStart->format('d/m/Y') : '-',
-                    'date_end' => $dateEnd ? $dateEnd->format('d/m/Y') : '-',
-                    'payment_date' => $payment->payment_date ? \Carbon\Carbon::parse($payment->payment_date)->format('d/m/Y') : '-',
+                    'amount'          => number_format($payment->amount, 2, ',', '.') . ' €',
+                    'descEnt'         => $payment->descEnt ? number_format($payment->descEnt, 2, ',', '.') . ' €' : '-',
+                    'descPerc'        => $payment->descPerc ? $payment->descPerc . '%' : '-',
+                    'date_start'      => $dateStart ? $dateStart->format('d/m/Y') : '-',
+                    'date_end'        => $dateEnd ? $dateEnd->format('d/m/Y') : '-',
                 ];
             }
         }
 
-        // Crear el archivo Excel manualmente
+        return $records;
+    }
+
+    private function downloadReportExcel(array $records, array $availableFields)
+    {
+        $columns = [];
+        foreach ($this->exportFields as $key) {
+            if (!isset($availableFields[$key])) {
+                continue;
+            }
+            $columns[$key] = [
+                'title' => $availableFields[$key],
+                'value' => '$record->' . $key,
+                'type'  => 'eval',
+            ];
+        }
+
         $excel = new ExcelFile(
             Player::class,
             [],
-            [
-                'player_name' => [
-                    'title' => 'Jugador',
-                    'value' => '$record->player_name',
-                    'type' => 'eval'
-                ],
-                'player_dni' => [
-                    'title' => 'DNI Jugador',
-                    'value' => '$record->player_dni',
-                    'type' => 'eval'
-                ],
-                'tutor_name' => [
-                    'title' => 'Tutor',
-                    'value' => '$record->tutor_name',
-                    'type' => 'eval'
-                ],
-                'tutor_dni' => [
-                    'title' => 'DNI Tutor',
-                    'value' => '$record->tutor_dni',
-                    'type' => 'eval'
-                ],
-                'phone' => [
-                    'title' => 'Teléfono',
-                    'value' => '$record->phone',
-                    'type' => 'eval'
-                ],
-                'team' => [
-                    'title' => 'Equipo',
-                    'value' => '$record->team',
-                    'type' => 'eval'
-                ],
-                'season' => [
-                    'title' => 'Temporada',
-                    'value' => '$record->season',
-                    'type' => 'eval'
-                ],
-                'code' => [
-                    'title' => 'Código de Pago',
-                    'value' => '$record->code',
-                    'type' => 'eval'
-                ],
-                'cuota' => [
-                    'title' => 'Cuota',
-                    'value' => '$record->cuota',
-                    'type' => 'eval'
-                ],
-                'status' => [
-                    'title' => 'Estado',
-                    'value' => '$record->status',
-                    'type' => 'eval'
-                ],
-                'amount_original' => [
-                    'title' => 'Importe Original',
-                    'value' => '$record->amount_original',
-                    'type' => 'eval'
-                ],
-                'amount' => [
-                    'title' => 'Importe con Descuento',
-                    'value' => '$record->amount',
-                    'type' => 'eval'
-                ],
-                'descEnt' => [
-                    'title' => 'Descuento (€)',
-                    'value' => '$record->descEnt',
-                    'type' => 'eval'
-                ],
-                'descPerc' => [
-                    'title' => 'Descuento (%)',
-                    'value' => '$record->descPerc',
-                    'type' => 'eval'
-                ],
-                'date_start' => [
-                    'title' => 'Fecha Inicio',
-                    'value' => '$record->date_start',
-                    'type' => 'eval'
-                ],
-                'date_end' => [
-                    'title' => 'Fecha Fin',
-                    'value' => '$record->date_end',
-                    'type' => 'eval'
-                ],
-                'payment_date' => [
-                    'title' => 'Fecha de Pago',
-                    'value' => '$record->payment_date',
-                    'type' => 'eval'
-                ],
-            ],
+            $columns,
             'Cartas de Pago',
             [],
             [],
@@ -1702,6 +1738,41 @@ class Index extends Component
         return response()->streamDownload(
             fn () => print($excel->generate()),
             'Cartas_de_Pago_' . now()->format('Y-m-d_His') . '.xlsx'
+        );
+    }
+
+    private function downloadReportPdf(array $records, array $availableFields)
+    {
+        $columns = [];
+        foreach ($this->exportFields as $key) {
+            if (isset($availableFields[$key])) {
+                $columns[$key] = $availableFields[$key];
+            }
+        }
+
+        $html = view('pdfs.payment-orders-report', [
+            'records'    => $records,
+            'columns'    => $columns,
+            'generated'  => now(),
+            'schoolName' => optional(SportsSchool::find(auth()->user()->sports_school_id))->name,
+        ])->render();
+
+        $pdf = LaravelMpdf::loadHtml($html, [
+            'mode'          => 'utf-8',
+            'format'        => count($columns) > 6 ? 'A4-L' : 'A4',
+            'margin_top'    => 12,
+            'margin_bottom' => 12,
+            'margin_left'   => 12,
+            'margin_right'  => 12,
+            'author'        => 'SVA Club Portal',
+        ]);
+
+        $filename = 'Cartas_de_Pago_' . now()->format('Y-m-d_His') . '.pdf';
+
+        return response()->streamDownload(
+            fn () => print($pdf->output($filename)),
+            $filename,
+            ['Content-Type' => 'application/pdf']
         );
     }
 }

@@ -68,11 +68,11 @@
                     </svg>
                     Marcar Transferencias
                 </button>
-                <button wire:click="exportExcel" class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-300 hover:-translate-y-1 bg-green-600 hover:bg-green-700">
+                <button wire:click="openExportModal" class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-300 hover:-translate-y-1 bg-green-600 hover:bg-green-700">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
-                    Descargar Excel
+                    Descargar Informe
                 </button>
                 @if($activeSeason && $hasPlayersWithoutPayments)
                     <div class="relative group">
@@ -131,7 +131,7 @@
         </div>
 
         <!-- Filtros -->
-        <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-7 gap-4 mb-6">
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -196,7 +196,7 @@
                 <label class="inline-flex items-center cursor-pointer">
                     <input type="checkbox" wire:model.live="pendingPaymentsOnly" 
                         class="w-5 h-5 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
-                    <span class="ml-3 text-sm font-semibold text-black-deep">Todos los pagos pendientes</span>
+                    <span class="ml-3 text-sm font-semibold text-black-deep">Cuotas pendientes de pago</span>
                 </label>
             </div>
 
@@ -204,9 +204,18 @@
                 <label class="inline-flex items-center cursor-pointer">
                     <input type="checkbox" wire:model.live="pendingTransferValidationOnly"
                         class="w-5 h-5 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
-                    <span class="ml-3 text-sm font-semibold text-black-deep">Solo pendientes validar transferencia</span>
+                    <span class="ml-3 text-sm font-semibold text-black-deep">Cuotas pendientes validar transferencia</span>
                 </label>
             </div>
+
+            <div class="flex items-center">
+                <label class="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" wire:model.live="paidOnly"
+                        class="w-5 h-5 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
+                    <span class="ml-3 text-sm font-semibold text-black-deep">Cuotas pagadas</span>
+                </label>
+            </div>
+
         </div>
 
         <!-- Botón de acciones en lote -->
@@ -377,7 +386,7 @@
                                                         <svg class="w-3.5 h-3.5 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
                                                             {!! $icon !!}
                                                         </svg>
-                                                        <span class="opacity-60 mr-1">#{{ $payment->id }}</span> {{ $payment->cuota }} - {{ $statusText }}
+                                                        <span class="opacity-60 mr-1">#{{ $payment->id }}</span> {{ $payment->amount ? $payment->amount . ' €' : '' }}- {{ $statusText }} {{ $payment->payment_type}}
                                                     </span>
                                                     @if($dateStart && $dateEnd)
                                                         <span class="text-xs {{ str_replace('800', '700', $textColor) }} font-normal">
@@ -1402,6 +1411,153 @@
                             type="button" 
                             class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                             Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Modal de exportación de informe (Excel / PDF con campos configurables) -->
+    @if($showExportModal)
+        @php
+            $availableExportFields = $this->availableExportFields();
+        @endphp
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="export-modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" wire:click="closeExportModal"></div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div class="relative inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                    {{-- Header --}}
+                    <div class="relative bg-gradient-to-br from-green-600 via-emerald-500 to-teal-500 px-6 py-5">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="flex-shrink-0 h-12 w-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center ring-1 ring-white/30">
+                                    <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-white leading-tight" id="export-modal-title">
+                                        Descargar informe de cartas de pago
+                                    </h3>
+                                    <p class="text-sm text-emerald-50/90 mt-0.5">
+                                        Elige el formato y los campos que quieres incluir.
+                                    </p>
+                                </div>
+                            </div>
+                            <button wire:click="closeExportModal" type="button"
+                                    class="rounded-lg p-1.5 text-white/80 hover:text-white hover:bg-white/10 transition">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="px-6 py-6 space-y-6">
+                        {{-- Formato --}}
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                                Formato del informe
+                            </label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition
+                                    {{ $exportFormat === 'excel' ? 'border-green-500 bg-green-50/60' : 'border-gray-200 bg-white hover:bg-gray-50' }}">
+                                    <input type="radio" wire:model.live="exportFormat" value="excel"
+                                           class="mt-0.5 h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-2">
+                                            <svg class="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm1 4h10v2H5V7zm0 4h10v2H5v-2z"/>
+                                            </svg>
+                                            <span class="text-sm font-semibold text-gray-900">Excel</span>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">Archivo .xlsx editable.</p>
+                                    </div>
+                                </label>
+
+                                <label class="relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition
+                                    {{ $exportFormat === 'pdf' ? 'border-red-500 bg-red-50/60' : 'border-gray-200 bg-white hover:bg-gray-50' }}">
+                                    <input type="radio" wire:model.live="exportFormat" value="pdf"
+                                           class="mt-0.5 h-4 w-4 text-red-600 border-gray-300 focus:ring-red-500">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-2">
+                                            <svg class="h-4 w-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V7.414a2 2 0 00-.586-1.414l-2.414-2.414A2 2 0 0013.586 3H4zm5 6h2v3h2l-3 3-3-3h2V9z" clip-rule="evenodd"/>
+                                            </svg>
+                                            <span class="text-sm font-semibold text-gray-900">PDF</span>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">Documento listo para imprimir.</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        {{-- Selección de campos --}}
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                    Campos a incluir
+                                </label>
+                                <div class="flex gap-2">
+                                    <button type="button"
+                                        wire:click="$set('exportFields', {{ json_encode(array_keys($availableExportFields)) }})"
+                                        class="text-xs font-semibold text-emerald-700 hover:text-emerald-900">
+                                        Todos
+                                    </button>
+                                    <span class="text-gray-300">|</span>
+                                    <button type="button"
+                                        wire:click="$set('exportFields', [])"
+                                        class="text-xs font-semibold text-gray-500 hover:text-gray-700">
+                                        Ninguno
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1">
+                                @foreach($availableExportFields as $fieldKey => $fieldLabel)
+                                    <label class="flex items-center gap-3 p-2.5 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer">
+                                        <input type="checkbox"
+                                               wire:model.live="exportFields"
+                                               value="{{ $fieldKey }}"
+                                               class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
+                                        <span class="text-sm text-gray-800">{{ $fieldLabel }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+
+                            @if(empty($exportFields))
+                                <p class="text-xs text-red-600 mt-2 font-medium">
+                                    Selecciona al menos un campo para poder descargar el informe.
+                                </p>
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- Footer --}}
+                    <div class="bg-gray-50 border-t border-gray-100 px-6 py-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                        <button wire:click="closeExportModal"
+                                type="button"
+                                class="inline-flex justify-center items-center rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition">
+                            Cancelar
+                        </button>
+                        <button wire:click="exportReport"
+                                wire:loading.attr="disabled" wire:target="exportReport"
+                                @disabled(empty($exportFields))
+                                type="button"
+                                class="inline-flex justify-center items-center gap-2 rounded-xl border border-transparent bg-gradient-to-r from-green-600 to-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-600/25 hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition">
+                            <svg wire:loading.remove wire:target="exportReport" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            <svg wire:loading wire:target="exportReport" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            </svg>
+                            <span wire:loading.remove wire:target="exportReport">
+                                Descargar {{ $exportFormat === 'pdf' ? 'PDF' : 'Excel' }}
+                            </span>
+                            <span wire:loading wire:target="exportReport">Generando…</span>
                         </button>
                     </div>
                 </div>

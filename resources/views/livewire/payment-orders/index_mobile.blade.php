@@ -89,7 +89,7 @@
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
             </svg>
-            @if($search || $seasonFilter || $teamFilter || $cuotaFilter || $pendingPaymentsOnly || $pendingTransferValidationOnly)
+            @if($search || $seasonFilter || $teamFilter || $cuotaFilter || $pendingPaymentsOnly || $pendingTransferValidationOnly || $paidOnly)
                 <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-primary rounded-full border-2 border-white"></span>
             @endif
         </button>
@@ -154,6 +154,11 @@
             <label class="flex items-center gap-3 p-3 rounded-2xl border-2 border-gray-100 bg-gray-50/50 cursor-pointer select-none">
                 <input type="checkbox" wire:model.live="pendingTransferValidationOnly" class="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary">
                 <span class="text-xs font-bold text-titanium">Solo pendientes validar transferencia</span>
+            </label>
+
+            <label class="flex items-center gap-3 p-3 rounded-2xl border-2 border-gray-100 bg-gray-50/50 cursor-pointer select-none">
+                <input type="checkbox" wire:model.live="paidOnly" class="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary">
+                <span class="text-xs font-bold text-titanium">Solo pagos pagados</span>
             </label>
         </div>
     </div>
