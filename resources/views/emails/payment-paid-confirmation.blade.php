@@ -37,7 +37,7 @@
                     <tr>
                         <td style="padding:32px 32px 16px 32px;">
                             <p style="margin:0 0 16px 0; font-size:16px; line-height:1.5;">
-                                Hola{{ $player ? ' <strong>' . $player->name . '</strong>' : '' }},
+                                Hola{{ $player ? ' ' . $player->name . '' : '' }},
                             </p>
                             <p style="margin:0 0 20px 0; font-size:15px; line-height:1.6; color:#374151;">
                                 Hemos recibido tu pago correctamente. Te adjuntamos el recibo en PDF como justificante.
@@ -60,6 +60,12 @@
                                     <td style="padding:0 20px 12px 20px;">
                                         <div style="font-size:12px; text-transform:uppercase; letter-spacing:1px; color:#6b7280; font-weight:600;">Concepto</div>
                                         <div style="font-size:15px; color:#111827; margin-top:4px;">Cuota {{ $payment->cuota }}</div>
+                                    </td>
+                                </tr>
+                                 <tr>
+                                    <td style="padding:0 20px 12px 20px;">
+                                        <div style="font-size:12px; text-transform:uppercase; letter-spacing:1px; color:#6b7280; font-weight:600;">Sección</div>
+                                        <div style="font-size:15px; color:#111827; margin-top:4px;">{{ $payment->paymentTeam->team->section->name ?? '' }}</div>
                                     </td>
                                 </tr>
                                 <tr>

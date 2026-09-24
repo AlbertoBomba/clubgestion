@@ -148,7 +148,7 @@ class PaymentSearchController extends Controller
     protected function sendPaidConfirmation(PaymentPlayer $payment, SportsSchool $school): void
     {
         try {
-            $payment->loadMissing(['player', 'paymentTeam']);
+            $payment->loadMissing(['player', 'paymentTeam.team.section']);
 
             if (! $payment->player || empty($payment->player->email)) {
                 return;

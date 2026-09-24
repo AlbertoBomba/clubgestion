@@ -462,6 +462,10 @@
                                 <td class="data-value">{{ number_format($payment->amount_original, 2, ',', '.') }} €</td>
                             </tr>
                         @endif
+                        <tr>
+                            <td class="data-label">Sección</td>
+                            <td class="data-value">{{ $payment->paymentTeam->team->section->name ?? '' }}</td>
+                        </tr>
                     </table>
                 </div>
             </td>

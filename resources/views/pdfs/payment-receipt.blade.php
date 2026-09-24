@@ -292,6 +292,7 @@
                 <td>
                     <div class="amount-label">Importe abonado</div>
                     <div class="amount-concept">Cuota {{ $payment->cuota }}</div>
+                    <div class="amount-concept">Sección {{ $payment->paymentTeam->team->section->name ?? '' }}</div>
                 </td>
                 <td class="amount-value">
                     {{ number_format($payment->amount, 2, ',', '.') }} €

@@ -55,6 +55,12 @@
                                         <div style="font-size:22px; font-weight:800; color:{{ $primary }}; letter-spacing:2px; margin-top:4px;">{{ $payment->code }}</div>
                                     </td>
                                 </tr>
+                                 <tr>
+                                <td style="padding:0 20px 16px 20px;">
+                                        <div style="font-size:12px; text-transform:uppercase; letter-spacing:1px; color:#6b7280; font-weight:600;">Sección</div>
+                                        <div style="font-size:26px; font-weight:800; color:{{ $secondary }}; margin-top:4px;">{{ $payment->paymentTeam->team->section->name ?? '' }}</div>
+                                    </td>
+                                </tr>
                                 <tr>
                                     <td style="padding:0 20px 16px 20px;">
                                         <div style="font-size:12px; text-transform:uppercase; letter-spacing:1px; color:#6b7280; font-weight:600;">Importe</div>

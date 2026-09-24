@@ -159,7 +159,7 @@ class PanelSearchPay extends Component
 
         $sent = 0;
         foreach ($this->emailPayments as $payment) {
-            $payment->loadMissing(['player', 'paymentTeam']);
+            $payment->loadMissing(['player', 'paymentTeam.team.section']);
             if (! $payment->player || empty($payment->player->email)) {
                 continue;
             }

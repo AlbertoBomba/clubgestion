@@ -1229,6 +1229,17 @@
                                         Estás a punto de marcar <span class="font-bold text-purple-600">{{ count($paymentsToMarkPreview) }} {{ count($paymentsToMarkPreview) === 1 ? 'pago' : 'pagos' }}</span> como pagado(s) por transferencia. 
                                         Revisa la lista antes de confirmar:
                                     </p>
+                                    <label class="mt-4 flex items-start gap-3 border border-gray-200 rounded-lg p-3 cursor-pointer hover:bg-gray-50">
+                                        <input type="checkbox" wire:model.live="sendReceiptEmail"
+                                            class="mt-0.5 w-4 h-4 text-primary rounded focus:ring-primary">
+                                        <div class="flex-1">
+                                            <div class="font-semibold text-gray-900 text-sm">Enviar recibo de pago por email</div>
+                                            <div class="text-xs text-gray-500">
+                                                Se enviará el recibo de pago adjunto a
+                                                <span class="font-semibold">a los jugadores correspondientes</span>.
+                                            </div>
+                                        </div>
+                                    </label>
                                     
                                     <div class="mt-4 border border-gray-200 rounded-lg overflow-hidden">
                                         <div class="overflow-x-auto max-h-96 overflow-y-auto">

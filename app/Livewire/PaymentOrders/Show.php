@@ -59,7 +59,7 @@ class Show extends Component
     public function downloadPaymentPdf($paymentId)
     {
         try {
-            $payment = PaymentPlayer::with(['player', 'paymentTeam'])
+            $payment = PaymentPlayer::with(['player', 'paymentTeam.team.section'])
                 ->where('id', $paymentId)
                 ->where('sports_school_id', auth()->user()->sports_school_id)
                 ->firstOrFail();
@@ -69,6 +69,7 @@ class Show extends Component
                 session()->flash('error', 'Esta cuota ya ha sido pagada.');
                 return;
             }
+            // dd($payment);
 
             $player = $payment->player;
             
@@ -105,7 +106,7 @@ class Show extends Component
     public function downloadPaymentReceipt($paymentId)
     {
         try {
-            $payment = PaymentPlayer::with(['player', 'paymentTeam'])
+            $payment = PaymentPlayer::with(['player', 'paymentTeam.team.section'])
                 ->where('id', $paymentId)
                 ->where('sports_school_id', auth()->user()->sports_school_id)
                 ->firstOrFail();
@@ -255,7 +256,8 @@ class Show extends Component
         $sms_notification = false;
         $push_notification = false;
             
-            $payment = PaymentPlayer::where('id', $paymentId)
+            $payment = PaymentPlayer::with(['player', 'paymentTeam.team.section'])
+                ->where('id', $paymentId)
                 ->where('sports_school_id', auth()->user()->sports_school_id)
                 ->firstOrFail();
 
@@ -335,7 +337,7 @@ class Show extends Component
     protected function sendReceiptEmailForPayment($paymentId): void
     {
         try {
-            $payment = PaymentPlayer::with(['player', 'paymentTeam'])
+            $payment = PaymentPlayer::with(['player', 'paymentTeam.team.section'])
                 ->where('id', $paymentId)
                 ->where('sports_school_id', auth()->user()->sports_school_id)
                 ->first();

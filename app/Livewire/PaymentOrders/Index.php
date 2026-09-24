@@ -16,11 +16,15 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Classes\ExcelFile;
-use App\Mail\PaymentPlayerLetter;
 use App\Models\SportsSchool;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Traits\DetectsDevice;
 use Mccarlosen\LaravelMpdf\Facades\LaravelMpdf;
+use App\Mail\PaymentPlayerLetter;
+use App\Mail\PaymentPlayerPaidConfirmation;
+use App\Services\SchoolMailer;
+use App\Classes\PdfFile;
+use Illuminate\Support\Str;
 
 class Index extends Component
 {
@@ -78,6 +82,9 @@ class Index extends Component
     public $cuotaNotify = ''; // Filtro de cuota para notificaciones
     public $teamNotify = ''; // Filtro de equipo para notificaciones
     public $resultNotify = true;
+
+    // Modal de envío de notificaciones marcar trasferencias
+    public $sendReceiptEmail = true;
 
     // Canales de envío (solo email operativo en esta fase)
     public $notifyChannelEmail = true;
@@ -508,7 +515,7 @@ class Index extends Component
 
         return Player::with([
                 'paymentPlayers' => $paymentPlayersQuery,
-                'paymentPlayers.paymentTeam',
+                'paymentPlayers.paymentTeam.team.section',
                 'teams.category',
                 'teams.season',
             ])
@@ -578,6 +585,7 @@ class Index extends Component
         }
 
         foreach ($players as $player) {
+            // dd($player);
             $paymentsToSend = $player->paymentPlayers->filter(function ($payment) {
                 if ((int) $payment->state !== 0) {
                     return false;
@@ -597,6 +605,7 @@ class Index extends Component
             $emailDestino = $player->email;
 
             foreach ($paymentsToSend as $payment) {
+                // dd($payment);
                 try {
                     // El método queue() lo manda a la tabla 'jobs' de la BD
                     Mail::to($emailDestino)->queue(new PaymentPlayerLetter($payment, $school));
@@ -842,9 +851,15 @@ class Index extends Component
                 ->update([
                     'state' => 1, // Pagado
                     'payment_date' => now(),
-                    'payment_type' => 'Transferencia',
+                    'payment_type' => 'pago por transferencia',
                     'updated_user' => auth()->user()->id,
                 ]);
+
+            if($this->sendReceiptEmail) {
+                foreach ($paymentIds as $paymentId) {
+                    $this->sendReceiptEmailForPayment($paymentId);
+                }
+            }
             
             // Registrar las filas procesadas exitosamente (solo para importación Excel)
             if ($updated > 0 && !empty($this->selectedTransferPayments)) {
@@ -881,6 +896,69 @@ class Index extends Component
             $this->closeTransferConfirmModal();
             $this->closeTransferModal();
         }
+    }
+
+    protected function sendReceiptEmailForPayment($paymentId): void
+    {
+        try {
+            $payment = PaymentPlayer::with(['player', 'paymentTeam.team.section'])
+                ->where('id', $paymentId)
+                ->where('sports_school_id', auth()->user()->sports_school_id)
+                ->first();
+
+            if (!$payment || !$payment->player) {
+                return;
+            }
+
+            $recipient = $payment->player->email;
+            if (empty($recipient)) {
+                session()->flash('error', 'No se pudo enviar el recibo: el jugador no tiene email registrado.');
+                return;
+            }
+
+            $school = $payment->player->sportsSchool;
+            $pdfContent = $this->buildPaymentReceiptPdf($payment);
+            $pdfFilename = 'recibo_pago_' . Str::slug($payment->code ?: (string) $payment->id) . '.pdf';
+
+            $mailable = new PaymentPlayerPaidConfirmation(
+                payment: $payment,
+                school: $school,
+                pdfContent: $pdfContent,
+                pdfFilename: $pdfFilename,
+            );
+
+            SchoolMailer::forSchool($school)
+                ->to(
+                    $recipient,
+                    trim(($payment->player->name ?? '') . ' ' . ($payment->player->surname ?? ''))
+                )
+                ->send($mailable);
+
+            session()->flash('mail_message', 'Recibo enviado por email a ' . $recipient);
+        } catch (\Throwable $e) {
+            Log::error('Error enviando recibo de pago', [
+                'payment_player_id' => $paymentId,
+                'error'             => $e->getMessage(),
+            ]);
+            session()->flash('error', 'El pago se guardó, pero no se pudo enviar el recibo por email: ' . $e->getMessage());
+        }
+    }
+
+    protected function buildPaymentReceiptPdf(PaymentPlayer $payment): string
+    {
+        $data = [
+            'payment'       => $payment,
+            'player'        => $payment->player,
+            'sportsSchool'  => $payment->player->sportsSchool,
+            'generatedDate' => now()->format('d/m/Y H:i'),
+        ];
+
+        $pdf = new PdfFile();
+        $pdf->file_name = 'recibo_pago_' . ($payment->code ?: $payment->id);
+        $pdf->templates[0] = 'pdfs.payment-receipt';
+        $pdf->records = ['data' => $data];
+
+        return (string) $pdf->generateFromTemplate($pdf->templates[0]);
     }
     
     public function closeTransferConfirmModal()
@@ -1198,7 +1276,7 @@ class Index extends Component
 
         // Cabeceras
         $headers = [
-            'A' => 'Código de Pago',
+            'A' => 'Código de Pago o concepto transferencia',
             'B' => 'Nombre Jugador',
             'C' => 'Apellido Jugador',
             'D' => 'Nombre Tutor',
