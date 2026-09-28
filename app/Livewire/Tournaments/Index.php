@@ -5,10 +5,12 @@ namespace App\Livewire\Tournaments;
 use App\Models\Tournament;
 use Livewire\Component;
 use Livewire\WithPagination;
+use App\Traits\DetectsDevice;
 
 class Index extends Component
 {
     use WithPagination;
+    use DetectsDevice;
 
     public string $search       = '';
     public string $statusFilter = '';
@@ -66,6 +68,10 @@ class Index extends Component
             ->withCount(['matches as completed_matches_count' => fn ($q) => $q->where('status', 'completed')])
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate(12);
+
+        if ($this->isMobile()) {
+            return view('livewire.tournaments.index_mobile', compact('tournaments'));
+        }
 
         return view('livewire.tournaments.index', compact('tournaments'));
     }

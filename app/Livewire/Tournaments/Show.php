@@ -19,10 +19,12 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use App\Traits\DetectsDevice;
 
 class Show extends Component
 {
     use WithFileUploads;
+    use DetectsDevice;
     public Tournament $tournament;
 
     // ------------------------------------------------------------------
@@ -1621,6 +1623,26 @@ class Show extends Component
                     ->get()
                     ->keyBy('tournament_team_id');
             }
+        }
+
+        if ($this->isMobile()) {
+            //en desarrollo la parte mobile
+        //    return view('livewire.tournaments.show_mobile', compact(
+        //         'categories', 'activeCategory',
+        //         'phases', 'teams', 'matches', 'standings', 'hasLeaguePhase',
+        //         'schoolTeams', 'schoolCategories',
+        //         'goalsModalMatch', 'goalsForModal', 'gmCardsForModal', 'gmTeamPlayers', 'gmMatchTeams', 'gmAllPlayers',
+        //         'availableReferees', 'assignedReferees',
+        //         'hasKnockoutPhase', 'bracketData', 'bracketModalTeams', 'bracketModalStandings'
+        //     ));
+         return view('livewire.tournaments.show', compact(
+            'categories', 'activeCategory',
+            'phases', 'teams', 'matches', 'standings', 'hasLeaguePhase',
+            'schoolTeams', 'schoolCategories',
+            'goalsModalMatch', 'goalsForModal', 'gmCardsForModal', 'gmTeamPlayers', 'gmMatchTeams', 'gmAllPlayers',
+            'availableReferees', 'assignedReferees',
+            'hasKnockoutPhase', 'bracketData', 'bracketModalTeams', 'bracketModalStandings'
+        ));
         }
 
         return view('livewire.tournaments.show', compact(

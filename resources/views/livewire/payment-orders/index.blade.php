@@ -252,8 +252,8 @@
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Jugador</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Tutor</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Teléfono</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Equipo</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Códigos de Pago</th>
+                        {{-- <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Equipo</th> --}}
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Códigos de  / Equipo</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Cuotas de Pago</th>
                         <th class="px-6 py-4 text-right text-xs font-semibold text-primary uppercase tracking-wider">Acciones</th>
                     </tr>
@@ -297,9 +297,13 @@
                                 @endphp
                                 <div class="text-sm text-gray-900">{!! !empty($phone) ? $this->highlightText($phone) : '-' !!}</div>
                             </td>
-                            <td class="px-6 py-4">
-                                <div class="text-sm text-gray-900">{{ $player->teams->first()->team ?? '-' }}</div>
-                            </td>
+                            {{-- <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">
+                                    @foreach($player->paymentPlayers as $payment)
+                                        {{ optional(optional($payment->paymentTeam)->team)->team ?? '-' }}, 
+                                    @endforeach
+                                    {{ optional(optional(optional($player->paymentPlayers->first())->paymentTeam)->team)->team ?? '-' }}</div>
+                            </td> --}}
                             <td class="px-6 py-4">
                                 @if($player->paymentPlayers->count() > 0)
                                     <div class="flex flex-col gap-3">
@@ -314,7 +318,9 @@
                                                 </span>
                                             @endif
                                             <span class="text-xs font-mono text-gray-700 bg-gray-50 px-2 py-1 rounded border border-gray-200">
-                                                <span class="text-gray-400 mr-1">#{{ $payment->id }}</span> C{{ $payment->cuota }}: {!! $this->highlightText($payment->code) !!}
+                                                <span class="text-gray-400 mr-1">#
+                                                    {{-- {{ $payment->id }} --}}
+                                                    </span class="font-extrabold"> Cuota: {{ $payment->cuota }}: {!! $this->highlightText($payment->code) !!} {{ optional(optional($payment->paymentTeam)->team)->team ?? '-' }}
                                             </span>
                                         </div>
                                         @endforeach
@@ -386,7 +392,7 @@
                                                         <svg class="w-3.5 h-3.5 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
                                                             {!! $icon !!}
                                                         </svg>
-                                                        <span class="opacity-60 mr-1">#{{ $payment->id }}</span> {{ $payment->amount ? $payment->amount . ' €' : '' }}- {{ $statusText }} {{ $payment->payment_type}}
+                                                        <span class="opacity-60 mr-1">#{{ $payment->code }}</span> {{ $payment->amount ? $payment->amount . ' €' : '' }}- {{ $statusText }} {{ $payment->payment_type}}
                                                     </span>
                                                     @if($dateStart && $dateEnd)
                                                         <span class="text-xs {{ str_replace('800', '700', $textColor) }} font-normal">

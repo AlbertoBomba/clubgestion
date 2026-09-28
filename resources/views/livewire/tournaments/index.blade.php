@@ -12,7 +12,7 @@
     @endif
 
     {{-- Header + Filters --}}
-    <div class="bg-white-pure border border-silver rounded-2xl shadow-sm p-4 mb-5">
+    <div class="bg-white-pure border border-silver  shadow-sm p-4 mb-5">
 
         {{-- Title row --}}
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">

@@ -51,14 +51,14 @@
                                     <span class="text-gray-600 font-semibold">Tutor:</span>
                                     <span class="text-gray-900 ml-2">{{ $player->nametutor ? $player->nametutor . ' ' . ($player->surnametutor ?? '') : '-' }}</span>
                                 </div>
-                                <div>
+                                {{-- <div>
                                     <span class="text-gray-600 font-semibold">Equipo:</span>
                                     <span class="text-gray-900 ml-2">{{ $player->teams->first()->team ?? '-' }}</span>
-                                </div>
-                                <div>
+                                </div> --}}
+                                {{-- <div>
                                     <span class="text-gray-600 font-semibold">Categoría:</span>
                                     <span class="text-gray-900 ml-2">{{ $player->teams->first()->category->category ?? '-' }}</span>
-                                </div>
+                                </div> --}}
                             </div>
                             
                             @php
@@ -154,7 +154,8 @@
                                     </div>
                                     <div class="text-right">
                                         <div class="text-sm text-gray-600 font-semibold">Código de Pago</div>
-                                        <div class="text-lg font-bold text-black-deep">{{ $payment->code }}</div>
+                                        <div class="text-sm text-gray-600 font-semibold">{{ $payment->paymentTeam->team->section->name ?? '' }} •  {{ optional(optional($payment->paymentTeam)->team)->team ?? '-' }}</div>
+                                        <div class="text-lg font-bold text-black-deep">Cuota {{ $payment->cuota }} • {{ $payment->code }}</div>
                                         @if($payment->notification > 0)
                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-sm" title="Esta carta ha sido notificada {{ $payment->notification }} {{ $payment->notification == 1 ? 'vez' : 'veces' }}. Fecha última notificación {{ $payment->dtnotification?->format('d/m/Y H:i') }}">
                                                 <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

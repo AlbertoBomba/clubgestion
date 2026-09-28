@@ -5,10 +5,12 @@ namespace App\Livewire\Players;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\Player;
+use App\Traits\DetectsDevice;
 
 class Create extends Component
 {
     use WithFileUploads;
+    use DetectsDevice;
 
     // Datos personales
     public $name = '';
@@ -245,6 +247,16 @@ class Create extends Component
         $availableSizes = \App\Models\Size::whereHas('brand.sportsSchools', function($query) {
             $query->where('sports_schools.id', auth()->user()->sports_school_id);
         })->with('brand')->orderBy('brand_id')->orderBy('order')->orderBy('size')->get();
+
+        if ($this->isMobile()) {
+            return view('livewire.players.create_mobile', [
+                'activeSeason' => $activeSeason,
+                'sections' => $sections,
+                'teams' => $teams,
+                'availableSizes' => $availableSizes
+            ]);
+        }
+
             
         return view('livewire.players.create', [
             'activeSeason' => $activeSeason,

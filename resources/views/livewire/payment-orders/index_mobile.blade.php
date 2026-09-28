@@ -216,15 +216,15 @@
                     </div>
 
                     {{-- 2. Equipo --}}
-                    <div class="bg-blue-50/70 rounded-2xl p-3 border border-blue-100 flex items-center justify-between">
+                    {{-- <div class="bg-blue-50/70 rounded-2xl p-3 border border-blue-100 flex items-center justify-between">
                         <span class="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider">Equipo Asignado</span>
                         <span class="font-black text-xs text-blue-900 truncate">{{ $player->teams->first()->team ?? 'Sin equipo' }}</span>
-                    </div>
+                    </div> --}}
 
                     {{-- 3. Códigos de Pago --}}
                     @if($player->paymentPlayers->count() > 0)
-                        <div class="space-y-1.5 pt-1">
-                            <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Códigos de Pago</span>
+                        {{-- <div class="space-y-1.5 pt-1">
+                            <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Códigos/Equipo</span>
                             <div class="flex flex-wrap gap-1.5">
                                 @foreach($player->paymentPlayers->sortBy('cuota') as $payment)
                                     <div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 border border-gray-200 rounded-xl text-xs font-mono font-bold text-gray-700">
@@ -234,12 +234,15 @@
                                                 📩 {{ $payment->notification }}
                                             </span>
                                         @endif
-                                        <span class="text-gray-400 text-[10px]">#{{ $payment->id }}</span>
-                                        <span>C{{ $payment->cuota }}: {!! $this->highlightText($payment->code) !!}</span>
+                                        <span class="text-gray-400 text-[10px]">#
+                                          
+
+                                        </span>
+                                        <span>{{ optional(optional($payment->paymentTeam)->team)->team ?? '-' }} - Cuota {{ $payment->cuota }}: {!! $this->highlightText($payment->code) !!}</span>
                                     </div>
                                 @endforeach
                             </div>
-                        </div>
+                        </div> --}}
                     @endif
 
                     {{-- 4. Cuotas de Pago (Badges de Estado) --}}
@@ -269,8 +272,15 @@
                                     @endphp
 
                                     <div class="p-2.5 rounded-2xl border text-xs {{ $bgColor }} space-y-0.5">
+                                         @if($payment->notification > 0)
+                                            <span class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full text-[9px] bg-emerald-100 text-emerald-700 font-extrabold" 
+                                                  title="Notificado {{ $payment->notification }} veces. Última: {{ $payment->dtnotification?->format('d/m/Y H:i') }}">
+                                                📩 {{ $payment->notification }}
+                                            </span>
+                                        @endif
+                                        <p class="text-[10px] font-semibold opacity-75">Cuota {{ $payment->cuota }} •   {{ optional(optional($payment->paymentTeam)->team)->team ?? '-' }}</p>
                                         <div class="flex justify-between items-center font-extrabold">
-                                            <span>Cuota {{ $payment->cuota }} • {{ $statusText }}</span>
+                                            <span>#{{ $payment->code }} • {{ $statusText }}</span>
                                             <span class="font-black text-sm">{{ number_format($payment->amount, 2) }} €</span>
                                         </div>
                                         @if($dateStart && $dateEnd)

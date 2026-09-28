@@ -11,11 +11,9 @@
     {{-- APP HEADER (Fijo arriba) --}}
     <header class="sticky top-0 z-40 bg-white-pure shadow-sm border-b border-gray-100 px-4 py-3.5 flex items-center justify-between">
         <div>
-            <h2 class="font-black text-xl text-titanium leading-tight">
-                Jugadores
-            </h2>
+            
             <p class="text-xs font-bold text-gray-500">
-                <span class="text-primary">{{ $players->total() }}</span> encontrados
+                <span class="text-primary">{{ $players->total() }}</span> jugadores encontrados
             </p>
         </div>
 
@@ -183,14 +181,14 @@
 
                 {{-- Fila Inferior: Acciones --}}
                 <div class="flex items-center gap-2">
-                    <button wire:click="viewPlayer({{ $player->id }})" 
+                    {{-- <button wire:click="viewPlayer({{ $player->id }})" 
                             class="flex-1 py-3 bg-gray-100 text-gray-600 font-bold text-sm rounded-xl active:bg-gray-200 transition-colors flex justify-center items-center gap-1.5">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                         </svg>
                         Ver
-                    </button>
+                    </button> --}}
                     
                     @if($activeSeason && $seasonFilter == $activeSeason->id)
                         <a href="{{ route('players.edit', $player->id) }}" wire:click="saveFilters"
@@ -236,23 +234,23 @@
     </main>
 
     {{-- BOTTOM APP BAR (Acciones globales) --}}
-    <div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-100 p-4 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50">
+    <div class="fixed bottom-0 left-0 right-0 flex flex-col items-center gap-3 bg-white/90 backdrop-blur-md border-t border-gray-100 p-4 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50">
         
-        {{-- MODO BULK ACTION (Si hay jugadores seleccionados) --}}
-        @if(count($selectedPlayers) > 0)
-            <div class="flex items-center gap-3">
+        
+
+        <div class="flex items-center gap-3 w-full">
+            {{-- MODO BULK ACTION (Si hay jugadores seleccionados) --}}
+            @if(count($selectedPlayers) > 0)
                 <button wire:click="confirmTeamChange" 
-                        class="flex-1 py-4 bg-green-600 text-white rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg shadow-green-600/30 flex items-center justify-center gap-2">
+                        class="w-full py-4 bg-green-600 text-white rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg shadow-green-600/30 flex items-center justify-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                     </svg>
                     Cambiar Equipo ({{ count($selectedPlayers) }})
                 </button>
-            </div>
-        
-        {{-- MODO NORMAL (Sin selecciones) --}}
-        @else
-            <div class="flex items-center gap-3">
+            
+            {{-- MODO NORMAL (Sin selecciones) --}}
+            @else
                 <button wire:click="exportExcel" 
                         class="flex-1 py-4 bg-gray-100 text-green-700 rounded-2xl font-bold text-sm active:scale-95 transition-all flex justify-center items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -263,15 +261,22 @@
 
                 @if($activeSeason && $seasonFilter == $activeSeason->id)
                     <a href="{{ route('players.create') }}" 
-                       class="flex-[2] py-4 bg-blue-600 text-white rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg shadow-blue-600/30 flex justify-center items-center gap-2">
+                    class="flex-[2] py-4 bg-blue-600 text-white rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg shadow-blue-600/30 flex justify-center items-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
                         </svg>
                         Nuevo Jugador
                     </a>
                 @endif
-            </div>
-        @endif
+            @endif
+        </div>
+
+        {{-- Título superior opcional (Integrado limpiamente) --}}
+        <div class="text-center mb-3">
+            <h2 class="font-black text-lg text-titanium ">
+                Gestión de Jugadores
+            </h2>
+        </div>
     </div>
 
     {{-- MODALES DEL BACKEND MANTENIDOS INTACTOS (Con estilo base de Tailwind) --}}

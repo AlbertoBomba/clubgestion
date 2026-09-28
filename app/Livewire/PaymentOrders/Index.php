@@ -795,7 +795,7 @@ class Index extends Component
         }
         
         // Cargar los datos de los pagos seleccionados para previsualización
-        $this->paymentsToMarkPreview = PaymentPlayer::with(['player.teams'])
+        $this->paymentsToMarkPreview = PaymentPlayer::with(['player.teams', 'paymentTeam.team.section'])
             ->whereIn('id', $paymentIds)
             ->where('sports_school_id', auth()->user()->sports_school_id)
             ->where('state', 0) // Solo los pendientes
@@ -806,7 +806,7 @@ class Index extends Component
                     'code' => $payment->code,
                     'player_name' => $payment->player ? trim(trim($payment->player->name) . ' ' . trim($payment->player->surname)) : '-',
                     'tutor_name' => $payment->player ? trim(trim($payment->player->nametutor) . ' ' . trim($payment->player->surnametutor)) : '-',
-                    'team' => $payment->player->teams->first()->team ?? '-',
+                    'team' => $payment->paymentTeam->team->section->name ?? '-',
                     'cuota' => $payment->cuota,
                     'amount' => $payment->amount,
                     'descEnt' => $payment->descEnt ?? 0,
@@ -1566,9 +1566,10 @@ class Index extends Component
             }
         };
 
+
         return Player::with([
                 'paymentPlayers' => $paymentPlayersQuery, 
-                'paymentPlayers.paymentTeam', 
+                'paymentPlayers.paymentTeam.team.section', 
                 'teams.category', 
                 'teams.season'
             ])
@@ -1609,7 +1610,7 @@ class Index extends Component
                 });
             })
             ->when($this->teamFilter, function($query) {
-                $query->whereHas('teams', function($q) {
+                $query->whereHas('paymentPlayers.paymentTeam.team', function($q) {
                     $q->where('teams.id', $this->teamFilter);
                 });
             })
@@ -1769,7 +1770,7 @@ class Index extends Component
                     'tutor_name'      => trim(($player->nametutor ?? '') . ' ' . ($player->surnametutor ?? '')),
                     'tutor_dni'       => $player->dnitutor,
                     'phone'           => $player->phone1 ?? $player->phone2 ?? '',
-                    'team'            => $player->teams->first()->team ?? '-',
+                    'team'            => optional(optional($payment->paymentTeam)->team)->team ?? '-',
                     'season'          => $player->teams->first()->season->season ?? '-',
                     'code'            => $payment->code,
                     'cuota'           => 'Cuota ' . $payment->cuota,

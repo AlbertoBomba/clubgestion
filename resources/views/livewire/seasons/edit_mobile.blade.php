@@ -14,9 +14,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
                 </svg>
             </a>
-            <h2 class="font-black text-lg text-titanium truncate max-w-[180px]">
-                {{ $season }}
-            </h2>
+           
         </div>
 
         {{-- Acciones secundarias en cabecera --}}
@@ -39,7 +37,7 @@
         @endif
     </header>
 
-    <div class="p-4 space-y-4">
+    <div class=" ">
 
         {{-- ALERTAS EN PARTE SUPERIOR --}}
         @if($hasChanges)
@@ -245,30 +243,35 @@
     </div>
 
     {{-- BOTTOM APP BAR (Barra de acción principal fija abajo) --}}
-    <div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-100 p-4 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50 flex gap-3">
-        <a href="{{ route('seasons.index') }}" 
-           class="py-4 px-5 bg-gray-100 text-titanium font-bold text-sm rounded-2xl active:scale-95 transition-all text-center flex items-center justify-center">
-            Volver
-        </a>
+    <div class="fixed flex-col items-center bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-100 p-4 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50 flex gap-3">
+        <div class="flex gap-3 w-full">
+            <a href="{{ route('seasons.index') }}" 
+            class="py-4 px-5 bg-gray-100 text-titanium font-bold text-sm rounded-2xl active:scale-95 transition-all text-center flex items-center justify-center">
+                Volver
+            </a>
 
-        @if($isActive)
-            <button type="submit" form="season-form" wire:loading.attr="disabled" wire:target="save"
-                    class="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-black text-base active:scale-95 transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 disabled:opacity-70">
-                <svg wire:loading.remove wire:target="save" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                </svg>
-                <svg wire:loading wire:target="save" class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span wire:loading.remove wire:target="save">Actualizar</span>
-                <span wire:loading wire:target="save">Guardando...</span>
-            </button>
-        @else
-            <button type="button" disabled class="flex-1 py-4 bg-gray-200 text-gray-400 rounded-2xl font-bold text-base cursor-not-allowed text-center">
-                Solo lectura
-            </button>
-        @endif
+            @if($isActive)
+                <button type="submit" form="season-form" wire:loading.attr="disabled" wire:target="save"
+                        class="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-black text-base active:scale-95 transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 disabled:opacity-70">
+                    <svg wire:loading.remove wire:target="save" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <svg wire:loading wire:target="save" class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span wire:loading.remove wire:target="save">Actualizar</span>
+                    <span wire:loading wire:target="save">Guardando...</span>
+                </button>
+            @else
+                <button type="button" disabled class="flex-1 py-4 bg-gray-200 text-gray-400 rounded-2xl font-bold text-base cursor-not-allowed text-center">
+                    Solo lectura
+                </button>
+            @endif
+        </div>
+         <h2 class="font-black text-lg text-titanium truncate max-w-[180px]">
+            {{ $season }}
+        </h2>
     </div>
 
     {{-- Modal de confirmación de eliminación --}}

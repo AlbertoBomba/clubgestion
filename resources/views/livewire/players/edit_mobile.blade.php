@@ -10,9 +10,6 @@
                 </svg>
             </a>
             <div class="min-w-0">
-                <h2 class="font-black text-base text-titanium truncate">
-                    {{ $playerModel->name }} {{ $playerModel->surname }}
-                </h2>
                 <p class="text-[11px] font-bold text-gray-400">
                     Matrícula: <span class="text-primary">#{{ $playerModel->cod_matricula }}</span>
                 </p>
@@ -527,24 +524,31 @@
     </div>
 
     {{-- BOTTOM APP BAR (Fijo abajo con acciones principales) --}}
-    <div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-100 p-4 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50 flex gap-2">
-        <a href="{{ route('players.index') }}" class="py-4 px-4 bg-gray-100 text-titanium font-bold text-sm rounded-2xl active:scale-95 transition-all text-center flex items-center justify-center">
-            Salir
-        </a>
+    <div class="fixed  flex-col items-center bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-100 p-4 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50 flex gap-2">
+        <div class="flex gap-2 w-full">
+            <a href="{{ route('players.index') }}" class="py-4 px-4 bg-gray-100 text-titanium font-bold text-sm rounded-2xl active:scale-95 transition-all text-center flex items-center justify-center">
+                Salir
+            </a>
 
-        <button type="button" wire:click="printPlayerCard" wire:loading.attr="disabled" wire:target="printPlayerCard"
-                class="py-4 px-4 bg-green-50 text-green-700 font-bold text-sm rounded-2xl active:scale-95 transition-all flex justify-center items-center gap-1.5">
-            <svg wire:loading.remove wire:target="printPlayerCard" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-            <span wire:loading.remove wire:target="printPlayerCard">Imprimir</span>
-            <span wire:loading wire:target="printPlayerCard">Generando...</span>
-        </button>
+            <button type="button" wire:click="printPlayerCard" wire:loading.attr="disabled" wire:target="printPlayerCard"
+                    class="py-4 px-4 bg-green-50 text-green-700 font-bold text-sm rounded-2xl active:scale-95 transition-all flex justify-center items-center gap-1.5">
+                <svg wire:loading.remove wire:target="printPlayerCard" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                <span wire:loading.remove wire:target="printPlayerCard">Imprimir</span>
+                <span wire:loading wire:target="printPlayerCard">Generando...</span>
+            </button>
 
-        <button type="submit" form="player-form" wire:loading.attr="disabled" wire:target="save"
-                class="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-black text-base active:scale-95 transition-all shadow-lg shadow-blue-600/30 flex justify-center items-center gap-2">
-            <svg wire:loading.remove wire:target="save" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-            <span wire:loading.remove wire:target="save">Actualizar</span>
-            <span wire:loading wire:target="save">Guardando...</span>
-        </button>
+            <button type="submit" form="player-form" wire:loading.attr="disabled" wire:target="save"
+                    class="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-black text-base active:scale-95 transition-all shadow-lg shadow-blue-600/30 flex justify-center items-center gap-2">
+                <svg wire:loading.remove wire:target="save" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                <span wire:loading.remove wire:target="save">Actualizar</span>
+                <span wire:loading wire:target="save">Guardando...</span>
+            </button>
+        </div>
+
+        <h2 class="font-black text-base text-titanium truncate">
+            {{ $playerModel->name }} {{ $playerModel->surname }}
+        </h2>
+
     </div>
 
     {{-- ASSETS Y SCRIPTS --}}

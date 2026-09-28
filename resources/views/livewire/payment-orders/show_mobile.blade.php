@@ -153,13 +153,13 @@
                                 </div>
 
                                 <div class="text-right">
-                                    <span class="text-[10px] font-bold text-gray-400 block uppercase">Código</span>
-                                    <span class="font-mono font-black text-sm text-titanium">#{!! $payment->id !!} • {{ $payment->code }}</span>
+                                    <span class="text-[10px] font-bold text-gray-400 block uppercase">{{ $payment->paymentTeam->team->section->name ?? '' }} •  {{ optional(optional($payment->paymentTeam)->team)->team ?? '-' }}</span>
+                                    <span class="font-mono font-black text-sm text-titanium">#{{ $payment->code }} </span>
                                     @if($payment->notification > 0)
-                                        <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800 mt-0.5" 
+                                        <p class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800 mt-0.5" 
                                               title="Notificado {{ $payment->notification }} veces. Última: {{ $payment->dtnotification?->format('d/m/Y H:i') }}">
                                             📩 {{ $payment->notification }}
-                                        </span>
+                                        </p>
                                     @endif
                                 </div>
                             </div>

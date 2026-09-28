@@ -32,9 +32,7 @@
 
     {{-- APP HEADER (Fijo arriba) --}}
     <header class="sticky top-0 z-40 bg-white-pure shadow-sm border-b border-gray-100 px-5 py-4 flex items-center justify-between">
-        <h2 class="font-extrabold text-xl text-titanium tracking-tight">
-            {{ __('Temporadas') }}
-        </h2>
+      
         
         {{-- Botón para mostrar/ocultar buscador --}}
         <button @click="showSearch = !showSearch" 
@@ -166,7 +164,7 @@
     </main>
 
     {{-- BOTTOM APP BAR (Fija abajo para acciones principales) --}}
-    <div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-100 p-4 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50">
+    <div class="fixed flex flex-col items-center gap-2 bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-100 p-4 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50">
         <a href="{{ route('seasons.create') }}" 
            class="w-full flex justify-center items-center gap-2 py-4 bg-blue-600 text-white rounded-2xl font-black text-lg active:scale-95 transition-transform shadow-lg shadow-blue-600/30">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,7 +172,11 @@
             </svg>
             Crear Temporada
         </a>
+        <h2 class="font-extrabold text-xl text-titanium tracking-tight">
+            {{ __('Temporadas') }}
+        </h2>
     </div>
+    
 
     {{-- Modal Confirmación (Sin cambios funcionales, adaptado a Tailwind estándar) --}}
     <x-dialog-modal wire:model="confirmingDeletion">
