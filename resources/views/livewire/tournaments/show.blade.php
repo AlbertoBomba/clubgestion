@@ -337,6 +337,12 @@
                                     {{-- Match rows --}}
                                     <div class="bg-white-pure border border-silver rounded-2xl shadow-sm overflow-hidden">
                                         @foreach ($roundMatches as $match)
+                                            @php
+                                                $matchGroup = $match->phase?->type === 'group'
+                                                    ? ($match->homeTeam?->group_label ?? $match->awayTeam?->group_label)
+                                                    : null;
+                                            @endphp
+                                            
                                             <div class="px-5 py-4 border-b last:border-0 transition-colors
                                                 {{ $match->status === 'in_progress'
                                                     ? 'border-green-100 bg-green-50/40 hover:bg-green-50/70'
@@ -345,16 +351,23 @@
                                                 <div class="sm:hidden space-y-2.5">
                                                     {{-- Fila 1: fecha/estado + campo --}}
                                                     <div class="flex items-center justify-between gap-2">
-                                                        @if ($match->status === 'in_progress')
-                                                            <span class="inline-flex items-center gap-1.5 text-[11px] font-black text-white bg-red-500 px-2.5 py-1 rounded-full animate-pulse">
-                                                                <span class="w-1.5 h-1.5 rounded-full bg-white shrink-0"></span>
-                                                                EN VIVO
-                                                            </span>
-                                                        @elseif ($match->scheduled_at)
-                                                            <span class="text-xs font-semibold text-titanium">{{ $match->scheduled_at->translatedFormat('d M · H:i') }}</span>
-                                                        @else
-                                                            <span class="text-xs text-titanium/40">Sin fecha</span>
-                                                        @endif
+                                                        <div class="flex items-center gap-1.5 min-w-0">
+                                                            @if ($match->status === 'in_progress')
+                                                                <span class="inline-flex items-center gap-1.5 text-[11px] font-black text-white bg-red-500 px-2.5 py-1 rounded-full animate-pulse">
+                                                                    <span class="w-1.5 h-1.5 rounded-full bg-white shrink-0"></span>
+                                                                    EN VIVO
+                                                                </span>
+                                                            @elseif ($match->scheduled_at)
+                                                                <span class="text-xs font-semibold text-titanium">{{ $match->scheduled_at->translatedFormat('d M · H:i') }}</span>
+                                                            @else
+                                                                <span class="text-xs text-titanium/40">Sin fecha</span>
+                                                            @endif
+                                                            @if ($matchGroup)
+                                                                <span class="inline-flex items-center gap-1 text-[10px] font-black text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full shrink-0">
+                                                                    Grupo {{ $matchGroup }}
+                                                                </span>
+                                                            @endif
+                                                        </div>
                                                         <div class="flex items-center gap-2">
                                                             @if ($match->location)
                                                                 <span class="text-[11px] text-titanium truncate max-w-[140px]">
@@ -377,6 +390,8 @@
 
                                                     {{-- Fila 2: equipo local · marcador · equipo visitante --}}
                                                     <div class="flex items-center gap-2">
+                                                        
+                                                       
                                                         <p class="flex-1 text-right text-sm font-bold text-black-deep leading-tight truncate">{{ $match->homeTeam?->displayName() ?? '—' }}</p>
                                                         <button wire:click="openGoalsModal({{ $match->id }})"
                                                                 class="shrink-0 w-[72px] py-2 rounded-xl text-center font-black text-base transition-all
@@ -440,9 +455,15 @@
                                                     @endif
                                                     {{-- Teams + score --}}
                                                     <div class="flex items-center gap-3 flex-1 min-w-0">
+                                                         {{-- @dump($match) --}}
+                                                         
                                                         <div class="flex-1 text-right min-w-0">
-                                                            <p class="text-sm font-bold text-black-deep truncate">{{ $match->homeTeam?->displayName() ?? '—' }}</p>
+                                                            <div class="flex gap-2">
+                                                                <img src="{{ asset('storage/' . $match->homeTeam?->logo) }}" alt="{{ $match->homeTeam?->displayName() }}" class="w-8 h-8 rounded-full">
+                                                                <p class="text-sm font-bold text-black-deep truncate">{{ $match->homeTeam?->displayName() ?? '—' }}</p>
+                                                            </div>
                                                         </div>
+                                                        {{-- <img src="{{ asset('storage/' . $match->awayTeam?->logo) }}" alt="{{ $match->awayTeam?->displayName() }}" class="w-8 h-8 rounded-full"> --}}
                                                         <button wire:click="openGoalsModal({{ $match->id }})"
                                                                 class="shrink-0 min-w-[76px] px-3 py-2.5 rounded-xl text-center transition-all font-black text-base
                                                                     {{ $match->status === 'completed'
@@ -464,11 +485,19 @@
                                                             @endif
                                                         </button>
                                                         <div class="flex-1 text-left min-w-0">
-                                                            <p class="text-sm font-bold text-black-deep truncate">{{ $match->awayTeam?->displayName() ?? '—' }}</p>
+                                                            <div class="flex gap-2">
+                                                                <img src="{{ asset('storage/' . $match->awayTeam?->logo) }}" alt="{{ $match->awayTeam?->displayName() }}" class="w-8 h-8 rounded-full">
+                                                                <p class="text-sm font-bold text-black-deep truncate">{{ $match->awayTeam?->displayName() ?? '—' }}</p>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     {{-- Status + Actions --}}
                                                     <div class="flex items-center gap-2 shrink-0">
+                                                        @if ($matchGroup)
+                                                            <span class="inline-flex items-center gap-1 text-xs font-black text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full shrink-0">
+                                                                Grupo {{ $matchGroup }}
+                                                            </span>
+                                                        @endif
                                                         @if ($match->status === 'completed')
                                                             <span class="hidden md:inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full shrink-0">
                                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
@@ -968,7 +997,7 @@
                                     <table class="w-full text-sm">
                                         <thead>
                                             <tr class="border-b border-silver bg-gray-50/60">
-                                                <th class="text-left text-xs font-semibold text-titanium uppercase tracking-wide px-5 py-3 w-12"></th>
+                                                <th class="text-left text-xs font-semibold text-titanium uppercase tracking-wide px-5 py-3 "></th>
                                                 <th class="text-left text-xs font-semibold text-titanium uppercase tracking-wide px-4 py-3">Equipo</th>
                                                 <th class="text-left text-xs font-semibold text-titanium uppercase tracking-wide px-4 py-3 hidden md:table-cell">Contacto</th>
                                                 <th class="text-left text-xs font-semibold text-titanium uppercase tracking-wide px-4 py-3 hidden sm:table-cell">Teléfono</th>
@@ -986,10 +1015,10 @@
                                                     <td class="px-5 py-3">
                                                         @if ($team->logo)
                                                             <img src="{{ asset('storage/' . $team->logo) }}"
-                                                                 class="w-9 h-9 rounded-lg object-cover border border-silver" alt="">
+                                                                 class="w-9 h-9 rounded-lg object-contain   shrink-0" alt="">
                                                         @elseif ($team->team?->logo)
                                                             <img src="{{ Storage::url($team->team->logo) }}"
-                                                                 class="w-9 h-9 rounded-lg object-cover border border-silver" alt="">
+                                                                 class="w-9 h-9 rounded-lg object-contain   shrink-0" alt="">
                                                         @else
                                                             <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                                                                 <span class="text-sm font-black text-primary">{{ mb_strtoupper(mb_substr($team->displayName(), 0, 1)) }}</span>

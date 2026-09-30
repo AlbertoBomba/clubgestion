@@ -59,8 +59,28 @@
                 <div id="sponsors-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     @foreach($sponsors as $sponsor)
                         <div class="sponsor-card bg-white rounded-xl border-2 border-gray-200 hover:border-primary transition-all duration-200 overflow-hidden shadow-sm hover:shadow-lg {{ $currentSeason && $sponsor->season_id === $currentSeason->id ? 'cursor-move' : 'cursor-default' }}"
+
                              data-sponsor-id="{{ $sponsor->id }}"
                              data-season-id="{{ $sponsor->season_id }}">
+                             <div class="p-3">
+                                @php
+                                    $sponsorType = config('constants.sponsors_type.' . $sponsor->type_id);
+                                @endphp
+
+                                @if($sponsorType)
+                                    {{-- ESTADO CON TIPO ASIGNADO (Badge destacado) --}}
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-sm">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>
+                                        {{ $sponsorType }}
+                                    </span>
+                                @else
+                                    {{-- ESTADO SIN TIPO (Badge neutro / atenuado) --}}
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-400 border border-gray-200/60 italic">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0"></span>
+                                        Sin tipo
+                                    </span>
+                                @endif
+                            </div>
                             
                             <!-- Header con número de orden -->
                             <div class="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
@@ -159,8 +179,33 @@
                                         </button>
                                     </div>
                                 @else
-                                    <div class="text-center text-xs text-gray-400 italic py-2">
-                                        Solo editable en temporada actual
+                                    <div class="py-2 flex flex-col items-center gap-2">
+    
+                                        {{-- Alerta centrada: Sponsor caducado con icono parpadeante --}}
+                                        <div class="inline-flex items-center justify-center gap-1.5 px-3 py-1 bg-red-50 border border-red-200/80 rounded-full text-red-600 font-extrabold text-[11px] shadow-sm">
+                                            <svg class="w-4 h-4 text-red-500 animate-pulse shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                            </svg>
+                                            <span>Sponsor caducado</span>
+                                        </div>
+
+                                        {{-- Botón de renovación --}}
+                                        <button wire:click="openRenewModal({{ $sponsor->id }})" 
+                                                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-xs shadow-md shadow-emerald-600/20 active:scale-95 transition-all">
+                                            
+                                            {{-- Icono de Renovación --}}
+                                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                            </svg>
+
+                                            <span>Renueva la</span>
+                                            
+                                            @if(!empty($currentSeason->season))
+                                                <span class="px-2 py-0.5 bg-white/20 rounded-md text-[10px] font-extrabold uppercase">
+                                                    {{ $currentSeason->season }}
+                                                </span>
+                                            @endif
+                                        </button>
                                     </div>
                                 @endif
                             </div>
@@ -177,10 +222,36 @@
             @endif
         </div>
 
-        @if($sponsors->hasPages())
+        {{-- @if($sponsors->hasPages())
             <div class="px-6 py-4 border-t border-silver/30">{{ $sponsors->links() }}</div>
-        @endif
+        @endif --}}
     </div>
+
+    <!-- Modal de Renovación -->
+    @if($showRenewModal)
+        <div class="fixed inset-0 bg-black-deep bg-opacity-50 overflow-y-auto h-full w-full z-50" x-data="{ show: @entangle('showRenewModal') }" x-show="show" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+            <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-2xl bg-white-pure" @click.away="$wire.showRenewModal = false">
+                <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                    <h3 class="text-2xl font-bold text-titanium">
+                        Renovar Patrocinador
+                    </h3>
+                    <button wire:click="$set('showRenewModal', false)" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="p-6">
+                    <p class="text-lg">¿Estás seguro de que deseas renovar el patrocinador "{{ $sponsorToRenew->name ?? '' }}" para la temporada actual?</p>
+                    <div class="mt-4 flex justify-end space-x-2">
+                        <button wire:click="$set('showRenewModal', false)" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg">Cancelar</button>
+                        <button wire:click="renew({{ $sponsorToRenew->id ?? '' }})" class="px-4 py-2 bg-primary text-white rounded-lg">Renovar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 
     <!-- Modal de Creación/Edición -->
     @if($showModal)
@@ -200,26 +271,41 @@
                 <form wire:submit.prevent="save" class="p-6">
                     <div class="space-y-6">
                         <!-- Nombre -->
-                        <div>
-                            <label for="name" class="block text-sm font-semibold text-titanium mb-2">Nombre del Patrocinador *</label>
-                            <input wire:model="name" type="text" id="name" class="w-full px-4 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Ej: Empresa ABC">
-                            @error('name') <span class="text-red-600 text-xs mt-1">{{ $message }}</span> @enderror
+                        <label for="name" class="block text-sm font-semibold text-titanium mb-2">Nombre del Patrocinador *</label>
+                        <input wire:model="name" type="text" id="name" class="w-full px-4 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Ej: Empresa ABC">
+                        @error('name') <span class="text-red-600 text-xs mt-1">{{ $message }}</span> @enderror
+
+                        <div class="flex flex-wrap ">
+                            <div class="p-3">
+                                 <!-- Temporada (solo informativo) -->
+                                <div>
+                                    <label class="block text-sm font-semibold text-titanium mb-2">Temporada</label>
+                                    @if($currentSeason)
+                                        <div class="w-full px-4 py-3 border border-silver rounded-xl bg-gray-50">
+                                            <span class="text-titanium font-medium">{{ $currentSeason->from_year }}/{{ $currentSeason->to_year }}</span>
+                                            <span class="text-xs text-gray-500 ml-2">(Temporada en curso)</span>
+                                        </div>
+                                    @else
+                                        <div class="w-full px-4 py-3 border border-red-300 rounded-xl bg-red-50">
+                                            <span class="text-red-600 text-sm">⚠️ No hay una temporada en curso activa</span>
+                                        </div>
+                                    @endif
+                                </div>
+                               
+                            </div>
+                            <div class="p-3">
+                                <label for="type" class="block text-sm font-semibold text-titanium mb-2">Tipo de Patrocinador *</label>
+                                <select wire:model="type_id" id="type" class="w-full px-4 py-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                    <option value="">Saleccionar</option>
+                                    @foreach(config('constants.sponsors_type') as $key => $value)
+                                        <option value="{{ $key }}"> {{ $value }}</option>
+                                    @endforeach
+                                </select>
+                                @error('type_id') <span class="text-red-600 text-xs mt-1">{{ $message }}</span> @enderror
+                            </div>
                         </div>
 
-                        <!-- Temporada (solo informativo) -->
-                        <div>
-                            <label class="block text-sm font-semibold text-titanium mb-2">Temporada</label>
-                            @if($currentSeason)
-                                <div class="w-full px-4 py-3 border border-silver rounded-xl bg-gray-50">
-                                    <span class="text-titanium font-medium">{{ $currentSeason->from_year }}/{{ $currentSeason->to_year }}</span>
-                                    <span class="text-xs text-gray-500 ml-2">(Temporada en curso)</span>
-                                </div>
-                            @else
-                                <div class="w-full px-4 py-3 border border-red-300 rounded-xl bg-red-50">
-                                    <span class="text-red-600 text-sm">⚠️ No hay una temporada en curso activa</span>
-                                </div>
-                            @endif
-                        </div>
+                       
 
                         <!-- Logo -->
                         <div>

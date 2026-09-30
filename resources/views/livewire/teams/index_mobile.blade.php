@@ -18,9 +18,7 @@
     {{-- APP HEADER (Fijo arriba) --}}
     <header class="sticky top-0 z-40 bg-white-pure shadow-sm border-b border-gray-100 px-4 py-3.5 flex items-center justify-between">
         <div>
-            <h2 class="font-black text-xl text-titanium leading-tight">
-                Equipos
-            </h2>
+          
             <p class="text-xs font-bold text-gray-500">
                 <span class="text-primary">{{ $teams->total() }}</span> {{ $teams->total() === 1 ? 'equipo encontrado' : 'equipos encontrados' }}
             </p>
@@ -226,32 +224,38 @@
     </main>
 
     {{-- BOTTOM APP BAR (Fijo Abajo) --}}
-    <div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-100 p-4 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50 flex gap-3">
-        <button wire:click="exportExcel" wire:loading.attr="disabled" wire:target="exportExcel"
-                class="py-4 px-5 bg-gray-100 text-green-700 font-bold text-sm rounded-2xl active:scale-95 transition-all flex justify-center items-center gap-2">
-            <svg wire:loading.remove wire:target="exportExcel" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-            </svg>
-            <svg wire:loading wire:target="exportExcel" class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span wire:loading.remove wire:target="exportExcel">Excel</span>
-            <span wire:loading wire:target="exportExcel">Exportando...</span>
-        </button>
+    <div class="fixed bottom-0 flex-col items-center  left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-100 p-4 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50 flex gap-3">
+        <div class="flex gap-2 w-full">
+            <button wire:click="exportExcel" wire:loading.attr="disabled" wire:target="exportExcel"
+                    class="py-4 px-5 bg-gray-100 text-green-700 font-bold text-sm rounded-2xl active:scale-95 transition-all flex justify-center items-center gap-2">
+                <svg wire:loading.remove wire:target="exportExcel" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                <svg wire:loading wire:target="exportExcel" class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span wire:loading.remove wire:target="exportExcel">Excel</span>
+                <span wire:loading wire:target="exportExcel">Exportando...</span>
+            </button>
 
-        <button wire:click="openCreateModal" wire:loading.attr="disabled" wire:target="openCreateModal"
-                class="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-black text-base active:scale-95 transition-all shadow-lg shadow-blue-600/30 flex justify-center items-center gap-2">
-            <svg wire:loading.remove wire:target="openCreateModal" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
-            </svg>
-            <svg wire:loading wire:target="openCreateModal" class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span wire:loading.remove wire:target="openCreateModal">Nuevo Equipo</span>
-            <span wire:loading wire:target="openCreateModal">Cargando...</span>
-        </button>
+            <button wire:click="openCreateModal" wire:loading.attr="disabled" wire:target="openCreateModal"
+                    class="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-black text-base active:scale-95 transition-all shadow-lg shadow-blue-600/30 flex justify-center items-center gap-2">
+                <svg wire:loading.remove wire:target="openCreateModal" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                </svg>
+                <svg wire:loading wire:target="openCreateModal" class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span wire:loading.remove wire:target="openCreateModal">Nuevo Equipo</span>
+                <span wire:loading wire:target="openCreateModal">Cargando...</span>
+            </button>
+        </div>
+
+        <h2 class="font-black text-xl text-titanium leading-tight">
+            Equipos
+        </h2>
     </div>
 
     {{-- MODAL CREACIÓN / EDICIÓN --}}

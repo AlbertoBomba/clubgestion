@@ -8,10 +8,11 @@ use Livewire\WithFileUploads;
 use App\Models\Sponsor;
 use App\Models\Season;
 use Illuminate\Support\Facades\Storage;
+use App\Traits\DetectsDevice;
 
 class Index extends Component
 {
-    use WithPagination, WithFileUploads;
+    use WithPagination, WithFileUploads, DetectsDevice;
 
     public $search = '';
     public $confirmingDeletion = false;
@@ -22,16 +23,22 @@ class Index extends Component
     public $editMode = false;
     public $sponsorId;
     public $name;
+    public $type_id;
     public $logo;
     public $existingLogo;
     public $web;
     public $published = false;
 
+    // Propiedades para el modal renovar sponsor
+    public $showRenewModal = false;
+    public $sponsorToRenew = null;
+
     protected $queryString = ['search'];
 
     protected $rules = [
         'name' => 'required|string|max:255',
-        'logo' => 'nullable|image|max:2048',
+        'type_id' => 'required',
+        'logo' => 'nullable|image|max:5120',
         'web' => 'nullable|url|max:255',
         'published' => 'boolean',
     ];
@@ -40,8 +47,34 @@ class Index extends Component
         'name.required' => 'El nombre del patrocinador es obligatorio.',
         'logo.image' => 'El archivo debe ser una imagen.',
         'logo.max' => 'La imagen no puede superar los 2MB.',
+        'type_id.required' => 'El tipo de patrocinador es obligatorio.',
         'web.url' => 'La URL debe ser válida.',
     ];
+
+    public function openRenewModal($sponsorId)
+    {
+        $this->sponsorToRenew = Sponsor::findOrFail($sponsorId);
+        $this->showRenewModal = true;
+    }
+    public function renew($sponsorId)
+    {
+        $sponsor = Sponsor::findOrFail($sponsorId);
+
+        if ($sponsor->sports_school_id !== auth()->user()->sports_school_id) {
+            session()->flash('error', 'No tienes permiso para renovar este patrocinador.');
+            return;
+        }
+
+        $currentSeason = Season::forSchool(auth()->user()->sports_school_id)->current()->first();
+        if (!$currentSeason) {
+            session()->flash('error', 'No hay una temporada en curso activa.');
+            return;
+        }
+
+        $sponsor->update(['season_id' => $currentSeason->id]);
+        session()->flash('message', 'Patrocinador renovado correctamente.');
+        $this->showRenewModal = false;
+    }
 
     public function updatingSearch()
     {
@@ -75,6 +108,7 @@ class Index extends Component
         $this->editMode = true;
         $this->sponsorId = $sponsor->id;
         $this->name = $sponsor->name;
+        $this->type_id = $sponsor->type_id;
         $this->existingLogo = $sponsor->logo;
         $this->web = $sponsor->web;
         $this->published = $sponsor->published;
@@ -98,6 +132,7 @@ class Index extends Component
         $data = [
             'sports_school_id' => auth()->user()->sports_school_id,
             'name' => $this->name,
+            'type_id' => $this->type_id,
             'web' => $this->web,
             'season_id' => $currentSeason->id,
             'published' => $this->published,
@@ -250,11 +285,18 @@ class Index extends Component
             })
             ->orderBy('order', 'asc')
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->get();
 
         $currentSeason = Season::forSchool(auth()->user()->sports_school_id)
             ->current()
             ->first();
+
+        if ($this->isMobile()) {
+            return view('livewire.sponsors.index_mobile', [
+                'sponsors' => $sponsors,
+                'currentSeason' => $currentSeason,
+            ]);
+        }
 
         return view('livewire.sponsors.index', [
             'sponsors' => $sponsors,

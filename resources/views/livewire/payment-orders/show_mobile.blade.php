@@ -11,12 +11,10 @@
                 </svg>
             </a>
             <div class="min-w-0">
-                <h2 class="font-black text-base text-titanium truncate leading-tight">
-                    Cartas de Pago
-                </h2>
-                <p class="text-[11px] font-bold text-gray-400 truncate">
+                
+                {{-- <p class="text-[11px] font-bold text-gray-400 truncate">
                     {{ $player->name }} {{ $player->surname }}
-                </p>
+                </p> --}}
             </div>
         </div>
 
@@ -297,12 +295,16 @@
     </div>
 
     {{-- BOTTOM APP BAR (Fijo Abajo) --}}
-    <div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-100 p-4 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50 flex gap-2">
+    <div class="fixed bottom-0  flex-col items-center  left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-100 p-4 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50 flex gap-2">
         <a href="{{ route('pay-orders.index') }}" 
            class="w-full py-4 bg-gray-100 text-titanium font-black text-sm rounded-2xl active:scale-95 transition-all text-center flex items-center justify-center gap-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
             <span>Volver a Cartas de Pago</span>
         </a>
+
+        <h2 class="font-black text-base text-titanium truncate leading-tight">
+            Cartas de Pago de {{ $player->name }} {{ $player->surname }}
+        </h2>
     </div>
 
     {{-- Modal: seleccionar forma de pago al marcar como Pagado --}}

@@ -14,6 +14,7 @@ class Sponsor extends Model
         'sports_school_id',
         'season_id',
         'name',
+        'type_id',  
         'logo',
         'web',
         'published',

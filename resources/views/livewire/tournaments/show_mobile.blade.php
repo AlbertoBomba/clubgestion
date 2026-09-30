@@ -158,19 +158,31 @@
                                     </h4>
                                     
                                     @foreach ($roundMatches as $match)
+                                        @php
+                                            $matchGroup = $match->phase?->type === 'group'
+                                                ? ($match->homeTeam?->group_label ?? $match->awayTeam?->group_label)
+                                                : null;
+                                        @endphp
                                         <article class="bg-white-pure rounded-2xl p-4 shadow-sm border {{ $match->status === 'in_progress' ? 'border-red-200 bg-red-50/10' : 'border-gray-100' }} relative">
                                             
                                             {{-- Fecha y Lugar --}}
                                             <div class="flex justify-between items-center mb-3">
-                                                @if ($match->status === 'in_progress')
-                                                    <span class="inline-flex items-center gap-1.5 text-[10px] font-black text-red-600 bg-red-100 px-2 py-0.5 rounded-full animate-pulse">
-                                                        <span class="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span> EN VIVO
-                                                    </span>
-                                                @elseif ($match->scheduled_at)
-                                                    <span class="text-[10px] font-bold text-gray-500">{{ $match->scheduled_at->format('d/m · H:i') }}</span>
-                                                @else
-                                                    <span class="text-[10px] font-bold text-gray-400 italic">Por definir</span>
-                                                @endif
+                                                <div class="flex items-center gap-1.5 min-w-0">
+                                                    @if ($match->status === 'in_progress')
+                                                        <span class="inline-flex items-center gap-1.5 text-[10px] font-black text-red-600 bg-red-100 px-2 py-0.5 rounded-full animate-pulse">
+                                                            <span class="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span> EN VIVO
+                                                        </span>
+                                                    @elseif ($match->scheduled_at)
+                                                        <span class="text-[10px] font-bold text-gray-500">{{ $match->scheduled_at->format('d/m · H:i') }}</span>
+                                                    @else
+                                                        <span class="text-[10px] font-bold text-gray-400 italic">Por definir</span>
+                                                    @endif
+                                                    @if ($matchGroup)
+                                                        <span class="inline-flex items-center gap-1 text-[10px] font-black text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full shrink-0">
+                                                            Grupo {{ $matchGroup }}
+                                                        </span>
+                                                    @endif
+                                                </div>
 
                                                 @if ($match->location)
                                                     <span class="text-[10px] font-semibold text-gray-400 truncate max-w-[120px]">{{ $match->location }}</span>
@@ -441,7 +453,7 @@
                     <span class="text-black-deep">{{ $teams->count() }}</span> equipos
                 </p>
                 <button wire:click="openCreateTeamModal" class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl shadow-sm active:scale-95 transition-all">
-                    + Añadir Equipo
+                    + Inscribir equipo
                 </button>
             </div>
 
@@ -499,7 +511,7 @@
                             <div class="flex items-center gap-2 pt-2 border-t border-gray-50">
                                 <a href="{{ route('tournament.team.players', [$tournament, $team]) }}" 
                                    class="flex-[3] py-2.5 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-xl active:scale-95 transition-all text-center">
-                                    Ver Plantilla
+                                    Añadir jugadores
                                 </a>
                                 <button wire:click="openEditTeamModal({{ $team->id }})" class="flex-1 py-2.5 bg-gray-50 text-gray-600 rounded-xl active:scale-95 flex items-center justify-center">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>

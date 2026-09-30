@@ -25,9 +25,7 @@
                 </svg>
             </a>
             <div class="min-w-0">
-                <h2 class="font-black text-base text-titanium truncate leading-tight">
-                    {{ $teamName }}
-                </h2>
+               
                 <p class="text-[11px] font-bold text-gray-400">
                     Edición de equipo
                 </p>
@@ -373,29 +371,34 @@
     </div>
 
     {{-- BOTTOM APP BAR (Acciones globales fijas abajo) --}}
-    <div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-100 p-4 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50 flex gap-2">
-        <a href="{{ route('teams.index') }}" 
-           class="py-4 px-4 bg-gray-100 text-titanium font-bold text-sm rounded-2xl active:scale-95 transition-all text-center flex items-center justify-center">
-            Salir
-        </a>
+    <div class="fixed bottom-0  flex-col items-center  left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-100 p-4 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50 flex gap-2">
+        <div class="flex gap-2 w-full">
+            <a href="{{ route('teams.index') }}" 
+            class="py-4 px-4 bg-gray-100 text-titanium font-bold text-sm rounded-2xl active:scale-95 transition-all text-center flex items-center justify-center">
+                Salir
+            </a>
 
-        @if($team->payments_count > 0 || $team->players->count() > 0)
-            <button disabled class="py-4 px-4 bg-gray-200 text-gray-400 font-bold text-sm rounded-2xl cursor-not-allowed text-center" title="No se puede eliminar con jugadores o pagos">
-                Eliminar
-            </button>
-        @else
-            <button wire:click="confirmDelete" wire:loading.attr="disabled"
-                    class="py-4 px-4 bg-red-50 text-red-600 font-bold text-sm rounded-2xl active:scale-95 transition-all text-center">
-                Eliminar
-            </button>
-        @endif
+            @if($team->payments_count > 0 || $team->players->count() > 0)
+                <button disabled class="py-4 px-4 bg-gray-200 text-gray-400 font-bold text-sm rounded-2xl cursor-not-allowed text-center" title="No se puede eliminar con jugadores o pagos">
+                    Eliminar
+                </button>
+            @else
+                <button wire:click="confirmDelete" wire:loading.attr="disabled"
+                        class="py-4 px-4 bg-red-50 text-red-600 font-bold text-sm rounded-2xl active:scale-95 transition-all text-center">
+                    Eliminar
+                </button>
+            @endif
 
-        <button type="submit" form="team-form" wire:loading.attr="disabled" wire:target="save"
-                class="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-black text-base active:scale-95 transition-all shadow-lg shadow-blue-600/30 flex justify-center items-center gap-2">
-            <svg wire:loading.remove wire:target="save" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-            <span wire:loading.remove wire:target="save">Actualizar</span>
-            <span wire:loading wire:target="save">Guardando...</span>
-        </button>
+            <button type="submit" form="team-form" wire:loading.attr="disabled" wire:target="save"
+                    class="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-black text-base active:scale-95 transition-all shadow-lg shadow-blue-600/30 flex justify-center items-center gap-2">
+                <svg wire:loading.remove wire:target="save" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                <span wire:loading.remove wire:target="save">Actualizar</span>
+                <span wire:loading wire:target="save">Guardando...</span>
+            </button>
+        </div>
+         <h2 class="font-black text-base text-titanium truncate leading-tight">
+            {{ $teamName }}
+        </h2>
     </div>
 
     {{-- ============================================================== --}}

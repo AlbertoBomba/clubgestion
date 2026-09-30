@@ -374,8 +374,8 @@ class Show extends Component
             'team_logo_upload'  => 'nullable|image|max:2048',
             'team_contact_name' => 'nullable|string|max:255',
             'team_contact_phone'=> 'nullable|string|max:50',
-            'team_email'        => $isOpen ? 'required|email|max:255' : 'nullable|email|max:255',
-            'team_password'     => $this->editingTeamId ? 'nullable|string|min:6|max:100' : ($isOpen ? 'required|string|min:6|max:100' : 'nullable|string|min:6|max:100'),
+            'team_email'        => $isOpen ? 'email|max:255' : 'nullable|email|max:255',
+            'team_password'     => $this->editingTeamId ? 'nullable|string|min:6|max:100' : ($isOpen ? 'string|min:6|max:100' : 'nullable|string|min:6|max:100'),
             'team_seed'         => 'nullable|integer|min:1',
             'team_group'        => 'nullable|string|max:50',
         ]);
@@ -692,25 +692,41 @@ class Show extends Component
                 $count++;
             }
         } elseif ($phase->type === 'group') {
-            // Round-robin completo de todos los equipos juntos (berger).
-            // El group_label de cada equipo se usa para la clasificación pero
-            // no limita los enfrentamientos del calendario.
-            $rounds = $this->buildRoundRobin($teams->all(), $legs);
-            foreach ($rounds as $round => $pairs) {
-                foreach ($pairs as [$home, $away]) {
-                    $matchNumber++;
-                    TournamentMatch::create([
-                        'tournament_id'          => $this->tournament->id,
-                        'tournament_category_id' => $categoryId,
-                        'phase_id'               => $phase->id,
-                        'home_team_id'           => $home->id,
-                        'away_team_id'           => $away->id,
-                        'round'                  => $round,
-                        'match_number'           => $matchNumber,
-                        'status'                 => 'scheduled',
-                        'created_user'           => $user,
-                    ]);
-                    $count++;
+            // Fase de grupos: sólo se enfrentan equipos del mismo group_label.
+            $ungrouped = $teams->filter(fn($t) => blank($t->group_label));
+            if ($ungrouped->isNotEmpty()) {
+                session()->flash('error', 'Todos los equipos deben tener un grupo asignado antes de generar los partidos de la fase de grupos.');
+                $this->showGenerateModal = false;
+                return;
+            }
+
+            $groups = $teams->groupBy(fn($t) => (string) $t->group_label)->sortKeys();
+
+            $validGroups = $groups->filter(fn($g) => $g->count() >= 2);
+            if ($validGroups->isEmpty()) {
+                session()->flash('error', 'Cada grupo necesita al menos 2 equipos para generar partidos.');
+                $this->showGenerateModal = false;
+                return;
+            }
+
+            foreach ($validGroups as $groupLabel => $groupTeams) {
+                $rounds = $this->buildRoundRobin($groupTeams->values()->all(), $legs);
+                foreach ($rounds as $round => $pairs) {
+                    foreach ($pairs as [$home, $away]) {
+                        $matchNumber++;
+                        TournamentMatch::create([
+                            'tournament_id'          => $this->tournament->id,
+                            'tournament_category_id' => $categoryId,
+                            'phase_id'               => $phase->id,
+                            'home_team_id'           => $home->id,
+                            'away_team_id'           => $away->id,
+                            'round'                  => $round,
+                            'match_number'           => $matchNumber,
+                            'status'                 => 'scheduled',
+                            'created_user'           => $user,
+                        ]);
+                        $count++;
+                    }
                 }
             }
         } else {
@@ -737,10 +753,18 @@ class Show extends Component
 
         $this->showGenerateModal = false;
         $this->tournament->refresh();
-        $teamCount  = $teams->count();
-        $n          = $teamCount % 2 === 0 ? $teamCount : $teamCount + 1;
-        $roundCount = ($n - 1) * $legs;
-        session()->flash('message', "{$count} partidos generados en {$roundCount} jornadas ({$teamCount} equipos).");
+        $teamCount = $teams->count();
+        if ($phase->type === 'group') {
+            $groupCount = $teams->filter(fn($t) => filled($t->group_label))
+                ->groupBy(fn($t) => (string) $t->group_label)
+                ->filter(fn($g) => $g->count() >= 2)
+                ->count();
+            session()->flash('message', "{$count} partidos generados en {$groupCount} grupos ({$teamCount} equipos).");
+        } else {
+            $n          = $teamCount % 2 === 0 ? $teamCount : $teamCount + 1;
+            $roundCount = ($n - 1) * $legs;
+            session()->flash('message', "{$count} partidos generados en {$roundCount} jornadas ({$teamCount} equipos).");
+        }
     }
 
     /**
@@ -810,22 +834,27 @@ class Show extends Component
         foreach ($phases as $phase) {
 
             if($this->tournament->team_type === 'open'){
-                $teamIds = TournamentTeam::where('tournament_id', $this->tournament->id)
-                ->pluck('id');
+                $phaseTeams = TournamentTeam::where('tournament_id', $this->tournament->id)
+                    ->get(['id', 'group_label']);
             } elseif($this->tournament->team_type === 'school_teams') {
-                $teamIds = TournamentTeam::where('tournament_category_id', $phase->tournament_category_id)
-                ->pluck('id');
+                $phaseTeams = TournamentTeam::where('tournament_category_id', $phase->tournament_category_id)
+                    ->get(['id', 'group_label']);
+            } else {
+                $phaseTeams = collect();
             }
-            
+
+            $isGroupPhase = $phase->type === 'group';
+            $teamGroupMap = $phaseTeams->pluck('group_label', 'id')->all();
+
             // dd($phase->id);
             TournamentStanding::where('phase_id', $phase->id)->delete();
 
             $stats = [];
-            foreach ($teamIds as $ttId) {
-                $stats[$ttId] = [
+            foreach ($phaseTeams as $tt) {
+                $stats[$tt->id] = [
                     'played' => 0, 'won' => 0, 'drawn' => 0, 'lost' => 0,
                     'goals_for' => 0, 'goals_against' => 0, 'points' => 0,
-                    'group_label' => null,
+                    'group_label' => $isGroupPhase ? ($tt->group_label ?: null) : null,
                 ];
             }
 
@@ -843,10 +872,12 @@ class Show extends Component
                 $a = $match->away_team_id;
 
                 if (! isset($stats[$h])) {
-                    $stats[$h] = ['played'=>0,'won'=>0,'drawn'=>0,'lost'=>0,'goals_for'=>0,'goals_against'=>0,'points'=>0,'group_label'=>null];
+                    $stats[$h] = ['played'=>0,'won'=>0,'drawn'=>0,'lost'=>0,'goals_for'=>0,'goals_against'=>0,'points'=>0,
+                        'group_label' => $isGroupPhase ? ($teamGroupMap[$h] ?? null) : null];
                 }
                 if (! isset($stats[$a])) {
-                    $stats[$a] = ['played'=>0,'won'=>0,'drawn'=>0,'lost'=>0,'goals_for'=>0,'goals_against'=>0,'points'=>0,'group_label'=>null];
+                    $stats[$a] = ['played'=>0,'won'=>0,'drawn'=>0,'lost'=>0,'goals_for'=>0,'goals_against'=>0,'points'=>0,
+                        'group_label' => $isGroupPhase ? ($teamGroupMap[$a] ?? null) : null];
                 }
 
                 $hScore = $match->home_score;
@@ -873,32 +904,63 @@ class Show extends Component
 
             // dd($stats);
 
-            uasort($stats, function ($a, $b) {
+            $sorter = function ($a, $b) {
                 if ($b['points'] !== $a['points']) return $b['points'] <=> $a['points'];
                 $gdA = $a['goals_for'] - $a['goals_against'];
                 $gdB = $b['goals_for'] - $b['goals_against'];
                 if ($gdB !== $gdA) return $gdB <=> $gdA;
                 return $b['goals_for'] <=> $a['goals_for'];
-            });
+            };
 
-
-            $position = 1;
-            foreach ($stats as $ttId => $row) {
-                TournamentStanding::create([
-                    'tournament_id'          => $this->tournament->id,
-                    'tournament_category_id' => $phase->tournament_category_id,
-                    'phase_id'               => $phase->id,
-                    'tournament_team_id'     => $ttId,
-                    'group_label'        => $row['group_label'],
-                    'played'             => $row['played'],
-                    'won'                => $row['won'],
-                    'drawn'              => $row['drawn'],
-                    'lost'               => $row['lost'],
-                    'goals_for'          => $row['goals_for'],
-                    'goals_against'      => $row['goals_against'],
-                    'points'             => $row['points'],
-                    'position'           => $position++,
-                ]);
+            if ($isGroupPhase) {
+                // Rankear posiciones dentro de cada grupo (1..n por grupo).
+                $byGroup = [];
+                foreach ($stats as $ttId => $row) {
+                    $key = $row['group_label'] ?? '';
+                    $byGroup[$key][$ttId] = $row;
+                }
+                ksort($byGroup);
+                foreach ($byGroup as $groupKey => $groupStats) {
+                    uasort($groupStats, $sorter);
+                    $position = 1;
+                    foreach ($groupStats as $ttId => $row) {
+                        TournamentStanding::create([
+                            'tournament_id'          => $this->tournament->id,
+                            'tournament_category_id' => $phase->tournament_category_id,
+                            'phase_id'               => $phase->id,
+                            'tournament_team_id'     => $ttId,
+                            'group_label'            => $row['group_label'],
+                            'played'                 => $row['played'],
+                            'won'                    => $row['won'],
+                            'drawn'                  => $row['drawn'],
+                            'lost'                   => $row['lost'],
+                            'goals_for'              => $row['goals_for'],
+                            'goals_against'          => $row['goals_against'],
+                            'points'                 => $row['points'],
+                            'position'               => $position++,
+                        ]);
+                    }
+                }
+            } else {
+                uasort($stats, $sorter);
+                $position = 1;
+                foreach ($stats as $ttId => $row) {
+                    TournamentStanding::create([
+                        'tournament_id'          => $this->tournament->id,
+                        'tournament_category_id' => $phase->tournament_category_id,
+                        'phase_id'               => $phase->id,
+                        'tournament_team_id'     => $ttId,
+                        'group_label'            => $row['group_label'],
+                        'played'                 => $row['played'],
+                        'won'                    => $row['won'],
+                        'drawn'                  => $row['drawn'],
+                        'lost'                   => $row['lost'],
+                        'goals_for'              => $row['goals_for'],
+                        'goals_against'          => $row['goals_against'],
+                        'points'                 => $row['points'],
+                        'position'               => $position++,
+                    ]);
+                }
             }
         }
 
@@ -1627,22 +1689,22 @@ class Show extends Component
 
         if ($this->isMobile()) {
             //en desarrollo la parte mobile
-        //    return view('livewire.tournaments.show_mobile', compact(
-        //         'categories', 'activeCategory',
-        //         'phases', 'teams', 'matches', 'standings', 'hasLeaguePhase',
-        //         'schoolTeams', 'schoolCategories',
-        //         'goalsModalMatch', 'goalsForModal', 'gmCardsForModal', 'gmTeamPlayers', 'gmMatchTeams', 'gmAllPlayers',
-        //         'availableReferees', 'assignedReferees',
-        //         'hasKnockoutPhase', 'bracketData', 'bracketModalTeams', 'bracketModalStandings'
-        //     ));
-         return view('livewire.tournaments.show', compact(
-            'categories', 'activeCategory',
-            'phases', 'teams', 'matches', 'standings', 'hasLeaguePhase',
-            'schoolTeams', 'schoolCategories',
-            'goalsModalMatch', 'goalsForModal', 'gmCardsForModal', 'gmTeamPlayers', 'gmMatchTeams', 'gmAllPlayers',
-            'availableReferees', 'assignedReferees',
-            'hasKnockoutPhase', 'bracketData', 'bracketModalTeams', 'bracketModalStandings'
-        ));
+           return view('livewire.tournaments.show_mobile', compact(
+                'categories', 'activeCategory',
+                'phases', 'teams', 'matches', 'standings', 'hasLeaguePhase',
+                'schoolTeams', 'schoolCategories',
+                'goalsModalMatch', 'goalsForModal', 'gmCardsForModal', 'gmTeamPlayers', 'gmMatchTeams', 'gmAllPlayers',
+                'availableReferees', 'assignedReferees',
+                'hasKnockoutPhase', 'bracketData', 'bracketModalTeams', 'bracketModalStandings'
+            ));
+        //  return view('livewire.tournaments.show', compact(
+        //     'categories', 'activeCategory',
+        //     'phases', 'teams', 'matches', 'standings', 'hasLeaguePhase',
+        //     'schoolTeams', 'schoolCategories',
+        //     'goalsModalMatch', 'goalsForModal', 'gmCardsForModal', 'gmTeamPlayers', 'gmMatchTeams', 'gmAllPlayers',
+        //     'availableReferees', 'assignedReferees',
+        //     'hasKnockoutPhase', 'bracketData', 'bracketModalTeams', 'bracketModalStandings'
+        // ));
         }
 
         return view('livewire.tournaments.show', compact(

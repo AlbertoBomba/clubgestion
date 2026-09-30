@@ -62,9 +62,7 @@
     {{-- APP HEADER (Fijo arriba) --}}
     <header class="sticky top-0 z-40 bg-white-pure shadow-sm border-b border-gray-100 px-4 py-3.5 flex items-center justify-between">
         <div>
-            <h2 class="font-black text-xl text-titanium leading-tight">
-                Gestión de Cuotas
-            </h2>
+           
             <p class="text-xs font-bold text-gray-500">
                 <span class="text-primary">{{ collect($teams)->count() }}</span> equipos encontrados
             </p>
@@ -345,28 +343,33 @@
     </main>
 
     {{-- BOTTOM APP BAR (Fijo Abajo) --}}
-    <div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-100 p-4 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50 flex gap-2">
-        <button wire:click="printPayments" wire:loading.attr="disabled" class="py-4 px-4 bg-gray-100 text-titanium font-bold text-sm rounded-2xl active:scale-95 transition-all text-center flex justify-center items-center">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-        </button>
-
-        @if(count($selectedTeamsToDelete) > 0)
-            <button wire:click="openDeleteModal" wire:loading.attr="disabled" class="flex-[2] py-4 bg-red-600 text-white rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex justify-center items-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                Borrar Seleccionados
+    <div class="fixed bottom-0 items-center flex-col left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-100 p-4 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50 flex gap-2">
+        <div class="flex gap-2 w-full">
+            <button wire:click="printPayments" wire:loading.attr="disabled" class="py-4 px-4 bg-gray-100 text-titanium font-bold text-sm rounded-2xl active:scale-95 transition-all text-center flex justify-center items-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
             </button>
-        @else
-            @if($isActiveSeason)
-                <button wire:click="openGenerateModal" wire:loading.attr="disabled" class="flex-[2] py-4 bg-primary text-white rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg shadow-primary/30 flex justify-center items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                    Generar Cuotas
+
+            @if(count($selectedTeamsToDelete) > 0)
+                <button wire:click="openDeleteModal" wire:loading.attr="disabled" class="flex-[2] py-4 bg-red-600 text-white rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex justify-center items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    Borrar Seleccionados
                 </button>
             @else
-                <button disabled class="flex-[2] py-4 bg-gray-200 text-gray-500 rounded-2xl font-black text-sm cursor-not-allowed flex justify-center items-center">
-                    Temporada Inactiva
-                </button>
+                @if($isActiveSeason)
+                    <button wire:click="openGenerateModal" wire:loading.attr="disabled" class="flex-[2] py-4 bg-primary text-white rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg shadow-primary/30 flex justify-center items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                        Generar Cuotas
+                    </button>
+                @else
+                    <button disabled class="flex-[2] py-4 bg-gray-200 text-gray-500 rounded-2xl font-black text-sm cursor-not-allowed flex justify-center items-center">
+                        Temporada Inactiva
+                    </button>
+                @endif
             @endif
-        @endif
+        </div>
+         <h2 class="font-black text-xl text-titanium leading-tight">
+            Gestión de Cuotas
+        </h2>
     </div>
 
     {{-- MODAL GENERAR CUOTAS --}}

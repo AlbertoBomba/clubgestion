@@ -59,7 +59,7 @@
         </div>
     </div>
 
-    <div class=" sm:px-6 lg:px-8">
+    <div class=" ">
         <div class="bg-white-pure overflow-hidden shadow-xl sm:rounded-lg">
             <div class="p-6">
                 <div class="flex justify-between items-center mb-6">

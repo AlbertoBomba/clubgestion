@@ -23,6 +23,14 @@ return [
         'Abonada' => 5,
         'Pendiente de validar' => 6,
     ],
+
+    'sponsors_type' => [
+        1 => 'Muy Grande',
+        2 => 'Grande',
+        3 => 'Mediano',
+        4 => 'Pequeño',
+        5 => 'Residual',
+    ],
      
 
 ];
