@@ -246,8 +246,8 @@
                 <thead class="bg-gradient-to-r from-gray-50 to-primary/5 sticky top-0 z-10">
                     <tr>
                         <th class="px-6 py-4 text-left">
-                            <input type="checkbox" wire:model.live="selectAll" 
-                                class="w-5 h-5 text-primary border-silver rounded focus:ring-2 focus:ring-primary">
+                            {{-- <input type="checkbox" wire:model.live="selectAll" 
+                                class="w-5 h-5 text-primary border-silver rounded focus:ring-2 focus:ring-primary"> --}}
                         </th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Jugador</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Tutor</th>

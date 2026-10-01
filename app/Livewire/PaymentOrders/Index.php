@@ -1356,6 +1356,7 @@ class Index extends Component
             $updated = PaymentPlayer::whereIn('player_id', $this->selectedPlayers)
                 ->where('cuota', $this->stateChangeCuota)
                 ->where('sports_school_id', auth()->user()->sports_school_id)
+                ->where('state', '!=', 1) // Solo actualizar si el estado no es 'Pagado'
                 ->update([
                     'state' => $this->stateChangeNewState,
                     'payment_date' => $this->stateChangeNewState == 1 ? now() : null,

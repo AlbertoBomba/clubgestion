@@ -164,14 +164,14 @@
     <main class="p-4 space-y-4">
         
         {{-- Selección masiva --}}
-        @if($players->count() > 0)
+       {{-- @if($players->count() > 0)
             <div class="flex items-center justify-between px-2">
-                <label class="flex items-center gap-2 cursor-pointer select-none">
+                 <label class="flex items-center gap-2 cursor-pointer select-none">
                     <input type="checkbox" wire:model.live="selectAll" class="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary">
                     <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Seleccionar todos</span>
                 </label>
             </div>
-        @endif
+        @endif --}}
 
         {{-- LISTADO DE TARJETAS (CARDS DE JUGADOR) --}}
         <div class="space-y-4">
