@@ -499,8 +499,8 @@ class Show extends Component
     {
         $this->validate([
             'match_phase_id'   => 'nullable|exists:tournament_phases,id',
-            'match_home_id'    => 'required|exists:tournament_teams,id',
-            'match_away_id'    => 'required|exists:tournament_teams,id|different:match_home_id',
+            'match_home_id'    => 'nullable|exists:tournament_teams,id',
+            'match_away_id'    => 'nullable|exists:tournament_teams,id|different:match_home_id',
             'match_round'      => 'nullable|string|max:100',
             'match_number'     => 'nullable|integer|min:1',
             'match_scheduled'  => 'nullable|date',
@@ -1488,6 +1488,132 @@ class Show extends Component
 
         $this->tournament->refresh();
         session()->flash('message', $winner->displayName() . ' ha avanzado a la siguiente ronda.');
+    }
+
+    // ==================================================================
+    // Export PDF
+    // ==================================================================
+
+    public function exportPdf()
+    {
+        abort_unless($this->tournament->sports_school_id === auth()->user()->sports_school_id, 403);
+
+        // mPDF loads very large HTML blocks; make sure PCRE won't abort the parse
+        @ini_set('pcre.backtrack_limit', '50000000');
+        @ini_set('pcre.recursion_limit', '50000000');
+        @ini_set('memory_limit', '512M');
+
+        $tournament = $this->tournament->load([
+            'sportsSchool',
+            'categories.category',
+            'categories.phases',
+            'categories.tournamentTeams.team',
+            'tournamentTeams.team',
+            'phases',
+            'matches' => fn ($q) => $q->orderByRaw('scheduled_at IS NULL ASC')
+                ->orderBy('scheduled_at')
+                ->orderBy('phase_id')
+                ->orderBy('round')
+                ->orderBy('match_number'),
+            'matches.phase',
+            'matches.homeTeam.team',
+            'matches.awayTeam.team',
+            'matches.tournamentCategory.category',
+        ]);
+
+        // Build the public URL for this tournament (tenant-aware)
+        $school = $tournament->sportsSchool;
+        $publicUrl = null;
+        if ($school) {
+            if (! empty($school->domain)) {
+                $publicUrl = 'https://' . ltrim(preg_replace('#^https?://#', '', $school->domain), '/') . '/torneos/' . $tournament->id;
+            } elseif (! empty($school->slug)) {
+                $publicUrl = 'https://' . $school->slug . '.vaed.es/torneos/' . $tournament->id;
+            }
+        }
+
+        // Resolve a local file path for an image stored on the public disk (mPDF can read it directly)
+        $resolveImage = function (?string $path): ?string {
+            if (! $path) return null;
+            try {
+                $full = \Illuminate\Support\Facades\Storage::disk('public')->path($path);
+                return file_exists($full) ? $full : null;
+            } catch (\Throwable $e) {
+                return null;
+            }
+        };
+
+        $tournamentImage = $resolveImage($tournament->logo);
+
+        // Teams grouped by category + group_label (for group-phase display)
+        $teamsByCategoryGroup = $tournament->tournamentTeams
+            ->groupBy(fn ($t) => $t->tournament_category_id ?? 0)
+            ->map(fn ($catTeams) => $catTeams->groupBy(fn ($t) => $t->group_label ?: '—'));
+
+        // Resolve each team logo to a local file path
+        $teamLogos = [];
+        foreach ($tournament->tournamentTeams as $tt) {
+            $logoPath = $tt->logo ?: $tt->team?->logo;
+            $teamLogos[$tt->id] = $resolveImage($logoPath);
+        }
+
+        // Does any phase in the tournament use group/league layout?
+        $hasGroupPhase = $tournament->phases->contains(fn ($p) => in_array($p->type, ['group', 'league']));
+
+        // Matches grouped by category and phase
+        $matchesByCategory = $tournament->matches->groupBy('tournament_category_id');
+
+        $html = view('pdfs.tournament', [
+            'tournament'           => $tournament,
+            'school'               => $school,
+            'publicUrl'            => $publicUrl,
+            'tournamentImage'      => $tournamentImage,
+            'teamsByCategoryGroup' => $teamsByCategoryGroup,
+            'teamLogos'            => $teamLogos,
+            'hasGroupPhase'        => $hasGroupPhase,
+            'matchesByCategory'    => $matchesByCategory,
+        ])->render();
+
+        // Build mPDF directly and write the HTML in chunks (CSS first, then body)
+        // to avoid PCRE backtrack issues on very large documents.
+        $tempDir = config('pdf.temp_dir') ?: storage_path('app');
+        if (! is_dir($tempDir)) {
+            @mkdir($tempDir, 0775, true);
+        }
+
+        $pdfConfig = [
+            'mode'          => 'utf-8',
+            'format'        => 'A4',
+            'margin_top'    => 0,
+            'margin_bottom' => 0,
+            'margin_left'   => 0,
+            'margin_right'  => 0,
+            'tempDir'       => $tempDir,
+        ];
+
+        $mpdf = new \Mpdf\Mpdf($pdfConfig);
+        $mpdf->SetTitle($tournament->name);
+        $mpdf->SetAuthor($school?->name ?? config('app.name'));
+        // Allow mPDF to load local files referenced by src="/absolute/path"
+        $mpdf->allow_charset_conversion = true;
+
+        // Split HTML into <style>...</style> block and the rest, writing each as its own chunk.
+        if (preg_match('#<style\b[^>]*>(.*?)</style>#is', $html, $m)) {
+            $mpdf->WriteHTML($m[1], \Mpdf\HTMLParserMode::HEADER_CSS);
+            $body = preg_replace('#<style\b[^>]*>.*?</style>#is', '', $html, 1);
+        } else {
+            $body = $html;
+        }
+
+        $mpdf->WriteHTML($body, \Mpdf\HTMLParserMode::HTML_BODY);
+
+        $filename = 'torneo_' . \Illuminate\Support\Str::slug($tournament->name) . '.pdf';
+
+        return response()->streamDownload(
+            fn () => print($mpdf->Output($filename, \Mpdf\Output\Destination::STRING_RETURN)),
+            $filename,
+            ['Content-Type' => 'application/pdf']
+        );
     }
 
     // ==================================================================

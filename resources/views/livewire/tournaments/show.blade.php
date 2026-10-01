@@ -89,6 +89,16 @@
                     </div>
                     {{-- Header actions --}}
                     <div class="flex items-center gap-2 shrink-0">
+                        <button type="button"
+                                wire:click="exportPdf"
+                                wire:loading.attr="disabled"
+                                wire:target="exportPdf"
+                                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-50 text-red-700 border border-red-200 text-sm font-semibold hover:bg-red-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+                            <svg wire:loading.remove wire:target="exportPdf" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M8 6a4 4 0 118 0v6"/></svg>
+                            <svg wire:loading wire:target="exportPdf" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-opacity="0.25" stroke-width="4"/><path stroke-linecap="round" stroke-width="4" d="M22 12a10 10 0 00-10-10"/></svg>
+                            <span class="hidden sm:inline" wire:loading.remove wire:target="exportPdf">Descargar PDF</span>
+                            <span class="hidden sm:inline" wire:loading wire:target="exportPdf">Generando…</span>
+                        </button>
                         <a href="{{ route('tournaments.edit', $tournament) }}"
                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary/5 text-primary border border-primary/20 text-sm font-semibold hover:bg-primary/10 transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
@@ -455,15 +465,18 @@
                                                     @endif
                                                     {{-- Teams + score --}}
                                                     <div class="flex items-center gap-3 flex-1 min-w-0">
-                                                         {{-- @dump($match) --}}
-                                                         
-                                                        <div class="flex-1 text-right min-w-0">
-                                                            <div class="flex gap-2">
-                                                                <img src="{{ asset('storage/' . $match->homeTeam?->logo) }}" alt="{{ $match->homeTeam?->displayName() }}" class="w-8 h-8 rounded-full">
-                                                                <p class="text-sm font-bold text-black-deep truncate">{{ $match->homeTeam?->displayName() ?? '—' }}</p>
-                                                            </div>
+                                                        <div class="flex-1 flex items-center justify-end gap-2 min-w-0">
+                                                            <p class="text-sm font-bold text-black-deep truncate">{{ $match->homeTeam?->displayName() ?? '—' }}</p>
+                                                            @if ($match->homeTeam?->logo)
+                                                                <img src="{{ asset('storage/' . $match->homeTeam->logo) }}" alt="{{ $match->homeTeam->displayName() }}" class="w-8 h-8 rounded-lg object-contain shrink-0">
+                                                            @elseif ($match->homeTeam?->team?->logo)
+                                                                <img src="{{ Storage::url($match->homeTeam->team->logo) }}" alt="{{ $match->homeTeam->displayName() }}" class="w-8 h-8 rounded-lg object-contain shrink-0">
+                                                            @elseif ($match->homeTeam)
+                                                                <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                                                    <span class="text-xs font-black text-primary">{{ mb_strtoupper(mb_substr($match->homeTeam->displayName(), 0, 1)) }}</span>
+                                                                </div>
+                                                            @endif
                                                         </div>
-                                                        {{-- <img src="{{ asset('storage/' . $match->awayTeam?->logo) }}" alt="{{ $match->awayTeam?->displayName() }}" class="w-8 h-8 rounded-full"> --}}
                                                         <button wire:click="openGoalsModal({{ $match->id }})"
                                                                 class="shrink-0 min-w-[76px] px-3 py-2.5 rounded-xl text-center transition-all font-black text-base
                                                                     {{ $match->status === 'completed'
@@ -484,11 +497,17 @@
                                                                 <span class="text-xs font-bold">⚽ Goles</span>
                                                             @endif
                                                         </button>
-                                                        <div class="flex-1 text-left min-w-0">
-                                                            <div class="flex gap-2">
-                                                                <img src="{{ asset('storage/' . $match->awayTeam?->logo) }}" alt="{{ $match->awayTeam?->displayName() }}" class="w-8 h-8 rounded-full">
-                                                                <p class="text-sm font-bold text-black-deep truncate">{{ $match->awayTeam?->displayName() ?? '—' }}</p>
-                                                            </div>
+                                                        <div class="flex-1 flex items-center gap-2 min-w-0">
+                                                            @if ($match->awayTeam?->logo)
+                                                                <img src="{{ asset('storage/' . $match->awayTeam->logo) }}" alt="{{ $match->awayTeam->displayName() }}" class="w-8 h-8 rounded-lg object-contain shrink-0">
+                                                            @elseif ($match->awayTeam?->team?->logo)
+                                                                <img src="{{ Storage::url($match->awayTeam->team->logo) }}" alt="{{ $match->awayTeam->displayName() }}" class="w-8 h-8 rounded-lg object-contain shrink-0">
+                                                            @elseif ($match->awayTeam)
+                                                                <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                                                    <span class="text-xs font-black text-primary">{{ mb_strtoupper(mb_substr($match->awayTeam->displayName(), 0, 1)) }}</span>
+                                                                </div>
+                                                            @endif
+                                                            <p class="text-sm font-bold text-black-deep truncate">{{ $match->awayTeam?->displayName() ?? '—' }}</p>
                                                         </div>
                                                     </div>
                                                     {{-- Status + Actions --}}
@@ -616,7 +635,7 @@
                                                                         <span class="text-xs text-titanium font-semibold pl-1">{{ $standing->position }}</span>
                                                                     @endif
                                                                 </td>
-                                                                <td class="px-4 py-4 font-semibold text-black-deep">{{ $standing->tournamentTeam?->displayName() ?? '—' }}</td>
+                                                                <td class="px-4 py-4 font-semibold text-black-deep"><div class="flex items-center gap-2"><img src="{{ asset('storage/' . $standing->tournamentTeam?->logo) }}" alt="{{ $standing->tournamentTeam?->displayName() }}" class="w-8 h-8  object-contain shrink-0"> {{ $standing->tournamentTeam?->displayName() ?? '—' }}</div></td>
                                                                 <td class="px-5 py-4 text-center"><span class="text-xl font-black text-primary">{{ $standing->points }}</span></td>
                                                                 <td class="px-3 py-4 text-center text-titanium">{{ $standing->played }}</td>
                                                                 <td class="px-3 py-4 text-center font-semibold text-green-700">{{ $standing->won }}</td>

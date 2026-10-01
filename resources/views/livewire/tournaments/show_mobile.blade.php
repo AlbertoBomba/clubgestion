@@ -48,6 +48,15 @@
                 {{ $statusLabels[$tournament->status] ?? $tournament->status }}
             </p>
         </div>
+        <button type="button"
+                wire:click="exportPdf"
+                wire:loading.attr="disabled"
+                wire:target="exportPdf"
+                class="p-2 rounded-full bg-red-50 text-red-600 active:scale-95 transition-all shrink-0 disabled:opacity-60"
+                title="Descargar PDF">
+            <svg wire:loading.remove wire:target="exportPdf" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M8 6a4 4 0 118 0v6"/></svg>
+            <svg wire:loading wire:target="exportPdf" class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-opacity="0.25" stroke-width="4"/><path stroke-linecap="round" stroke-width="4" d="M22 12a10 10 0 00-10-10"/></svg>
+        </button>
         @if ($tournament->logo)
             <img src="{{ Storage::url($tournament->logo) }}" class="w-10 h-10 rounded-xl object-cover border border-gray-100 shrink-0">
         @endif
