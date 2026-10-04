@@ -603,7 +603,7 @@
                 @if ($standings->isNotEmpty() || ($hasLeaguePhase && $teams->isNotEmpty()) || $hasSubsetLeague)
                     <div x-show="tab === 'standings'" x-cloak>
 
-                        {{-- asdfasdfasdfasd --}}
+
                         <div class="flex items-center justify-end mb-4">
                             <button wire:click="recalculateStandings"
                                     class="inline-flex items-center gap-2 text-sm font-semibold text-titanium border border-silver px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors">
