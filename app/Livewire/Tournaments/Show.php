@@ -1943,24 +1943,24 @@ class Show extends Component
         }
 
         if ($this->isMobile()) {
-            //en desarrollo la parte mobile
-        //    return view('livewire.tournaments.show_mobile', compact(
-        //         'categories', 'activeCategory',
-        //         'phases', 'teams', 'matches', 'standings', 'hasLeaguePhase',
-        //         'schoolTeams', 'schoolCategories',
-        //         'goalsModalMatch', 'goalsForModal', 'gmCardsForModal', 'gmTeamPlayers', 'gmMatchTeams', 'gmAllPlayers',
-        //         'availableReferees', 'assignedReferees',
-        //         'hasKnockoutPhase', 'bracketData', 'bracketModalTeams', 'bracketModalStandings'
-        //     ));
-         return view('livewire.tournaments.show', compact(
-            'categories', 'activeCategory',
-            'phases', 'teams', 'matches', 'standings', 'hasLeaguePhase',
-            'schoolTeams', 'schoolCategories',
-            'goalsModalMatch', 'goalsForModal', 'gmCardsForModal', 'gmTeamPlayers', 'gmMatchTeams', 'gmAllPlayers',
-            'availableReferees', 'assignedReferees',
-            'hasKnockoutPhase', 'bracketData', 'bracketModalTeams', 'bracketModalStandings',
-            'leagueSubsetSettings'
-        ));
+            // en desarrollo la parte mobile
+           return view('livewire.tournaments.show_mobile', compact(
+                'categories', 'activeCategory',
+                'phases', 'teams', 'matches', 'standings', 'hasLeaguePhase',
+                'schoolTeams', 'schoolCategories',
+                'goalsModalMatch', 'goalsForModal', 'gmCardsForModal', 'gmTeamPlayers', 'gmMatchTeams', 'gmAllPlayers',
+                'availableReferees', 'assignedReferees',
+                'hasKnockoutPhase', 'bracketData', 'bracketModalTeams', 'bracketModalStandings'
+            ));
+        //  return view('livewire.tournaments.show', compact(
+        //     'categories', 'activeCategory',
+        //     'phases', 'teams', 'matches', 'standings', 'hasLeaguePhase',
+        //     'schoolTeams', 'schoolCategories',
+        //     'goalsModalMatch', 'goalsForModal', 'gmCardsForModal', 'gmTeamPlayers', 'gmMatchTeams', 'gmAllPlayers',
+        //     'availableReferees', 'assignedReferees',
+        //     'hasKnockoutPhase', 'bracketData', 'bracketModalTeams', 'bracketModalStandings',
+        //     'leagueSubsetSettings'
+        // ));
         }
 
         return view('livewire.tournaments.show', compact(

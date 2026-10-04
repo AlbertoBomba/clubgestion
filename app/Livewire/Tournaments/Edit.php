@@ -5,10 +5,13 @@ namespace App\Livewire\Tournaments;
 use App\Models\Tournament;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use App\Traits\DetectsDevice;
+
 
 class Edit extends Component
 {
     use WithFileUploads;
+    use DetectsDevice;
 
     public Tournament $tournament;
 
@@ -120,6 +123,11 @@ class Edit extends Component
 
     public function render()
     {
+
+            if ($this->isMobile()) {
+                return view('livewire.tournaments.edit_mobile');
+            }
+
         return view('livewire.tournaments.edit');
     }
 }
