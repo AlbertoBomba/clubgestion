@@ -17,11 +17,11 @@
     @endif
 
     {{-- ================================================================ WRAPPER PRINCIPAL --}}
-    <div class="w-full max-w-screen-xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+    <div class="w-full max-w-screen-xl ">
 
         {{-- BREADCRUMB & HEADER --}}
-        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
-            <div>
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            {{-- <div>
                 <nav class="flex items-center gap-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
                     <a href="{{ route('tournaments.index') }}" wire:navigate class="hover:text-blue-600 transition-colors">Torneos</a>
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
@@ -30,7 +30,7 @@
                     <span class="text-gray-900">Editar</span>
                 </nav>
                 
-            </div>
+            </div> --}}
             
             {{-- Botones Escritorio (Ocultos en móvil, se muestran abajo) --}}
             <div class="hidden  sm:flex items-center gap-3">

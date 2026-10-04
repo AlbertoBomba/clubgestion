@@ -194,10 +194,15 @@
                                                                 </button>
                                                             </div>
 
+                                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(filled($match->notes)): ?>
+                                                                <p class="mb-2 px-3 py-2 rounded-xl bg-primary/5 text-[10px] leading-4 font-bold text-titanium whitespace-pre-line break-words"><?php echo e($match->notes); ?></p>
+                                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
                                                             
                                                             <div class="flex items-center justify-between">
                                                                 
-                                                                <div class="flex-1 min-w-0 pr-2 <?php echo e($homeWins ? 'font-black text-black' : 'font-bold text-gray-600'); ?>">
+                                                                <div class="flex flex-1 items-center justify-end gap-1.5 min-w-0 pr-2 <?php echo e($homeWins ? 'font-black text-black' : 'font-bold text-gray-600'); ?>">
+                                                                    <?php echo $__env->make('livewire.tournaments._mobile-match-team-logo', ['team' => $match->homeTeam], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
                                                                     <p class="text-xs truncate text-right"><?php echo e($match->homeTeam?->displayName() ?? '—'); ?></p>
                                                                 </div>
 
@@ -215,7 +220,8 @@
                                                                 </button>
 
                                                                 
-                                                                <div class="flex-1 min-w-0 pl-2 <?php echo e($awayWins ? 'font-black text-black' : 'font-bold text-gray-600'); ?>">
+                                                                <div class="flex flex-1 items-center gap-1.5 min-w-0 pl-2 <?php echo e($awayWins ? 'font-black text-black' : 'font-bold text-gray-600'); ?>">
+                                                                    <?php echo $__env->make('livewire.tournaments._mobile-match-team-logo', ['team' => $match->awayTeam], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
                                                                     <p class="text-xs truncate text-left"><?php echo e($match->awayTeam?->displayName() ?? '—'); ?></p>
                                                                 </div>
                                                             </div>
@@ -492,6 +498,9 @@
                 <div class="px-4 py-6 bg-white border-b border-gray-100 shrink-0 shadow-sm z-10 relative">
                     <div class="flex items-center justify-between gap-2">
                         <div class="flex-1 min-w-0 text-center">
+                            <div class="flex justify-center mb-2">
+                                <?php echo $__env->make('livewire.tournaments._mobile-match-team-logo', ['team' => $goalsModalMatch->homeTeam, 'logoSize' => 'w-12 h-12'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                            </div>
                             <p class="text-xs font-bold text-gray-500 mb-1 truncate"><?php echo e($goalsModalMatch->homeTeam?->displayName()); ?></p>
                             <span class="text-4xl font-black text-black"><?php echo e($goalsModalMatch->home_score ?? 0); ?></span>
                         </div>
@@ -499,6 +508,9 @@
                             <span class="text-xl font-black text-gray-300">-</span>
                         </div>
                         <div class="flex-1 min-w-0 text-center">
+                            <div class="flex justify-center mb-2">
+                                <?php echo $__env->make('livewire.tournaments._mobile-match-team-logo', ['team' => $goalsModalMatch->awayTeam, 'logoSize' => 'w-12 h-12'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                            </div>
                             <p class="text-xs font-bold text-gray-500 mb-1 truncate"><?php echo e($goalsModalMatch->awayTeam?->displayName()); ?></p>
                             <span class="text-4xl font-black text-black"><?php echo e($goalsModalMatch->away_score ?? 0); ?></span>
                         </div>
@@ -573,9 +585,9 @@
                     <div class="grid grid-cols-2 gap-2 mb-3">
                         <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $gmMatchTeams; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $t): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <?php $isSelected = (string)$gm_team_id === (string)$t->id; ?>
-                            <button wire:click="gmSelectTeam(<?php echo e($t->id); ?>)" class="py-2.5 px-2 rounded-xl text-[10px] font-black uppercase truncate transition-all <?php echo e($isSelected ? 'bg-primary text-white border-2 border-primary' : 'bg-white border-2 border-gray-100 text-gray-500'); ?>">
-                                <?php echo e($t->displayName()); ?>
-
+                            <button wire:click="gmSelectTeam(<?php echo e($t->id); ?>)" class="flex items-center justify-center gap-2 min-w-0 py-2.5 px-2 rounded-xl text-[10px] font-black uppercase transition-all <?php echo e($isSelected ? 'bg-primary text-white border-2 border-primary' : 'bg-white border-2 border-gray-100 text-gray-500'); ?>">
+                                <?php echo $__env->make('livewire.tournaments._mobile-match-team-logo', ['team' => $t, 'logoSize' => 'w-6 h-6'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                                <span class="truncate"><?php echo e($t->displayName()); ?></span>
                             </button>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>

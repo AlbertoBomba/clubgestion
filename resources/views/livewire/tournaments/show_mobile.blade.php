@@ -59,13 +59,12 @@
                 </p>
             </div>
 
-        </div>
-
-        <div class="flex justify-end mt-3">
             <a href="{{ route('tournaments.edit', $tournament) }}"
-               class="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2.5 rounded-xl bg-primary/10 text-primary border border-primary/20 text-xs font-bold hover:bg-primary/20 active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
+               aria-label="Editar torneo"
+               title="Editar torneo"
+               class="shrink-0 flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 text-gray-500 hover:bg-primary/5 hover:border-primary/20 hover:text-primary active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
                 <svg class="w-4 h-4 shrink-0" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                <span>Editar torneo</span>
+                <span class="text-[9px] font-bold leading-none">Editar</span>
             </a>
         </div>
 
@@ -84,10 +83,13 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                 </button>
             </div>
+
         @elseif($tournament->team_type === 'open')
+
             <div class="mt-2 text-[10px] text-blue-600 bg-blue-50 px-2 py-1 rounded-md text-center font-bold">
-                Torneo abierto (Sin categorías)
+                {{ $tournament->name }}
             </div>
+
         @endif
     </header>
 
@@ -192,10 +194,15 @@
                                                                 </button>
                                                             </div>
 
+                                                            @if (filled($match->notes))
+                                                                <p class="mb-2 px-3 py-2 rounded-xl bg-primary/5 text-[10px] leading-4 font-bold text-titanium whitespace-pre-line break-words">{{ $match->notes }}</p>
+                                                            @endif
+
                                                             {{-- Equipos y Marcador central --}}
                                                             <div class="flex items-center justify-between">
                                                                 {{-- Home --}}
-                                                                <div class="flex-1 min-w-0 pr-2 {{ $homeWins ? 'font-black text-black' : 'font-bold text-gray-600' }}">
+                                                                <div class="flex flex-1 items-center justify-end gap-1.5 min-w-0 pr-2 {{ $homeWins ? 'font-black text-black' : 'font-bold text-gray-600' }}">
+                                                                    @include('livewire.tournaments._mobile-match-team-logo', ['team' => $match->homeTeam])
                                                                     <p class="text-xs truncate text-right">{{ $match->homeTeam?->displayName() ?? '—' }}</p>
                                                                 </div>
 
@@ -212,7 +219,8 @@
                                                                 </button>
 
                                                                 {{-- Away --}}
-                                                                <div class="flex-1 min-w-0 pl-2 {{ $awayWins ? 'font-black text-black' : 'font-bold text-gray-600' }}">
+                                                                <div class="flex flex-1 items-center gap-1.5 min-w-0 pl-2 {{ $awayWins ? 'font-black text-black' : 'font-bold text-gray-600' }}">
+                                                                    @include('livewire.tournaments._mobile-match-team-logo', ['team' => $match->awayTeam])
                                                                     <p class="text-xs truncate text-left">{{ $match->awayTeam?->displayName() ?? '—' }}</p>
                                                                 </div>
                                                             </div>
@@ -488,6 +496,9 @@
                 <div class="px-4 py-6 bg-white border-b border-gray-100 shrink-0 shadow-sm z-10 relative">
                     <div class="flex items-center justify-between gap-2">
                         <div class="flex-1 min-w-0 text-center">
+                            <div class="flex justify-center mb-2">
+                                @include('livewire.tournaments._mobile-match-team-logo', ['team' => $goalsModalMatch->homeTeam, 'logoSize' => 'w-12 h-12'])
+                            </div>
                             <p class="text-xs font-bold text-gray-500 mb-1 truncate">{{ $goalsModalMatch->homeTeam?->displayName() }}</p>
                             <span class="text-4xl font-black text-black">{{ $goalsModalMatch->home_score ?? 0 }}</span>
                         </div>
@@ -495,6 +506,9 @@
                             <span class="text-xl font-black text-gray-300">-</span>
                         </div>
                         <div class="flex-1 min-w-0 text-center">
+                            <div class="flex justify-center mb-2">
+                                @include('livewire.tournaments._mobile-match-team-logo', ['team' => $goalsModalMatch->awayTeam, 'logoSize' => 'w-12 h-12'])
+                            </div>
                             <p class="text-xs font-bold text-gray-500 mb-1 truncate">{{ $goalsModalMatch->awayTeam?->displayName() }}</p>
                             <span class="text-4xl font-black text-black">{{ $goalsModalMatch->away_score ?? 0 }}</span>
                         </div>
@@ -568,8 +582,9 @@
                     <div class="grid grid-cols-2 gap-2 mb-3">
                         @foreach ($gmMatchTeams as $t)
                             @php $isSelected = (string)$gm_team_id === (string)$t->id; @endphp
-                            <button wire:click="gmSelectTeam({{ $t->id }})" class="py-2.5 px-2 rounded-xl text-[10px] font-black uppercase truncate transition-all {{ $isSelected ? 'bg-primary text-white border-2 border-primary' : 'bg-white border-2 border-gray-100 text-gray-500' }}">
-                                {{ $t->displayName() }}
+                            <button wire:click="gmSelectTeam({{ $t->id }})" class="flex items-center justify-center gap-2 min-w-0 py-2.5 px-2 rounded-xl text-[10px] font-black uppercase transition-all {{ $isSelected ? 'bg-primary text-white border-2 border-primary' : 'bg-white border-2 border-gray-100 text-gray-500' }}">
+                                @include('livewire.tournaments._mobile-match-team-logo', ['team' => $t, 'logoSize' => 'w-6 h-6'])
+                                <span class="truncate">{{ $t->displayName() }}</span>
                             </button>
                         @endforeach
                     </div>
