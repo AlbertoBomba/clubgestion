@@ -320,7 +320,7 @@
                 </button>
 
                 <div class="vs-nav-links" id="navLinks">
-                    <a href="{{ route('vaed-sport.home') }}">VAED Sport</a>
+                    {{-- <a href="{{ route('vaed-sport.home') }}">VAED Sport</a> --}}
                     <a href="#por-que-gratis">¿Por qué Gratis?</a>
                     <a href="#contacto">Contacto</a>
                     @auth
@@ -348,9 +348,12 @@
         <div class="hero-slide" style="background:#0f172a;">
             <!-- Background Image with Overlay -->
             <div class="hero-slide-bg">
-                <img src="{{ asset('images/public/personal-trainer-sports-outfit-takes-notes-clipboard-city-park-area-training-exercising-endurance-healthy-lifestyle-concept-outdoor.jpg') }}" 
-                     alt="Football Team">
-                <div class="absolute inset-0 bg-gradient-to-r from-blue-900/95 via-blue-900/90 to-blue-900/70"></div>
+                <video autoplay muted loop class="absolute inset-0 w-full h-full object-cover">
+                    <source src="{{ asset('images/public/0_Goalkeeper_Soccer_Ball_1920x1080.mp4') }}" type="video/mp4">
+                </video>
+                {{-- <img src="{{ asset('images/public/personal-trainer-sports-outfit-takes-notes-clipboard-city-park-area-training-exercising-endurance-healthy-lifestyle-concept-outdoor.jpg') }}" 
+                     alt="Football Team"> --}}
+                {{-- <div class="absolute inset-0 bg-gradient-to-r from-blue-900/95 via-blue-900/90 to-blue-900/70"></div> --}}
             </div>
             
             <!-- Decorative Diagonal Stripes (Left Side) -->
@@ -414,10 +417,10 @@
                                        class="px-6 sm:px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-200 font-semibold text-sm sm:text-base shadow-lg hover:shadow-xl transform hover:scale-105 text-center">
                                         ¿Qué es VaedSaas?
                                     </a>
-                                    <a href="#por-que-gratis" 
+                                    {{-- <a href="#por-que-gratis" 
                                        class="px-6 sm:px-8 py-3 bg-white bg-opacity-10 backdrop-blur-sm text-white rounded-lg hover:bg-opacity-20 transition duration-200 font-semibold text-sm sm:text-base border border-white text-center">
                                        ¿Por qué VaedSaas es gratis?
-                                    </a>
+                                    </a> --}}
                                 
                             </div>
                         </div>

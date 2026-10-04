@@ -283,6 +283,7 @@
                                     $phase     = $phaseMatches->first()?->phase;
                                     $phaseName = $phase?->name ?? 'Sin fase';
                                 @endphp
+                               
 
                                 {{-- Phase header --}}
                                 <div>
@@ -400,8 +401,6 @@
 
                                                     {{-- Fila 2: equipo local · marcador · equipo visitante --}}
                                                     <div class="flex items-center gap-2">
-                                                        
-                                                       
                                                         <p class="flex-1 text-right text-sm font-bold text-black-deep leading-tight truncate">{{ $match->homeTeam?->displayName() ?? '—' }}</p>
                                                         <button wire:click="openGoalsModal({{ $match->id }})"
                                                                 class="shrink-0 w-[72px] py-2 rounded-xl text-center font-black text-base transition-all
@@ -424,7 +423,9 @@
                                                         </button>
                                                         <p class="flex-1 text-left text-sm font-bold text-black-deep leading-tight truncate">{{ $match->awayTeam?->displayName() ?? '—' }}</p>
                                                     </div>
-
+                                                     @if($match->notes)
+                                                        <p class="text-xs font-bold text-gray-400">{{ $match->notes }}</p>
+                                                    @endif
                                                     {{-- Fila 3: botón Eventos (ancho completo) --}}
                                                     {{-- <a href="{{ route('tournament.match.events', [$tournament, $match]) }}" wire:navigate
                                                        class="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 active:bg-indigo-100 transition-colors">
@@ -437,7 +438,6 @@
                                                        {{-- <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg> --}}
                                                         Editas Partido
                                                     </a>
-                                                    
                                                 </div>
 
                                                 {{-- ========== DESKTOP layout (sm+) ========== --}}
@@ -477,26 +477,34 @@
                                                                 </div>
                                                             @endif
                                                         </div>
-                                                        <button wire:click="openGoalsModal({{ $match->id }})"
-                                                                class="shrink-0 min-w-[76px] px-3 py-2.5 rounded-xl text-center transition-all font-black text-base
-                                                                    {{ $match->status === 'completed'
-                                                                        ? 'bg-gray-50 border border-silver text-black-deep hover:bg-amber-50 hover:border-amber-200'
-                                                                        : ($match->status === 'in_progress'
-                                                                            ? 'bg-green-500 border border-green-600 text-white shadow-sm shadow-green-200 hover:bg-green-600'
-                                                                            : 'bg-amber-50 border-2 border-dashed border-amber-300 text-amber-600 hover:bg-amber-100 hover:border-amber-400') }}"
-                                                                title="Registrar goles / ver resultado">
-                                                            @if ($match->status === 'completed')
-                                                                {{ $match->home_score }} – {{ $match->away_score }}
-                                                            @elseif ($match->status === 'in_progress')
-                                                                {{ $match->home_score ?? 0 }} – {{ $match->away_score ?? 0 }}
-                                                            @elseif ($match->status === 'cancelled')
-                                                                <span class="text-xs font-bold text-red-400">CANC.</span>
-                                                            @elseif ($match->status === 'postponed')
-                                                                <span class="text-xs font-bold text-gray-400">APL.</span>
-                                                            @else
-                                                                <span class="text-xs font-bold">⚽ Goles</span>
+                                                        <div class="flex flex-col items-center gap-2">
+
+                                                                <button wire:click="openGoalsModal({{ $match->id }})"
+                                                                    class="shrink-0 min-w-[76px] px-3 py-2.5 rounded-xl text-center transition-all font-black text-base
+                                                                        {{ $match->status === 'completed'
+                                                                            ? 'bg-gray-50 border border-silver text-black-deep hover:bg-amber-50 hover:border-amber-200'
+                                                                            : ($match->status === 'in_progress'
+                                                                                ? 'bg-green-500 border border-green-600 text-white shadow-sm shadow-green-200 hover:bg-green-600'
+                                                                                : 'bg-amber-50 border-2 border-dashed border-amber-300 text-amber-600 hover:bg-amber-100 hover:border-amber-400') }}"
+                                                                    title="Registrar goles / ver resultado">
+
+                                                                        @if ($match->status === 'completed')
+                                                                            {{ $match->home_score }} – {{ $match->away_score }}
+                                                                        @elseif ($match->status === 'in_progress')
+                                                                            {{ $match->home_score ?? 0 }} – {{ $match->away_score ?? 0 }}
+                                                                        @elseif ($match->status === 'cancelled')
+                                                                            <span class="text-xs font-bold text-red-400">CANC.</span>
+                                                                        @elseif ($match->status === 'postponed')
+                                                                            <span class="text-xs font-bold text-gray-400">APL.</span>
+                                                                        @else
+                                                                            <span class="text-xs font-bold">⚽ Goles</span>
+                                                                        @endif
+                                                                </button>
+
+                                                            @if($match->notes)
+                                                                <p class="text-xs font-bold text-gray-400">{{ $match->notes }}</p>
                                                             @endif
-                                                        </button>
+                                                        </div>
                                                         <div class="flex-1 flex items-center gap-2 min-w-0">
                                                             @if ($match->awayTeam?->logo)
                                                                 <img src="{{ asset('storage/' . $match->awayTeam->logo) }}" alt="{{ $match->awayTeam->displayName() }}" class="w-8 h-8 rounded-lg object-contain shrink-0">
@@ -562,15 +570,18 @@
                                                 $restingTeams = $teams->whereNotIn('id', $busyIds);
                                             @endphp
                                             @foreach ($restingTeams as $restingTeam)
-                                                <div class="px-5 py-4 border-t-2 border-dashed border-amber-200 bg-amber-50/60 flex items-center gap-4">
-                                                    <div class="w-9 h-9 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center shrink-0">
-                                                        <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-                                                        </svg>
+                                                @if($phase?->type === 'league')
+                                                    {{-- @dump($restingTeam) --}}
+                                                    <div class="px-5 py-4 border-t-2 border-dashed border-amber-200 bg-amber-50/60 flex items-center gap-4">
+                                                        <div class="w-9 h-9 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center shrink-0">
+                                                            <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                                                            </svg>
+                                                        </div>
+                                                        <span class="text-sm font-bold text-amber-900">{{ $restingTeam->displayName() }}</span>
+                                                        <span class="text-[11px] font-black uppercase tracking-wider text-amber-700 bg-amber-100 border border-amber-200 px-3 py-1 rounded-full">Descansa esta jornada</span>
                                                     </div>
-                                                    <span class="text-sm font-bold text-amber-900">{{ $restingTeam->displayName() }}</span>
-                                                    <span class="text-[11px] font-black uppercase tracking-wider text-amber-700 bg-amber-100 border border-amber-200 px-3 py-1 rounded-full">Descansa esta jornada</span>
-                                                </div>
+                                                @endif
                                             @endforeach
                                         @endif
                                     </div>
@@ -584,8 +595,15 @@
                 </div>
 
                 {{-- ========================= TAB: CLASIFICACIÓN ========================= --}}
-                @if ($standings->isNotEmpty() || ($hasLeaguePhase && $teams->isNotEmpty()))
+                @php
+                    $leagueSubsetSettings = $leagueSubsetSettings ?? [];
+                    $subsetLeaguePhases   = $phases->filter(fn($p) => $p->type === 'league' && isset($leagueSubsetSettings[$p->id]));
+                    $hasSubsetLeague      = $subsetLeaguePhases->isNotEmpty();
+                @endphp
+                @if ($standings->isNotEmpty() || ($hasLeaguePhase && $teams->isNotEmpty()) || $hasSubsetLeague)
                     <div x-show="tab === 'standings'" x-cloak>
+
+                        {{-- asdfasdfasdfasd --}}
                         <div class="flex items-center justify-end mb-4">
                             <button wire:click="recalculateStandings"
                                     class="inline-flex items-center gap-2 text-sm font-semibold text-titanium border border-silver px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors">
@@ -596,12 +614,28 @@
                         @if ($standings->isNotEmpty())
                             <div class="space-y-5">
                                 @foreach ($standings->groupBy(fn($s) => $s->phase?->name ?? 'General') as $phaseName => $phaseStandings)
+                                {{-- @dump($phaseName) --}}
                                     @foreach ($phaseStandings->groupBy('group_label') as $groupLabel => $groupStandings)
+                                        @php
+                                            $__firstStanding   = $groupStandings->first();
+                                            $__phaseId         = $__firstStanding?->phase_id;
+                                            $__phaseIsSubset   = $__phaseId && isset($leagueSubsetSettings[$__phaseId]);
+                                            $__subsetTotal     = $__phaseIsSubset ? $leagueSubsetSettings[$__phaseId] : null;
+                                            $__placeholderRows = $__phaseIsSubset
+                                                ? max(0, $__subsetTotal - $groupStandings->count())
+                                                : 0;
+                                            $__realCount       = $groupStandings->count();
+                                        @endphp
                                         <div class="bg-white-pure border border-silver rounded-2xl shadow-sm overflow-hidden">
                                             <div class="bg-gray-50 border-b border-silver px-5 py-3">
                                                 <h3 class="text-sm font-bold text-black-deep">
                                                     {{ $phaseName }}
                                                     @if($groupLabel) <span class="text-titanium font-normal ml-1">· Grupo {{ $groupLabel }}</span> @endif
+                                                    @if($__phaseIsSubset)
+                                                        <span class="ml-2 text-[11px] font-black uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full align-middle">
+                                                            {{ $__realCount }}/{{ $__subsetTotal }} equipos
+                                                        </span>
+                                                    @endif
                                                 </h3>
                                             </div>
                                             <div class="overflow-x-auto">
@@ -647,11 +681,55 @@
                                                                 
                                                             </tr>
                                                         @endforeach
+                                                        {{-- Plazas aún por asignar (subset) --}}
+                                                        @for ($__i = 1; $__i <= $__placeholderRows; $__i++)
+                                                            <tr class="bg-indigo-50/30 hover:bg-indigo-50/50 transition-colors">
+                                                                <td class="px-5 py-4">
+                                                                    <span class="text-xs text-titanium font-semibold pl-1">{{ $__realCount + $__i }}</span>
+                                                                </td>
+                                                                <td class="px-4 py-4 font-semibold">
+                                                                    <div class="flex items-center gap-2">
+                                                                        <span class="w-8 h-8 rounded-lg border border-dashed border-indigo-300 bg-white flex items-center justify-center shrink-0">
+                                                                            <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                                                        </span>
+                                                                        <span class="text-indigo-500 italic">Equipo {{ $__realCount + $__i }} · por definir</span>
+                                                                    </div>
+                                                                </td>
+                                                                <td class="px-5 py-4 text-center"><span class="text-xl font-black text-titanium/40">0</span></td>
+                                                                <td class="px-3 py-4 text-center text-titanium/40">0</td>
+                                                                <td class="px-3 py-4 text-center text-titanium/40">0</td>
+                                                                <td class="px-3 py-4 text-center text-titanium/40">0</td>
+                                                                <td class="px-3 py-4 text-center text-titanium/40">0</td>
+                                                                <td class="px-3 py-4 text-center text-titanium/40">0</td>
+                                                                <td class="px-3 py-4 text-center text-titanium/40">0</td>
+                                                                <td class="px-3 py-4 text-center text-titanium/40">0</td>
+                                                            </tr>
+                                                        @endfor
                                                     </tbody>
                                                 </table>
                                             </div>
                                         </div>
                                     @endforeach
+                                @endforeach
+
+                                {{-- Fases «liga» con subset y aún sin ningún equipo asignado --}}
+                                @foreach ($subsetLeaguePhases as $__subsetPhase)
+                                    @if ($standings->where('phase_id', $__subsetPhase->id)->isEmpty())
+                                        @include('livewire.tournaments._subset-placeholder-block', [
+                                            'phase'     => $__subsetPhase,
+                                            'slotCount' => $leagueSubsetSettings[$__subsetPhase->id],
+                                        ])
+                                    @endif
+                                @endforeach
+                            </div>
+                        @elseif ($hasSubsetLeague)
+                            {{-- Solo hay fases de liga con subset y sin equipos asignados aún --}}
+                            <div class="space-y-5">
+                                @foreach ($subsetLeaguePhases as $__subsetPhase)
+                                    @include('livewire.tournaments._subset-placeholder-block', [
+                                        'phase'     => $__subsetPhase,
+                                        'slotCount' => $leagueSubsetSettings[$__subsetPhase->id],
+                                    ])
                                 @endforeach
                             </div>
                         @elseif ($hasLeaguePhase && $teams->isNotEmpty())
@@ -717,10 +795,10 @@
                                     default => 'Ronda ' . ($roundIndex + 1),
                                 };
                             };
-                            $matchH = 76;
-                            $matchW = 216;
-                            $gapX   = 28;
-                            $unit   = $matchH + 8;
+                            $matchH = 108;
+                            $matchW = 232;
+                            $gapX   = 24;
+                            $unit   = $matchH + 32;
                         @endphp
 
                         @foreach ($bracketData as $phaseId => $bracket)
@@ -782,8 +860,8 @@
                                                 {{-- Round column --}}
                                                 <div style="width: {{ $matchW }}px; flex-shrink: 0;">
                                                     <div class="text-center mb-2">
-                                                        <span class="inline-block px-2.5 py-1 rounded-full text-xs font-bold
-                                                            {{ $isLast ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-gray-100 text-titanium' }}">
+                                                        <span class="inline-block px-3 py-1 rounded-full text-xs font-bold
+                                                            {{ $isLast ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-gray-100 text-gray-600 border border-gray-200' }}">
                                                             {{ $roundLabel }}
                                                         </span>
                                                     </div>
@@ -798,115 +876,153 @@
                                                                 $homeWins = $mWinner && $mWinner->id === $match->home_team_id;
                                                                 $awayWins = $mWinner && $mWinner->id === $match->away_team_id;
                                                             @endphp
-                                                            <div class="absolute left-0 right-0" style="top: {{ $topPx }}px;">
-                                                                {{-- Match card --}}
-                                                                <div class="border border-silver rounded-xl overflow-hidden shadow-sm bg-white-pure flex flex-col" style="height: {{ $matchH }}px;">
-                                                                    {{-- Home team --}}
-                                                                    <div class="flex-1 flex items-center gap-1.5 px-2.5 min-w-0 {{ $homeWins ? 'bg-green-50' : '' }}">
-                                                                        @if ($match->homeTeam)
-                                                                            <div class="w-5 h-5 rounded shrink-0 flex items-center justify-center bg-gray-100 overflow-hidden">
-                                                                                @if ($match->homeTeam->logo)
-                                                                                    <img src="{{ asset('storage/'.$match->homeTeam->logo) }}" class="w-5 h-5 object-contain" alt="">
-                                                                                @elseif ($match->homeTeam->team?->logo)
-                                                                                    <img src="{{ Storage::url($match->homeTeam->team->logo) }}" class="w-5 h-5 object-contain" alt="">
-                                                                                @else
-                                                                                    <span class="text-[10px] font-black text-gray-400">{{ mb_strtoupper(mb_substr($match->homeTeam->displayName(), 0, 1)) }}</span>
-                                                                                @endif
-                                                                            </div>
-                                                                            <span class="flex-1 text-xs font-semibold truncate {{ $homeWins ? 'text-green-800' : 'text-black-deep' }}">
-                                                                                {{ $match->homeTeam->displayName() }}
-                                                                            </span>
-                                                                            @if ($match->status === 'completed')
-                                                                                <span class="text-xs font-black shrink-0 ml-1 {{ $homeWins ? 'text-green-700' : 'text-titanium' }}">{{ $match->home_score ?? 0 }}</span>
-                                                                            @endif
-                                                                            @if ($homeWins)
-                                                                                <svg class="w-3 h-3 text-green-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                                                                            @endif
-                                                                            @if ($match->status === 'scheduled' && $roundNum === $firstRound)
-                                                                                <button @click="$wire.assignTeamToSlot({{ $match->id }}, 'home', null)"
-                                                                                        class="shrink-0 w-4 h-4 rounded-full bg-gray-200 hover:bg-red-100 hover:text-red-400 text-gray-400 text-[10px] font-black flex items-center justify-center transition-colors ml-0.5" title="Quitar equipo">×</button>
-                                                                            @endif
-                                                                        @else
-                                                                            @if ($roundNum === $firstRound)
-                                                                                <select @change="$wire.assignTeamToSlot({{ $match->id }}, 'home', $event.target.value || null)"
-                                                                                        class="flex-1 min-w-0 text-[11px] text-titanium italic bg-transparent border-0 focus:outline-none focus:ring-0 cursor-pointer py-0 pl-0">
-                                                                                    <option value="">Por definir…</option>
-                                                                                    @foreach ($teams as $t)
-                                                                                        @php
-                                                                                            $takenElsewhere = $firstRoundUsedTeams->reject(fn($id) => $id === ($match->home_team_id ?? 0))->contains($t->id);
-                                                                                            $isOpponent     = $t->id === ($match->away_team_id ?? 0);
-                                                                                        @endphp
-                                                                                        @if (!$takenElsewhere && !$isOpponent)
-                                                                                            <option value="{{ $t->id }}">{{ $t->displayName() }}</option>
-                                                                                        @endif
-                                                                                    @endforeach
-                                                                                </select>
-                                                                            @else
-                                                                                <span class="flex-1 text-[11px] text-titanium/40 italic px-0.5">Por definir</span>
-                                                                            @endif
-                                                                        @endif
-                                                                    </div>
-                                                                    <div class="h-px bg-gray-100 mx-2"></div>
-                                                                    {{-- Away team --}}
-                                                                    <div class="flex-1 flex items-center gap-1.5 px-2.5 min-w-0 {{ $awayWins ? 'bg-green-50' : '' }}">
-                                                                        @if ($match->awayTeam)
-                                                                            <div class="w-5 h-5 rounded shrink-0 flex items-center justify-center bg-gray-100 overflow-hidden">
-                                                                                @if ($match->awayTeam->logo)
-                                                                                    <img src="{{ asset('storage/'.$match->awayTeam->logo) }}" class="w-5 h-5 object-contain" alt="">
-                                                                                @elseif ($match->awayTeam->team?->logo)
-                                                                                    <img src="{{ Storage::url($match->awayTeam->team->logo) }}" class="w-5 h-5 object-contain" alt="">
-                                                                                @else
-                                                                                    <span class="text-[10px] font-black text-gray-400">{{ mb_strtoupper(mb_substr($match->awayTeam->displayName(), 0, 1)) }}</span>
-                                                                                @endif
-                                                                            </div>
-                                                                            <span class="flex-1 text-xs font-semibold truncate {{ $awayWins ? 'text-green-800' : 'text-black-deep' }}">
-                                                                                {{ $match->awayTeam->displayName() }}
-                                                                            </span>
-                                                                            @if ($match->status === 'completed')
-                                                                                <span class="text-xs font-black shrink-0 ml-1 {{ $awayWins ? 'text-green-700' : 'text-titanium' }}">{{ $match->away_score ?? 0 }}</span>
-                                                                            @endif
-                                                                            @if ($awayWins)
-                                                                                <svg class="w-3 h-3 text-green-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                                                                            @endif
-                                                                            @if ($match->status === 'scheduled' && $roundNum === $firstRound)
-                                                                                <button @click="$wire.assignTeamToSlot({{ $match->id }}, 'away', null)"
-                                                                                        class="shrink-0 w-4 h-4 rounded-full bg-gray-200 hover:bg-red-100 hover:text-red-400 text-gray-400 text-[10px] font-black flex items-center justify-center transition-colors ml-0.5" title="Quitar equipo">×</button>
-                                                                            @endif
-                                                                        @else
-                                                                            @if ($roundNum === $firstRound)
-                                                                                <select @change="$wire.assignTeamToSlot({{ $match->id }}, 'away', $event.target.value || null)"
-                                                                                        class="flex-1 min-w-0 text-[11px] text-titanium italic bg-transparent border-0 focus:outline-none focus:ring-0 cursor-pointer py-0 pl-0">
-                                                                                    <option value="">Por definir…</option>
-                                                                                    @foreach ($teams as $t)
-                                                                                        @php
-                                                                                            $takenElsewhere = $firstRoundUsedTeams->reject(fn($id) => $id === ($match->away_team_id ?? 0))->contains($t->id);
-                                                                                            $isOpponent     = $t->id === ($match->home_team_id ?? 0);
-                                                                                        @endphp
-                                                                                        @if (!$takenElsewhere && !$isOpponent)
-                                                                                            <option value="{{ $t->id }}">{{ $t->displayName() }}</option>
-                                                                                        @endif
-                                                                                    @endforeach
-                                                                                </select>
-                                                                            @else
-                                                                                <span class="flex-1 text-[11px] text-titanium/40 italic px-0.5">Por definir</span>
-                                                                            @endif
-                                                                        @endif
-                                                                    </div>
-                                                                </div>
-                                                                {{-- Action micro-buttons --}}
-                                                                <div class="flex items-center justify-center gap-1 mt-0.5">
-                                                                    <button wire:click="openGoalsModal({{ $match->id }})"
-                                                                            class="text-[10px] font-semibold text-titanium hover:text-primary transition-colors px-1.5 py-0.5 rounded hover:bg-primary/5">
-                                                                        ⚽ Resultado
-                                                                    </button>
-                                                                    @if ($match->status === 'completed' && $mWinner && !$isLast)
-                                                                        <button wire:click="advanceWinner({{ $match->id }})"
-                                                                                class="text-[10px] font-bold text-green-600 hover:text-green-800 transition-colors px-1.5 py-0.5 rounded hover:bg-green-50">
-                                                                            ↗ Avanzar
-                                                                        </button>
-                                                                    @endif
-                                                                </div>
-                                                            </div>
+                                                            <div class="absolute left-0 right-0 group z-10 hover:z-20 transition-all" style="top: {{ $topPx }}px;">
+    {{-- Match card --}}
+    <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-gray-300 transition-all flex flex-col relative overflow-hidden" style="height: {{ $matchH }}px;">
+        <div class="h-7 shrink-0 flex items-center justify-between gap-2 px-2.5 bg-gray-50 border-b border-gray-100">
+            <div class="min-w-0 flex items-center gap-1.5">
+                @if (!empty($match->notes))
+                    <svg class="w-3.5 h-3.5 shrink-0 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="text-[10px] leading-3 font-medium text-amber-800 line-clamp-2" title="{{ $match->notes }}">{{ $match->notes }}</span>
+                @else
+                    <span class="text-[9px] font-semibold uppercase tracking-wide text-gray-400">{{ $match->statusLabel() }}</span>
+                @endif
+            </div>
+            <a wire:click="openEditMatchModal({{ $match->id }})" wire:navigate
+                title="Editar partido"
+                class="shrink-0 flex items-center justify-center w-5 h-5 rounded-md text-gray-400 hover:text-primary hover:bg-white transition-colors">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                </svg>
+            </a>
+        </div>
+        
+        {{-- HOME TEAM --}}
+        <div class="flex-1 min-h-0 flex items-center justify-between pr-2.5 relative border-l-[3px] {{ $homeWins ? 'bg-emerald-50/60 border-emerald-500' : 'border-transparent hover:bg-gray-50' }} transition-colors group/home">
+            
+            <div class="flex items-center gap-2 flex-1 min-w-0 pl-2">
+                @if ($match->homeTeam)
+                    <!-- Logo -->
+                    <div class="w-5 h-5 rounded-md shrink-0 flex items-center justify-center bg-white border border-gray-100 overflow-hidden">
+                        @if ($match->homeTeam->logo)
+                            <img src="{{ asset('storage/'.$match->homeTeam->logo) }}" class="w-full h-full object-contain" alt="">
+                        @elseif ($match->homeTeam->team?->logo)
+                            <img src="{{ Storage::url($match->homeTeam->team->logo) }}" class="w-full h-full object-contain" alt="">
+                        @else
+                            <span class="text-[8px] font-black text-gray-400">{{ mb_strtoupper(mb_substr($match->homeTeam->displayName(), 0, 1)) }}</span>
+                        @endif
+                    </div>
+                    <!-- Nombre -->
+                    <span class="text-xs leading-tight truncate {{ $homeWins ? 'font-bold text-gray-900' : 'font-medium text-gray-700' }}">
+                        {{ $match->homeTeam->displayName() }}
+                    </span>
+                @else
+                    <!-- Select cuando no hay equipo -->
+                    @if ($roundNum === $firstRound)
+                        <select @change="$wire.assignTeamToSlot({{ $match->id }}, 'home', $event.target.value || null)"
+                            class="w-full text-[11px] text-gray-500 font-medium italic bg-transparent border-0 p-0 focus:ring-0 cursor-pointer appearance-none truncate">
+                            <option value="">Por definir…</option>
+                            @foreach ($teams as $t)
+                                @php
+                                    $takenElsewhere = $firstRoundUsedTeams->reject(fn($id) => $id === ($match->home_team_id ?? 0))->contains($t->id);
+                                    $isOpponent     = $t->id === ($match->away_team_id ?? 0);
+                                @endphp
+                                @if (!$takenElsewhere && !$isOpponent)
+                                    <option value="{{ $t->id }}">{{ $t->displayName() }}</option>
+                                @endif
+                            @endforeach
+                        </select>
+                    @else
+                        <span class="text-[11px] text-gray-400 italic truncate">Por definir</span>
+                    @endif
+                @endif
+            </div>
+
+            <!-- Score y Acciones Derecha -->
+            <div class="flex items-center gap-1.5 shrink-0 pl-1">
+                @if ($match->homeTeam)
+                    @if ($match->status === 'completed')
+                        <span class="text-[11px] font-black {{ $homeWins ? 'text-emerald-600' : 'text-gray-400' }}">{{ $match->home_score ?? 0 }}</span>
+                    @endif
+
+                    @if ($homeWins)
+                        <svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                    @endif
+
+                    @if ($match->status === 'scheduled' && $roundNum === $firstRound)
+                        <button @click="$wire.assignTeamToSlot({{ $match->id }}, 'home', null)"
+                            class="w-3.5 h-3.5 rounded-full bg-gray-100 hover:bg-red-100 hover:text-red-500 text-gray-400 text-[9px] font-black flex items-center justify-center transition-colors opacity-0 group-hover/home:opacity-100" title="Quitar equipo">×</button>
+                    @endif
+                @endif
+            </div>
+        </div>
+
+        <!-- Divisor Central -->
+        <div class="h-px bg-gray-100 w-full"></div>
+
+        {{-- AWAY TEAM --}}
+        <div class="flex-1 min-h-0 flex items-center justify-between pr-2.5 relative border-l-[3px] {{ $awayWins ? 'bg-emerald-50/60 border-emerald-500' : 'border-transparent hover:bg-gray-50' }} transition-colors group/away">
+            
+            <div class="flex items-center gap-2 flex-1 min-w-0 pl-2">
+                @if ($match->awayTeam)
+                    <!-- Logo -->
+                    <div class="w-5 h-5 rounded-md shrink-0 flex items-center justify-center bg-white border border-gray-100 overflow-hidden">
+                        @if ($match->awayTeam->logo)
+                            <img src="{{ asset('storage/'.$match->awayTeam->logo) }}" class="w-full h-full object-contain" alt="">
+                        @elseif ($match->awayTeam->team?->logo)
+                            <img src="{{ Storage::url($match->awayTeam->team->logo) }}" class="w-full h-full object-contain" alt="">
+                        @else
+                            <span class="text-[8px] font-black text-gray-400">{{ mb_strtoupper(mb_substr($match->awayTeam->displayName(), 0, 1)) }}</span>
+                        @endif
+                    </div>
+                    <!-- Nombre -->
+                    <span class="text-xs leading-tight truncate {{ $awayWins ? 'font-bold text-gray-900' : 'font-medium text-gray-700' }}">
+                        {{ $match->awayTeam->displayName() }}
+                    </span>
+                @else
+                    <!-- Select cuando no hay equipo -->
+                    @if ($roundNum === $firstRound)
+                        <select @change="$wire.assignTeamToSlot({{ $match->id }}, 'away', $event.target.value || null)"
+                            class="w-full text-[11px] text-gray-500 font-medium italic bg-transparent border-0 p-0 focus:ring-0 cursor-pointer appearance-none truncate">
+                            <option value="">Por definir…</option>
+                            @foreach ($teams as $t)
+                                @php
+                                    $takenElsewhere = $firstRoundUsedTeams->reject(fn($id) => $id === ($match->away_team_id ?? 0))->contains($t->id);
+                                    $isOpponent     = $t->id === ($match->home_team_id ?? 0);
+                                @endphp
+                                @if (!$takenElsewhere && !$isOpponent)
+                                    <option value="{{ $t->id }}">{{ $t->displayName() }}</option>
+                                @endif
+                            @endforeach
+                        </select>
+                    @else
+                        <span class="text-[11px] text-gray-400 italic truncate">Por definir</span>
+                    @endif
+                @endif
+            </div>
+
+            <!-- Score y Acciones Derecha -->
+            <div class="flex items-center gap-1.5 shrink-0 pl-1">
+                @if ($match->awayTeam)
+                    @if ($match->status === 'completed')
+                        <span class="text-[11px] font-black {{ $awayWins ? 'text-emerald-600' : 'text-gray-400' }}">{{ $match->away_score ?? 0 }}</span>
+                    @endif
+
+                    @if ($awayWins)
+                        <svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                    @endif
+
+                    @if ($match->status === 'scheduled' && $roundNum === $firstRound)
+                        <button @click="$wire.assignTeamToSlot({{ $match->id }}, 'away', null)"
+                            class="w-3.5 h-3.5 rounded-full bg-gray-100 hover:bg-red-100 hover:text-red-500 text-gray-400 text-[9px] font-black flex items-center justify-center transition-colors opacity-0 group-hover/away:opacity-100" title="Quitar equipo">×</button>
+                    @endif
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
                                                         @endforeach
                                                     </div>
                                                 </div>
@@ -917,7 +1033,7 @@
                                                         $nextRoundMatches = $bracket['rounds'][$roundNum + 1] ?? collect();
                                                         $nextCount = $nextRoundMatches->count();
                                                     @endphp
-                                                    <div style="width: {{ $gapX }}px; flex-shrink: 0; position: relative; height: {{ $containerH + 22 }}px; margin-top: 22px;">
+                                                    <div style="width: {{ $gapX }}px; flex-shrink: 0; position: relative; height: {{ $containerH + 32 }}px; margin-top: 32px;">
                                                         @for ($ci = 0; $ci < $nextCount; $ci++)
                                                             @php
                                                                 $slotMult   = (int) pow(2, $roundIndex);
@@ -954,21 +1070,65 @@
                                     {{-- 3rd place match --}}
                                     @if ($bracket['thirdPlace'])
                                         @php $tp = $bracket['thirdPlace']; @endphp
-                                        <div class="mt-5 pt-5 border-t border-dashed border-silver">
-                                            <h4 class="text-xs font-bold text-titanium uppercase tracking-wider mb-3 flex items-center gap-2">
-                                                <span class="w-5 h-5 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-black">3</span>
-                                                Partido por el 3er Puesto
-                                            </h4>
-                                            <div class="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-                                                <span class="flex-1 text-sm font-semibold text-right text-black-deep">{{ $tp->homeTeam?->displayName() ?? 'Por definir' }}</span>
-                                                <div class="shrink-0 px-3 py-1.5 bg-white rounded-lg border border-amber-200 text-center min-w-[60px]">
+                                        <div class="mt-6 pt-6 border-t border-dashed border-gray-300">
+    
+                                            <!-- Cabecera: Título y Botón de Editar separados -->
+                                            <div class="flex items-center justify-between mb-4">
+                                                <div class="flex items-center gap-2.5">
+                                                    <!-- Insignia 3er Puesto -->
+                                                    <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-black shadow-sm border border-amber-200">
+                                                        3
+                                                    </span>
+                                                    <h4 class="text-sm font-bold text-gray-500 uppercase tracking-wider">
+                                                        Partido por el 3er Puesto <span class="text-gray-400 font-normal ml-1">#666</span>
+                                                    </h4>
+                                                </div>
+                                                
+                                                <!-- Botón Editar (Arreglado: ya no ocupa todo el ancho) -->
+                                                <button wire:click="openEditMatchModal({{ $tp->id }})" wire:navigate
+                                                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 active:bg-indigo-100 transition-all shadow-sm">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                    </svg>
+                                                    Editar
+                                                </button>
+                                            </div>
+
+                                            <!-- Tarjeta del Partido -->
+                                            <div class="flex items-center gap-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60 rounded-2xl px-4 md:px-6 py-4 shadow-sm hover:shadow-md transition-shadow">
+                                                
+                                                <!-- Equipo Local -->
+                                                <div class="flex-1 flex justify-end">
+                                                    <span class="text-sm md:text-base font-bold text-gray-900 text-right truncate" title="{{ $tp->homeTeam?->displayName() ?? 'Por definir' }}">
+                                                        {{ $tp->homeTeam?->displayName() ?? 'Por definir' }}
+                                                    </span>
+                                                </div>
+
+                                                <!-- Marcador / VS Central -->
+                                                <div class="shrink-0 flex flex-col items-center justify-center">
                                                     @if ($tp->status === 'completed')
-                                                        <span class="text-base font-black text-black-deep">{{ $tp->home_score }} – {{ $tp->away_score }}</span>
+                                                        <div class="px-4 py-2 bg-white rounded-xl border border-amber-200 shadow-sm min-w-[70px] md:min-w-[80px] text-center">
+                                                            <span class="text-lg md:text-xl font-black text-gray-900 tracking-wider">
+                                                                {{ $tp->home_score }} <span class="text-gray-300 mx-0.5">-</span> {{ $tp->away_score }}
+                                                            </span>
+                                                        </div>
+                                                        <span class="text-[10px] font-bold text-amber-600 uppercase tracking-widest mt-1.5">Final</span>
                                                     @else
-                                                        <button wire:click="openGoalsModal({{ $tp->id }})" class="text-xs font-bold text-amber-600 hover:text-amber-800">vs</button>
+                                                        {{-- <button wire:click="openGoalsModal({{ $tp->id }})" 
+                                                            class="px-4 py-2 bg-white hover:bg-amber-100 rounded-xl border border-amber-200 shadow-sm min-w-[70px] transition-all transform hover:scale-105 group"> --}}
+                                                            <span class="text-sm font-black text-amber-500 group-hover:text-amber-700 uppercase tracking-widest">VS</span>
+                                                        {{-- </button> --}}
+                                                        <span class="text-[10px] font-medium text-gray-400 uppercase tracking-widest mt-1.5">Pendiente</span>
                                                     @endif
                                                 </div>
-                                                <span class="flex-1 text-sm font-semibold text-black-deep">{{ $tp->awayTeam?->displayName() ?? 'Por definir' }}</span>
+
+                                                <!-- Equipo Visitante -->
+                                                <div class="flex-1 flex justify-start">
+                                                    <span class="text-sm md:text-base font-bold text-gray-900 text-left truncate" title="{{ $tp->awayTeam?->displayName() ?? 'Por definir' }}">
+                                                        {{ $tp->awayTeam?->displayName() ?? 'Por definir' }}
+                                                    </span>
+                                                </div>
+                                                
                                             </div>
                                         </div>
                                     @endif
@@ -1355,7 +1515,7 @@
                 <div class="space-y-4">
                     <div>
                         <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Fase *</label>
-                        <select wire:model="generate_phase_id"
+                        <select wire:model.live="generate_phase_id"
                                 class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-500">
                             <option value="">— Selecciona una fase —</option>
                             @foreach ($phases as $phase)
@@ -1364,6 +1524,46 @@
                         </select>
                         @error('generate_phase_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
+
+                    @php
+                        $selectedGenPhase = $generate_phase_id ? $phases->firstWhere('id', (int) $generate_phase_id) : null;
+                        $selectedGenPhaseType = $selectedGenPhase?->type;
+                        $generateMaxTeams = 0;
+                        if ($selectedGenPhase) {
+                            $__isOpen = $tournament->team_type === 'open';
+                            $__catId  = $__isOpen ? null : ($selectedGenPhase->tournament_category_id ?? $activeCategoryId ?? null);
+                            $__q = \App\Models\TournamentTeam::where('tournament_id', $tournament->id);
+                            if (!$__isOpen && $__catId) {
+                                $__q->where('tournament_category_id', $__catId);
+                            }
+                            $generateMaxTeams = $__q->count();
+                        }
+                    @endphp
+
+                    @if ($selectedGenPhaseType === 'league' && $generateMaxTeams >= 2)
+                        <div>
+                            <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">
+                                Equipos participantes en la liguilla
+                            </label>
+                            <div class="flex items-center gap-3">
+                                <input type="number"
+                                       wire:model="generate_team_count"
+                                       min="2"
+                                       max="{{ $generateMaxTeams }}"
+                                       placeholder="Todos ({{ $generateMaxTeams }})"
+                                       class="w-32 px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-500"/>
+                                <span class="text-xs text-titanium">
+                                    de <strong class="text-black-deep">{{ $generateMaxTeams }}</strong> disponibles
+                                </span>
+                            </div>
+                            <p class="text-xs text-titanium mt-1.5 leading-relaxed">
+                                Déjalo vacío (o pon <strong>{{ $generateMaxTeams }}</strong>) para generar el calendario con todos los equipos cruzados.
+                                Indica un número <strong>menor</strong> para generar los partidos <strong>sin equipos asignados</strong> y rellenarlos a mano después.
+                            </p>
+                            @error('generate_team_count') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                    @endif
+
                     <div>
                         <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Vueltas</label>
                         <div class="grid grid-cols-2 gap-3">
@@ -1940,7 +2140,11 @@
                                     {{-- Info --}}
                                     <div class="flex-1 min-w-0">
                                         <p class="text-sm font-semibold text-black-deep truncate">
-                                            {{ $event->player?->dorsal ? '#' . $event->player->dorsal . ' ' : '' }}{{ $event->player?->surname }} {{ $event->player?->name }}
+                                            @if ($event->player)
+                                                {{ $event->player->dorsal ? '#' . $event->player->dorsal . ' ' : '' }}{{ $event->player->surname }} {{ $event->player->name }}
+                                            @else
+                                                <span class="italic text-titanium">Gol sin jugador</span>
+                                            @endif
                                             @if ($event->type === 'goal')
                                                 @if ($event->subtype === 'own_goal')
                                                     <span class="text-xs font-normal text-red-500">(p.p.)</span>
@@ -2023,22 +2227,42 @@
 
                         {{-- Paso 3 · Seleccionar jugador (sólo si hay equipo seleccionado) --}}
                         @if ($gm_team_id)
-                            @php $isHomeTeam = (int)$gm_team_id === $gm_homeTeamId; @endphp
+                            @php
+                                $isHomeTeam     = (int)$gm_team_id === $gm_homeTeamId;
+                                $teamHasPlayers = $gmTeamPlayers->isNotEmpty() || $gm_player_search !== '';
+                            @endphp
                             <div>
                                 <p class="text-[11px] font-bold text-titanium uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
                                     <span class="inline-flex w-4 h-4 rounded-full bg-titanium/20 items-center justify-center text-[10px] font-black shrink-0">2</span>
-                                    ¿Qué jugador?
+                                    @if ($gm_action === 'goal')
+                                        ¿Qué jugador? <span class="text-titanium/60 normal-case font-semibold">(opcional)</span>
+                                    @else
+                                        ¿Qué jugador?
+                                    @endif
                                 </p>
                                 {{-- Buscador --}}
-                                <div class="relative mb-2.5">
-                                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-titanium/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                                    <input wire:model.live="gm_player_search"
-                                           type="text" placeholder="Buscar por dorsal o nombre..."
-                                           class="w-full pl-9 pr-3 py-2 text-sm border border-silver rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"/>
-                                </div>
+                                @if ($teamHasPlayers)
+                                    <div class="relative mb-2.5">
+                                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-titanium/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                        <input wire:model.live="gm_player_search"
+                                               type="text" placeholder="Buscar por dorsal o nombre..."
+                                               class="w-full pl-9 pr-3 py-2 text-sm border border-silver rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"/>
+                                    </div>
+                                @endif
                                 @if ($gmTeamPlayers->isEmpty())
-                                    <div class="text-center py-5 bg-white rounded-xl border border-dashed border-silver">
-                                        <p class="text-xs text-titanium">{{ $gm_player_search ? 'Sin resultados para "' . $gm_player_search . '"' : 'No hay jugadores inscritos en este equipo.' }}</p>
+                                    <div class="bg-white border border-dashed border-silver rounded-xl px-4 py-4 text-center">
+                                        <p class="text-xs text-titanium mb-2">
+                                            {{ $gm_player_search
+                                                ? 'Sin resultados para "' . $gm_player_search . '"'
+                                                : 'Este equipo no tiene jugadores inscritos.' }}
+                                        </p>
+                                        @if ($gm_action === 'goal' && $gm_player_search === '')
+                                            <p class="text-[11px] text-titanium/70 leading-relaxed">
+                                                Puedes registrar el gol <strong class="text-black-deep">sin asignarlo a ningún jugador</strong>; solo contará para el marcador del equipo.
+                                            </p>
+                                        @elseif ($gm_action === 'card')
+                                            <p class="text-[11px] text-titanium/70">Las tarjetas requieren un jugador registrado.</p>
+                                        @endif
                                     </div>
                                 @else
                                     <div class="grid grid-cols-3 gap-1.5">
@@ -2069,12 +2293,22 @@
                             </div>
                         @endif
 
-                        {{-- Paso 4 · Tipo + minuto + guardar (sólo si hay jugador seleccionado) --}}
-                        @if ($gm_player_id)
+                        {{-- Paso 4 · Tipo + minuto + guardar
+                             Para GOL: basta con tener equipo (jugador opcional).
+                             Para TARJETA: se requiere jugador. --}}
+                        @if (
+                            ($gm_action === 'goal' && $gm_team_id)
+                            || ($gm_action === 'card' && $gm_player_id)
+                        )
                             <div class="space-y-3">
                                 <p class="text-[11px] font-bold text-titanium uppercase tracking-wider flex items-center gap-1.5">
                                     <span class="inline-flex w-4 h-4 rounded-full bg-titanium/20 items-center justify-center text-[10px] font-black shrink-0">3</span>
                                     Detalles
+                                    @if ($gm_action === 'goal' && !$gm_player_id)
+                                        <span class="ml-1 text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                                            Gol sin jugador
+                                        </span>
+                                    @endif
                                 </p>
                                 <div class="flex gap-2">
                                     @if ($gm_action === 'goal')
@@ -2101,7 +2335,9 @@
                                             {{ $gm_action === 'goal'
                                                 ? 'bg-primary text-white hover:bg-primary/90'
                                                 : 'bg-amber-500 text-white hover:bg-amber-600' }}">
-                                    {{ $gm_action === 'goal' ? '+ Registrar gol' : '+ Registrar tarjeta' }}
+                                    {{ $gm_action === 'goal'
+                                        ? ($gm_player_id ? '+ Registrar gol' : '+ Registrar gol de equipo')
+                                        : '+ Registrar tarjeta' }}
                                 </button>
                             </div>
                         @endif

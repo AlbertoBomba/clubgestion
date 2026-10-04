@@ -1,0 +1,560 @@
+<?php
+    $payment = $data['payment'];
+    $player = $data['player'];
+    $sportsSchool = $data['sportsSchool'];
+    $generatedDate = $data['generatedDate'];
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Carta de Pago <?php echo e($payment->code); ?></title>
+    <style>
+        @page {
+            margin: 18mm 16mm;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-size: 10pt;
+            color: #1f2937;
+            background: #ffffff;
+            line-height: 1.5;
+        }
+
+        /* ============ HEADER ============ */
+        .header {
+            width: 100%;
+            border-bottom: 2px solid #1e3a5f;
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+        }
+
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .header-club {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 4px;
+        }
+
+        .header-info {
+            font-size: 9pt;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+
+        .header-right {
+            text-align: right;
+            vertical-align: top;
+        }
+
+        .doc-label {
+            font-size: 9pt;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #6b7280;
+            margin-bottom: 2px;
+        }
+
+        .doc-code {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 6px;
+        }
+
+        .doc-date {
+            font-size: 9pt;
+            color: #4b5563;
+        }
+
+        /* ============ TITLE ============ */
+        .title-row {
+            margin-bottom: 22px;
+        }
+
+        .title-row table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .title-main {
+            font-size: 22pt;
+            font-weight: bold;
+            color: #1f2937;
+            letter-spacing: -0.5px;
+        }
+
+        .title-sub {
+            font-size: 10pt;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: #d97706;
+            color: #ffffff;
+            font-size: 10pt;
+            font-weight: bold;
+            padding: 6px 16px;
+            border-radius: 4px;
+            letter-spacing: 1px;
+        }
+
+        /* ============ AMOUNT SUMMARY ============ */
+        .amount-box {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-left: 4px solid #1e3a5f;
+            padding: 18px 22px;
+            margin-bottom: 24px;
+        }
+
+        .amount-box table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .amount-label {
+            font-size: 10pt;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .amount-concept {
+            font-size: 12pt;
+            color: #1f2937;
+            font-weight: bold;
+        }
+
+        .amount-value {
+            font-size: 26pt;
+            font-weight: bold;
+            color: #1e3a5f;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .amount-detail {
+            font-size: 9pt;
+            color: #6b7280;
+            text-align: right;
+            margin-top: 4px;
+        }
+
+        /* ============ SECTIONS ============ */
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 9pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #1e3a5f;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #d1d5db;
+            margin-bottom: 10px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table td {
+            padding: 7px 0;
+            vertical-align: top;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-label {
+            font-size: 9pt;
+            color: #6b7280;
+            width: 38%;
+        }
+
+        .data-value {
+            font-size: 10pt;
+            color: #1f2937;
+            font-weight: bold;
+        }
+
+        /* ============ TWO COLUMNS ============ */
+        .two-col {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .two-col > tbody > tr > td {
+            width: 50%;
+            vertical-align: top;
+            padding: 0;
+        }
+
+        .two-col > tbody > tr > td:first-child {
+            padding-right: 12px;
+        }
+
+        .two-col > tbody > tr > td:last-child {
+            padding-left: 12px;
+        }
+
+        /* ============ PAYMENT METHODS ============ */
+        .method {
+            border: 1px solid #e5e7eb;
+            border-left: 3px solid #1e3a5f;
+            border-radius: 4px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            background: #ffffff;
+        }
+
+        .method-header {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 6px;
+        }
+
+        .method-number {
+            display: inline-block;
+            background: #1e3a5f;
+            color: #ffffff;
+            width: 18px;
+            height: 18px;
+            line-height: 18px;
+            text-align: center;
+            border-radius: 50%;
+            font-size: 8pt;
+            margin-right: 6px;
+        }
+
+        .method-body {
+            font-size: 9pt;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        .method-body a {
+            color: #1e3a5f;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .method-body strong {
+            color: #1f2937;
+        }
+
+        .method-fields {
+            margin-top: 6px;
+            padding: 8px 10px;
+            background: #f8fafc;
+            border-radius: 3px;
+            font-size: 9pt;
+        }
+
+        .method-fields div {
+            padding: 2px 0;
+        }
+
+        .code-highlight {
+            display: inline-block;
+            background: #1e3a5f;
+            color: #ffffff;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        /* ============ NOTES ============ */
+        .note {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            padding: 12px 16px;
+            margin-top: 22px;
+            font-size: 9pt;
+            color: #4b5563;
+            line-height: 1.5;
+        }
+
+        .note strong {
+            color: #1f2937;
+        }
+
+        .warning-note {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-left: 3px solid #d97706;
+            border-radius: 3px;
+            padding: 8px 12px;
+            margin-top: 8px;
+            font-size: 8.5pt;
+            color: #78350f;
+            line-height: 1.5;
+        }
+
+        .warning-note strong {
+            color: #92400e;
+        }
+
+        .warning-note a {
+            color: #92400e;
+            font-weight: bold;
+        }
+
+        /* ============ FOOTER ============ */
+        .footer {
+            margin-top: 32px;
+            padding-top: 14px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            font-size: 8pt;
+            color: #9ca3af;
+            line-height: 1.5;
+        }
+
+        .footer .brand {
+            color: #6b7280;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    
+    <div class="header">
+        <table class="header-table">
+            <tr>
+                <td>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($sportsSchool): ?>
+                        <div class="header-club"><?php echo e($sportsSchool->name); ?></div>
+                        <div class="header-info">
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($sportsSchool->address): ?><?php echo e($sportsSchool->address); ?><br><?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($sportsSchool->phone): ?>Tel: <?php echo e($sportsSchool->phone); ?><?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($sportsSchool->email): ?> &nbsp;·&nbsp; <?php echo e($sportsSchool->email); ?><?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        </div>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                </td>
+                <td class="header-right">
+                    <div class="doc-label">Código de pago</div>
+                    <div class="doc-code"><?php echo e($payment->code); ?></div>
+                    
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    
+    <div class="title-row">
+        <table>
+            <tr>
+                <td>
+                    <div class="title-main">Carta de pago</div>
+                    <div class="title-sub">Instrucciones para el abono de la cuota</div>
+                </td>
+                <td style="text-align: right; vertical-align: middle;">
+                    <span class="status-badge">PENDIENTE DE PAGO</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    
+    <div class="amount-box">
+        <table>
+            <tr>
+                <td>
+                    <div class="amount-label">Importe a pagar</div>
+                    <div class="amount-concept">Cuota <?php echo e($payment->cuota); ?></div>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($payment->paymentTeam): ?>
+                        <div style="font-size: 9pt; color: #6b7280; margin-top: 4px;">
+                            Período: <?php echo e(\Carbon\Carbon::parse($payment->paymentTeam->date_start)->format('d/m/Y')); ?>
+
+                            – <?php echo e(\Carbon\Carbon::parse($payment->paymentTeam->date_end)->format('d/m/Y')); ?>
+
+                        </div>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                </td>
+                <td>
+                    <div class="amount-value"><?php echo e(number_format($payment->amount, 2, ',', '.')); ?> €</div>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($payment->amount_original && $payment->amount_original != $payment->amount): ?>
+                        <div class="amount-detail">
+                            Original: <?php echo e(number_format($payment->amount_original, 2, ',', '.')); ?> € ·
+                            Descuento: -<?php echo e(number_format($payment->amount_original - $payment->amount, 2, ',', '.')); ?> €
+                        </div>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    
+    <table class="two-col">
+        <tr>
+            <td>
+                <div class="section">
+                    <div class="section-title">Datos del jugador</div>
+                    <table class="data-table">
+                        <tr>
+                            <td class="data-label">Nombre</td>
+                            <td class="data-value"><?php echo e($player->name); ?> <?php echo e($player->surname); ?></td>
+                        </tr>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($player->dni): ?>
+                            <tr>
+                                <td class="data-label">DNI</td>
+                                <td class="data-value"><?php echo e($player->dni); ?></td>
+                            </tr>
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($player->dbirth): ?>
+                            <tr>
+                                <td class="data-label">Edad</td>
+                                <td class="data-value"><?php echo e($player->dbirth->age); ?> años</td>
+                            </tr>
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($player->phone1 || $player->phone2): ?>
+                            <tr>
+                                <td class="data-label">Teléfono</td>
+                                <td class="data-value"><?php echo e($player->phone1 ?? $player->phone2); ?></td>
+                            </tr>
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    </table>
+                </div>
+            </td>
+            <td>
+                <div class="section">
+                    <div class="section-title">Detalles del pago</div>
+                    <table class="data-table">
+                        <tr>
+                            <td class="data-label">Código</td>
+                            <td class="data-value"><?php echo e($payment->code); ?></td>
+                        </tr>
+                        <tr>
+                            <td class="data-label">Cuota</td>
+                            <td class="data-value">Nº <?php echo e($payment->cuota); ?></td>
+                        </tr>
+                        <tr>
+                            <td class="data-label">Importe</td>
+                            <td class="data-value"><?php echo e(number_format($payment->amount, 2, ',', '.')); ?> €</td>
+                        </tr>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($payment->amount_original && $payment->amount_original != $payment->amount): ?>
+                            <tr>
+                                <td class="data-label">Importe original</td>
+                                <td class="data-value"><?php echo e(number_format($payment->amount_original, 2, ',', '.')); ?> €</td>
+                            </tr>
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        <tr>
+                            <td class="data-label">Sección</td>
+                            <td class="data-value"><?php echo e($payment->paymentTeam->team->section->name ?? ''); ?></td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    
+    <div class="section">
+        <div class="section-title">Formas de pago disponibles</div>
+
+        <?php $methodIndex = 0; ?>
+
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($sportsSchool && $sportsSchool->payments_enabled): ?>
+            <?php $methodIndex++; ?>
+            <div class="method">
+                <div class="method-header">
+                    <span class="method-number"><?php echo e($methodIndex); ?></span> Tarjeta de crédito o débito
+                </div>
+                <div class="method-body">
+                    Realice el pago de forma segura desde nuestra plataforma online.
+                    <div class="method-fields">
+                        <div><strong>Enlace de pago:</strong> <a href="https://<?php echo e($sportsSchool->domain); ?>/search-pay" target="_blank">https://<?php echo e($sportsSchool->domain); ?>/search-pay</a></div>
+                        <div><strong>Código de pago:</strong> <span class="code-highlight"><?php echo e($payment->code); ?></span></div>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($sportsSchool && $sportsSchool->bank_account_enabled): ?>
+            <?php $methodIndex++; ?>
+            <div class="method">
+                <div class="method-header">
+                    <span class="method-number"><?php echo e($methodIndex); ?></span> Transferencia bancaria
+                </div>
+                <div class="method-body">
+                    Realice una transferencia con los siguientes datos:
+                    <div class="method-fields">
+                        <div><strong>Beneficiario:</strong> <?php echo e($sportsSchool->name ?? 'Escuela Deportiva'); ?></div>
+                        <div><strong>IBAN:</strong> <?php echo e(wordwrap($sportsSchool->bank_account, 4, ' ', true)); ?></div>
+                        <div><strong>Concepto:</strong> Carta de pago <?php echo e($payment->code); ?></div>
+                        <div><strong>Importe:</strong> <?php echo e(number_format($payment->amount, 2, ',', '.')); ?> €</div>
+                    </div>
+                    <div class="warning-note">
+                        <strong>Importante:</strong> tras realizar la transferencia debe acceder a
+                        <a href="https://<?php echo e($sportsSchool->domain); ?>/search-pay" target="_blank">https://<?php echo e($sportsSchool->domain); ?>/search-pay</a>,
+                        seleccionar "transferencia bancaria" y adjuntar el justificante.
+                        La verificación puede tardar hasta 7 días hábiles.
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+        <?php $methodIndex++; ?>
+        <div class="method">
+            <div class="method-header">
+                <span class="method-number"><?php echo e($methodIndex); ?></span> Efectivo
+            </div>
+            <div class="method-body">
+                Puede abonar el importe en efectivo en las oficinas del club.
+                <div class="method-fields">
+                    <div><strong>Código de pago:</strong> <span class="code-highlight"><?php echo e($payment->code); ?></span></div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="note">
+        <strong>Conserve este documento como referencia.</strong><br>
+        Indique siempre el código de pago <strong><?php echo e($payment->code); ?></strong> al realizar el abono
+        para poder identificar correctamente su transacción.
+    </div>
+
+    
+    <div class="footer">
+        Documento generado el <?php echo e($generatedDate); ?><br>
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($sportsSchool): ?>
+            <?php echo e($sportsSchool->name); ?>
+
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($sportsSchool->phone): ?> · Tel: <?php echo e($sportsSchool->phone); ?><?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($sportsSchool->email): ?> · <?php echo e($sportsSchool->email); ?><?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+            <br>
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+        <span class="brand">www.vaed.es</span> · Digitalización de escuelas deportivas
+    </div>
+
+</body>
+</html>
+<?php /**PATH C:\Users\Alberto Martín\Google Drive\PHP\Git Alberto\SVAclubsportal\resources\views\pdfs\payment-card.blade.php ENDPATH**/ ?>

@@ -1,0 +1,1058 @@
+<div class="space-y-6 bg-white-pure rounded-2xl shadow-xl border border-primary/10 overflow-hidden p-3 sm:p-6">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-gray-100 pb-4">
+        <div class="flex items-center gap-2 overflow-hidden">
+            <?php
+                $indexRoute = (auth()->user()->isMaster() || session()->has('impersonator_id')) 
+                    ? 'school-users.index' 
+                    : 'my-school-users.index';
+            ?>
+            <a href="<?php echo e(route($indexRoute)); ?>" class="font-bold text-lg sm:text-2xl text-primary hover:text-night-blue transition-colors leading-tight whitespace-nowrap">
+                <?php echo e(__('Usuarios')); ?>
+
+            </a>
+            <span class="text-lg sm:text-2xl text-gray-400 font-bold">/</span>
+            <h2 class="font-bold text-lg sm:text-2xl text-titanium leading-tight truncate">
+                <span class="hidden sm:inline">Actualizar </span><?php echo e($name); ?>
+
+            </h2>
+        </div>
+        
+        <div class="flex gap-2 sm:gap-3 flex-wrap sm:flex-nowrap">
+            <a href="<?php echo e(route($indexRoute)); ?>" class="inline-flex items-center px-3 py-2 sm:px-4 bg-silver/30 text-titanium rounded-xl font-semibold text-xs sm:text-sm hover:bg-silver/50 transition-colors whitespace-nowrap">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                <span class="hidden sm:inline"><?php echo e($hasChanges ? 'Cancelar' : 'Volver'); ?></span>
+            </a>
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($user->role !== 'master' && auth()->user()->isMaster() && !session()->has('impersonator_id')): ?>
+                <button type="button" wire:click="confirmDelete" 
+                    wire:loading.attr="disabled"
+                    wire:target="confirmDelete"
+                    class="inline-flex items-center px-3 py-2 sm:px-4 rounded-xl text-white font-semibold text-xs sm:text-sm shadow-lg hover:shadow-xl transition-all bg-red-600 hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg wire:loading.remove wire:target="confirmDelete" class="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    <svg wire:loading wire:target="confirmDelete" class="animate-spin h-4 w-4 sm:w-5 sm:h-5 sm:mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="hidden sm:inline">Eliminar</span>
+                </button>
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+            <button type="submit" form="user-form" wire:loading.attr="disabled" wire:target="save" class="inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl transition-all bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed">
+                <svg wire:loading.remove wire:target="save" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <svg wire:loading wire:target="save" class="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span wire:loading.remove wire:target="save">Actualizar</span>
+                <span wire:loading wire:target="save">Guardando...</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Alerta de cambios sin guardar -->
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($hasChanges): ?>
+        <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg animate-pulse">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-semibold text-yellow-800">
+                        ⚠️ Tienes cambios sin guardar. Haz clic en <span class="font-bold">Actualizar</span> para guardar los cambios.
+                    </p>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+    <form wire:submit.prevent="save" id="user-form" enctype="multipart/form-data">
+            <!-- Layout de dos columnas -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Columna Izquierda: Información del Usuario (2/3) -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="flex w-full gap-6">
+                        <!-- Foto de Perfil -->
+                        <div class="space-y-4 flex-1 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                            <h3 class="text-lg font-semibold text-titanium flex items-center border-b border-silver/30 pb-3">
+                                <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                Foto de Perfil
+                            </h3>
+
+                            <div class="flex gap-4 items-start">
+                                <div class="flex-shrink-0">
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($profile_photo): ?>
+                                        <div>
+                                            <p class="text-sm text-titanium mb-2 text-center">Vista previa:</p>
+                                            <img src="<?php echo e($profile_photo->temporaryUrl()); ?>" class="h-32 w-32 object-cover rounded-xl border-2 border-primary shadow-md">
+                                        </div>
+                                    <?php elseif($current_profile_photo): ?>
+                                        <div>
+                                            
+                                            <div class="relative inline-block">
+                                                <img src="<?php echo e(asset('storage/' . $current_profile_photo)); ?>" 
+                                                    class="h-32 w-32 object-cover rounded-xl border-2 border-silver shadow-md">
+                                                <button type="button" wire:click="deleteProfilePhoto" 
+                                                    class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors shadow-lg">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="h-32 w-32 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center">
+                                            <div class="text-center">
+                                                <svg class="w-8 h-8 mx-auto text-gray-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                                </svg>
+                                                <p class="text-xs text-gray-500">Sin imagen</p>
+                                            </div>
+                                        </div>
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                </div>
+                                
+                                <div class="flex-1">
+                                    <label class="block text-sm font-semibold text-titanium mb-2"><?php echo e($current_profile_photo ? 'Cambiar foto de perfil' : 'Subir foto de perfil'); ?></label>
+                                    
+                                    <!-- Editor de recorte de imagen de perfil -->
+                                    <div id="profile-photo-editor" class="hidden mb-3 border-2 border-dashed border-primary rounded-xl p-4">
+                                        <div class="mb-3">
+                                            <img id="profile-crop-image" style="max-width: 100%; display: block;">
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <button type="button" onclick="cropAndUploadProfilePhoto()" 
+                                                class="flex-1 px-4 py-2 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors">
+                                                ✂️ Recortar y Usar
+                                            </button>
+                                            <button type="button" onclick="cancelProfilePhotoCrop()" 
+                                                class="px-4 py-2 bg-red-500 text-white rounded-xl font-semibold text-sm hover:bg-red-600 transition-colors">
+                                                ✕ Cancelar
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <input type="file" id="profile-photo-file-input" accept="image/*" 
+                                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
+                                        onchange="handleProfilePhotoSelect(event)">
+                                    
+                                    <!-- Input oculto para Livewire -->
+                                    <input type="file" wire:model.live="profile_photo" id="profile-photo-livewire-input" accept="image/*" class="hidden">
+                                    
+                                <div wire:loading wire:target="profile_photo" class="text-sm text-primary mt-1">
+                                    <svg class="animate-spin h-4 w-4 inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Subiendo foto...
+                                </div>
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['profile_photo'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="text-red-500 text-xs mt-1"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                    <p class="text-xs text-gray-500 mt-1">Máximo 2MB. Formatos: JPG, PNG</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Información Básica -->
+                        <div class="space-y-4 flex-1">
+                            <h3 class="text-lg font-semibold text-titanium flex items-center border-b border-silver/30 pb-3">
+                                <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                                Información Básica
+                            </h3>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="name" class="block text-sm font-semibold text-titanium mb-2">Nombre completo *</label>
+                                    <input wire:model.live="name" type="text" id="name" 
+                                        class="block w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm <?php $__errorArgs = ['name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="text-red-500 text-xs mt-1"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                </div>
+
+                                <div>
+                                    <label for="email" class="block text-sm font-semibold text-titanium mb-2">Email *</label>
+                                    <input wire:model.live="email" type="email" id="email" 
+                                        class="block w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm <?php $__errorArgs = ['email'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['email'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="text-red-500 text-xs mt-1"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex w-full gap-6">
+                        <!-- Cambiar Contraseña -->
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold text-titanium flex items-center border-b border-silver/30 pb-3">
+                                <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                </svg>
+                                Cambiar Contraseña
+                            </h3>
+                            <p class="text-xs text-gray-500">Deja en blanco si no deseas cambiar la contraseña</p>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="password" class="block text-sm font-semibold text-titanium mb-2">Nueva contraseña</label>
+                                    <input wire:model.live="password" type="password" id="password" 
+                                        class="block w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm <?php $__errorArgs = ['password'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['password'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="text-red-500 text-xs mt-1"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                </div>
+
+                                <div>
+                                    <label for="password_confirmation" class="block text-sm font-semibold text-titanium mb-2">Confirmar contraseña</label>
+                                    <input wire:model.live="password_confirmation" type="password" id="password_confirmation" 
+                                        class="block w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm">
+                                </div>
+                            </div>
+
+                            
+                            <div class="border-t border-silver/30 pt-4 mt-2">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                                    <button type="button" wire:click="sendResetEmail" wire:loading.attr="disabled"
+                                        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-primary text-primary text-sm font-semibold hover:bg-primary hover:text-white transition-colors disabled:opacity-50">
+                                        <svg wire:loading.remove wire:target="sendResetEmail" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                        </svg>
+                                        <svg wire:loading wire:target="sendResetEmail" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                                        </svg>
+                                        Enviar enlace de restablecimiento
+                                    </button>
+                                    <div class="text-xs text-gray-500">
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($schoolMailConfigured): ?>
+                                            <span class="text-green-600 font-medium">&#10003;</span>
+                                            Se enviará desde <strong><?php echo e($schoolMailFrom); ?></strong>
+                                        <?php else: ?>
+                                            <span class="text-amber-500 font-medium">&#9888;</span>
+                                            La escuela no tiene SMTP configurado &mdash; se usará el correo genérico de la plataforma
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Escuela y Rol -->
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold text-titanium flex items-center border-b border-silver/30 pb-3">
+                                <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                                Escuela y Rol
+                            </h3>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label for="sports_school_id" class="block text-sm font-semibold text-titanium mb-2">Escuela deportiva *</label>
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->isMaster() || session()->has('impersonator_id')): ?>
+                                        <select wire:model.live="sports_school_id" id="sports_school_id" 
+                                            class="block w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm <?php $__errorArgs = ['sports_school_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
+                                            <option value="">Selecciona una escuela</option>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $schools; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $school): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($school->id); ?>"><?php echo e($school->name); ?></option>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        </select>
+                                    <?php else: ?>
+                                        <p class="text-xs text-gray-500 mb-2">La escuela está fijada automáticamente</p>
+                                        <div class="block w-full px-3 py-2 border border-silver rounded-xl bg-gray-50 text-black-deep text-sm">
+                                            <?php echo e($schools->first()?->name ?? 'Sin escuela'); ?>
+
+                                        </div>
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['sports_school_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="text-red-500 text-xs mt-1"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                </div>
+
+                                <div>
+                                    <label for="role" class="block text-sm font-semibold text-titanium mb-2">Rol *</label>
+                                    <p class="text-xs text-gray-500 mb-2">Define permisos de usuario en la app</p>
+                                    <select wire:model.live="role" id="role" 
+                                        class="block w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-black-deep text-sm <?php $__errorArgs = ['role'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
+                                        <?php echo e($user->role === 'master' ? 'disabled' : ''); ?>>
+                                        <option value="">Selecciona un rol</option>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($user->role === 'master'): ?>
+                                            <option value="master" selected>Master (no editable)</option>
+                                        <?php else: ?>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $roles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $roleOption): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($roleOption->name); ?>"><?php echo e(ucfirst(str_replace('_', ' ', $roleOption->name))); ?></option>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                    </select>
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['role'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="text-red-500 text-xs mt-1"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                </div>
+
+                                <!-- Estado -->
+                                <div class="flex items-center pt-8">
+                                    <label for="is_active" class="flex items-center cursor-pointer">
+                                        <button type="button" wire:click="$toggle('is_active')" 
+                                            class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 <?php echo e($is_active ? 'bg-neon-green' : 'bg-gray-300'); ?>">
+                                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 <?php echo e($is_active ? 'translate-x-6' : 'translate-x-1'); ?>"></span>
+                                        </button>
+                                        <div class="ml-3 text-titanium font-medium text-sm">Usuario activo</div>
+                                    </label>
+                                </div>
+
+                            </div>
+                            
+                           
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Columna Derecha: Documentación (1/3) -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-titanium flex items-center border-b border-silver/30 pb-3">
+                        <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Documentación
+                    </h3>
+
+                    <div class="space-y-3">
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!empty($existingDocuments)): ?>
+                            <div class="mb-4">
+                                <p class="text-sm font-semibold text-titanium mb-2">Documentos actuales:</p>
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $existingDocuments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $doc): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <div class="flex items-center justify-between p-3 mb-2 border border-silver rounded-xl bg-gray-50">
+                                        <div class="flex items-center space-x-3">
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(str_ends_with($doc['path'], '.pdf')): ?>
+                                                <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/>
+                                                </svg>
+                                            <?php else: ?>
+                                                <!-- Miniatura de imagen -->
+                                                <img src="<?php echo e(asset('storage/' . $doc['path'])); ?>" 
+                                                     alt="<?php echo e($doc['label']); ?>"
+                                                     class="w-16 h-16 object-cover rounded-lg border-2 border-primary/20">
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <div>
+                                                <p class="text-sm font-medium text-titanium"><?php echo e($doc['label']); ?></p>
+                                                <p class="text-xs text-gray-500"><?php echo e($doc['original_name'] ?? 'Documento'); ?></p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <a href="<?php echo e(asset('storage/' . $doc['path'])); ?>" target="_blank" 
+                                                class="text-primary hover:text-primary/70 transition-colors">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                </svg>
+                                            </a>
+                                            <button type="button" wire:click="deleteDocument(<?php echo e($index); ?>)" 
+                                                class="text-red-500 hover:text-red-600 transition-colors">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            </div>
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+                        <div>
+                            <p class="text-sm font-semibold text-titanium mb-2">Agregar nuevo documento:</p>
+                            <div class="p-3 border border-silver rounded-xl bg-gray-50/50">
+                                <label class="block text-sm font-semibold text-titanium mb-2">
+                                    Tipo de documento *
+                                </label>
+                                <select wire:model.live="documentType" 
+                                    class="block w-full px-3 py-2 mb-3 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-black-deep text-sm <?php $__errorArgs = ['documentType'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
+                                    <option value="">Selecciona el tipo</option>
+                                    <option value="dni_frontal">DNI Frontal</option>
+                                    <option value="dni_trasero">DNI Trasero</option>
+                                    <option value="otros">Otros documentos</option>
+                                </select>
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['documentType'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="text-red-500 text-xs mt-1"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($documentType === 'otros'): ?>
+                                    <div class="mb-3">
+                                        <label class="block text-sm font-semibold text-titanium mb-2">
+                                            Descripción del documento
+                                        </label>
+                                        <input type="text" wire:model.live="documentLabel" 
+                                            placeholder="Ej: Certificado médico, Autorización..." 
+                                            class="block w-full px-3 py-2 border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-black-deep text-sm <?php $__errorArgs = ['documentLabel'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['documentLabel'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="text-red-500 text-xs mt-1"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                    </div>
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($documentType): ?>
+                                    <label class="block text-sm font-semibold text-titanium mb-2">
+                                        Archivo
+                                    </label>
+                                    
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(in_array($documentType, ['dni_frontal', 'dni_trasero'])): ?>
+                                    <!-- Opción de captura de foto para DNI -->
+                                    <div class="space-y-3">
+                                        <div class="flex gap-2">
+                                            <button type="button" onclick="activateCamera()" 
+                                                class="flex-1 px-4 py-2 bg-primary/10 text-primary rounded-xl font-semibold text-sm hover:bg-primary/20 transition-colors">
+                                                📷 Tomar Foto
+                                            </button>
+                                            <label class="flex-1 cursor-pointer">
+                                                <div class="px-4 py-2 bg-silver/30 text-titanium rounded-xl font-semibold text-sm hover:bg-silver/50 transition-colors text-center">
+                                                    📁 Subir Archivo
+                                                </div>
+                                                <input type="file" id="dni-file-input" accept="image/*" class="hidden" onchange="handleDniFileSelect(event)">
+                                            </label>
+                                        </div>
+                                        
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($captureMode): ?>
+                                            <div class="border-2 border-dashed border-primary rounded-xl p-4" wire:ignore>
+                                                <div class="relative bg-black rounded-lg overflow-hidden" style="aspect-ratio: 16/10;">
+                                                    <video id="camera-preview" autoplay playsinline muted class="w-full h-full object-cover"></video>
+                                                </div>
+                                                <div class="flex gap-2 mt-3">
+                                                    <button type="button" onclick="capturePhoto()" 
+                                                        class="flex-1 px-4 py-2 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors">
+                                                        📸 Capturar
+                                                    </button>
+                                                    <button type="button" onclick="cancelCamera()" 
+                                                        class="px-4 py-2 bg-red-500 text-white rounded-xl font-semibold text-sm hover:bg-red-600 transition-colors">
+                                                        ✕ Cancelar
+                                                    </button>
+                                                </div>
+                                                <canvas id="photo-canvas" class="hidden"></canvas>
+                                            </div>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        
+                                        <!-- Editor de imagen DNI -->
+                                        <div id="dni-editor" class="hidden border-2 border-dashed border-primary rounded-xl p-4">
+                                            <div class="mb-3">
+                                                <img id="dni-crop-image" style="max-width: 100%; display: block;">
+                                            </div>
+                                            <div class="flex gap-2">
+                                                <button type="button" onclick="cropAndUploadDni()" 
+                                                    class="flex-1 px-4 py-2 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors">
+                                                    ✂️ Recortar y Usar
+                                                </button>
+                                                <button type="button" onclick="cancelDniCrop()" 
+                                                    class="px-4 py-2 bg-red-500 text-white rounded-xl font-semibold text-sm hover:bg-red-600 transition-colors">
+                                                    ✕ Cancelar
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Input oculto para Livewire -->
+                                        <input type="file" wire:model.live="document" id="dni-livewire-input" accept="image/*" class="hidden">
+                                    </div>
+                                <?php else: ?>
+                                    <!-- Subida normal de archivos para otros documentos -->
+                                    <input type="file" wire:model.live="document" 
+                                        accept=".pdf,.jpg,.jpeg,.png" 
+                                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                
+                                <div wire:loading wire:target="document" class="text-xs text-primary mt-1">
+                                    <svg class="animate-spin h-3 w-3 inline mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Subiendo...
+                                </div>
+                                
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($document && !$captureMode): ?>
+                                    <div class="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                                        <p class="text-xs text-green-700">✓ Archivo seleccionado: <?php echo e($document->getClientOriginalName()); ?></p>
+                                    </div>
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['document'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="text-red-500 text-xs mt-1 block"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                
+                                <!-- Botón para subir documento -->
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($document): ?>
+                                    <button type="button" wire:click="uploadDocument" 
+                                        class="mt-3 w-full px-4 py-2 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors shadow-md hover:shadow-lg">
+                                        <span wire:loading.remove wire:target="uploadDocument">📤 Subir Documento</span>
+                                        <span wire:loading wire:target="uploadDocument">
+                                            <svg class="animate-spin h-4 w-4 inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Subiendo...
+                                        </span>
+                                    </button>
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            </div>
+                        </div>
+                        
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['document'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="text-red-500 text-xs mt-1"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(in_array($documentType, ['dni_frontal', 'dni_trasero'])): ?>
+                                Máximo 5MB. Solo imágenes (JPG, PNG)
+                            <?php else: ?>
+                                Máximo 5MB. Formatos: PDF, JPG, PNG
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <!-- Equipos del Entrenador -->
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($coachTeams->isNotEmpty()): ?>
+        <div class="card-modern bg-white-pure rounded-2xl shadow-xl border border-primary/10 overflow-hidden p-6 sm:p-8 mt-6">
+            <h3 class="text-xl font-bold text-titanium mb-6 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                Equipos que Entrena
+            </h3>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-silver/30">
+                    <thead class="bg-gradient-to-r from-gray-50 to-primary/5">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Equipo</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Categoría</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Edades</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Temporada</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Sección</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white-pure divide-y divide-silver/30">
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $coachTeams; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $team): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <tr class="hover:bg-primary/5">
+                                <td class="px-6 py-4">
+                                    <div class="text-sm font-semibold text-black-deep"><?php echo e($team->team); ?></div>
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($team->description): ?>
+                                        <div class="text-xs text-gray-500"><?php echo e($team->description); ?></div>
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900"><?php echo e($team->category->category ?? '-'); ?></div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($team->category): ?>
+                                        <div class="text-sm font-medium text-primary">
+                                            <?php echo e($team->category->from_age); ?> - <?php echo e($team->category->to_age); ?> años
+                                        </div>
+                                    <?php else: ?>
+                                        <span class="text-sm text-gray-400">-</span>
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900"><?php echo e($team->season->season ?? '-'); ?></div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($team->section): ?>
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-white shadow-sm" 
+                                              style="background-color: <?php echo e($team->section->color ?? '#8B5CF6'); ?>">
+                                            <?php echo e($team->section->name); ?>
+
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="text-sm text-gray-400">-</span>
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+        
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+        
+        <script>
+            let stream = null;
+            let currentComponent = null;
+            let cropper = null;
+            let profilePhotoCropper = null;
+            
+            document.addEventListener('livewire:initialized', () => {
+                currentComponent = window.Livewire.find('<?php echo e($_instance->getId()); ?>');
+                
+                // Escuchar cuando se active el modo captura
+                window.addEventListener('start-camera', () => {
+                    setTimeout(() => startCamera(), 300);
+                });
+            });
+            
+            // Activar cámara
+            function activateCamera() {
+                if (currentComponent) {
+                    currentComponent.set('captureMode', true);
+                    setTimeout(() => startCamera(), 500);
+                }
+            }
+            
+            // Cancelar cámara
+            function cancelCamera() {
+                stopCamera();
+                if (currentComponent) {
+                    currentComponent.set('captureMode', false);
+                }
+            }
+            
+            // Manejar selección de foto de perfil para recortar
+            function handleProfilePhotoSelect(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                // Mostrar editor de recorte
+                const editor = document.getElementById('profile-photo-editor');
+                const image = document.getElementById('profile-crop-image');
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    image.src = e.target.result;
+                    editor.classList.remove('hidden');
+                    
+                    // Destruir cropper anterior si existe
+                    if (profilePhotoCropper) {
+                        profilePhotoCropper.destroy();
+                    }
+                    
+                    // Inicializar Cropper con proporción cuadrada para foto de perfil
+                    profilePhotoCropper = new Cropper(image, {
+                        aspectRatio: 1,
+                        viewMode: 1,
+                        autoCropArea: 0.9,
+                        responsive: true,
+                        guides: true,
+                        center: true,
+                        highlight: true,
+                        cropBoxMovable: true,
+                        cropBoxResizable: true,
+                        toggleDragModeOnDblclick: false,
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+            
+            // Recortar y subir foto de perfil
+            function cropAndUploadProfilePhoto() {
+                if (!profilePhotoCropper) return;
+                
+                profilePhotoCropper.getCroppedCanvas({
+                    width: 400,
+                    height: 400,
+                    imageSmoothingEnabled: true,
+                    imageSmoothingQuality: 'high',
+                }).toBlob(function(blob) {
+                    const timestamp = Date.now();
+                    const file = new File([blob], `profile-photo-${timestamp}.jpg`, { type: 'image/jpeg' });
+                    
+                    // Asignar al input de Livewire
+                    const livewireInput = document.getElementById('profile-photo-livewire-input');
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    livewireInput.files = dataTransfer.files;
+                    
+                    // Disparar evento change para Livewire
+                    const event = new Event('change', { bubbles: true });
+                    livewireInput.dispatchEvent(event);
+                    
+                    // Cerrar editor
+                    cancelProfilePhotoCrop();
+                }, 'image/jpeg', 0.95);
+            }
+            
+            // Cancelar recorte de foto de perfil
+            function cancelProfilePhotoCrop() {
+                const editor = document.getElementById('profile-photo-editor');
+                const fileInput = document.getElementById('profile-photo-file-input');
+                
+                if (profilePhotoCropper) {
+                    profilePhotoCropper.destroy();
+                    profilePhotoCropper = null;
+                }
+                
+                editor.classList.add('hidden');
+                fileInput.value = '';
+            }
+            
+            // Manejar selección de archivo DNI para recortar
+            function handleDniFileSelect(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                // Mostrar editor de recorte
+                const editor = document.getElementById('dni-editor');
+                const image = document.getElementById('dni-crop-image');
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    image.src = e.target.result;
+                    editor.classList.remove('hidden');
+                    
+                    // Destruir cropper anterior si existe
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+                    
+                    // Inicializar Cropper con proporción de DNI (85.6mm x 53.98mm ≈ 1.586:1)
+                    cropper = new Cropper(image, {
+                        aspectRatio: 1.586,
+                        viewMode: 1,
+                        autoCropArea: 0.9,
+                        responsive: true,
+                        guides: true,
+                        center: true,
+                        highlight: true,
+                        cropBoxMovable: true,
+                        cropBoxResizable: true,
+                        toggleDragModeOnDblclick: false,
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+            
+            // Recortar y subir imagen DNI
+            function cropAndUploadDni() {
+                if (!cropper) return;
+                
+                cropper.getCroppedCanvas({
+                    width: 1920,
+                    height: 1210,
+                    imageSmoothingEnabled: true,
+                    imageSmoothingQuality: 'high',
+                }).toBlob(function(blob) {
+                    const timestamp = Date.now();
+                    const file = new File([blob], `dni-cropped-${timestamp}.jpg`, { type: 'image/jpeg' });
+                    
+                    // Asignar al input de Livewire
+                    const livewireInput = document.getElementById('dni-livewire-input');
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    livewireInput.files = dataTransfer.files;
+                    
+                    // Disparar evento change para Livewire
+                    const event = new Event('change', { bubbles: true });
+                    livewireInput.dispatchEvent(event);
+                    
+                    // Cerrar editor
+                    cancelDniCrop();
+                }, 'image/jpeg', 0.95);
+            }
+            
+            // Cancelar recorte DNI
+            function cancelDniCrop() {
+                const editor = document.getElementById('dni-editor');
+                const fileInput = document.getElementById('dni-file-input');
+                
+                if (cropper) {
+                    cropper.destroy();
+                    cropper = null;
+                }
+                
+                editor.classList.add('hidden');
+                fileInput.value = '';
+            }
+            
+            async function startCamera() {
+                try {
+                    // Verificar si el navegador soporta getUserMedia
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        throw new Error('Tu navegador no soporta el acceso a la cámara');
+                    }
+
+                    const video = document.getElementById('camera-preview');
+                    if (!video) {
+                        console.error('Elemento de video no encontrado');
+                        return;
+                    }
+                    
+                    // Primero intentar con cámara trasera, si falla intentar con cualquier cámara
+                    try {
+                        stream = await navigator.mediaDevices.getUserMedia({ 
+                            video: { 
+                                facingMode: 'environment',
+                                width: { ideal: 1920 },
+                                height: { ideal: 1080 }
+                            } 
+                        });
+                    } catch (e) {
+                        // Si falla con cámara trasera, intentar con cualquier cámara disponible
+                        stream = await navigator.mediaDevices.getUserMedia({ 
+                            video: { 
+                                width: { ideal: 1920 },
+                                height: { ideal: 1080 }
+                            } 
+                        });
+                    }
+                    
+                    video.srcObject = stream;
+                    await video.play();
+                } catch (err) {
+                    console.error('Error al acceder a la cámara:', err);
+                    console.error('Error name:', err.name);
+                    console.error('Error message:', err.message);
+                    
+                    let errorMessage = 'No se pudo acceder a la cámara.\n\n';
+                    
+                    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                        errorMessage += 'Por favor, concede permisos de cámara en tu navegador.';
+                    } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                        errorMessage += 'No se encontró ninguna cámara en tu dispositivo.';
+                    } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                        errorMessage += 'La cámara está siendo utilizada por otra aplicación.';
+                    } else if (err.name === 'OverconstrainedError' || err.name === 'ConstraintNotSatisfiedError') {
+                        errorMessage += 'Tu cámara no cumple con los requisitos solicitados.';
+                    } else if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+                        errorMessage += 'Se requiere conexión HTTPS para usar la cámara.';
+                    } else {
+                        errorMessage += 'Error: ' + (err.message || err.name || 'Desconocido') + '\n\n';
+                        errorMessage += 'Por favor, verifica los permisos de tu navegador o usa la opción de subir archivo.';
+                    }
+                    
+                    alert(errorMessage);
+                    
+                    if (currentComponent) {
+                        currentComponent.set('captureMode', false);
+                    }
+                }
+            }
+            
+            function stopCamera() {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    stream = null;
+                }
+            }
+            
+            async function capturePhoto() {
+                const video = document.getElementById('camera-preview');
+                const canvas = document.getElementById('photo-canvas');
+                
+                if (!video || !canvas) return;
+                
+                const context = canvas.getContext('2d');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context.drawImage(video, 0, 0);
+                
+                // Convertir canvas a blob
+                canvas.toBlob(async (blob) => {
+                    if (!blob) return;
+                    
+                    // Crear archivo desde el blob
+                    const timestamp = Date.now();
+                    const file = new File([blob], `dni-capture-${timestamp}.jpg`, { type: 'image/jpeg' });
+                    
+                    // Encontrar el input de Livewire
+                    const livewireInput = document.getElementById('dni-livewire-input');
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    livewireInput.files = dataTransfer.files;
+                    
+                    // Disparar evento change para Livewire
+                    const event = new Event('change', { bubbles: true });
+                    livewireInput.dispatchEvent(event);
+                    
+                    // Detener cámara y cerrar modo captura
+                    stopCamera();
+                    if (currentComponent) {
+                        currentComponent.set('captureMode', false);
+                    }
+                }, 'image/jpeg', 0.9);
+            }
+            
+            // Limpiar al salir
+            window.addEventListener('beforeunload', () => {
+                stopCamera();
+                if (cropper) {
+                    cropper.destroy();
+                }
+                if (profilePhotoCropper) {
+                    profilePhotoCropper.destroy();
+                }
+            });
+        </script>
+
+    <!-- Delete Confirmation Modal -->
+    <div x-data="{ show: <?php if ((object) ('confirmingDeletion') instanceof \Livewire\WireDirective) : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('confirmingDeletion'->value()); ?>')<?php echo e('confirmingDeletion'->hasModifier('live') ? '.live' : ''); ?><?php else : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('confirmingDeletion'); ?>')<?php endif; ?> }" 
+         x-show="show" 
+         x-cloak
+         class="fixed z-50 inset-0 overflow-y-auto" 
+         aria-labelledby="modal-title" 
+         role="dialog" 
+         aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="show" 
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" 
+                 aria-hidden="true"></div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div x-show="show"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 class="inline-block align-bottom bg-white rounded-2xl px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                            Eliminar Usuario
+                        </h3>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500">
+                                ¿Estás seguro de que deseas eliminar este usuario? Esta acción no se puede deshacer y se eliminarán todos sus archivos asociados.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                    <button wire:click="deleteUser" wire:loading.attr="disabled" wire:target="deleteUser" type="button" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors disabled:opacity-70 disabled:cursor-not-allowed">
+                        <svg wire:loading wire:target="deleteUser" class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span wire:loading.remove wire:target="deleteUser">Eliminar</span>
+                        <span wire:loading wire:target="deleteUser">Eliminando...</span>
+                    </button>
+                    <button @click="show = false" type="button" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:w-auto sm:text-sm transition-colors">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<?php /**PATH C:\Users\Alberto Martín\Google Drive\PHP\Git Alberto\SVAclubsportal\resources\views\livewire\school-users\edit.blade.php ENDPATH**/ ?>

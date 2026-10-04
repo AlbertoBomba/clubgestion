@@ -763,6 +763,15 @@
                                         @endif
                                     </td>
                                 </tr>
+                                {{-- FILA DE NOTAS/OBSERVACIONES --}}
+                                @if (!empty($match->notes))
+                                    <tr>
+                                        <td colspan="6" style="background-color: #fefce8; border-top: 1px dashed #fef08a; padding: 4px 10px; font-size: 8.5px; color: #713f12; line-height: 1.3;">
+                                            <span class="tag-micro tag-amber">NOTA</span>
+                                            {{ $match->notes }}
+                                        </td>
+                                    </tr>
+                                @endif
                             @endforeach
                         </tbody>
                     </table>

@@ -1,4 +1,4 @@
-<div x-data="{ tab: 'partidos', showBases: false, teamModal: false, modalTeam: null, modalPlayers: [] }">
+<div x-data="{ tab: 'partidos', showBases: false, teamModal: false, modalTeam: null, modalPlayers: [], descModal: false }">
     <main class="min-h-screen bg-white pb-20 md:pb-0">
 
         @php
@@ -100,7 +100,14 @@
                             {{ $tournament->name }}
                         </h1>
                         @if($tournament->description)
-                            <p class="text-sm md:text-base text-gray-500 max-w-2xl leading-relaxed mb-4 md:mb-5">{{ $tournament->description }}</p>
+                            <button type="button"
+                                    @click="descModal = true"
+                                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-gray-700 font-bold text-xs uppercase tracking-wider border border-gray-200 bg-gray-50 hover:bg-gray-100 active:scale-95 transition-all duration-150 mb-4 md:mb-5">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                Descripción y normativa
+                            </button>
                         @endif
                         <div class="flex flex-wrap gap-3 md:gap-5 text-xs sm:text-sm text-gray-400 font-semibold uppercase tracking-wider">
                             @if($tournament->start_date)
@@ -435,7 +442,6 @@
                                                             @endif
                                                         </div>
                                                     </div>
-
                                                     {{-- Score --}}
                                                     <div class="shrink-0 flex items-center gap-0.5 sm:gap-1">
                                                         @if($isCompleted)
@@ -490,6 +496,17 @@
                                                     </div>
                                                 @endif
                                             </div>
+                                            @if($match->notes)
+                                                <div class="w-full mb-2 flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 shadow-sm">
+                                                    <!-- Icono Info -->
+                                                    <svg class="h-5 w-5 flex-shrink-0 text-blue-500 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                                    </svg>
+                                                    <div class="font-medium leading-relaxed">
+                                                        {{ $match->notes }}
+                                                    </div>
+                                                </div>
+                                            @endif
                                         @endforeach
 
                                         {{-- Bye rows: teams resting this round --}}
@@ -582,7 +599,7 @@
                                                             @endif
                                                         </td>
                                                         <td class="px-3 sm:px-5 py-3">
-                                                            <span class="text-gray-900 font-semibold text-xs sm:text-sm">{{ $standing->tournamentTeam?->displayName() ?? '&mdash;' }}</span>
+                                                            <span class="text-gray-900 font-semibold text-xs sm:text-sm"><img src="{{ Storage::url($standing->tournamentTeam?->logo ?? '') }}" alt="{{ $standing->tournamentTeam?->displayName() ?? '&mdash;' }}" class="inline-block w-8 h-8 mr-1">{{ $standing->tournamentTeam?->displayName() ?? '&mdash;' }}</span>
                                                         </td>
                                                          <td class="px-3 sm:px-4 py-3 text-center">
                                                             <span class="text-gray-900 font-black text-sm sm:text-base">{{ $standing->points }}</span>
@@ -743,6 +760,54 @@
                     </div>
                 </div>
             </div>
+
+            {{-- ══ MODAL DESCRIPCIÓN Y NORMATIVA ══ --}}
+            @if($tournament->description)
+                <div x-show="descModal" x-cloak
+                     class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0">
+                    {{-- Backdrop --}}
+                    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="descModal = false"></div>
+                    {{-- Panel --}}
+                    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 scale-95"
+                         x-transition:enter-end="opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 scale-100"
+                         x-transition:leave-end="opacity-0 scale-95"
+                         @click.stop>
+                        {{-- Header --}}
+                        <div class="flex items-center justify-between px-5 sm:px-6 pt-5 pb-4 border-b border-gray-100 shrink-0">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <h3 class="text-base font-black text-gray-900 truncate">Descripción y normativa</h3>
+                                    <p class="text-xs text-gray-400 font-semibold mt-0.5 truncate">{{ $tournament->name }}</p>
+                                </div>
+                            </div>
+                            <button @click="descModal = false" class="p-1.5 rounded-xl text-gray-400 hover:bg-gray-100 transition shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                        {{-- Body --}}
+                        <div class="overflow-y-auto flex-1 px-5 sm:px-6 py-5">
+                            <p class="text-[15px] sm:text-base text-gray-700 leading-7 sm:leading-8 whitespace-pre-line [&>br]:block [&>br]:content-['']">{{ $tournament->description }}</p>
+                        </div>
+                    </div>
+                </div>
+            @endif
 
             {{-- --------------- TAB: RANKING --------------- --}}
             <div x-show="tab === 'ranking'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
@@ -922,8 +987,8 @@
                 <div class="flex-1 overflow-y-auto px-5 py-5 space-y-4">
                     @if($tournament->description)
                         <div>
-                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Descripción</p>
-                            <p class="text-sm text-gray-700 leading-relaxed">{{ $tournament->description }}</p>
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Descripción y normativa</p>
+                            <p class="text-[15px] text-gray-700 leading-7 whitespace-pre-line">{{ $tournament->description }}</p>
                         </div>
                     @endif
                     <div class="space-y-3">

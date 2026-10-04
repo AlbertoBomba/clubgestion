@@ -118,6 +118,8 @@ class Show extends Component
     public ?int   $generate_phase_id   = null;
     public int    $generate_legs       = 1;
     public bool   $generate_clear      = false;
+    // Nº de equipos participantes en la liguilla (null = todos los disponibles)
+    public ?int   $generate_team_count = null;
 
     // ------------------------------------------------------------------
     // Delete confirms
@@ -497,6 +499,8 @@ class Show extends Component
 
     public function saveMatch(): void
     {
+
+   
         $this->validate([
             'match_phase_id'   => 'nullable|exists:tournament_phases,id',
             'match_home_id'    => 'nullable|exists:tournament_teams,id',
@@ -632,7 +636,7 @@ class Show extends Component
 
     public function openGenerateMatchesModal(): void
     {
-        $this->reset(['generate_phase_id', 'generate_clear']);
+        $this->reset(['generate_phase_id', 'generate_clear', 'generate_team_count']);
         $this->generate_legs = 1;
         $this->showGenerateModal = true;
     }
@@ -641,8 +645,9 @@ class Show extends Component
     {
         
         $this->validate([
-            'generate_phase_id' => 'required|exists:tournament_phases,id',
-            'generate_legs'     => 'required|in:1,2',
+            'generate_phase_id'   => 'required|exists:tournament_phases,id',
+            'generate_legs'       => 'required|in:1,2',
+            'generate_team_count' => 'nullable|integer|min:2',
         ]);
 
         $phase = TournamentPhase::findOrFail($this->generate_phase_id);
@@ -673,6 +678,68 @@ class Show extends Component
         $matchNumber = TournamentMatch::where('phase_id', $phase->id)->max('match_number') ?? 0;
         $count       = 0;
         $legs        = (int) $this->generate_legs;
+
+        // Para fases tipo liga (liguilla): el usuario puede indicar un subconjunto
+        // de equipos. Si lo hace, generamos el calendario de huecos sin asignar
+        // equipos (home_team_id/away_team_id = null) para rellenarlos a mano.
+        $isLeagueSubset = $phase->type === 'league'
+            && $this->generate_team_count !== null
+            && $this->generate_team_count >= 2
+            && $this->generate_team_count < $teams->count();
+
+        if ($isLeagueSubset) {
+            // Validar que no se piden más equipos de los disponibles
+            if ($this->generate_team_count > $teams->count()) {
+                session()->flash('error', 'No hay suficientes equipos disponibles.');
+                $this->showGenerateModal = false;
+                return;
+            }
+
+            // Guardar nº de participantes en los settings de la fase para que
+            // la clasificación sepa cuántas plazas «por definir» mostrar.
+            $phaseSettings = $phase->settings ?? [];
+            $phaseSettings['league_participants_count'] = (int) $this->generate_team_count;
+            $phase->update(['settings' => $phaseSettings]);
+
+            // Slots marcadores (1..N) solo para construir el calendario
+            $slots  = range(1, $this->generate_team_count);
+            $rounds = $this->buildRoundRobin($slots, $legs);
+            foreach ($rounds as $round => $pairs) {
+                foreach ($pairs as $pair) {
+                    $matchNumber++;
+                    TournamentMatch::create([
+                        'tournament_id'          => $this->tournament->id,
+                        'tournament_category_id' => $categoryId,
+                        'phase_id'               => $phase->id,
+                        'home_team_id'           => null,
+                        'away_team_id'           => null,
+                        'round'                  => $round,
+                        'match_number'           => $matchNumber,
+                        'status'                 => 'scheduled',
+                        'created_user'           => $user,
+                    ]);
+                    $count++;
+                }
+            }
+
+            // Recalcular clasificación para dejar los huecos sincronizados.
+            $this->recalculateStandings($phase->id);
+            session()->forget('message');
+
+            $this->showGenerateModal = false;
+            $this->tournament->refresh();
+            $n          = $this->generate_team_count % 2 === 0 ? $this->generate_team_count : $this->generate_team_count + 1;
+            $roundCount = ($n - 1) * $legs;
+            session()->flash('message', "{$count} partidos generados en {$roundCount} jornadas (sin equipos asignados; asígnalos manualmente).");
+            return;
+        }
+
+        // Al regenerar como liga «completa» limpiamos el flag de subset.
+        if ($phase->type === 'league' && !empty($phase->settings['league_participants_count'])) {
+            $phaseSettings = $phase->settings ?? [];
+            unset($phaseSettings['league_participants_count']);
+            $phase->update(['settings' => $phaseSettings]);
+        }
 
         if (in_array($phase->type, ['knockout', 'double_elimination'])) {
             // Bracket: 1º vs último, 2º vs penúltimo...
@@ -843,6 +910,24 @@ class Show extends Component
                 $phaseTeams = collect();
             }
 
+            // Para ligas con subset de equipos: solo incluir en la clasificación
+            // los equipos que ya se hayan asignado a algún partido de esta fase.
+            $subsetCount = ($phase->type === 'league')
+                ? ($phase->settings['league_participants_count'] ?? null)
+                : null;
+            if ($subsetCount) {
+                $assignedTeamIds = TournamentMatch::where('phase_id', $phase->id)
+                    ->where(function ($q) {
+                        $q->whereNotNull('home_team_id')->orWhereNotNull('away_team_id');
+                    })
+                    ->get(['home_team_id', 'away_team_id'])
+                    ->flatMap(fn ($m) => [$m->home_team_id, $m->away_team_id])
+                    ->filter()
+                    ->unique()
+                    ->values();
+                $phaseTeams = $phaseTeams->whereIn('id', $assignedTeamIds);
+            }
+
             $isGroupPhase = $phase->type === 'group';
             $teamGroupMap = $phaseTeams->pluck('group_label', 'id')->all();
 
@@ -859,9 +944,13 @@ class Show extends Component
             }
 
             $matches = TournamentMatch::where('phase_id', $phase->id)
-                // ->where('status', 'completed')
-                ->whereNotNull('home_score')
-                ->whereNotNull('away_score')
+                ->where(function ($q) {
+                    // Partidos finalizados o con marcador registrado (incluye 0-0).
+                    $q->where('status', 'completed')
+                      ->orWhere(function ($q2) {
+                          $q2->whereNotNull('home_score')->whereNotNull('away_score');
+                      });
+                })
                 ->get();
 
             // dd($matches);
@@ -870,6 +959,11 @@ class Show extends Component
                 // dd($match."entra");
                 $h = $match->home_team_id;
                 $a = $match->away_team_id;
+
+                // Si falta algún equipo (hueco de subset), no cuenta.
+                if (! $h || ! $a) {
+                    continue;
+                }
 
                 if (! isset($stats[$h])) {
                     $stats[$h] = ['played'=>0,'won'=>0,'drawn'=>0,'lost'=>0,'goals_for'=>0,'goals_against'=>0,'points'=>0,
@@ -880,8 +974,8 @@ class Show extends Component
                         'group_label' => $isGroupPhase ? ($teamGroupMap[$a] ?? null) : null];
                 }
 
-                $hScore = $match->home_score;
-                $aScore = $match->away_score;
+                $hScore = (int) ($match->home_score ?? 0);
+                $aScore = (int) ($match->away_score ?? 0);
 
                 $stats[$h]['played']++;
                 $stats[$a]['played']++;
@@ -1019,24 +1113,32 @@ class Show extends Component
     public function gmAddGoal(): void
     {
         $this->validate([
-            'gm_player_id' => 'required|exists:tournament_players,id',
+            'gm_team_id'   => 'required|exists:tournament_teams,id',
+            'gm_player_id' => 'nullable|exists:tournament_players,id',
             'gm_goal_type' => 'required|in:normal,penalty,own_goal',
             'gm_minute'    => 'nullable|integer|min:1|max:180',
         ]);
 
-        $player = TournamentPlayer::findOrFail((int) $this->gm_player_id);
         $match  = TournamentMatch::findOrFail($this->goalsMatchId);
+        $player = $this->gm_player_id ? TournamentPlayer::find((int) $this->gm_player_id) : null;
 
-        // For own goals: credit goes to the opposing team
-        $teamId = $this->gm_goal_type === 'own_goal'
-            ? ($player->tournament_team_id === $match->home_team_id
-                ? $match->away_team_id
-                : $match->home_team_id)
-            : $player->tournament_team_id;
+        // Equipo al que se le acredita el gol (propia meta se la lleva el rival).
+        if ($player) {
+            $teamId = $this->gm_goal_type === 'own_goal'
+                ? ($player->tournament_team_id === $match->home_team_id
+                    ? $match->away_team_id
+                    : $match->home_team_id)
+                : $player->tournament_team_id;
+        } else {
+            $selectedTeamId = (int) $this->gm_team_id;
+            $teamId = $this->gm_goal_type === 'own_goal'
+                ? ($selectedTeamId === $match->home_team_id ? $match->away_team_id : $match->home_team_id)
+                : $selectedTeamId;
+        }
 
         TournamentMatchGoal::create([
             'tournament_match_id'  => $this->goalsMatchId,
-            'tournament_player_id' => $player->id,
+            'tournament_player_id' => $player?->id,
             'tournament_team_id'   => $teamId,
             'goal_type'            => $this->gm_goal_type,
             'minute'               => $this->gm_minute !== '' ? (int) $this->gm_minute : null,
@@ -1085,6 +1187,9 @@ class Show extends Component
         abort_unless($match->tournament_id === $this->tournament->id, 403);
         $match->update([
             'status'       => 'completed',
+            // Si no se registraron goles, fijamos marcador 0-0 para que compute en la clasificación.
+            'home_score'   => $match->home_score ?? 0,
+            'away_score'   => $match->away_score ?? 0,
             'played_at'    => $match->played_at ?? now(),
             'updated_user' => auth()->id(),
         ]);
@@ -1365,14 +1470,30 @@ class Show extends Component
         $user       = auth()->id();
         $categoryId = $phase->tournament_category_id;
 
+        // Round label from distance to Final: 0 = Final, 1 = Semifinal, 2 = Cuartos…
+        $roundLabel = function (int $fromFinal): string {
+            return match ($fromFinal) {
+                0       => 'Final',
+                1       => 'Semifinal',
+                2       => 'Cuartos de Final',
+                3       => 'Octavos de Final',
+                4       => '16avos de Final',
+                5       => '32avos de Final',
+                default => 'Ronda ' . ($fromFinal + 1),
+            };
+        };
+
         // Create all rounds (ascending: round 1 = first round, round N = Final)
         for ($round = 1; $round <= $totalRounds; $round++) {
             $matchesInRound = $slots / (int) pow(2, $round);
+            $fromFinal      = $totalRounds - $round;
+            $baseLabel      = $roundLabel($fromFinal);
 
             for ($matchNum = 1; $matchNum <= $matchesInRound; $matchNum++) {
                 $homeId = $awayId = null;
 
                 // Teams assigned later via assignTeamToSlot()
+                $notes = $matchesInRound > 1 ? $baseLabel . ' ' . $matchNum : $baseLabel;
 
                 TournamentMatch::create([
                     'tournament_id'          => $this->tournament->id,
@@ -1383,6 +1504,7 @@ class Show extends Component
                     'home_team_id'           => $homeId,
                     'away_team_id'           => $awayId,
                     'status'                 => 'scheduled',
+                    'notes'                  => $notes,
                     'created_user'           => $user,
                 ]);
             }
@@ -1399,6 +1521,7 @@ class Show extends Component
                 'home_team_id'           => null,
                 'away_team_id'           => null,
                 'status'                 => 'scheduled',
+                'notes'                  => 'Partido por el 3er Puesto',
                 'created_user'           => $user,
                 'settings'               => ['is_third_place' => true, 'label' => '3º Puesto'],
             ]);
@@ -1676,6 +1799,12 @@ class Show extends Component
         // Detect if any phase is a league/group type (requires standings to always be visible)
         $hasLeaguePhase = $phases->contains(fn ($p) => in_array($p->type, ['league', 'group']));
 
+        // Mapa [phase_id => nº participantes] para fases «liga» generadas con subset.
+        $leagueSubsetSettings = $phases
+            ->filter(fn ($p) => $p->type === 'league' && !empty($p->settings['league_participants_count']))
+            ->mapWithKeys(fn ($p) => [$p->id => (int) $p->settings['league_participants_count']])
+            ->all();
+
         // School teams — narrow to the active category's age group when possible
         $activeCategory = $categories->firstWhere('id', $this->activeCategoryId);
         $schoolTeams = Team::whereHas('season', function ($query) {
@@ -1815,22 +1944,23 @@ class Show extends Component
 
         if ($this->isMobile()) {
             //en desarrollo la parte mobile
-           return view('livewire.tournaments.show_mobile', compact(
-                'categories', 'activeCategory',
-                'phases', 'teams', 'matches', 'standings', 'hasLeaguePhase',
-                'schoolTeams', 'schoolCategories',
-                'goalsModalMatch', 'goalsForModal', 'gmCardsForModal', 'gmTeamPlayers', 'gmMatchTeams', 'gmAllPlayers',
-                'availableReferees', 'assignedReferees',
-                'hasKnockoutPhase', 'bracketData', 'bracketModalTeams', 'bracketModalStandings'
-            ));
-        //  return view('livewire.tournaments.show', compact(
-        //     'categories', 'activeCategory',
-        //     'phases', 'teams', 'matches', 'standings', 'hasLeaguePhase',
-        //     'schoolTeams', 'schoolCategories',
-        //     'goalsModalMatch', 'goalsForModal', 'gmCardsForModal', 'gmTeamPlayers', 'gmMatchTeams', 'gmAllPlayers',
-        //     'availableReferees', 'assignedReferees',
-        //     'hasKnockoutPhase', 'bracketData', 'bracketModalTeams', 'bracketModalStandings'
-        // ));
+        //    return view('livewire.tournaments.show_mobile', compact(
+        //         'categories', 'activeCategory',
+        //         'phases', 'teams', 'matches', 'standings', 'hasLeaguePhase',
+        //         'schoolTeams', 'schoolCategories',
+        //         'goalsModalMatch', 'goalsForModal', 'gmCardsForModal', 'gmTeamPlayers', 'gmMatchTeams', 'gmAllPlayers',
+        //         'availableReferees', 'assignedReferees',
+        //         'hasKnockoutPhase', 'bracketData', 'bracketModalTeams', 'bracketModalStandings'
+        //     ));
+         return view('livewire.tournaments.show', compact(
+            'categories', 'activeCategory',
+            'phases', 'teams', 'matches', 'standings', 'hasLeaguePhase',
+            'schoolTeams', 'schoolCategories',
+            'goalsModalMatch', 'goalsForModal', 'gmCardsForModal', 'gmTeamPlayers', 'gmMatchTeams', 'gmAllPlayers',
+            'availableReferees', 'assignedReferees',
+            'hasKnockoutPhase', 'bracketData', 'bracketModalTeams', 'bracketModalStandings',
+            'leagueSubsetSettings'
+        ));
         }
 
         return view('livewire.tournaments.show', compact(
@@ -1839,7 +1969,8 @@ class Show extends Component
             'schoolTeams', 'schoolCategories',
             'goalsModalMatch', 'goalsForModal', 'gmCardsForModal', 'gmTeamPlayers', 'gmMatchTeams', 'gmAllPlayers',
             'availableReferees', 'assignedReferees',
-            'hasKnockoutPhase', 'bracketData', 'bracketModalTeams', 'bracketModalStandings'
+            'hasKnockoutPhase', 'bracketData', 'bracketModalTeams', 'bracketModalStandings',
+            'leagueSubsetSettings'
         ));
     }
 }
