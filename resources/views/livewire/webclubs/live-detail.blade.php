@@ -65,18 +65,20 @@
                         Clasificación
                     </h2>
 
-                    @if($standings->isEmpty())
+                    @if($standingGroups->isEmpty())
                         <div class="live-empty">
                             <span class="live-empty__icon">📊</span>
                             <p>Clasificación no disponible aún</p>
                         </div>
                     @else
                         <div class="standings-list">
-                            @foreach($standings as $groupName => $groupStandings)
-                            <div wire:key="standings-group-{{ $loop->index }}-{{ \Illuminate\Support\Str::slug($groupName) }}" class="standings-group">
-                                @if($standings->count() > 1)
+                            @foreach($standingGroups as $groupKey => $group)
+                            @php
+                                $groupName = $group['name'];
+                                $groupStandings = $group['rows'];
+                            @endphp
+                            <div wire:key="standings-group-{{ $groupKey }}" class="standings-group">
                                 <h3 class="standings-group__name">{{ $groupName }}</h3>
-                                @endif
 
                                 <div class="standings-table-wrap">
                                     <table class="standings-table">
@@ -125,6 +127,7 @@
                                                 </td>
                                             </tr>
                                             @endforeach
+                                            @include('livewire.webclubs._pending-standings', ['pendingCount' => $group['pending'], 'assignedCount' => $groupStandings->count()])
                                         </tbody>
                                     </table>
                                 </div>

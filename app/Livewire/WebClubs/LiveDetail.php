@@ -8,6 +8,7 @@ use App\Models\TournamentMatchGoal;
 use App\Models\TournamentMatchCard;
 use App\Models\TournamentPhase;
 use App\Services\TournamentBracket;
+use App\Services\PublicTournamentStandings;
 
 
 class LiveDetail extends Component
@@ -158,6 +159,7 @@ class LiveDetail extends Component
 
         // Flat matches collection (reuse already-loaded data)
         $allMatchesFlat = $matches->flatten(1);
+        $standingGroups = app(PublicTournamentStandings::class)->build($phases, $standings->flatten(1));
 
         // Last 2 completed matches (most recent first)
         $recentMatches = $allMatchesFlat->where('status', 'completed')
@@ -232,6 +234,7 @@ class LiveDetail extends Component
             'liveMatches'           => $liveMatches,
             'teams'                 => $teams,
             'standings'             => $standings,
+            'standingGroups'        => $standingGroups,
             'matchesByPhaseAndRound'=> $matchesByPhaseAndRound,
             'topScorers'            => $topScorers,
             'playerCards'           => $playerCards,

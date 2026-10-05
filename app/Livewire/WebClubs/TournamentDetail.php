@@ -6,6 +6,7 @@ use App\Models\Tournament;
 use App\Models\TournamentMatchGoal;
 use App\Models\TournamentMatchCard;
 use App\Services\TournamentBracket;
+use App\Services\PublicTournamentStandings;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 
@@ -46,6 +47,16 @@ class TournamentDetail extends Component
             ->orderBy('id')
             ->get();
 
+        // $standings = ($this->activeCategoryId || $isOpen)
+        //     ? TournamentStanding::where('tournament_id', $this->tournament->id)
+        //         ->when(!$isOpen, fn ($q) => $q->where('tournament_category_id', $this->activeCategoryId))
+        //         ->with(['phase', 'tournamentTeam.team'])
+        //         ->orderBy('phase_id')
+        //         ->orderBy('group_label')
+        //         ->orderBy('position')
+        //         ->get()
+        //     : collect();
+
         // Standings grouped by phase → group_label
         $standings = $this->tournament->standings()
             ->with(['tournamentTeam.team', 'phase'])
@@ -54,9 +65,10 @@ class TournamentDetail extends Component
             ->orderBy('position')
             ->orderByDesc('points')
             ->orderByRaw('(goals_for - goals_against) DESC')
-            ->get()
-            ->groupBy(fn ($s) => ($s->phase ? $s->phase->name : 'General') . ($s->group_label ? ' – ' . $s->group_label : ''));
-
+            ->get();
+        $phases = $this->tournament->phases()->get();
+        $standingGroups = app(PublicTournamentStandings::class)->build($phases, $standings);
+        
         // Matches grouped by phase → round (accordion)
         $matches = $this->tournament->matches()
             ->with(['homeTeam.team', 'awayTeam.team', 'phase'])
@@ -72,7 +84,7 @@ class TournamentDetail extends Component
             $phaseMatches->groupBy(fn ($m) => $m->round ? 'Jornada ' . $m->round : 'Sin jornada')
         );
         $bracketData = app(TournamentBracket::class)->build(
-            $this->tournament->phases()->get(),
+            $phases,
             $matches->flatten(1)
         );
 
@@ -117,6 +129,7 @@ class TournamentDetail extends Component
         return view('livewire.webclubs.tournament-detail', [
             'teams'                  => $teams,
             'standings'              => $standings,
+            'standingGroups'         => $standingGroups,
             'matchesByPhaseAndRound' => $matchesByPhaseAndRound,
             'bracketData'            => $bracketData,
             'topScorers'             => $topScorers,

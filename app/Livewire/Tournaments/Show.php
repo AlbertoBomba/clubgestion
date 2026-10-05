@@ -1934,8 +1934,6 @@ class Show extends Component
         $matches = $this->listedMatches();
 
         // dd(TournamentStanding::where('tournament_id', $this->tournament->id)->toRawSql());
-
-
         $standings = ($this->activeCategoryId || $isOpen)
             ? TournamentStanding::where('tournament_id', $this->tournament->id)
                 ->when(!$isOpen, fn ($q) => $q->where('tournament_category_id', $this->activeCategoryId))

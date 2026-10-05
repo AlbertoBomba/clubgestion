@@ -105,6 +105,7 @@ class PublicTournamentBracketTest extends TestCase
                 $table->integer('tournament_id');
                 $table->string('name');
                 $table->string('type');
+                $table->text('settings')->nullable();
                 $table->integer('order')->default(1);
                 $table->softDeletes();
             });
@@ -129,8 +130,12 @@ class PublicTournamentBracketTest extends TestCase
             Schema::create('tournament_standings', function (Blueprint $table) {
                 $table->id();
                 $table->integer('tournament_id');
+                $table->integer('tournament_team_id')->nullable();
                 foreach (['phase_id', 'position', 'points', 'goals_for', 'goals_against'] as $column) {
                     $table->integer($column);
+                }
+                foreach (['played', 'won', 'drawn', 'lost'] as $column) {
+                    $table->integer($column)->default(0);
                 }
                 $table->string('group_label');
             });
@@ -202,6 +207,28 @@ class PublicTournamentBracketTest extends TestCase
                 $viewName = $component instanceof LiveDetail ? 'livewire.webclubs.live-detail' : 'livewire.webclubs.tournament-detail';
                 $html = view($viewName, array_merge(get_object_vars($component), $data))->render();
                 $this->assertStringNotContainsString('public-bracket-card', $html);
+            }
+            DB::table('tournament_phases')->insert([
+                'id' => 3, 'tournament_id' => 1, 'name' => 'Segunda liguilla',
+                'type' => 'league', 'order' => 2,
+                'settings' => json_encode(['league_participants_count' => 4]),
+            ]);
+            DB::table('tournament_standings')->insert([
+                'id' => 1, 'tournament_id' => 1, 'phase_id' => 1,
+                'position' => 1, 'points' => 9, 'goals_for' => 6,
+                'goals_against' => 1, 'group_label' => '',
+            ]);
+            foreach ([new TournamentDetail, new LiveDetail] as $component) {
+                $component->tournament = $tournament;
+                $data = $component->render()->getData();
+                $this->assertSame(['1:', '3:'], $data['standingGroups']->keys()->all());
+                $this->assertSame(4, $data['standingGroups']['3:']['pending']);
+                $this->assertEquals(9, $data['standingGroups']['1:']['rows']->first()->points);
+                $viewName = $component instanceof LiveDetail ? 'livewire.webclubs.live-detail' : 'livewire.webclubs.tournament-detail';
+                $html = view($viewName, array_merge(get_object_vars($component), $data))->render();
+                $this->assertStringContainsString('Segunda liguilla', $html);
+                $this->assertStringContainsString('Equipo 4 · por definir', $html);
+                $this->assertStringNotContainsString('La clasificacion no esta disponible aun.', $html);
             }
         } finally {
             DB::purge('public_bracket_tests');

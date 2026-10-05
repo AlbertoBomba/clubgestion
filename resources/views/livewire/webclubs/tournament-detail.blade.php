@@ -586,23 +586,24 @@
             {{-- --------------- TAB: CLASIFICACION --------------- --}}
             <div x-show="tab === 'clasificacion'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
                
-                @if($standings->isEmpty() && $bracketData->isEmpty())
+                @if($standingGroups->isEmpty() && $bracketData->isEmpty())
                     <div class="text-center py-24 bg-gray-50 border border-gray-100 rounded-2xl">
                         <div class="text-6xl mb-4 opacity-10">??</div>
                         <p class="text-gray-400 text-lg font-semibold">La clasificacion no esta disponible aun.</p>
                     </div>
-                @elseif($standings->isNotEmpty())
+                @elseif($standingGroups->isNotEmpty())
                     <div class="space-y-10">
-                        @foreach($standings as $groupName => $groupStandings)
+                        @foreach($standingGroups as $group)
+                            @php
+                                $groupName = $group['name'];
+                                $groupStandings = $group['rows'];
+                            @endphp
                             
                             <div>
-                                @if($groupName != 'General')
-                                @if($standings->count() > 1)
-                                    <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                                        <span class="w-1.5 h-7 rounded-full inline-block shrink-0" style="background: var(--color-primary)"></span>
-                                        {{ $groupName }}
-                                    </h2>
-                                @endif
+                                <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                                    <span class="w-1.5 h-7 rounded-full inline-block shrink-0" style="background: var(--color-primary)"></span>
+                                    {{ $groupName }}
+                                </h2>
 
                                 <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm shadow-gray-200/60">
                                     <div class="overflow-x-auto">
@@ -655,11 +656,11 @@
                                                        
                                                     </tr>
                                                 @endforeach
+                                                @include('livewire.webclubs._pending-standings', ['pendingCount' => $group['pending'], 'assignedCount' => $groupStandings->count()])
                                             </tbody>
                                         </table>
                                     </div>
                                 </div>
-                                @endif
                             </div>
                         @endforeach
                     </div>

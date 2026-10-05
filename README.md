@@ -21,6 +21,15 @@ third-place match. Unassigned teams display **Por definir** and empty phases
 show that pairings have not yet been generated. On mobile the rounds scroll
 horizontally; the Live bracket refreshes with the existing five-second polling.
 
+### Pending league classifications
+
+Both public tournament pages list every league/group phase in phase order,
+even when no standings rows exist yet. A league with a configured participant
+count displays its remaining places as **Equipo N · por definir**, alongside
+any assigned teams. A phase without a participant count shows **Sin equipos
+asignados aún** until its standings exist. Pending places have no fabricated
+points or results. Phases with identical names remain separate.
+
 ### Printable live tournament QR
 
 **Descargar QR**, beside the tournament PDF download on desktop and mobile,
