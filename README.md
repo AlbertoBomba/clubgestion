@@ -9,6 +9,21 @@
 
 ## About Laravel
 
+### Automatic tournament match times
+
+The Matches tab offers **Asignar hora automática** on desktop and mobile.
+Choose the first match's date and time, one or two parts, duration of each part
+and rest in minutes. The same rest applies between parts and between matches:
+the interval between starts is `(part duration + rest) * number of parts`.
+All listed matches are scheduled sequentially across every phase and round,
+using exactly the displayed order. Category-based tournaments affect the
+selected category; open tournaments affect all their listed matches.
+Existing dates and times are replaced atomically, without changing results or
+statuses. Times continue into the next day when they pass midnight.
+For example, 09:00 with one 20-minute part and 5-minute rests produces
+09:00, 09:25, 09:50, and so on. With two 20-minute parts and the same rests,
+the starts are 09:00, 09:50, 10:40, and so on.
+
 ### Reusing recent tournament teams
 
 In tournament management, **Add team** offers **Create from scratch** and

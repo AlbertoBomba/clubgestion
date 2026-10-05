@@ -16,6 +16,9 @@ use App\Models\TournamentStanding;
 use App\Models\TournamentTeam;
 use App\Models\User;
 use App\Services\RecentTournamentTeams;
+use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
@@ -96,6 +99,13 @@ class Show extends Component
     public string $match_location    = '';
     public string $match_status      = 'scheduled';
     public string $match_notes       = '';
+
+    public bool $showScheduleModal = false;
+    public string $schedule_date = '';
+    public string $schedule_time = '09:00';
+    public string $schedule_duration = '20';
+    public string $schedule_parts = '1';
+    public string $schedule_break = '5';
 
     // ------------------------------------------------------------------
     // Goals modal (enter results via goal scorers)
@@ -511,6 +521,85 @@ class Show extends Component
     // ==================================================================
     // Match CRUD
     // ==================================================================
+
+    private function listedMatches(bool $lock = false): Collection
+    {
+        $isOpen = $this->tournament->team_type === 'open';
+        if (!$isOpen && !$this->activeCategoryId) {
+            return new Collection;
+        }
+
+        return TournamentMatch::where('tournament_id', $this->tournament->id)
+            ->when(!$isOpen, fn ($q) => $q->where('tournament_category_id', $this->activeCategoryId))
+            ->with(['phase', 'homeTeam.team', 'awayTeam.team'])
+            ->orderByRaw('scheduled_at IS NULL ASC')
+            ->orderBy('scheduled_at')
+            ->orderBy('phase_id')
+            ->orderBy('round')
+            ->orderBy('match_number')
+            ->orderBy('id')
+            ->when($lock, fn ($q) => $q->lockForUpdate())
+            ->get()
+            ->sortBy([['phase_id', 'asc'], ['round', 'asc'], ['match_number', 'asc'], ['scheduled_at', 'asc']])
+            ->values();
+    }
+
+    public function openScheduleModal(): void
+    {
+        abort_unless(auth()->user()?->sports_school_id === $this->tournament->sports_school_id, 403);
+        $this->resetValidation();
+        $this->reset(['schedule_time', 'schedule_duration', 'schedule_parts', 'schedule_break']);
+        $this->schedule_date = $this->tournament->start_date?->format('Y-m-d') ?? '';
+        $this->showScheduleModal = true;
+    }
+
+    public function assignMatchSchedule(): void
+    {
+        abort_unless(auth()->user()?->sports_school_id === $this->tournament->sports_school_id, 403);
+        if ($this->tournament->team_type !== 'open') {
+            abort_unless($this->tournament->categories()->whereKey($this->activeCategoryId)->exists(), 403);
+        }
+
+        $this->validate([
+            'schedule_date' => 'required|date_format:Y-m-d',
+            'schedule_time' => 'required|date_format:H:i',
+            'schedule_duration' => 'required|integer|min:1|max:1440',
+            'schedule_parts' => 'required|integer|in:1,2',
+            'schedule_break' => 'required|integer|min:0|max:1440',
+        ], [], [
+            'schedule_date' => 'fecha del primer partido',
+            'schedule_time' => 'hora del primer partido',
+            'schedule_duration' => 'duración de cada parte',
+            'schedule_parts' => 'número de partes',
+            'schedule_break' => 'descanso entre partes y partidos',
+        ]);
+
+        $count = DB::transaction(function () {
+            $matches = $this->listedMatches(lock: true);
+            if ($matches->isEmpty()) {
+                return 0;
+            }
+
+            $start = Carbon::createFromFormat('!Y-m-d H:i', $this->schedule_date . ' ' . $this->schedule_time);
+            $interval = ((int) $this->schedule_duration + (int) $this->schedule_break) * (int) $this->schedule_parts;
+            foreach ($matches as $index => $match) {
+                $match->update([
+                    'scheduled_at' => $start->copy()->addMinutes($index * $interval),
+                    'updated_user' => auth()->id(),
+                ]);
+            }
+
+            return $matches->count();
+        });
+
+        if ($count === 0) {
+            $this->addError('schedule_time', 'No hay partidos en el listado para asignar horarios.');
+            return;
+        }
+
+        $this->showScheduleModal = false;
+        session()->flash('message', "Horarios asignados a {$count} partidos en el orden del listado.");
+    }
 
     public function openCreateMatchModal(): void
     {
@@ -1814,17 +1903,7 @@ class Show extends Component
                 ->get()
             : collect();
 
-        $matches = ($this->activeCategoryId || $isOpen)
-            ? TournamentMatch::where('tournament_id', $this->tournament->id)
-                ->when(!$isOpen, fn ($q) => $q->where('tournament_category_id', $this->activeCategoryId))
-                ->with(['phase', 'homeTeam.team', 'awayTeam.team'])
-                ->orderByRaw('scheduled_at IS NULL ASC')
-                ->orderBy('scheduled_at')
-                ->orderBy('phase_id')
-                ->orderBy('round')
-                ->orderBy('match_number')
-                ->get()
-            : collect();
+        $matches = $this->listedMatches();
 
         // dd(TournamentStanding::where('tournament_id', $this->tournament->id)->toRawSql());
 

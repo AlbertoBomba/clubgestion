@@ -152,9 +152,13 @@
                             </div>
                         </div>
 
+                        <button wire:click="openScheduleModal" class="w-full py-3 bg-primary/10 text-primary text-xs font-black rounded-2xl active:scale-95">
+                            Asignar hora automática
+                        </button>
+
                         {{-- Lista de Partidos Agrupados --}}
                         <div class="space-y-6 pb-4">
-                            @foreach ($matches->sortBy([['phase_id', 'asc'], ['round', 'asc'], ['match_number', 'asc'], ['scheduled_at', 'asc']])->groupBy(fn($m) => $m->phase_id ?? 0) as $phaseId => $phaseMatches)
+                            @foreach ($matches->groupBy(fn($m) => $m->phase_id ?? 0) as $phaseId => $phaseMatches)
                                 @php
                                     $phase     = $phaseMatches->first()?->phase;
                                     $phaseName = $phase?->name ?? 'Sin fase';
@@ -622,6 +626,8 @@
         </div>
     @endif
 
+
+    @include('livewire.tournaments._schedule-modal')
 
     {{-- CREAR/EDITAR PARTIDO MODAL --}}
     @if ($showMatchModal)
