@@ -65,7 +65,7 @@
                             <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
                         </span>
                         
-                        <span>Ver en directo</span>
+                        <span>live</span>
                         
                         {{-- Icono de Play (Opcional) --}}
                         <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">

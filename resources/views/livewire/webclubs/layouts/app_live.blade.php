@@ -2,7 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     
     <!-- SEO Meta Tags -->
     <title>{{ $title ?? tenantName() }}</title>
@@ -58,6 +58,10 @@
         :root {
             --color-primary: {{ currentSchool()?->primary_color ?? '#1E40AF' }};
             --color-secondary: {{ currentSchool()?->secondary_color ?? '#10B981' }};
+        }
+
+        html {
+            touch-action: pan-x pan-y;
         }
         
         * {
