@@ -69,6 +69,7 @@
                             <span class="text-[9px] font-bold leading-none" wire:loading.remove wire:target="exportPdf">PDF</span>
                             <span class="text-[9px] font-bold leading-none" wire:loading wire:target="exportPdf">Running…</span>
             </a>
+            @include('livewire.tournaments._download-qr', ['mobile' => true])
 
             <a href="{{ route('tournaments.edit', $tournament) }}"
                aria-label="Editar torneo"

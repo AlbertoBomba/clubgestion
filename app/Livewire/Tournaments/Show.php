@@ -16,6 +16,8 @@ use App\Models\TournamentStanding;
 use App\Models\TournamentTeam;
 use App\Models\User;
 use App\Services\RecentTournamentTeams;
+use App\Services\TournamentQrPoster;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -1747,6 +1749,32 @@ class Show extends Component
     // ==================================================================
     // Export PDF
     // ==================================================================
+
+    public function exportQrPdf()
+    {
+        abort_unless(auth()->user()?->sports_school_id === $this->tournament->sports_school_id, 403);
+        $tournament = $this->tournament->fresh(['sportsSchool']);
+        abort_unless($tournament && auth()->user()?->sports_school_id === $tournament->sports_school_id, 403);
+
+        try {
+            $pdf = app(TournamentQrPoster::class)->pdf($tournament);
+        } catch (ValidationException $exception) {
+            session()->flash('error', $exception->validator->errors()->first('qrPoster'));
+            return;
+        }
+
+        if (!$tournament->live || $tournament->status === 'cancelled' || !$tournament->sportsSchool->is_active) {
+            session()->flash('error', 'El cartel QR se ha generado, pero el enlace aún no está disponible. Para poder seguir el torneo, activa Live, comprueba que no esté cancelado y que la escuela esté activa.');
+        }
+
+        $filename = 'qr_torneo_' . \Illuminate\Support\Str::slug($tournament->name) . '.pdf';
+
+        return response()->streamDownload(
+            fn () => print($pdf->Output($filename, \Mpdf\Output\Destination::STRING_RETURN)),
+            $filename,
+            ['Content-Type' => 'application/pdf']
+        );
+    }
 
     public function exportPdf()
     {

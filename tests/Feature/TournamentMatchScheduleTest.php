@@ -335,6 +335,7 @@ class TournamentMatchScheduleTest extends TestCase
             $html = view('livewire.tournaments.'.$view, $data)->render();
             $this->assertSame(1, substr_count($html, 'wire:click="openScheduleModal"'));
             $this->assertSame(1, substr_count($html, 'wire:submit="assignMatchSchedule"'));
+            $this->assertSame(1, substr_count($html, 'wire:click="exportQrPdf"'));
         }
     }
 }

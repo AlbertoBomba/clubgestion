@@ -9,6 +9,24 @@
 
 ## About Laravel
 
+### Printable live tournament QR
+
+**Descargar QR**, beside the tournament PDF download on desktop and mobile,
+downloads an A4 portrait poster with the school and tournament names, a large
+locally generated QR and its readable, clickable URL. The poster includes the
+club logo (when configured), school primary-color accents, a high-contrast
+headline and three scanning instructions. Logos retain their proportions and
+the 19 cm square QR stays black on white with its clear scanning margin.
+Compact headers and 8 mm page margins keep the poster on one A4 page. A configured logo
+that is missing or invalid produces an explicit error.
+The QR targets
+`https://{school-domain}/live/{tournament}`, falling back to the school's
+`{slug}.vaed.es` subdomain, never the admin panel host.
+The poster can be prepared before Live is enabled. Downloading does not change
+the tournament: a warning explains when Live is disabled, the tournament is
+cancelled or the school is inactive, as the public link is not yet accessible.
+Missing or invalid school domains produce an explicit error instead of a QR.
+
 ### Automatic tournament match times
 
 The Matches tab offers **Asignar hora automática** on desktop and mobile.
