@@ -58,6 +58,17 @@
                     @endif
                 </p>
             </div>
+            <a wire:click="exportPdf" 
+               aria-label="Exportar PDF"
+               title="Exportar PDF"
+               class="shrink-0 flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl bg-red-50 border border-red-100 text-gray-500 hover:bg-primary/5 hover:border-primary/20 hover:text-primary active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
+                <svg wire:loading.remove wire:target="exportPdf" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M8 6a4 4 0 118 0v6"/></svg>
+                            <svg wire:loading wire:target="exportPdf" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-opacity="0.25" stroke-width="4"/><path stroke-linecap="round" stroke-width="4" d="M22 12a10 10 0 00-10-10"/></svg>
+                            {{-- <span class="hidden sm:inline" wire:loading.remove wire:target="exportPdf">PDF</span>
+                            <span class="hidden sm:inline" wire:loading wire:target="exportPdf">Generando…</span> --}}
+                            <span class="text-[9px] font-bold leading-none" wire:loading.remove wire:target="exportPdf">PDF</span>
+                            <span class="text-[9px] font-bold leading-none" wire:loading wire:target="exportPdf">Running…</span>
+            </a>
 
             <a href="{{ route('tournaments.edit', $tournament) }}"
                aria-label="Editar torneo"
