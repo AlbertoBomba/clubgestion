@@ -460,7 +460,7 @@
         @endphp
         
         @if($schools->count() > 0)
-        <section class="py-16 bg-slate-100 overflow-hidden border-t border-b border-slate-200">
+        {{-- <section class="py-16 bg-slate-100 overflow-hidden border-t border-b border-slate-200">
             <div class="max-w-7xl mx-auto px-4 mb-8 text-center">
                 <h3 class="text-xl font-bold text-slate-800 tracking-tight">Clubes que confían en VaedSaas</h3>
             </div>
@@ -493,7 +493,7 @@
                     @endforeach
                 </div>
             </div>
-        </section>
+        </section> --}}
         @endif
 
 

@@ -260,21 +260,21 @@
             <div class="carousel-container rounded-b-2xl login-card p-2 bg-white shadow-2xl mt-8">
                 <div class="carousel-track">
                     <!-- First set of logos -->
-                    @foreach($schools as $school)
+                    {{-- @foreach($schools as $school)
                         <div class="carousel-item">
                             <div class="w-16 h-16 bg-white rounded-xl shadow-lg flex items-center justify-center p-2 transition-transform hover:scale-110">
                                 <img src="{{ asset('storage/' . $school->logo) }}" alt="{{ $school->name }}" class="w-full h-full object-contain" onerror="this.parentElement.style.display='none'">
                             </div>
                         </div>
-                    @endforeach
+                    @endforeach --}}
                     <!-- Duplicate set for seamless loop -->
-                    @foreach($schools as $school)
+                    {{-- @foreach($schools as $school)
                         <div class="carousel-item">
                             <div class="w-16 h-16 bg-white rounded-xl shadow-lg flex items-center justify-center p-2 transition-transform hover:scale-110">
                                 <img src="{{ asset('storage/' . $school->logo) }}" alt="{{ $school->name }}" class="w-full h-full object-contain" onerror="this.parentElement.style.display='none'">
                             </div>
                         </div>
-                    @endforeach
+                    @endforeach --}}
                 </div>
             </div>
             @endif
