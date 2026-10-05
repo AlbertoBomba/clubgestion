@@ -1091,8 +1091,8 @@
                 <div class="vs-footer-col">
                     <h4>Información</h4>
                     <a href="#como-funciona">Cómo Funciona</a>
-                    <a href="{{ route('home') }}#por-que-gratis">¿Por qué Gratis?</a>
-                    <a href="{{ route('home') }}#contacto">Contacto</a>
+                    {{-- <a href="{{ route('home') }}#por-que-gratis">¿Por qué Gratis?</a> --}}
+                    {{-- <a href="{{ route('home') }}#contacto">Contacto</a> --}}
                 </div>
                 <div class="vs-footer-col">
                     <h4>Legal</h4>

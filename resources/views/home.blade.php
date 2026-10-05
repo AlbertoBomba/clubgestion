@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        
+        <!-- Favicons -->
         <link rel="apple-touch-icon" sizes="57x57" href="{{ asset('images/favicon/apple-icon-57x57.png') }}">
         <link rel="apple-touch-icon" sizes="60x60" href="{{ asset('images/favicon/apple-icon-60x60.png') }}">
         <link rel="apple-touch-icon" sizes="72x72" href="{{ asset('images/favicon/apple-icon-72x72.png') }}">
@@ -19,9 +21,9 @@
         <link rel="manifest" href="{{ asset('images/favicon/manifest.json') }}">
         <meta name="msapplication-TileColor" content="#ffffff">
         <meta name="msapplication-TileImage" content="{{ asset('images/favicon/ms-icon-144x144.png') }}">
-        <meta name="theme-color" content="#ffffff">
+        <meta name="theme-color" content="#10b981">
 
-        <title>{{ config('app.name', 'Vaed-APP') }} -  Gestión deportivo educativa del fútbol amateur</title>
+        <title>{{ config('app.name', 'Vaed-APP') }} - Gestión deportivo educativa del fútbol amateur</title>
         
         <!-- Canonical URL -->
         <link rel="canonical" href="{{ url()->current() }}" />
@@ -32,89 +34,43 @@
         <meta name="robots" content="index, follow">
         <meta name="author" content="Vaed">
 
-        <!-- Fonts -->
+        <!-- Fonts: Plus Jakarta Sans & Inter -->
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800|inter:400,500,600,700&display=swap" rel="stylesheet" />
+
+        <!-- Alpine.js (para la reactividad del formulario) -->
+        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
         <!-- Styles / Scripts -->
         @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
             @vite(['resources/css/app.css', 'resources/js/app.js'])
         @else
-            <style>
-                body { font-family: 'Inter', sans-serif; }
-            </style>
+            <script src="https://cdn.tailwindcss.com"></script>
         @endif
 
         <style>
-            .hero-fullscreen {
-                min-height: 100vh;
-                background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-                position: relative;
-                overflow: hidden;
-            }
-            .hero-bg-pattern {
-                position: absolute;
-                inset: 0;
-                background-image: 
-                    radial-gradient(circle at 20% 50%, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
-                    radial-gradient(circle at 80% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-                    url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.03"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');
-            }
-            .card-hover {
-                transition: transform 0.3s ease, box-shadow 0.3s ease;
-            }
-            .card-hover:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            }
-            @keyframes float {
-                0%, 100% { transform: translateY(0px); }
-                50% { transform: translateY(-20px); }
-            }
-            .animate-float {
-                animation: float 6s ease-in-out infinite;
-            }
-            @keyframes slideInLeft {
-                from {
-                    transform: translateX(-50px);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-            }
-            @keyframes slideInRight {
-                from {
-                    transform: translateX(50px);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-            }
-            .animate-slide-left {
-                animation: slideInLeft 0.8s ease-out;
-            }
-            .animate-slide-right {
-                animation: slideInRight 0.8s ease-out;
-            }
-            .mockup-shadow {
-                filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.5));
-            }
+            body { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; }
+            [x-cloak] { display: none !important; }
 
-            /* ===== Hero Slider ===== */
-            html, body { overflow-x: hidden; }
-            .hero-slider-wrapper {
-                position: relative;
-                overflow: hidden;
-                width: 100%;
+            /* Animations & Effects */
+            @keyframes floatSlow {
+                0%, 100% { transform: translateY(0px) rotate(0deg); }
+                50% { transform: translateY(-12px) rotate(1deg); }
             }
+            @keyframes floatDelayed {
+                0%, 100% { transform: translateY(0px) rotate(0deg); }
+                50% { transform: translateY(-15px) rotate(-1deg); }
+            }
+            .animate-float-slow { animation: floatSlow 6s ease-in-out infinite; }
+            .animate-float-delayed { animation: floatDelayed 7s ease-in-out infinite 1s; }
+
+            /* Hero Slider CSS Logic */
+            html, body { overflow-x: hidden; }
+            .hero-slider-wrapper { position: relative; overflow: hidden; width: 100%; }
             .hero-slides-track {
                 display: flex;
                 width: 100%;
-                transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+                transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
                 will-change: transform;
             }
             .hero-slide {
@@ -123,1668 +79,1054 @@
                 flex-shrink: 0;
                 position: relative;
                 box-sizing: border-box;
-                overflow: hidden;
-            }
-            .hero-slide-bg {
-                position: absolute;
-                inset: 0;
-                z-index: 0;
-            }
-            .hero-slide-bg img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-            .hero-slide {
                 min-height: 100vh;
-                min-height: 100svh;
                 display: flex;
                 align-items: center;
-                padding-top: 60px;
+                padding-top: 70px;
             }
+            .hero-slide-bg { position: absolute; inset: 0; z-index: 0; }
             .hero-slider-btn {
                 position: absolute;
                 top: 50%;
                 transform: translateY(-50%);
                 z-index: 40;
-                background: rgba(255,255,255,0.15);
-                backdrop-filter: blur(8px);
-                -webkit-backdrop-filter: blur(8px);
-                border: 1px solid rgba(255,255,255,0.3);
+                background: rgba(15, 23, 42, 0.6);
+                backdrop-filter: blur(12px);
+                border: 1px solid rgba(255, 255, 255, 0.15);
                 color: white;
-                width: 52px;
-                height: 52px;
-                border-radius: 50%;
+                width: 48px;
+                height: 48px;
+                border-radius: 9999px;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                transition: all 0.3s ease;
+                transition: all 0.25s ease;
             }
             .hero-slider-btn:hover {
-                background: rgba(255,255,255,0.3);
+                background: rgba(16, 185, 129, 0.9);
+                border-color: rgba(16, 185, 129, 1);
                 transform: translateY(-50%) scale(1.1);
             }
-            .hero-slider-btn.prev { left: 20px; }
-            .hero-slider-btn.next { right: 20px; }
+            .hero-slider-btn.prev { left: 24px; }
+            .hero-slider-btn.next { right: 24px; }
             .hero-slider-dots {
                 position: absolute;
-                bottom: 55px;
+                bottom: 24px;
                 left: 50%;
                 transform: translateX(-50%);
                 display: flex;
-                gap: 10px;
+                gap: 8px;
                 z-index: 40;
+                background: rgba(15, 23, 42, 0.5);
+                backdrop-filter: blur(8px);
+                padding: 6px 12px;
+                border-radius: 9999px;
+                border: 1px solid rgba(255,255,255,0.1);
             }
             .hero-dot {
-                width: 10px;
-                height: 10px;
-                border-radius: 50%;
-                background: rgba(255,255,255,0.4);
+                width: 8px;
+                height: 8px;
+                border-radius: 9999px;
+                background: rgba(255, 255, 255, 0.35);
                 cursor: pointer;
                 transition: all 0.3s ease;
                 border: none;
                 padding: 0;
             }
             .hero-dot.active {
-                background: white;
+                background: #10b981;
                 width: 28px;
-                border-radius: 5px;
-            }
-            @media (max-width: 768px) {
-                .hero-slider-btn { width: 36px; height: 36px; }
-                .hero-slider-btn.prev { left: 8px; }
-                .hero-slider-btn.next { right: 8px; }
-                .hero-slider-dots { bottom: 12px; gap: 8px; }
-                .hero-dot { width: 8px; height: 8px; }
-                .hero-dot.active { width: 22px; }
-                .hero-decorative-mobile-hide { display: none !important; }
-            }
-            @media (max-width: 480px) {
-                .hero-slider-btn { width: 32px; height: 32px; }
-                .hero-slider-btn.prev { left: 4px; }
-                .hero-slider-btn.next { right: 4px; }
             }
 
-            /* ===== Navbar (Adidas-style) ===== */
+            /* Navbar Styles */
             .vs-nav {
                 position: fixed;
                 top: 0;
                 left: 0;
                 right: 0;
                 z-index: 100;
-                background: #fff;
-                border-bottom: 1px solid #e5e5e5;
-                transition: box-shadow 0.3s;
+                background: rgba(255, 255, 255, 0.85);
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+                border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+                transition: all 0.3s ease;
             }
-            .vs-nav.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,0.08); }
-            .vs-nav-inner {
-                max-width: 1440px;
-                margin: 0 auto;
+            .vs-nav.scrolled {
+                box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
+                background: rgba(255, 255, 255, 0.95);
+            }
+
+            /* Infinite Marquee for Club Logos */
+            @keyframes marquee {
+                0% { transform: translateX(0%); }
+                100% { transform: translateX(-50%); }
+            }
+            .animate-marquee {
                 display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 0 24px;
-                height: 60px;
+                width: max-content;
+                animation: marquee 35s linear infinite;
             }
-            .vs-nav-logo {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                text-decoration: none;
-                color: #000;
-            }
-            .vs-nav-logo img { height: 36px; }
-            .vs-nav-logo span { font-size: 20px; font-weight: 900; letter-spacing: -0.5px; text-transform: uppercase; }
-            .vs-nav-links { display: flex; gap: 28px; align-items: center; }
-            .vs-nav-links a {
-                color: #000;
-                text-decoration: none;
-                font-size: 14px;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                padding: 6px 0;
-                border-bottom: 3px solid transparent;
-                transition: border-color 0.2s;
-            }
-            .vs-nav-links a:hover { border-bottom-color: #000; }
-            .vs-nav-actions { display: flex; align-items: center; gap: 12px; }
-            .vs-nav-actions a {
-                color: #000;
-                text-decoration: none;
-                font-size: 13px;
-                font-weight: 700;
-                padding: 8px 20px;
-                transition: all 0.2s;
-            }
-            .vs-btn-dark {
-                background: #000 !important;
-                color: #fff !important;
-                font-weight: 700 !important;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-                font-size: 13px !important;
-            }
-            .vs-btn-dark:hover { background: #333 !important; }
-            .vs-nav-toggle { display: none; background: none; border: none; cursor: pointer; padding: 8px; }
-            .vs-nav-mobile-auth { display: none; }
-            @media (max-width: 768px) {
-                .vs-nav-links { display: none; }
-                .vs-nav-toggle { display: block; }
-                .vs-nav-links.open {
-                    display: flex;
-                    flex-direction: column;
-                    position: absolute;
-                    top: 60px;
-                    left: 0;
-                    right: 0;
-                    background: #fff;
-                    padding: 16px 24px;
-                    border-bottom: 1px solid #e5e5e5;
-                    gap: 0;
-                    z-index: 99;
-                }
-                .vs-nav-links.open a { padding: 14px 0; border-bottom: 1px solid #f0f0f0; }
-                .vs-nav-links.open .vs-nav-mobile-auth {
-                    display: block;
-                    background: #000;
-                    color: #fff !important;
-                    text-align: center;
-                    padding: 16px 24px !important;
-                    margin-top: 14px;
-                    border-bottom: none !important;
-                    border-radius: 8px;
-                    font-weight: 700;
-                    font-size: 15px !important;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                }
-                .vs-nav-actions { display: none; }
-            }
+            .animate-marquee:hover { animation-play-state: paused; }
         </style>
     </head>
-    <body class="bg-gray-50 text-gray-800">
-        <!-- Navigation -->
-        <nav class="vs-nav" id="vsNav">
-            <div class="vs-nav-inner">
-                <a href="{{ route('home') }}" class="vs-nav-logo">
-                    <img src="{{ asset('images/logos/logo_vaed.png') }}" alt="{{ config('app.name', 'Vaed-APP') }}">
-                    <span>VaedSaas</span>
-                </a>
 
-                <button class="vs-nav-toggle" id="navToggle" aria-label="Abrir menú">
-                    <svg width="24" height="24" fill="none" stroke="#000" stroke-width="2.5" viewBox="0 0 24 24">
-                        <path d="M3 6h18M3 12h18M3 18h18"/>
-                    </svg>
-                </button>
+    <body class="bg-slate-50 text-slate-800 antialiased selection:bg-emerald-500 selection:text-white">
 
-                <div class="vs-nav-links" id="navLinks">
-                    {{-- <a href="{{ route('vaed-sport.home') }}">VAED Sport</a> --}}
-                    <a href="#por-que-gratis">¿Por qué Gratis?</a>
-                    <a href="#contacto">Contacto</a>
+        <!-- Header / Navigation -->
+        <header class="vs-nav" id="vsNav">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16 sm:h-20">
+                    
+                    <!-- Logo -->
+                    <a href="{{ route('home') }}" class="flex items-center gap-3 group">
+                        <div class="w-10 h-10 rounded-xl bg-slate-900 p-1.5 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-300">
+                            <img src="{{ asset('images/logos/logo_vaed.png') }}" alt="{{ config('app.name', 'Vaed-APP') }}" class="w-full h-full object-contain">
+                        </div>
+                        <span class="text-xl font-extrabold tracking-tight text-slate-900">Vaed<span class="text-emerald-500">Saas</span></span>
+                    </a>
+
+                    <!-- Mobile Menu Button -->
+                    <button class="md:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition" id="navToggle" aria-label="Abrir menú">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+
+                    <!-- Nav Links -->
+                    <nav class="hidden md:flex items-center gap-8" id="navLinksDesktop">
+                        <a href="{{route('roadmap')}}" class="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition">Proyecto</a>
+                        <a href="{{route('exito')}}" class="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition">Casos Éxito</a>
+                        <a href="#torneos" class="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition">Torneos</a>
+                        <a href="#web-club" class="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition">Web para Clubes</a>
+                        
+                        {{-- <a href="#contacto" class="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition">Contacto</a> --}}
+                    </nav>
+
+                    <!-- Auth Actions -->
+                    <div class="hidden md:flex items-center gap-3">
+                        @auth
+                            <a href="{{ url('/dashboard') }}" class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-emerald-600 shadow-md hover:shadow-emerald-500/20 transition-all duration-300 uppercase tracking-wider">
+                                Dashboard
+                            </a>
+                        @else
+                            <a href="{{ route('login') }}" class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-emerald-600 shadow-md hover:shadow-emerald-500/20 transition-all duration-300 uppercase tracking-wider">
+                                Iniciar Sesión
+                            </a>
+                        @endauth
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Navigation Overlay -->
+            <div class="md:hidden hidden bg-white border-b border-slate-200 px-4 pt-2 pb-6 space-y-3" id="navLinksMobile">
+                
+                <a href="{{route('roadmap')}}" class="block py-2 text-base font-semibold text-slate-700 border-b border-slate-100">Proyecto</a>
+                <a href="{{route('exito')}}" class="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition">Casos de exito</a>
+                
+                {{-- <a href="#contacto" class="block py-2 text-base font-semibold text-slate-700 border-b border-slate-100">Contacto</a> --}}
+                <div class="pt-2">
                     @auth
-                        <a href="{{ url('/dashboard') }}" class="vs-nav-mobile-auth">Dashboard</a>
+                        <a href="{{ url('/dashboard') }}" class="block w-full text-center py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-lg">Dashboard</a>
                     @else
-                        <a href="{{ route('login') }}" class="vs-nav-mobile-auth">Iniciar Sesión</a>
+                        <a href="{{ route('login') }}" class="block w-full text-center py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-lg">Iniciar Sesión</a>
                     @endauth
                 </div>
+            </div>
+        </header>
 
-                <div class="vs-nav-actions">
-                    @auth
-                        <a href="{{ url('/dashboard') }}" class="vs-btn-dark">Dashboard</a>
-                    @else
-                        <a href="{{ route('login') }}" class="vs-btn-dark">Iniciar Sesión</a>
-                    @endauth
-                </div>
-            </div>
-        </nav>
+        <!-- HERO FULLSCREEN SLIDER -->
+        <div class="hero-slider-wrapper " id="heroSlider">
+            <div class="hero-slides-track" id="heroSlidesTrack">
 
-        <!-- Hero Fullscreen Slider -->
-        <div class="hero-slider-wrapper" id="heroSlider">
-        <div class="hero-slides-track" id="heroSlidesTrack">
+                <!-- Slide 1: Gestión Deportiva Integrada -->
+                <div class="hero-slide relative overflow-hidden  text-white">
+                    <!-- Background Video & Overlay -->
+                    <div class="hero-slide-bg">
+                        <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover  scale-105">
+                            <source src="{{ asset('images/public/0_Goalkeeper_Soccer_Ball_1920x1080.mp4') }}" type="video/mp4">
+                        </video>
+                        <div class="absolute inset-0 bg-gradient-to-r from-slate-950/70 via-slate-950/35 to-slate-950/10"></div>
+                        <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,_rgba(16,185,129,0.15),_transparent_60%)]"></div>
+                    </div>
 
-        <!-- Slide 1: Gestión deportiva -->
-        <div class="hero-slide" style="background:#0f172a;">
-            <!-- Background Image with Overlay -->
-            <div class="hero-slide-bg">
-                <video autoplay muted loop class="absolute inset-0 w-full h-full object-cover">
-                    <source src="{{ asset('images/public/0_Goalkeeper_Soccer_Ball_1920x1080.mp4') }}" type="video/mp4">
-                </video>
-                {{-- <img src="{{ asset('images/public/personal-trainer-sports-outfit-takes-notes-clipboard-city-park-area-training-exercising-endurance-healthy-lifestyle-concept-outdoor.jpg') }}" 
-                     alt="Football Team"> --}}
-                {{-- <div class="absolute inset-0 bg-gradient-to-r from-blue-900/95 via-blue-900/90 to-blue-900/70"></div> --}}
-            </div>
-            
-            <!-- Decorative Diagonal Stripes (Left Side) -->
-            <div class="absolute left-0 top-0 bottom-0 w-12 opacity-30 hero-decorative-mobile-hide">
-                <div class="absolute top-16 left-0 w-8 h-20 bg-white/20 transform -skew-y-12"></div>
-                <div class="absolute top-40 left-0 w-8 h-16 bg-white/15 transform -skew-y-12"></div>
-                <div class="absolute top-60 left-0 w-8 h-24 bg-white/20 transform -skew-y-12"></div>
-                <div class="absolute top-96 left-0 w-8 h-20 bg-white/15 transform -skew-y-12"></div>
-            </div>
-            
-            <!-- Decorative Triangles (Bottom Right) -->
-            <div class="hero-decorative-mobile-hide">
-                <div class="absolute bottom-8 right-8 grid grid-cols-8 gap-4 opacity-40">
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                </div>
-                <div class="absolute bottom-16 right-8 grid grid-cols-8 gap-4 opacity-40">
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                </div>
-                <div class="absolute bottom-24 right-8 grid grid-cols-8 gap-4 opacity-40">
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div>
-                </div>
-            </div>
-            
-            <div class="relative z-10 w-full px-5 sm:px-6 lg:px-8 py-6 sm:py-16 lg:py-20">
-                <div class="max-w-7xl mx-auto">
-                    <div class="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center lg:min-h-[calc(100vh-10rem)]">
-                        <!-- Left Content -->
-                        <div class="text-white">
-                            <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
-                               Solución integrada para la gestión de tu club.
-                            </h2>
+                    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20 w-full">
+                        <div class="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center min-h-[calc(100vh-12rem)]">
                             
-                            <p class="text-sm sm:text-base lg:text-lg text-gray-200 mb-5 sm:mb-8 leading-relaxed max-w-xl">
-                                Como dirigente de club o como entrenador, la gestión deportivo educativa y la comunicación interna de tu equipo amateur.
-                            </p>
-                            
-                            <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                               
-                                    <a href="#contacto" 
-                                       class="px-6 sm:px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-200 font-semibold text-sm sm:text-base shadow-lg hover:shadow-xl transform hover:scale-105 text-center">
+                            <!-- Left Content Column -->
+                            <div class="lg:col-span-7 space-y-6 sm:space-y-8 text-center lg:text-left">
+                                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-semibold text-xs sm:text-sm backdrop-blur-md">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                                    Gestión Deportiva & Educativa 
+                                </div>
+
+                                <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.15]">
+                                    La solución integral para profesionalizar <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">tu club amateur.</span>
+                                </h1>
+
+                                <p class="text-base sm:text-xl text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-normal">
+                                    Centraliza entrenamientos, convocatorias, cuotas y comunicación interna en una sola plataforma diseñada para dirigentes, entrenadores y familias.
+                                </p>
+
+                                <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+                                    <a href="#contacto" class="w-full sm:w-auto px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-2xl font-bold text-base transition-all duration-300 shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:-translate-y-0.5 text-center">
                                         ¿Qué es VaedSaas?
                                     </a>
-                                    {{-- <a href="#por-que-gratis" 
-                                       class="px-6 sm:px-8 py-3 bg-white bg-opacity-10 backdrop-blur-sm text-white rounded-lg hover:bg-opacity-20 transition duration-200 font-semibold text-sm sm:text-base border border-white text-center">
-                                       ¿Por qué VaedSaas es gratis?
-                                    </a> --}}
-                                
+                                    <a href="#soluciones" class="w-full sm:w-auto px-8 py-4 bg-slate-900/80 hover:bg-slate-800 text-white border border-slate-700/80 rounded-2xl font-semibold text-base transition-all duration-300 backdrop-blur-md text-center">
+                                        Explorar Funciones
+                                    </a>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <!-- Right Content - Interactive Mockup -->
-                        <div class="relative hidden lg:block lg:min-h-[600px]">
-                            <!-- Central Phone Mockup -->
-                            <div class="relative mx-auto animate-float max-w-[280px] z-20">
-                                <div class="bg-black rounded-[2.5rem] p-2 shadow-2xl">
-                                    <div class="bg-white rounded-[2.2rem] overflow-hidden" style="aspect-ratio: 9/19.5;">
-                                        <img src="{{ asset('images/public/capturaappmovil.jpg') }}" 
-                                             alt="Captura de la app móvil" 
-                                             class="w-full h-full object-cover">
+
+                            <!-- Right Visual Mockups Column -->
+                            <div class="lg:col-span-5 relative hidden lg:block">
+                                <div class="relative mx-auto w-full max-w-md h-[520px]">
+                                    
+                                    <!-- Desktop Monitor Frame -->
+                                    <div class="absolute bottom-0 left-0 w-full bg-slate-900 border border-slate-700/60 rounded-2xl p-2.5 shadow-2xl animate-float-slow backdrop-blur-xl">
+                                        <div class="bg-slate-950 rounded-xl overflow-hidden border border-slate-800 aspect-[16/10]">
+                                            <img src="{{ asset('images/public/capturapc.jpg') }}" alt="Captura de la app en escritorio" class="w-full h-full object-cover">
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Desktop Monitor Mockup (Below Phone) -->
-                            <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2" style="width: 400px; z-index: 25; animation: float 7s ease-in-out infinite 0.3s;">
-                                <!-- Monitor Stand -->
-                                <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
-                                    <div class="w-24 h-6 bg-gradient-to-b from-gray-700 to-gray-800 rounded-b-xl shadow-xl"></div>
-                                    <div class="w-40 h-2 bg-gradient-to-b from-gray-800 to-gray-900 rounded-full mx-auto -mt-1 shadow-2xl"></div>
-                                </div>
-                                
-                                <!-- Monitor Frame -->
-                                <div class="bg-gradient-to-b from-gray-800 to-gray-900 rounded-xl p-2 shadow-2xl">
-                                    <!-- Screen -->
-                                    <div class="bg-black rounded-lg overflow-hidden" style="aspect-ratio: 16/10;">
-                                        <img src="{{ asset('images/public/capturapc.jpg') }}" 
-                                             alt="Captura de la app en escritorio" 
-                                             class="w-full h-full object-cover">
+
+                                    <!-- Phone Frame Overlay -->
+                                    <div class="absolute top-0 right-2 w-[220px] bg-slate-900 border-2 border-slate-700/80 rounded-[2.5rem] p-2 shadow-2xl animate-float-delayed z-20">
+                                        <div class="bg-black rounded-[2.2rem] overflow-hidden aspect-[9/19.5]">
+                                            <img src="{{ asset('images/public/capturaappmovil.jpg') }}" alt="Captura app móvil" class="w-full h-full object-cover">
+                                        </div>
                                     </div>
-                                    <!-- Webcam -->
-                                    <div class="absolute top-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-gray-700 rounded-full border border-gray-600"></div>
+
+                                    <!-- Floating Interactive Badge 1 -->
+                                    <div class="absolute top-12 -left-6 z-30 bg-slate-900/90 border border-slate-700/80 backdrop-blur-xl rounded-2xl p-4 shadow-2xl text-white w-52 animate-bounce-slow">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-lg">💳</div>
+                                            <div>
+                                                <p class="text-xs text-slate-400 font-semibold">Cobros Automatizados</p>
+                                                <p class="text-sm font-bold text-emerald-400">Cuotas al día</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Floating Interactive Badge 2 -->
+                                    <div class="absolute -bottom-4 right-8 z-30 bg-slate-900/90 border border-slate-700/80 backdrop-blur-xl rounded-2xl p-3.5 shadow-2xl text-white flex items-center gap-3">
+                                        <div class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></div>
+                                        <span class="text-xs font-bold tracking-wide">100% Sincronizado en la Nube</span>
+                                    </div>
+
                                 </div>
                             </div>
-                            
-                            <!-- Floating Card: Disponible para el partido -->
-                            <div class="absolute top-4 left-0 bg-gray-700/90 backdrop-blur-md text-white rounded-xl p-4 shadow-2xl" style="width: 240px; z-index: 30; animation: float 4s ease-in-out infinite;">
-                                <p class="text-sm mb-3">¿Gestión de cobros?</p>
-                                <div class="flex gap-2">
-                                    <button class="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
-                                        Sí
-                                    </button>
-                                    <button class="flex-1 bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
-                                        No
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <!-- Floating Card: Estadísticas -->
-                            <div class="absolute top-32 right-0 bg-gray-700/90 backdrop-blur-md text-white rounded-xl p-4 shadow-2xl" style="width: 220px; z-index: 30; animation: float 5s ease-in-out infinite 0.5s;">
-                                <p class="text-sm font-semibold mb-3">Estadísticas del equipo</p>
-                                <div class="relative h-16 bg-gray-800 rounded-lg overflow-hidden">
-                                    <svg class="w-full h-full" viewBox="0 0 200 60" preserveAspectRatio="none">
-                                        <path d="M0,50 Q50,20 100,35 T200,15" fill="none" stroke="#10b981" stroke-width="3"/>
-                                        <path d="M0,50 Q50,20 100,35 T200,15 L200,60 L0,60 Z" fill="url(#gradient)" opacity="0.3"/>
-                                        <defs>
-                                            <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                                <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.8" />
-                                                <stop offset="100%" style="stop-color:#10b981;stop-opacity:0" />
-                                            </linearGradient>
-                                        </defs>
-                                    </svg>
-                                    <div class="absolute top-2 right-2 w-2 h-2 bg-yellow-400 rounded-full"></div>
-                                </div>
-                            </div>
-                            
-                            <!-- Floating Card: Invitar socios -->
-                            <div class="absolute bottom-12 left-4 bg-gray-700/90 backdrop-blur-md text-white rounded-xl p-4 shadow-2xl" style="width: 260px; z-index: 30; animation: float 6s ease-in-out infinite 1s;">
-                                <p class="text-xs mb-3">Tienda del club</p>
-                                <button class="w-full bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
-                                    Comprar
-                                </button>
-                            </div>
-                            
-                            <!-- Avatar Connections -->
-                            <!-- Avatar 1 -->
-                            <div class="absolute top-48 left-16" style="z-index: 25; animation: float 3s ease-in-out infinite 0.2s;">
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-3 border-white shadow-lg overflow-hidden">
-                                    <div class="w-full h-full flex items-center justify-center text-white font-bold">👤</div>
-                                </div>
-                                <!-- Dotted line to phone -->
-                                <svg class="absolute top-6 left-12" width="80" height="60" style="overflow: visible;">
-                                    <path d="M0,0 Q40,20 80,30" stroke="#059669" stroke-width="2" stroke-dasharray="4,4" fill="none" opacity="0.6"/>
-                                </svg>
-                            </div>
-                            
-                            <!-- Avatar 2 -->
-                            <div class="absolute top-60 left-4" style="z-index: 25; animation: float 4s ease-in-out infinite 0.7s;">
-                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 border-3 border-white shadow-lg overflow-hidden">
-                                    <div class="w-full h-full flex items-center justify-center text-white font-bold text-sm">👤</div>
-                                </div>
-                                <!-- Dotted line -->
-                                <svg class="absolute top-5 left-10" width="60" height="40" style="overflow: visible;">
-                                    <path d="M0,0 L60,20" stroke="#dc2626" stroke-width="2" stroke-dasharray="4,4" fill="none" opacity="0.6"/>
-                                </svg>
-                            </div>
-                            
-                            <!-- Avatar 3 -->
-                            <div class="absolute top-20 right-24" style="z-index: 25; animation: float 3.5s ease-in-out infinite 1.2s;">
-                                <div class="w-11 h-11 rounded-full bg-gradient-to-br from-green-400 to-green-600 border-3 border-white shadow-lg overflow-hidden">
-                                    <div class="w-full h-full flex items-center justify-center text-white font-bold">👤</div>
-                                </div>
-                                <!-- Dotted line with arrow -->
-                                <svg class="absolute top-6 left-0" width="100" height="80" style="overflow: visible;">
-                                    <defs>
-                                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                                            <polygon points="0 0, 10 3.5, 0 7" fill="#10b981" />
-                                        </marker>
-                                    </defs>
-                                    <path d="M0,10 Q-30,40 -70,60" stroke="#10b981" stroke-width="2" stroke-dasharray="5,5" fill="none" opacity="0.7" marker-end="url(#arrowhead)"/>
-                                </svg>
-                            </div>
-                            
-                            <!-- Connection dots/nodes -->
-                            <div class="absolute top-56 left-28 w-2 h-2 bg-cyan-400 rounded-full shadow-lg" style="z-index: 12; animation: pulse 2s ease-in-out infinite;"></div>
-                            <div class="absolute top-72 left-20 w-2 h-2 bg-green-400 rounded-full shadow-lg" style="z-index: 12; animation: pulse 2s ease-in-out infinite 0.5s;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Scroll Indicator -->
-            <div class="absolute bottom-14 left-1/2 transform -translate-x-1/2 animate-bounce z-30 hidden lg:block">
-                <svg class="w-8 h-8 text-white opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-                </svg>
-            </div>
-        </div>
-        <!-- /Slide 1 -->
-
-        <!-- Slide 2: Ropa deportiva personalizada -->
-        <div class="hero-slide" style="background:#1e1b4b;">
-            <!-- Background Image with Overlay -->
-            <div class="hero-slide-bg">
-                <img src="{{ asset('images/public/conjuntocdpuebla.jpg') }}"
-                     alt="Ropa deportiva personalizada">
-                <div class="absolute inset-0" style="background: linear-gradient(135deg, rgba(30,27,75,0.62) 0%, rgba(45,42,122,0.55) 50%, rgba(30,27,75,0.60) 100%);"></div>
-            </div>
-
-            <!-- Decorative Diagonal Stripes -->
-            <div class="absolute left-0 top-0 bottom-0 w-12 opacity-30 hero-decorative-mobile-hide">
-                <div class="absolute top-16 left-0 w-8 h-20 transform -skew-y-12" style="background:rgba(167,139,250,0.3);"></div>
-                <div class="absolute top-40 left-0 w-8 h-16 transform -skew-y-12" style="background:rgba(167,139,250,0.2);"></div>
-                <div class="absolute top-60 left-0 w-8 h-24 transform -skew-y-12" style="background:rgba(167,139,250,0.3);"></div>
-                <div class="absolute top-96 left-0 w-8 h-20 transform -skew-y-12" style="background:rgba(167,139,250,0.2);"></div>
-            </div>
-
-            <!-- Decorative dots -->
-            <div class="hero-decorative-mobile-hide">
-                <div class="absolute bottom-8 right-8 grid grid-cols-8 gap-4 opacity-40">
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div><div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div><div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div><div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div><div class="w-2 h-2 bg-white transform rotate-45"></div>
-                </div>
-                <div class="absolute bottom-16 right-8 grid grid-cols-8 gap-4 opacity-40">
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div><div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div><div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div><div class="w-2 h-2 bg-white transform rotate-45"></div>
-                    <div class="w-2 h-2 bg-white transform rotate-45"></div><div class="w-2 h-2 bg-white transform rotate-45"></div>
-                </div>
-            </div>
-
-            <div class="relative z-10 w-full px-5 sm:px-6 lg:px-8 py-6 sm:py-16 lg:py-20">
-                <div class="max-w-7xl mx-auto">
-                    <div class="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center lg:min-h-[calc(100vh-10rem)]">
-
-                        <!-- Left Content -->
-                        <div class="text-white">
-                            <div class="inline-block px-3 sm:px-4 py-1.5 sm:py-2 rounded-full font-semibold text-xs sm:text-sm mb-4 sm:mb-6 uppercase tracking-widest border" style="background:rgba(139,92,246,0.2);color:#c4b5fd;border-color:rgba(139,92,246,0.3);">
-                                Tienda de Ropa Personalizada
-                            </div>
-                            <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
-                                Viste a tu equipo<br><span style="color:#c4b5fd;">con tu identidad.</span>
-                            </h2>
-                            <p class="text-sm sm:text-base lg:text-lg text-gray-200 mb-5 sm:mb-8 leading-relaxed max-w-xl">
-                                Camisetas, mochilas, chándales y más, todos personalizados con el logo de tu club.
-                                Tu club no gestiona nada y gana automáticamente entre un
-                                <strong style="color:#a78bfa;">5-10% de cada venta</strong>.
-                                Cero esfuerzo, ingresos reales.
-                            </p>
-                            <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                                <a href="{{ route('vaed-sport.home') }}"
-                                   class="px-6 sm:px-8 py-3 text-white rounded-lg transition duration-200 font-semibold text-sm sm:text-base shadow-lg hover:shadow-xl transform hover:scale-105 text-center"
-                                   style="background:#7c3aed;">
-                                    Ver Catálogo VAED Sport
-                                </a>
-                            </div>
-                        </div>
-
-                        <!-- Right Content - Product Cards -->
-                        <div class="relative hidden lg:block lg:min-h-[600px]">
-
-                          
 
                         </div>
                     </div>
-                </div>
+                </div><!-- /Slide 1 -->
+
+            </div><!-- /hero-slides-track -->
+
+            <!-- Slider Controls -->
+            <button class="hero-slider-btn prev hidden md:flex" id="heroPrevBtn" aria-label="Anterior">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <button class="hero-slider-btn next hidden md:flex" id="heroNextBtn" aria-label="Siguiente">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+            </button>
+
+            <!-- Slider Dots -->
+            <div class="hero-slider-dots">
+                <button class="hero-dot active" data-index="0" aria-label="Diapositiva 1"></button>
+                <button class="hero-dot" data-index="1" aria-label="Diapositiva 2"></button>
             </div>
-
-            <!-- Scroll Indicator -->
-            <div class="absolute bottom-14 left-1/2 transform -translate-x-1/2 animate-bounce z-30 hidden lg:block">
-                <svg class="w-8 h-8 text-white opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-                </svg>
-            </div>
-        </div>
-        <!-- /Slide 2 -->
-
-        </div><!-- /hero-slides-track -->
-
-        <!-- Slider Controls: Arrows -->
-        <button class="hero-slider-btn prev" id="heroPrevBtn" aria-label="Diapositiva anterior">
-            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
-        </button>
-        <button class="hero-slider-btn next" id="heroNextBtn" aria-label="Diapositiva siguiente">
-            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
-        </button>
-
-        <!-- Slider Dots -->
-        <div class="hero-slider-dots">
-            <button class="hero-dot active" data-index="0" aria-label="Diapositiva 1"></button>
-            <button class="hero-dot" data-index="1" aria-label="Diapositiva 2"></button>
-        </div>
-
         </div><!-- /hero-slider-wrapper -->
 
-        <!-- Integrated Solution Section -->
-        <section class="bg-gray-50 py-12 sm:py-16 md:py-20 px-4">
-            <div class="max-w-7xl mx-auto">
-                <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 text-center mb-10 sm:mb-16 md:mb-20 px-4">
-                   La gestión deportivo educativa del fútbol amateur, al alcance de todos.
-                </h1>
 
-                <div class="grid lg:grid-cols-2 gap-8 sm:gap-12 md:gap-16 items-center">
-                    <!-- Left Side: Image and Chart -->
-                    <div class="relative h-[400px] sm:h-[500px] md:h-[600px]">
-                        <!-- Background circles in top right -->
-                        <div class="absolute top-20 right-0 z-0">
-                            <svg width="250" height="250" viewBox="0 0 250 250">
-                                <circle cx="125" cy="125" r="110" fill="none" stroke="#9ca3af" stroke-width="2.5" opacity="0.6"/>
-                                <circle cx="125" cy="125" r="80" fill="none" stroke="#9ca3af" stroke-width="2.5" opacity="0.6"/>
-                                <circle cx="125" cy="125" r="50" fill="none" stroke="#9ca3af" stroke-width="2.5" opacity="0.6"/>
-                            </svg>
-                        </div>
-                        
-                        <!-- Person Image Card -->
-                        <div class="relative z-10 bg-white rounded-3xl shadow-xl overflow-hidden w-full max-w-md">
-                            <img src="{{ asset('images/public/fitness-rugby-coach-with-clipboard-teamwork-training-competition-workout-wellness-male-trainer-group-with-healthy-lifestyle-sports-practice-exercise-support-plan.jpg') }}" 
-                                 alt="Gestión profesional" 
-                                 class="w-full h-80 object-cover">
-                        </div>
-
-                        <!-- Chart Card Overlapping Image -->
-                        <div class="absolute bottom-0 left-8 right-0 z-20 bg-white rounded-3xl shadow-2xl p-4 sm:p-8 max-w-xl">
-                            <!-- Chart with curves -->
-                            <div class="relative h-40 sm:h-56">
-                                <svg class="w-full h-full" viewBox="0 0 500 200" preserveAspectRatio="none">
-                                    <!-- Light green area fill under curves -->
-                                    <path d="M10,175 Q90,95 170,90 Q250,85 310,110 Q370,135 490,155 L490,200 L10,200 Z" 
-                                          fill="#d1fae5" 
-                                          opacity="0.7"/>
-                                    
-                                    <!-- Purple/Blue curve -->
-                                    <path d="M10,175 Q90,95 170,90 Q250,85 310,110 Q370,135 490,155" 
-                                          fill="none" 
-                                          stroke="#6366f1" 
-                                          stroke-width="4" 
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"/>
-                                    
-                                    <!-- Turquoise/Green curve -->
-                                    <path d="M10,180 Q90,120 170,105 Q250,95 310,85 Q370,100 490,140" 
-                                          fill="none" 
-                                          stroke="#10b981" 
-                                          stroke-width="4" 
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"/>
-                                    
-                                    <!-- Point marker on purple curve at February -->
-                                    <circle cx="310" cy="110" r="5" fill="white"/>
-                                    <circle cx="310" cy="110" r="7" fill="none" stroke="#6366f1" stroke-width="3"/>
-                                    
-                                    <!-- Connecting dashed line to label -->
-                                    <line x1="310" y1="110" x2="350" y2="50" stroke="#10b981" stroke-width="2.5" stroke-dasharray="4,4"/>
-                                </svg>
-                                
-                                <!-- Price Label -->
-                                <div class="absolute top-6 left-1/2 transform -translate-x-1/4 bg-white rounded-xl shadow-lg px-4 py-2 border border-gray-100">
-                                    <div class="text-xl font-bold text-gray-900">1265 €</div>
-                                    <div class="text-xs text-gray-500 text-center">Febrero</div>
-                                </div>
-                            </div>
-                            
-                            <!-- Month Labels -->
-                            <div class="flex justify-between text-sm text-gray-500 font-semibold mt-5 px-1">
-                                <span>NOV</span>
-                                <span>DIC</span>
-                                <span>ENE</span>
-                                <span>FEB</span>
-                                <span>MAR</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Right Side: Content -->
-                    <div class="lg:pl-8">
-                        <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                            Herramientas de gestión de cobro de cuotas
-                        </h3>
-                        <p class="text-lg text-gray-700 leading-relaxed">
-                            Elige las cuotas para los pagos, y automatiza los mismos. Envía recordatorios automáticos a los jugadores morosos y gestiona todo desde un mismo lugar.
-                        </p>
-                        <br>
-                         <p class="text-lg text-gray-700 leading-relaxed">
-                            Una solución sencilla y eficaz para que los clubes y escuelas de fútbol puedan centrarse en lo que realmente importa: ¡el deporte!
-                        </p>
-                        <br>
-                         <p class="text-lg text-gray-700 leading-relaxed">
-                            Si no dispone de TPV virtual, prestamos el nuestro respetando las mismas condiciones que si lo contrata directamente con el banco.
-                        </p>
-                    </div>
+        <!-- SECTION 1: Herramientas de Gestión de Cobro de Cuotas -->
+        <section id="soluciones" class="py-16 sm:py-24 bg-white relative overflow-hidden">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <span class="text-xs font-bold tracking-widest text-emerald-600 uppercase bg-emerald-50 px-4 py-1.5 rounded-full border border-emerald-200">
+                        Gestión Financiera Sencilla
+                    </span>
+                    <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 mt-4 tracking-tight">
+                        La gestión deportivo educativa del fútbol amateur, al alcance de todos.
+                    </h2>
                 </div>
-            </div>
-        </section>
 
-        <!-- Calendarios de eventos y gestión de asistencia Section -->
-        <section class="bg-white py-12 sm:py-16 md:py-20 px-4">
-            <div class="max-w-7xl mx-auto">
-                <div class="grid lg:grid-cols-2 gap-8 sm:gap-12 md:gap-16 items-center">
-                    <!-- Left Side: Content -->
-                    <div class="lg:pr-8">
-                        <h3 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 sm:mb-6">
-                            Calendarios de eventos y gestión de convocatorias
-                        </h3>
-                        <p class="text-lg text-gray-700 leading-relaxed mb-4">
-                            Crea rápidamente programas de entrenamiento en función de tus instalaciones disponibles, equipos o cuerpo técnico. Envía actualizaciones personalizadas y automatizadas a los jugadores.
-                        </p>
-                        <p class="text-lg text-gray-700 leading-relaxed">
-                            Obtén un registro preciso de la asistencia a las sesiones de entrenamiento con solo pulsar un botón, para optimizar tu planificación.
-                        </p>
-                    </div>
-
-                    <!-- Right Side: Image -->
-                    <div class="relative hidden lg:block">
-                        <div class="bg-gradient-to-br from-green-50 to-blue-50 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden">
-                            <div class="p-2 sm:p-6 md:p-8">
-                                <!-- Attendance Card -->
-                                <div class="bg-white rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-6 md:p-8">
-                                    <h4 class="text-lg sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-6">Convocatoria</h4>
-                                    
-                                    <!-- Attendance List -->
-                                    <div class="space-y-2 sm:space-y-4 mb-6 sm:mb-8">
-                                        <!-- Player 1 - Present -->
-                                        <div class="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
-                                            <div class="flex items-center gap-2 sm:gap-3">
-                                                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base">
-                                                    👤
-                                                </div>
-                                                <div class="h-4 bg-gray-200 rounded w-32"></div>
-                                            </div>
-                                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                                                </svg>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Player 2 - Present -->
-                                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
-                                            <div class="flex items-center gap-3">
-                                                <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white font-bold">
-                                                    👤
-                                                </div>
-                                                <div class="h-4 bg-gray-200 rounded w-28"></div>
-                                            </div>
-                                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                                                </svg>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Player 3 - Absent -->
-                                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
-                                            <div class="flex items-center gap-3">
-                                                <div class="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                                                    👤
-                                                </div>
-                                                <div class="h-4 bg-gray-200 rounded w-36"></div>
-                                            </div>
-                                            <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                                                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path>
-                                                </svg>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Player 4 - Partial -->
-                                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
-                                            <div class="flex items-center gap-3">
-                                                <div class="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold">
-                                                    👤
-                                                </div>
-                                                <div class="h-4 bg-gray-200 rounded w-24"></div>
-                                            </div>
-                                            <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                                                <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-                                                </svg>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Stats Badge -->
-                                    <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-3 sm:p-4 flex items-center justify-between flex-wrap gap-2">
-                                        <div>
-                                            <p class="text-xs text-gray-600 font-semibold uppercase mb-1">Convocados</p>
-                                            <p class="text-3xl font-bold text-gray-900">16</p>
-                                        </div>
-                                        <div class="bg-green-100 text-green-700 px-4 py-2 rounded-lg font-semibold text-sm">
-                                            Partido contra "Los Tigres"
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Decorative floating image in background -->
-                        <div class="absolute -top-12 -right-12 w-64 h-64 opacity-20 z-0">
-                            <img src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=800&auto=format&fit=crop" 
-                                 alt="Football training" 
-                                 class="w-full h-full object-cover rounded-full blur-sm">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ¿Gestionas un club? Section -->
-        <section class="bg-gray-50 py-12 sm:py-16 md:py-20 px-4 relative overflow-hidden">
-            <div class="max-w-7xl mx-auto">
-                <div class="grid lg:grid-cols-2 gap-8 sm:gap-12 md:gap-16 items-center">
-                    <!-- Left Side: Image with decorations -->
+                <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+                    
+                    <!-- Visual Mockup & Graph Card -->
                     <div class="relative">
-                        <!-- Decorative X grid pattern in top right -->
-                        <div class="absolute -top-8 -right-8 z-0 grid grid-cols-14 gap-4 opacity-30">
-                            <svg class="w-full h-auto" viewBox="0 0 280 100" xmlns="http://www.w3.org/2000/svg">
-                                <!-- Row 1 -->
-                                <text x="10" y="15" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="30" y="15" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="50" y="15" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="70" y="15" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="90" y="15" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="110" y="15" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="130" y="15" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="150" y="15" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="170" y="15" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="190" y="15" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="210" y="15" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="230" y="15" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="250" y="15" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="270" y="15" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <!-- Row 2 -->
-                                <text x="10" y="35" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="30" y="35" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="50" y="35" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="70" y="35" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="90" y="35" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="110" y="35" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="130" y="35" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="150" y="35" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="170" y="35" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="190" y="35" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="210" y="35" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="230" y="35" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="250" y="35" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="270" y="35" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <!-- Row 3 partial -->
-                                <text x="250" y="55" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="270" y="55" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <!-- Row 4 partial -->
-                                <text x="250" y="75" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="270" y="75" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <!-- Row 5 partial -->
-                                <text x="250" y="95" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                                <text x="270" y="95" font-size="14" fill="#10b981" font-weight="bold">×</text>
-                            </svg>
-                        </div>
-                        
-                        <!-- Image container with left arrow -->
-                        <div class="relative z-10">
-                            <!-- Left arrow -->
-                            <div class="absolute left-0 top-1/2 transform -translate-x-12 -translate-y-1/2 z-20 hidden lg:block">
-                                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <circle cx="20" cy="20" r="18" stroke="#d1d5db" stroke-width="2" fill="white"/>
-                                    <path d="M24 14l-6 6 6 6" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </div>
+                        <div class="relative bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-800 text-white overflow-hidden">
+                            <!-- Background Accent Glow -->
+                            <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl"></div>
                             
-                            <!-- Main image card -->
-                            <div class="bg-white rounded-2xl shadow-2xl overflow-hidden border-4 border-black">
-                                <img src="{{ asset('images/public/prototipe-cdpuebla.png') }}" 
-                                     alt="Gestión de club deportivo" 
-                                     class="w-full h-96 object-cover">
+                            <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-800">
+                                <div>
+                                    <h3 class="font-bold text-lg text-white">Resumen de Cuotas Recaudadas</h3>
+                                    <p class="text-xs text-slate-400">Automatización de pagos y morosos</p>
+                                </div>
+                                <span class="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-lg border border-emerald-500/30">
+                                    En regla +94%
+                                </span>
+                            </div>
+
+                            <!-- Interactive SVG Chart Mockup -->
+                            <div class="relative h-48 sm:h-60 w-full mb-6">
+                                <svg class="w-full h-full" viewBox="0 0 500 200" preserveAspectRatio="none">
+                                    <defs>
+                                        <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stop-color="#10b981" stop-opacity="0.4"/>
+                                            <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <path d="M10,160 Q120,80 240,110 T490,40 L490,200 L10,200 Z" fill="url(#chartGradient)" />
+                                    <path d="M10,160 Q120,80 240,110 T490,40" fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round"/>
+                                    <circle cx="360" cy="72" r="6" fill="#ffffff" stroke="#10b981" stroke-width="3"/>
+                                </svg>
+
+                                <!-- Floating Value Tag -->
+                                <div class="absolute top-8 left-[65%] transform -translate-x-1/2 bg-slate-800 border border-slate-700 text-white rounded-xl px-3.5 py-1.5 shadow-xl text-center">
+                                    <p class="text-xs font-bold text-emerald-400">1.265 € Recaudados</p>
+                                    <p class="text-[10px] text-slate-400">Febrero 2026</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-5 text-center text-xs font-semibold text-slate-400 pt-2 border-t border-slate-800/80">
+                                <span>NOV</span><span>DIC</span><span>ENE</span><span class="text-emerald-400 font-bold">FEB</span><span>MAR</span>
                             </div>
                         </div>
-                        
-                        <!-- Bottom decorative icons -->
-                        <div class="flex items-center gap-8 mt-8 pl-4">
-                            <!-- Circle -->
-                            <div class="flex flex-col items-center gap-2">
-                                <div class="w-3 h-3 rounded-full border-2 border-gray-400 bg-white"></div>
-                                <div class="w-0.5 h-12 bg-gray-300 border-l-2 border-dashed border-gray-400"></div>
+
+                        <!-- Secondary Overlapping Image -->
+                        <div class="absolute -bottom-8 -right-6 w-48 sm:w-60 rounded-2xl overflow-hidden border-4 border-white shadow-2xl hidden sm:block">
+                            <img src="{{ asset('images/public/fitness-rugby-coach-with-clipboard-teamwork-training-competition-workout-wellness-male-trainer-group-with-healthy-lifestyle-sports-practice-exercise-support-plan.jpg') }}" 
+                                 alt="Gestión profesional" class="w-full h-36 object-cover">
+                        </div>
+                    </div>
+
+                    <!-- Left Content -->
+                    <div class="space-y-6">
+                        <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight">
+                            Herramientas inteligentes de gestión de cobro de cuotas
+                        </h3>
+
+                        <p class="text-base sm:text-lg text-slate-600 leading-relaxed">
+                            Elige la frecuencia de las cuotas y automatiza los cobros. Envía recordatorios automáticos sin fricción y gestiona todo el historial financiero desde un único panel intuitivo.
+                        </p>
+
+                        <div class="space-y-4 pt-2">
+                            <div class="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold flex-shrink-0">
+                                    ✓
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-900 text-base">TPV Virtual Propio e Integrado</h4>
+                                    <p class="text-sm text-slate-600 mt-0.5">Si no dispones de TPV, utiliza la pasarela segura de VaedSaas. Acepta tarjetas, Bizum o transferencias en un clic.</p>
+                                </div>
                             </div>
-                            
-                            <!-- Circle -->
-                            <div class="flex flex-col items-center gap-2 -ml-6">
-                                <div class="w-3 h-3 rounded-full border-2 border-gray-400 bg-white"></div>
-                                <div class="w-0.5 h-12 bg-gray-300 border-l-2 border-dashed border-gray-400"></div>
-                            </div>
-                            
-                            <!-- X -->
-                            <div class="flex flex-col items-center gap-2 -ml-6">
-                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M2 2L10 10M2 10L10 2" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/>
-                                </svg>
-                                <div class="w-0.5 h-12 bg-gray-300 border-l-2 border-dashed border-gray-400"></div>
-                            </div>
-                            
-                            <!-- X -->
-                            <div class="flex flex-col items-center gap-2 -ml-6">
-                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M2 2L10 10M2 10L10 2" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/>
-                                </svg>
-                                <div class="w-0.5 h-12 bg-gray-300 border-l-2 border-dashed border-gray-400"></div>
+
+                            <div class="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold flex-shrink-0">
+                                    ✓
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-900 text-base">Cero Tareas Manuales</h4>
+                                    <p class="text-sm text-slate-600 mt-0.5">Una solución pensada para que la directiva y entrenadores se olviden del papeleo y se enfoquen en el campo de juego.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Right Side: Content -->
-                    <div class="lg:pl-8">
-                        <h3 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6">
-                            Venta de ropa personalizada, porque cada clubs tiene su identidad.
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SECTION 2: Gestión de Torneos y Competiciones -->
+        <section id="torneos" class="py-16 sm:py-24 bg-slate-100 relative">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+                    
+                    <!-- Standings Mockup Visual (Left on Desktop) -->
+                    <div class="order-2 lg:order-1 relative">
+                        <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-200 relative z-10">
+                            
+                            <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+                                <div>
+                                    <h4 class="text-xl font-bold text-slate-900">Liga de Verano 2026</h4>
+                                    <p class="text-xs font-semibold text-slate-500">Clasificación General y Estadísticas</p>
+                                </div>
+                                <span class="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full">
+                                    En curso
+                                </span>
+                            </div>
+
+                            <!-- Standings Table Mockup -->
+                            <div class="bg-slate-50 rounded-2xl overflow-hidden border border-slate-200/80 mb-6">
+                                <div class="grid grid-cols-12 gap-2 p-3 bg-slate-100 font-bold text-[11px] text-slate-500 uppercase tracking-wider">
+                                    <div class="col-span-2 text-center">Pos</div>
+                                    <div class="col-span-6">Equipo</div>
+                                    <div class="col-span-2 text-center">PJ</div>
+                                    <div class="col-span-2 text-center">Pts</div>
+                                </div>
+                                
+                                <div class="grid grid-cols-12 gap-2 p-3 border-b border-slate-200 bg-emerald-50/50 items-center font-semibold text-sm">
+                                    <div class="col-span-2 text-center font-bold text-emerald-600">1</div>
+                                    <div class="col-span-6 font-bold text-slate-900 flex items-center gap-2">
+                                        <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 inline-block"></span> Tu Club FC
+                                    </div>
+                                    <div class="col-span-2 text-center text-slate-600">10</div>
+                                    <div class="col-span-2 text-center font-black text-slate-900">28</div>
+                                </div>
+
+                                <div class="grid grid-cols-12 gap-2 p-3 border-b border-slate-200 items-center text-sm text-slate-700">
+                                    <div class="col-span-2 text-center font-bold text-slate-400">2</div>
+                                    <div class="col-span-6 flex items-center gap-2">
+                                        <span class="w-3.5 h-3.5 rounded-full bg-red-500 inline-block"></span> Atlético Norte
+                                    </div>
+                                    <div class="col-span-2 text-center text-slate-600">10</div>
+                                    <div class="col-span-2 text-center font-bold text-slate-800">24</div>
+                                </div>
+
+                                <div class="grid grid-cols-12 gap-2 p-3 items-center text-sm text-slate-700">
+                                    <div class="col-span-2 text-center font-bold text-slate-400">3</div>
+                                    <div class="col-span-6 flex items-center gap-2">
+                                        <span class="w-3.5 h-3.5 rounded-full bg-blue-500 inline-block"></span> Sporting Sur
+                                    </div>
+                                    <div class="col-span-2 text-center text-slate-600">10</div>
+                                    <div class="col-span-2 text-center font-bold text-slate-800">21</div>
+                                </div>
+                            </div>
+
+                            <!-- Floating Top Scorer Card -->
+                            <div class="bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-slate-800 flex items-center gap-4 transform rotate-1 hover:rotate-0 transition duration-300">
+                                <div class="w-12 h-12 bg-amber-400 rounded-xl flex items-center justify-center text-slate-950 font-black text-xl shadow-lg">
+                                    ⚽
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-amber-400 font-bold uppercase tracking-widest">Máximo Goleador</p>
+                                    <p class="text-sm font-bold text-white">Carlos M. <span class="text-slate-400 font-normal">(Tu Club FC)</span></p>
+                                    <p class="text-xs font-semibold text-amber-300">14 Goles anotados</p>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Right Content Column -->
+                    <div class="order-1 lg:order-2 space-y-6">
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs">
+                            🏆 Gestión de Competiciones
+                        </div>
+
+                        <h3 class="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
+                            Torneos de nivel profesional al alcance de tu afición
                         </h3>
-                        
-                        <p class="text-base sm:text-lg text-gray-700 leading-relaxed mb-4 sm:mb-6">
-                            Buscamos la eficiencia en el tramite de pedidos, para que el club no tenga que preocuparse por nada. Nosotros nos encargamos de todo el proceso, desde la personalización con el logo del club hasta la entrega. El club solo recibe ingresos pasivos por cada venta realizada, sin tener que gestionar stock, envíos o atención al cliente.
+
+                        <p class="text-base sm:text-lg text-slate-600 leading-relaxed">
+                            Dota a tu club de una herramienta automatizada para administrar ligas y torneos locales. Ofrece una experiencia interactiva única tanto para la directiva como para la afición.
                         </p>
-                        <div class="flex flex-col sm:flex-row gap-4">
-                            <a href="{{ route('vaed-sport.home') }}" 
-                               class="px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-200 font-semibold text-base shadow-lg hover:shadow-xl transform hover:scale-105 text-center">
-                                VAED Sport - Catálogo de productos
+
+                        <ul class="space-y-4 pt-2">
+                            <li class="flex items-start gap-3">
+                                <span class="w-6 h-6 rounded-lg bg-indigo-500/10 text-indigo-600 flex items-center justify-center font-bold text-sm flex-shrink-0 mt-1">✓</span>
+                                <p class="text-sm sm:text-base text-slate-700"><strong class="text-slate-900">Clasificaciones en tiempo real:</strong> Introduce resultados y las tablas se recalculan automáticamente.</p>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="w-6 h-6 rounded-lg bg-indigo-500/10 text-indigo-600 flex items-center justify-center font-bold text-sm flex-shrink-0 mt-1">✓</span>
+                                <p class="text-sm sm:text-base text-slate-700"><strong class="text-slate-900">Estadísticas detalladas:</strong> Control de pichichis, listas de sancionados y actas arbitrales.</p>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="w-6 h-6 rounded-lg bg-indigo-500/10 text-indigo-600 flex items-center justify-center font-bold text-sm flex-shrink-0 mt-1">✓</span>
+                                <p class="text-sm sm:text-base text-slate-700"><strong class="text-slate-900">Acceso móvil para los fans:</strong> Tus seguidores podrán consultar la evolución del torneo desde su smartphone.</p>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SECTION 3: Web Propia para el Club -->
+        <section id="web-club" class="py-16 sm:py-24 bg-white relative">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+                    
+                    <!-- Left Content Column -->
+                    <div class="space-y-6">
+                        <span class="text-xs font-bold tracking-widest text-blue-600 uppercase bg-blue-50 px-4 py-1.5 rounded-full border border-blue-200">
+                            Presencia Digital
+                        </span>
+
+                        <h3 class="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
+                            Una web exclusiva y personalizada para tu club
+                        </h3>
+
+                        <p class="text-base sm:text-lg text-slate-600 leading-relaxed">
+                            Otorga a tu equipo la presencia digital que merece. Con un sitio web oficial, centralizarás las noticias, galerías y comunicaciones sin requerir conocimientos técnicos.
+                        </p>
+
+                        <div class="space-y-4 pt-2">
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                <h4 class="font-bold text-slate-900 text-base">Noticias & Eventos Oficiales</h4>
+                                <p class="text-sm text-slate-600 mt-1">Publica resultados, horarios de partidos y comunicados oficiales en un portal elegante.</p>
+                            </div>
+
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                <h4 class="font-bold text-slate-900 text-base">Formularios Digitales de Inscripción</h4>
+                                <p class="text-sm text-slate-600 mt-1">Captura las altas de nuevos jugadores y recopila la documentación legal de forma 100% digital.</p>
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <a href="#contacto" class="inline-flex items-center justify-center px-6 py-3.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 transition duration-300 shadow-lg shadow-blue-500/20">
+                                Descubre cómo será tu web
                             </a>
                         </div>
                     </div>
+
+                    <!-- Right Browser Mockup -->
+                    <div class="relative">
+                        <div class="bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-800">
+                            <!-- Browser Chrome Bar -->
+                            <div class="bg-slate-800/80 px-4 py-3 flex items-center gap-2 border-b border-slate-700">
+                                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+                                <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                                <div class="ml-4 bg-slate-900 text-slate-400 text-xs px-3 py-1 rounded-lg w-full truncate border border-slate-700/60 font-mono">
+                                    https://www.tuclubfc.com
+                                </div>
+                            </div>
+
+                            <!-- Website Mockup Body -->
+                            <div class="p-6 bg-slate-950 text-white space-y-6">
+                                <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-white">FC</div>
+                                        <span class="font-bold text-base">Tu Club FC</span>
+                                    </div>
+                                    <div class="flex gap-3 text-xs text-slate-400 font-semibold">
+                                        <span>Inicio</span><span>Plantilla</span><span class="text-blue-400">Noticias</span>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-6 text-white relative overflow-hidden">
+                                    <div class="relative z-10 space-y-2">
+                                        <span class="text-[10px] font-bold bg-white/20 px-2.5 py-1 rounded-md uppercase">Última Hora</span>
+                                        <h4 class="text-lg font-extrabold">¡Abierta la inscripción para la cantera 2026/2027!</h4>
+                                        <p class="text-xs text-blue-100">Reserva tu plaza antes del 31 de mayo.</p>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                                        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-2 font-bold">⚽</div>
+                                        <p class="text-xs font-bold text-white">Próximo Partido</p>
+                                        <p class="text-[11px] text-slate-400">Sábado 18:00h - Campo Municipal</p>
+                                    </div>
+                                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                                        <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center mb-2 font-bold">👥</div>
+                                        <p class="text-xs font-bold text-white">Plantilla Oficial</p>
+                                        <p class="text-[11px] text-slate-400">24 Jugadores registrados</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </section>
 
-        <!-- ¿Por qué VaedSaas es gratuito? Section -->
-        <section id="por-que-gratis" class="bg-gray-50 py-12 sm:py-16 md:py-20 px-4">
-            <div class="max-w-7xl mx-auto">
-                <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 text-center mb-10 sm:mb-16 md:mb-20 px-4">
-                    ¿Por que la aplicación de futbol  <span class="text-green-600"> es gratis para Siempre</span>?
-                </h2>
 
-                <div class="grid lg:grid-cols-2 gap-8 sm:gap-12 md:gap-16 items-center mb-10 sm:mb-16 md:mb-20">
-                    <!-- Left Side: Content -->
-                    <div class="lg:pr-8">
-                        <h3 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 sm:mb-6">
-                            Modelo Win-Win para equipos amateur: Ganamos juntos
-                        </h3>
-                        <p class="text-lg text-gray-700 leading-relaxed mb-4">
-                            Creemos en crear una <span class="font-bold text-green-600">sinergia donde ambos ganamos</span>. VaedSaas vende productos deportivos a través de tu club, y esta es nuestra forma de monetizar la plataforma.
-                        </p>
-                        <p class="text-lg text-gray-700 leading-relaxed mb-4">
-                            Por cada venta realizada, tu club recibe automáticamente entre un <span class="font-bold text-green-600 text-xl">5% y 10%</span> como saldo acumulable que podrás solicitar en cualquier momento.
-                        </p>
-                        <p class="text-lg text-gray-700 leading-relaxed">
-                            Lo mejor: <span class="font-bold">tu club no gestiona nada</span>. VaedSaas tramita el pedido, lo personaliza con el logo de tu club y lo envía directamente. Cero preocupaciones, solo ganancias.
-                        </p>
-                    </div>
+        
 
-                    <!-- Right Side: Visual Diagram -->
-                    <div class="relative h-[400px] sm:h-[500px] md:h-[600px] order-first lg:order-last">
-                        <!-- Background circles in top right -->
-                        <div class="absolute top-10 sm:top-20 right-0 z-0">
-                            <svg width="250" height="250" viewBox="0 0 250 250">
-                                <circle cx="125" cy="125" r="110" fill="none" stroke="#10b981" stroke-width="2.5" opacity="0.3"/>
-                                <circle cx="125" cy="125" r="80" fill="none" stroke="#10b981" stroke-width="2.5" opacity="0.3"/>
-                                <circle cx="125" cy="125" r="50" fill="none" stroke="#10b981" stroke-width="2.5" opacity="0.3"/>
-                            </svg>
-                        </div>
-                        
-                        <!-- Product Cards -->
-                        <div class="relative z-10 bg-white rounded-3xl shadow-xl p-8 w-full max-w-md">
-                            <h4 class="text-xl font-bold text-gray-900 mb-6 text-center">Productos Disponibles</h4>
-                            
-                            <!-- Product 1 -->
-                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 mb-4">
-                                <div class="flex items-center gap-4 mb-3">
-                                    <div>
-                                        <h5 class="font-bold text-gray-900">Mochilas</h5>
-                                        <p class="text-sm text-gray-600">Personalizadas</p>
-                                    </div>
-                                </div>
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-700">Desde 25€</span>
-                                    <span class="text-green-600 font-bold">+3.75€ club</span>
-                                </div>
-                            </div>
-                            
-                            <!-- Product 2 -->
-                            <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-6 mb-4">
-                                <div class="flex items-center gap-4 mb-3">
-                                    {{-- <div class="w-16 h-16 bg-green-500 rounded-lg flex items-center justify-center text-3xl">
-                                        👕
-                                    </div> --}}
-                                    <div>
-                                        <h5 class="font-bold text-gray-900">Ropa Entrenamiento</h5>
-                                        <p class="text-sm text-gray-600">Con logo del club</p>
-                                    </div>
-                                </div>
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-700">Desde 35€</span>
-                                    <span class="text-green-600 font-bold">+5.25€ club</span>
-                                </div>
-                            </div>
-                            
-                            <!-- Product 3 -->
-                            <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6">
-                                <div class="flex items-center gap-4 mb-3">
-                                    {{-- <div class="w-16 h-16 bg-purple-500 rounded-lg flex items-center justify-center text-3xl">
-                                        ⚽
-                                    </div> --}}
-                                    <div>
-                                        <h5 class="font-bold text-gray-900">Equipamiento</h5>
-                                        <p class="text-sm text-gray-600">Material deportivo</p>
-                                    </div>
-                                </div>
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-700">Desde 20€</span>
-                                    <span class="text-green-600 font-bold">+3€ club</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Stats Card Overlapping -->
-                        <div class="absolute bottom-[-90px] sm:bottom-[-80px] left-4 sm:left-8 right-4 sm:right-0 z-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 max-w-xl text-white">
-                            <h4 class="text-lg sm:text-2xl font-bold mb-4 sm:mb-6">Ejemplo Mensual</h4>
-                            
-                            <div class="grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
-                                <div class="bg-white/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 text-center">
-                                    <div class="text-2xl sm:text-3xl font-bold">300€</div>
-                                    <div class="text-xs sm:text-sm opacity-90">Ventas</div>
-                                </div>
-                                <div class="bg-white/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 text-center">
-                                    <div class="text-2xl sm:text-3xl font-bold">45€</div>
-                                    <div class="text-xs sm:text-sm opacity-90">Para tu club</div>
-                                </div>
-                            </div>
-                            
-                            <div class="bg-white/30 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4">
-                                <p class="text-xs sm:text-sm font-semibold mb-2">✓ Sin gestión de inventario</p>
-                                <p class="text-xs sm:text-sm font-semibold mb-2">✓ Sin gestión de envíos</p>
-                                <p class="text-xs sm:text-sm font-semibold">✓ Saldo disponible cuando quieras</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- How it Works - Simple 3 Steps -->
-                <div class="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-6 sm:p-8 md:p-12">
-                    <h3 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 sm:mb-12 text-center">
-                        Cómo Funciona en 3 Pasos
-                    </h3>
+        <!-- SECTION 4: Convocatorias de Partidos -->
+        <section class="py-16 sm:py-24 bg-slate-900 text-white relative overflow-hidden">
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,_rgba(16,185,129,0.12),_transparent_70%)]"></div>
+            
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
                     
-                    <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
-                        <!-- Step 1 -->
-                        <div class="text-center flex-1 max-w-xs">
-                            <div class="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-3xl font-bold mx-auto mb-6 shadow-lg">
-                                1
+                    <!-- Left Column: Visual Mockup de Convocatoria -->
+                    <div class="relative">
+                        <div class="bg-slate-800 border border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+                            
+                            <!-- Header del Partido -->
+                            <div class="flex items-center justify-between border-b border-slate-700/80 pb-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-lg">
+                                        ⚽
+                                    </div>
+                                    <div>
+                                        <h4 class="text-base font-bold text-white">Jornada 14 • Liga Amateur</h4>
+                                        <p class="text-xs text-slate-400">Domingo 11:30h • Campo Municipal</p>
+                                    </div>
+                                </div>
+                                <span class="px-3 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold rounded-full">
+                                    Convocatoria Abierta
+                                </span>
                             </div>
-                            <h4 class="text-xl font-bold text-gray-900 mb-3">Jugadores Compran</h4>
-                            <p class="text-gray-700 leading-relaxed">
-                                Los jugadores de tu club compran productos deportivos personalizados a través de la tienda de VaedSaas de tu club
-                            </p>
-                        </div>
 
-                        <!-- Arrow -->
-                        <div class="hidden md:flex items-center justify-center flex-shrink-0">
-                            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                                <path d="M5 20h30M25 10l10 10-10 10" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </div>
+                            <!-- Lista de Jugadores / Estado de Asistencia -->
+                            <div class="space-y-3">
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Confirmación de Asistencia</p>
+                                
+                                <!-- Jugador 1 - Confirmado -->
+                                <div class="flex items-center justify-between p-3 bg-slate-900/80 rounded-2xl border border-slate-700/50">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-full bg-blue-500/20 text-blue-400 font-bold text-xs flex items-center justify-center">
+                                            MP
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold text-slate-200">Marc Pérez</p>
+                                            <p class="text-[10px] text-slate-400">Delantero</p>
+                                        </div>
+                                    </div>
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-xl border border-emerald-500/30">
+                                        ✓ Confirmado
+                                    </span>
+                                </div>
 
-                        <!-- Step 2 -->
-                        <div class="text-center flex-1 max-w-xs">
-                            <div class="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white text-3xl font-bold mx-auto mb-6 shadow-lg">
-                                2
+                                <!-- Jugador 2 - Confirmado -->
+                                <div class="flex items-center justify-between p-3 bg-slate-900/80 rounded-2xl border border-slate-700/50">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-full bg-purple-500/20 text-purple-400 font-bold text-xs flex items-center justify-center">
+                                            CG
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold text-slate-200">Carlos Gómez</p>
+                                            <p class="text-[10px] text-slate-400">Centrocampista</p>
+                                        </div>
+                                    </div>
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-xl border border-emerald-500/30">
+                                        ✓ Confirmado
+                                    </span>
+                                </div>
+
+                                <!-- Jugador 3 - Pendiente -->
+                                <div class="flex items-center justify-between p-3 bg-slate-900/80 rounded-2xl border border-slate-700/50">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-full bg-amber-500/20 text-amber-400 font-bold text-xs flex items-center justify-center">
+                                            DR
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold text-slate-200">David Ruiz</p>
+                                            <p class="text-[10px] text-slate-400">Defensa</p>
+                                        </div>
+                                    </div>
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/20 text-amber-400 text-xs font-bold rounded-xl border border-amber-500/30">
+                                        ⏳ Pendiente
+                                    </span>
+                                </div>
                             </div>
-                            <h4 class="text-xl font-bold text-gray-900 mb-3">VaedSaas Gestiona</h4>
-                            <p class="text-gray-700 leading-relaxed">
-                                Nosotros tramitamos el pedido, lo personalizamos con el logo del club y lo enviamos directamente
-                            </p>
-                        </div>
 
-                        <!-- Arrow -->
-                        <div class="hidden md:flex items-center justify-center flex-shrink-0">
-                            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                                <path d="M5 20h30M25 10l10 10-10 10" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </div>
-
-                        <!-- Step 3 -->
-                        <div class="text-center flex-1 max-w-xs">
-                            <div class="w-20 h-20 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center text-white text-3xl font-bold mx-auto mb-6 shadow-lg">
-                                3
+                            <!-- Resumen de Convocatoria -->
+                            <div class="pt-2 flex items-center justify-between text-xs border-t border-slate-700/80">
+                                <span class="text-slate-400">Convocados: <strong class="text-white font-bold">16 jugadores</strong></span>
+                                <span class="text-emerald-400 font-bold">14 Confirmados • 2 Pendientes</span>
                             </div>
-                            <h4 class="text-xl font-bold text-gray-900 mb-3">Tu Club Gana</h4>
-                            <p class="text-gray-700 leading-relaxed">
-                                El <span class="font-bold text-green-600">5-10%</span> de cada venta se acumula automáticamente en tu saldo. Retíralo cuando quieras
-                            </p>
+
                         </div>
                     </div>
+
+                    <!-- Right Content Column -->
+                    <div class="space-y-6">
+                        <span class="text-xs font-bold tracking-widest text-emerald-400 uppercase bg-emerald-500/10 px-4 py-1.5 rounded-full border border-emerald-500/30">
+                            Convocatorias & Asistencia
+                        </span>
+
+                        <h3 class="text-3xl sm:text-4xl font-extrabold text-white leading-tight">
+                            Convocatorias de partidos sin caos ni mensajes perdidos
+                        </h3>
+
+                        <p class="text-base sm:text-lg text-slate-300 leading-relaxed">
+                            Envía la lista de convocados en un solo clic. Los jugadores y sus familias reciben una notificación instantánea en la App para confirmar o declinar su asistencia en segundos.
+                        </p>
+
+                        <div class="p-5 rounded-2xl bg-slate-800/80 border border-slate-700/80 space-y-2">
+                            <p class="text-sm font-bold text-emerald-400">Control en tiempo real para el cuerpo técnico</p>
+                            <p class="text-sm text-slate-300">
+                                Visualiza exactamente con qué plantilla cuentas para el fin de semana, detecta bajas de última hora y gestiona sustitutos sin perder tiempo en grupos masivos de chat.
+                            </p>
+                        </div>
+
+                        <div class="pt-2">
+                            {{-- <a href="#contacto" 
+                            class="inline-flex items-center justify-center px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-2xl transition duration-300 shadow-lg shadow-emerald-500/20">
+                                Probar Gestor de Convocatorias
+                            </a> --}}
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </section>
 
 
-        <!-- Contact Form Section -->
-        <section id="contacto" class="py-20 px-4 ">
-            <div class="max-w-4xl mx-auto">
-                <div class="text-center mb-12">
-                    <h2 class="text-4xl font-bold text-gray-900 mb-4">¿Tienes Preguntas? Contáctanos</h2>
-                    <p class="text-xl text-gray-600">
-                        Si quieres probar VaedSaas o tienes alguna duda, completa el formulario y te contactaremos pronto.
+        <!-- SECTION 5: ¿Por qué VaedSaas es Gratuito? (Win-Win) -->
+        <section id="" class="py-16 sm:py-24 bg-slate-50 relative">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight">
+                        ¿Modelo <span class="text-emerald-600">Win-Win</span>?
+                    </h2>
+                    <p class="text-base sm:text-lg text-slate-600 mt-4">
+                        Apostamos por un modelo colaborativo transparente donde la plataforma crece si tu club gana.
                     </p>
                 </div>
+
+                <div class="grid lg:grid-cols-12 gap-8 items-center mb-16">
+                    
+                    <!-- Explanation Left Column -->
+                    <div class="lg:col-span-6 space-y-6">
+                        <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900">
+                            Modelo Win-Win para equipos amateur: Ganamos juntos
+                        </h3>
+                        
+                        <p class="text-base sm:text-lg text-slate-700 leading-relaxed">
+                            Monetizamos el servicio ofreciendo ropa y material deportivo oficial personalizado para tu club.
+                        </p>
+                        <p class="text-base sm:text-lg text-slate-700 leading-relaxed">
+                            Venta de merchandising oficial del club en su tienda oficial del club.
+                        </p>
+
+                        <div class="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3">
+                            <div class="text-3xl font-black text-emerald-600">5% - 10%</div>
+                            <p class="text-sm sm:text-base text-slate-700 font-semibold">
+                                Por cada compra efectuada por tus socios o jugadores, tu club acumula automáticamente entre un 5% y 10% en su saldo rescatable.
+                            </p>
+                        </div>
+
+                        <p class="text-sm sm:text-base text-slate-600">
+                            Sin gestión de almacenamiento, costes fijos de mantenimiento ni sorpresas en la factura.
+                        </p>
+                         <p class="text-sm sm:text-base text-slate-600">
+                            El club podrá vender productos de otros proveedores, o los ofrecidos por vaed.
+                        </p>
+                    </div>
+
+                    <!-- Earnings Breakdown Right Column -->
+                    <div class="lg:col-span-6">
+                        <div class="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-800 space-y-6">
+                            <h4 class="text-lg font-bold text-center border-b border-slate-800 pb-4">
+                                Ejemplo de Rentabilidad Mensual
+                            </h4>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 text-center">
+                                    <p class="text-2xl sm:text-3xl font-extrabold text-white">300 €</p>
+                                    <p class="text-xs text-slate-400 mt-1">Ventas en Merchandising</p>
+                                </div>
+                                <div class="bg-emerald-500/20 p-4 rounded-2xl border border-emerald-500/40 text-center">
+                                    <p class="text-2xl sm:text-3xl font-extrabold text-emerald-400">+45 €</p>
+                                    <p class="text-xs text-emerald-200 mt-1">Beneficio directo para el club</p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2 text-xs sm:text-sm text-slate-300 pt-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-emerald-400 font-bold">✓</span> Sin gestión de inventario ni envíos.
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-emerald-400 font-bold">✓</span> Transferencia a tu cuenta bancaria cuando lo solicites.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- 3 Steps Grid -->
+                <div class="bg-white rounded-3xl p-8 sm:p-12 shadow-xl border border-slate-200">
+                    <h3 class="text-2xl font-bold text-slate-900 text-center mb-10">Cómo Funciona en 3 Pasos</h3>
+
+                    <div class="grid md:grid-cols-3 gap-8 text-center relative">
+                        <div class="space-y-4">
+                            <div class="w-16 h-16 rounded-2xl bg-emerald-500 text-slate-950 font-black text-2xl flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">1</div>
+                            <h4 class="text-lg font-bold text-slate-900">Jugadores Compran</h4>
+                            <p class="text-sm text-slate-600">Tus jugadores encargan sus equipaciones y merchandising en la tienda digital oficial.</p>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="w-16 h-16 rounded-2xl bg-emerald-500 text-slate-950 font-black text-2xl flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">2</div>
+                            <h4 class="text-lg font-bold text-slate-900">VaedSaas Gestiona</h4>
+                            <p class="text-sm text-slate-600">Personalizamos cada prenda con tu escudo y la enviamos al domicilio del comprador.</p>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="w-16 h-16 rounded-2xl bg-emerald-500 text-slate-950 font-black text-2xl flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">3</div>
+                            <h4 class="text-lg font-bold text-slate-900">Tu Club Acumula Saldo</h4>
+                            <p class="text-sm text-slate-600">Recibes entre el 5% y el 10% de beneficio limpio de forma automática.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- SECTION 6: App Móvil -->
+        <section class="py-16 sm:py-24 bg-slate-950 text-white relative overflow-hidden">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[120px]"></div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+                    
+                    <!-- Left Content -->
+                    <div class="space-y-6">
+                        <span class="text-xs font-bold tracking-widest text-emerald-400 uppercase bg-emerald-500/10 px-4 py-1.5 rounded-full border border-emerald-500/30">
+                            Aplicación Móvil iOS & Android
+                        </span>
+
+                        <h2 class="text-3xl sm:text-5xl font-extrabold text-white leading-tight">
+                            Diseñada para entrenadores, jugadores y familias
+                        </h2>
+
+                        <p class="text-base sm:text-lg text-slate-300 leading-relaxed">
+                            Lleva el control de convocatorias, calendarios de partidos, asistencia a entrenamientos y avisos de última hora en el bolsillo.
+                        </p>
+
+                        <!-- Download Badges -->
+                        <div class="flex flex-wrap gap-4 pt-4">
+                            <a href="#" title="Descargar app Android" class="transform hover:scale-105 transition duration-200">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" class="h-12 sm:h-14">
+                            </a>
+                            <a href="#" title="Descargar app iOS" class="transform hover:scale-105 transition duration-200">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg" alt="App Store" class="h-12 sm:h-14">
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Right Dual Phone Visual -->
+                    <div class="relative hidden sm:block h-[450px]">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-64 bg-slate-900 border border-slate-700/80 rounded-[2.5rem] p-2.5 shadow-2xl transform -rotate-6 z-10">
+                                <div class="bg-black rounded-[2.2rem] overflow-hidden aspect-[9/19.5]">
+                                    <img src="{{ asset('images/public/capturaappmovil.jpg') }}" alt="App Móvil" class="w-full h-full object-cover">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SECTION 7: Formulario de Contacto -->
+        {{-- <section id="contacto" class="py-16 sm:py-24 bg-white relative">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 
-                <div class="bg-white rounded-2xl shadow-2xl p-8 md:p-12 border-2 border-green-100">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                        ¿Tienes dudas? Hablemos sin compromiso
+                    </h2>
+                    <p class="text-base sm:text-lg text-slate-600 mt-3">
+                        Completa el formulario y nos pondremos en contacto contigo para mostrarte una demo en vivo.
+                    </p>
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-xl">
                     <form class="space-y-6" x-data="{ submitting: false }" @submit.prevent="submitting = true; setTimeout(() => { alert('Gracias por tu mensaje. Te contactaremos pronto.'); submitting = false; $el.reset(); }, 1000)">
-                        <div class="grid md:grid-cols-2 gap-6">
+                        
+                        <div class="grid sm:grid-cols-2 gap-6">
                             <div>
-                                <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">
-                                    Nombre Completo *
-                                </label>
-                                <input 
-                                    type="text" 
-                                    id="name" 
-                                    name="name" 
-                                    required
-                                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 transition duration-200"
-                                    placeholder="Juan Pérez"
-                                >
+                                <label for="name" class="block text-xs font-bold text-slate-700 uppercase mb-2">Nombre Completo *</label>
+                                <input type="text" id="name" name="name" required class="w-full px-4 py-3.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition text-slate-900 text-sm" placeholder="Juan Pérez">
                             </div>
-                            
+
                             <div>
-                                <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
-                                    Email *
-                                </label>
-                                <input 
-                                    type="email" 
-                                    id="email" 
-                                    name="email" 
-                                    required
-                                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 transition duration-200"
-                                    placeholder="juan@escuelafutbol.com"
-                                >
+                                <label for="email" class="block text-xs font-bold text-slate-700 uppercase mb-2">Correo Electrónico *</label>
+                                <input type="email" id="email" name="email" required class="w-full px-4 py-3.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition text-slate-900 text-sm" placeholder="juan@escuelafutbol.com">
                             </div>
                         </div>
-                        
-                        <div class="grid md:grid-cols-2 gap-6">
+
+                        <div class="grid sm:grid-cols-2 gap-6">
                             <div>
-                                <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">
-                                    Teléfono
-                                </label>
-                                <input 
-                                    type="tel" 
-                                    id="phone" 
-                                    name="phone"
-                                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 transition duration-200"
-                                    placeholder="+34 600 000 000"
-                                >
+                                <label for="phone" class="block text-xs font-bold text-slate-700 uppercase mb-2">Teléfono</label>
+                                <input type="tel" id="phone" name="phone" class="w-full px-4 py-3.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition text-slate-900 text-sm" placeholder="+34 600 000 000">
                             </div>
-                            
+
                             <div>
-                                <label for="club" class="block text-sm font-semibold text-gray-700 mb-2">
-                                    Nombre de tu Escuela/Club
-                                </label>
-                                <input 
-                                    type="text" 
-                                    id="club" 
-                                    name="club"
-                                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 transition duration-200"
-                                    placeholder="CD Mi Escuela"
-                                >
+                                <label for="club" class="block text-xs font-bold text-slate-700 uppercase mb-2">Nombre del Club / Escuela</label>
+                                <input type="text" id="club" name="club" class="w-full px-4 py-3.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition text-slate-900 text-sm" placeholder="CD Mi Escuela FC">
                             </div>
                         </div>
-                        
+
                         <div>
-                            <label for="message" class="block text-sm font-semibold text-gray-700 mb-2">
-                                Mensaje *
-                            </label>
-                            <textarea 
-                                id="message" 
-                                name="message" 
-                                rows="5" 
-                                required
-                                class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 transition duration-200"
-                                placeholder="Cuéntanos cómo podemos ayudarte..."
-                            ></textarea>
+                            <label for="message" class="block text-xs font-bold text-slate-700 uppercase mb-2">Mensaje *</label>
+                            <textarea id="message" name="message" rows="4" required class="w-full px-4 py-3.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition text-slate-900 text-sm" placeholder="Cuéntanos cuántos equipos gestionas y qué dudas tienes..."></textarea>
                         </div>
-                        
+
                         <div class="flex items-start gap-3">
-                            <input 
-                                type="checkbox" 
-                                id="privacy" 
-                                name="privacy" 
-                                required
-                                class="mt-1 w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                            >
-                            <label for="privacy" class="text-sm text-gray-600">
-                                Acepto la política de privacidad y el tratamiento de mis datos *
-                            </label>
+                            <input type="checkbox" id="privacy" name="privacy" required class="mt-1 w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500">
+                            <label for="privacy" class="text-xs text-slate-600">Acepto la política de privacidad y el tratamiento de mis datos personales. *</label>
                         </div>
-                        
-                        <button 
-                            type="submit"
-                            :disabled="submitting"
-                            class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 px-8 rounded-lg font-bold text-lg hover:from-green-600 hover:to-green-700 transition duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
+
+                        <button type="submit" :disabled="submitting" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold py-4 px-8 rounded-xl transition duration-300 shadow-lg shadow-emerald-500/25 disabled:opacity-50">
                             <span x-show="!submitting">Enviar Mensaje</span>
-                            <span x-show="submitting" x-cloak>Enviando...</span>
+                            <span x-show="submitting" x-cloak>Enviando mensaje...</span>
                         </button>
                     </form>
                 </div>
-            </div>
-        </section>
-        
-        <!-- Aplicación Móvil Section -->
-        <section class="py-12 sm:py-16 md:py-20 px-4 relative overflow-hidden" style="background-color: #1e3a8a;">
-            <!-- Decorative elements -->
-            <div class="absolute top-10 sm:top-20 right-10 sm:right-20 w-48 sm:w-96 h-48 sm:h-96 bg-blue-400 rounded-full opacity-10 blur-3xl"></div>
-            <div class="absolute bottom-10 sm:bottom-20 left-10 sm:left-20 w-48 sm:w-96 h-48 sm:h-96 bg-blue-300 rounded-full opacity-10 blur-3xl"></div>
-            
-            <div class="max-w-7xl mx-auto relative z-10">
-                <div class="grid lg:grid-cols-2 gap-8 sm:gap-12 md:gap-16 items-center">
-                    <!-- Left Side: Content -->
-                    <div class="text-white">
-                        <div class="inline-block px-4 py-2 bg-cyan-500/20 text-cyan-400 rounded-lg font-bold text-sm mb-6 border border-cyan-500/30">
-                            APLICACIÓN MÓVIL
-                        </div>
-                        
-                        <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
-                            Para entrenadores, familiares y deportistas
-                        </h2>
-                        
-                        <p class="text-base sm:text-lg text-gray-300 mb-6 sm:mb-8 leading-relaxed">
-                            La App que simplifica los clubes deportivos. Disponible para los usuarios de los clubes registrados.
-                        </p>
-                        
-                        {{-- <a href="#" class="inline-block text-cyan-400 font-semibold hover:text-cyan-300 mb-8 text-lg">
-                            COMPRUEBE SI TU CLUB ESTÁ REGISTRADO →
-                        </a>
-                         --}}
-                        <!-- App Store Buttons -->
-                        <div class="flex flex-col sm:flex-row gap-4">
-                            <a href="#" title="Descargar app Android"class="inline-block transform hover:scale-105 transition-transform duration-200">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" 
-                                     alt="Descargar en Google Play" 
-                                     class="h-14">
-                            </a>
-                            <a href="#" title="Descargar app iOS" class="inline-block transform hover:scale-105 transition-transform duration-200">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg" 
-                                     alt="Descargar en App Store" 
-                                     class="h-14">
-                            </a>
-                        </div>
-                    </div>
 
-                    <!-- Right Side: Phone Mockups -->
-                    <div class="relative h-[600px] hidden lg:block">
-                        <!-- Decorative circles in background -->
-                        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                            <div class="w-96 h-96 border-2 border-cyan-500/20 rounded-full"></div>
-                        </div>
-                        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                            <div class="w-80 h-80 border-2 border-purple-500/20 rounded-full"></div>
-                        </div>
-                        
-                        <!-- Decorative icons -->
-                        <div class="absolute top-20 right-20 w-16 h-16 bg-cyan-500/20 rounded-2xl flex items-center justify-center border border-cyan-500/30">
-                            <svg class="w-8 h-8 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                            </svg>
-                        </div>
-                        
-                        <div class="absolute bottom-32 right-8 w-20 h-20 bg-purple-500/20 rounded-2xl flex items-center justify-center border border-purple-500/30">
-                            <svg class="w-10 h-10 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-                            </svg>
-                        </div>
-                        
-                        <!-- Phone 1 - Left (Training Screen) -->
-                        <div class="absolute left-0 top-1/2 transform -translate-y-1/2" style="z-index: 20;">
-                            <div class="bg-gradient-to-b from-gray-900 to-black rounded-[2.5rem] p-3 shadow-2xl" style="width: 280px;">
-                                <div class="bg-gradient-to-br from-cyan-500 to-green-500 rounded-[2rem] overflow-hidden" style="aspect-ratio: 9/19.5;">
-                                    <div class="relative w-full h-full">
-                                        <!-- Status bar -->
-                                        <div class="absolute top-0 left-0 right-0 px-6 py-3 flex justify-between items-center text-white text-xs">
-                                            <span>9:41</span>
-                                            <div class="flex items-center gap-1">
-                                                <div class="w-4 h-3 border border-white rounded-sm"></div>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Content -->
-                                        <div class="pt-16 px-6">
-                                            <button class="text-white mb-4">
-                                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                                                </svg>
-                                            </button>
-                                            
-                                        <h2 class="text-white text-2xl font-bold mb-2">Training</h2>
-                                            
-                                            <!-- Info card -->
-                                            <div class="bg-white/20 backdrop-blur-sm rounded-xl p-4 mb-6">
-                                                <div class="flex justify-between text-white text-sm mb-3">
-                                                    <div>
-                                                        <div class="flex items-center gap-2 mb-1">
-                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                                            </svg>
-                                                            <span class="text-xs">DATE</span>
-                                                        </div>
-                                                        <p class="font-semibold">6 Setjosember 2021</p>
-                                                    </div>
-                                                    <div>
-                                                        <div class="flex items-center gap-2 mb-1">
-                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                            </svg>
-                                                            <span class="text-xs">TIME</span>
-                                                        </div>
-                                                        <p class="font-semibold">18:00 - 20:30</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <!-- Appearances section -->
-                                            <div>
-                                                <h3 class="text-white font-semibold mb-3">Appearances</h3>
-                                                <div class="space-y-2">
-                                                    <div class="bg-white/10 backdrop-blur-sm rounded-lg p-2 flex items-center justify-between">
-                                                        <span class="text-white text-sm">Athletes</span>
-                                                        <span class="text-white text-sm">12</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Bottom navigation -->
-                                        <div class="absolute bottom-0 left-0 right-0 bg-black/40 backdrop-blur-md">
-                                            <div class="flex justify-around py-3">
-                                                <button class="text-white/60">
-                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                                                    </svg>
-                                                </button>
-                                                <button class="text-cyan-400">
-                                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                                                    </svg>
-                                                </button>
-                                                <button class="text-white/60">
-                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                                                    </svg>
-                                                </button>
-                                                <button class="text-white/60">
-                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Phone 2 - Right (Invoices Screen) -->
-                        <div class="absolute right-0 top-1/2 transform -translate-y-1/2" style="z-index: 25;">
-                            <div class="bg-gradient-to-b from-gray-900 to-black rounded-[2.5rem] p-3 shadow-2xl" style="width: 280px;">
-                                <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-[2rem] overflow-hidden" style="aspect-ratio: 9/19.5;">
-                                    <div class="relative w-full h-full">
-                                        <!-- Status bar -->
-                                        <div class="absolute top-0 left-0 right-0 px-6 py-3 flex justify-between items-center text-white text-xs">
-                                            <span>9:41</span>
-                                            <div class="flex items-center gap-1">
-                                                <div class="w-4 h-3 border border-white rounded-sm"></div>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Content -->
-                                        <div class="pt-16 px-6">
-                                            <div class="flex justify-between items-center mb-6">
-                                            <h2 class="text-white text-2xl font-bold">Invoices</h2>
-                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                            
-                                            <!-- Tabs -->
-                                            <div class="flex gap-4 mb-6">
-                                                <button class="px-4 py-2 bg-cyan-500 text-white rounded-lg text-sm font-semibold">
-                                                    Invoices
-                                                </button>
-                                                <button class="px-4 py-2 text-gray-400 text-sm font-semibold">
-                                                    Products
-                                                </button>
-                                            </div>
-                                            
-                                            <!-- Stats -->
-                                            <div class="grid grid-cols-3 gap-4 mb-6">
-                                                <div class="text-center">
-                                                    <div class="text-3xl font-bold text-white mb-1">5</div>
-                                                    <div class="text-xs text-cyan-400">Paid</div>
-                                                </div>
-                                                <div class="text-center">
-                                                    <div class="text-3xl font-bold text-white mb-1">1</div>
-                                                    <div class="text-xs text-orange-400">Pending</div>
-                                                </div>
-                                                <div class="text-center">
-                                                    <div class="text-3xl font-bold text-white mb-1">2</div>
-                                                    <div class="text-xs text-yellow-400">Outstanding</div>
-                                                </div>
-                                            </div>
-                                            
-                                            <!-- Invoice list -->
-                                            <div class="space-y-3">
-                                                <div class="bg-gray-800/50 rounded-xl p-3">
-                                                    <div class="flex justify-between items-start mb-2">
-                                                        <div>
-                                                            <p class="text-purple-400 text-xs mb-1">Subscription • Nov/2022</p>
-                                                            <p class="text-white text-sm font-semibold">€180.00</p>
-                                                        </div>
-                                                        <div class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                                                            <span class="text-white text-xs">!</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div class="bg-gray-800/50 rounded-xl p-3">
-                                                    <div class="flex justify-between items-start mb-2">
-                                                        <div>
-                                                            <p class="text-purple-400 text-xs mb-1">Subscription • Oct/2023</p>
-                                                            <p class="text-white text-sm font-semibold">€80.00</p>
-                                                        </div>
-                                                        <div class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                                                            <span class="text-white text-xs">!</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div class="bg-gray-800/50 rounded-xl p-3">
-                                                    <div class="flex justify-between items-start mb-2">
-                                                        <div>
-                                                            <p class="text-green-400 text-xs mb-1">Registration Fee • 2022</p>
-                                                            <p class="text-white text-sm font-semibold">€100.00</p>
-                                                        </div>
-                                                        <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                                                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                                                            </svg>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div class="bg-gray-800/50 rounded-xl p-3">
-                                                    <div class="flex justify-between items-start mb-2">
-                                                        <div>
-                                                            <p class="text-purple-400 text-xs mb-1">Subscription • Sep/2022</p>
-                                                            <p class="text-white text-sm font-semibold">€180.00</p>
-                                                        </div>
-                                                        <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                                                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                                                            </svg>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <!-- Send Notification Button -->
-                                            <button class="w-full mt-6 bg-gray-700/50 text-white py-3 px-4 rounded-xl flex items-center justify-between">
-                                                <div class="flex items-center gap-2">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                                                    </svg>
-                                                    <span class="text-sm font-semibold">Send Notification</span>
-                                                </div>
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                        
-                                        <!-- Bottom navigation -->
-                                        <div class="absolute bottom-0 left-0 right-0 bg-black/40 backdrop-blur-md">
-                                            <div class="flex justify-around py-3">
-                                                <button class="text-white/60">
-                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                                                    </svg>
-                                                </button>
-                                                <button class="text-white/60">
-                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                                                    </svg>
-                                                </button>
-                                                <button class="text-white/60">
-                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                                                    </svg>
-                                                </button>
-                                                <button class="text-white/60">
-                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
-        </section>
-        
-        <!-- CTA Section -->
-        <section class="py-20 px-4 bg-white">
-            <div class="max-w-4xl mx-auto text-center">
-                <h2 class="text-4xl font-bold text-gray-900 mb-6">
-                    Comienza GRATIS y Empieza a Ganar
-                </h2>
-                <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-                    Únete a las escuelas de fútbol que ya gestionan sus equipos profesionalmente <span class="font-semibold">sin pagar nada</span> y además generan ingresos vendiendo productos
-                </p>
-                @auth
-                    <a href="{{ url('/dashboard') }}" title="Acceder al dashboard si el usuario está autenticado"
-                       class="inline-block px-10 py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition duration-200 font-bold text-lg shadow-xl hover:shadow-2xl transform hover:scale-105">
-                        Acceder al Dashboard
-                    </a>
-                @else
-                    <a href="{{ route('login') }}" title="Acceder al login de usuario" 
-                       class="inline-block px-10 py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition duration-200 font-bold text-lg shadow-xl hover:shadow-2xl transform hover:scale-105">
-                        Acceder si estás registrado
-                    </a>
-                @endauth
-            </div>
-        </section>
+        </section> --}}
 
-        <!-- Carousel de Escudos de Equipos -->
+
+        <!-- Carousel de Escudos de Equipos (Dinámico Blade) -->
         @php
             $schools = \App\Models\SportsSchool::whereNotNull('logo')->where('logo', '!=', '')->get();
         @endphp
         
         @if($schools->count() > 0)
-        <section class="py-16 px-4 bg-gray-50 overflow-hidden">
-            <div class="max-w-full mx-auto">
-                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-12">
-                    Clubes que Confían en VaedSaas
-                </h2>
-                
-                <div class="relative w-full overflow-hidden mx-auto">
-                    <div class="flex animate-scroll-logos w-fit hover:[animation-play-state:paused]">
-                        
-                        @foreach($schools as $school)
-                            <div class="flex-none px-6 sm:px-4">
-                                <div class="bg-white rounded-2xl shadow-lg flex items-center justify-center p-6 transition-all duration-300 hover:scale-110 hover:shadow-2xl w-[140px] h-[140px] sm:w-[100px] sm:h-[100px]">
-                                    <img src="{{ asset('storage/' . $school->logo) }}" 
-                                         alt="{{ $school->name }}" 
-                                         title="{{ $school->name }}"
-                                         class="w-full h-full object-contain" 
-                                         onerror="this.parentElement.parentElement.style.display='none'">
-                                </div>
+        {{-- <section class="py-16 bg-slate-100 overflow-hidden border-t border-b border-slate-200">
+            <div class="max-w-7xl mx-auto px-4 mb-8 text-center">
+                <h3 class="text-xl font-bold text-slate-800 tracking-tight">Clubes que confían en VaedSaas</h3>
+            </div>
+            
+            <div class="relative w-full overflow-hidden">
+                <div class="animate-marquee hover:[animation-play-state:paused] flex items-center gap-8">
+                    @foreach($schools as $school)
+                        <div class="flex-none">
+                            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center p-4 w-28 h-28 hover:scale-105 transition">
+                                <img src="{{ asset('storage/' . $school->logo) }}" 
+                                     alt="{{ $school->name }}" 
+                                     title="{{ $school->name }}"
+                                     class="w-full h-full object-contain" 
+                                     onerror="this.parentElement.parentElement.style.display='none'">
                             </div>
-                        @endforeach
-                     
-                        @foreach($schools as $school)
-                            <div class="flex-none px-6 sm:px-4">
-                                <div class="bg-white rounded-2xl shadow-lg flex items-center justify-center p-6 transition-all duration-300 hover:scale-110 hover:shadow-2xl w-[140px] h-[140px] sm:w-[100px] sm:h-[100px]">
-                                    <img src="{{ asset('storage/' . $school->logo) }}" 
-                                         alt="{{ $school->name }}" 
-                                         title="{{ $school->name }}"
-                                         class="w-full h-full object-contain" 
-                                         onerror="this.parentElement.parentElement.style.display='none'">
-                                </div>
+                        </div>
+                    @endforeach
+
+                    <!-- Repetición para Infinite Scroll continuo -->
+                    @foreach($schools as $school)
+                        <div class="flex-none">
+                            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center p-4 w-28 h-28 hover:scale-105 transition">
+                                <img src="{{ asset('storage/' . $school->logo) }}" 
+                                     alt="{{ $school->name }}" 
+                                     title="{{ $school->name }}"
+                                     class="w-full h-full object-contain" 
+                                     onerror="this.parentElement.parentElement.style.display='none'">
                             </div>
-                        @endforeach
-                    </div>
+                        </div>
+                    @endforeach
                 </div>
             </div>
-        </section>
+        </section> --}}
         @endif
 
-        <!-- Footer -->
-        <footer class="bg-gray-900 text-white py-12 px-4">
-            <div class="max-w-7xl mx-auto">
-                <div class="grid md:grid-cols-4 gap-8 mb-8">
-                    <div>
-                        <h3 class="text-xl font-bold mb-4">{{ config('app.name', 'Vaed-APP') }}</h3>
-                        <p class="text-gray-400">
-                            La plataforma GRATUITA para escuelas de fútbol. Gestiona y monetiza tu club deportivo
-                        </p>
+
+        <!-- FOOTER -->
+        <footer class="bg-slate-950 text-slate-400 py-12 border-t border-slate-800 text-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+                    <div class="col-span-2 md:col-span-1">
+                        <span class="text-xl font-extrabold text-white">Vaed<span class="text-emerald-500">Saas</span></span>
+                        {{-- <p class="mt-3 text-xs text-slate-400 leading-relaxed">
+                            Plataforma gratuita para la gestión y monetización de clubes y escuelas de fútbol amateur.
+                        </p> --}}
                     </div>
+
                     <div>
-                        <h4 class="text-lg font-semibold mb-4">Producto</h4>
-                        <ul class="space-y-2 text-gray-400">
-                            {{-- <li><a href="#" class="hover:text-white transition">Funcionalidades</a></li>
-                            <li><a href="#" class="hover:text-white transition">Precios</a></li>
-                            <li><a href="#" class="hover:text-white transition">Actualizaciones</a></li> --}}
+                        <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-4">Navegación</h4>
+                        <ul class="space-y-2 text-xs">
+                            <li><a href="#soluciones" class="hover:text-emerald-400 transition">Soluciones</a></li>
+                            <li><a href="#torneos" class="hover:text-emerald-400 transition">Torneos</a></li>
+                           
                         </ul>
                     </div>
+
                     <div>
-                        <h4 class="text-lg font-semibold mb-4">Soporte</h4>
-                        <ul class="space-y-2 text-gray-400">
-                            {{-- <li><a href="#" class="hover:text-white transition">Documentación</a></li>
-                            <li><a href="#" class="hover:text-white transition">Ayuda</a></li>
-                            <li><a href="#" class="hover:text-white transition">Contacto</a></li> --}}
+                        <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-4">Soporte</h4>
+                        <ul class="space-y-2 text-xs">
+                            <li><a href="#contacto" class="hover:text-emerald-400 transition">Contacto Directo</a></li>
+                            <li><a href="https://wa.me/34600646123" target="_blank" class="hover:text-emerald-400 transition">Atención por WhatsApp</a></li>
                         </ul>
                     </div>
+
                     <div>
-                        <h4 class="text-lg font-semibold mb-4">Legal</h4>
-                        <ul class="space-y-2 text-gray-400">
-                            {{-- <li><a href="{{ url('/privacy') }}" class="hover:text-white transition">Privacidad</a></li>
-                            <li><a href="{{ url('/terms') }}" class="hover:text-white transition">Términos</a></li>
-                            <li><a href="{{ url('/cookies') }}" class="hover:text-white transition">Cookies</a></li> --}}
+                        <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-4">Legal</h4>
+                        <ul class="space-y-2 text-xs">
+                            <li><a href="#" class="hover:text-emerald-400 transition">Privacidad</a></li>
+                            <li><a href="#" class="hover:text-emerald-400 transition">Términos de Servicio</a></li>
                         </ul>
                     </div>
                 </div>
-                <div class="border-t border-gray-800 pt-8 text-center text-gray-400">
+
+                <div class="border-t border-slate-900 pt-8 text-center text-xs text-slate-500">
                     <p>&copy; {{ date('Y') }} {{ config('app.name', 'Vaed-APP') }}. Todos los derechos reservados.</p>
                 </div>
             </div>
         </footer>
 
-        <!-- WhatsApp Float Button -->
+
+        <!-- Floating WhatsApp Button -->
         <a href="https://wa.me/34600646123?text=Hola,%20me%20gustaría%20obtener%20más%20información%20sobre%20VaedSaas" 
-           target="_blank"
-           rel="noopener noreferrer"
-           class="fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-2xl transition-all duration-300 hover:scale-110 group"
+           target="_blank" 
+           rel="noopener noreferrer" 
+           class="fixed bottom-6 right-6 z-50 bg-emerald-500 hover:bg-emerald-400 text-slate-950 p-4 rounded-full shadow-2xl transition duration-300 hover:scale-110 flex items-center justify-center group"
            aria-label="Contactar por WhatsApp">
-            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
             </svg>
-            <span class="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                ¡Contáctanos por WhatsApp!
+            <span class="absolute right-full mr-3 bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition whitespace-nowrap shadow-xl">
+                ¡Háblanos por WhatsApp!
             </span>
         </a>
 
-        <!-- Cookie Consent Banner -->
+
+        <!-- Cookie Consent Component -->
         <x-cookie-consent />
 
+
+        <!-- SCRIPTS DE COMPORTAMIENTO -->
         <script>
             (function () {
+                // Navbar scroll shadow
+                var nav = document.getElementById('vsNav');
+                if (nav) {
+                    window.addEventListener('scroll', function() {
+                        nav.classList.toggle('scrolled', window.scrollY > 20);
+                    });
+                }
+
+                // Navbar Mobile Menu Toggle
+                var toggle = document.getElementById('navToggle');
+                var mobileMenu = document.getElementById('navLinksMobile');
+                if (toggle && mobileMenu) {
+                    toggle.addEventListener('click', function() {
+                        mobileMenu.classList.toggle('hidden');
+                    });
+                }
+
+                // Hero Slider Logic
                 var track = document.getElementById('heroSlidesTrack');
                 var slides = track ? track.querySelectorAll('.hero-slide') : [];
                 var dots = document.querySelectorAll('.hero-dot');
                 var prevBtn = document.getElementById('heroPrevBtn');
                 var nextBtn = document.getElementById('heroNextBtn');
                 var current = 0;
-                var total = 2;
-                var autoTimer = null;
-                var userInteracted = false;
+                var total = slides.length || 1;
                 var isAnimating = false;
 
-                // Equalize slide heights so the track doesn't jump
-                function equalizeHeights() {
-                    if (slides.length < 2 || !track) return;
-                    // Reset
-                    for (var i = 0; i < slides.length; i++) slides[i].style.height = '';
-                    track.style.height = '';
-                    // Measure
-                    var maxH = 0;
-                    for (var i = 0; i < slides.length; i++) {
-                        var h = slides[i].scrollHeight;
-                        if (h > maxH) maxH = h;
-                    }
-                    // Apply uniform height to track and slides
-                    track.style.height = maxH + 'px';
-                    for (var i = 0; i < slides.length; i++) slides[i].style.height = maxH + 'px';
-                }
-
                 function goTo(index) {
-                    if (isAnimating) return;
+                    if (isAnimating || total <= 1) return;
                     var next = ((index % total) + total) % total;
                     if (next === current) return;
                     isAnimating = true;
                     current = next;
                     track.style.transform = 'translateX(-' + (current * 100) + '%)';
                     dots.forEach(function (d, i) { d.classList.toggle('active', i === current); });
-                    setTimeout(function () { isAnimating = false; }, 750);
+                    setTimeout(function () { isAnimating = false; }, 700);
                 }
 
-                function stopAuto() {
-                    if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
-                }
-
-                function startAuto() {
-                    stopAuto();
-                    autoTimer = setInterval(function () { goTo(current + 1); }, 12000);
-                }
-
-                if (prevBtn) prevBtn.addEventListener('click', function () { stopAuto(); userInteracted = true; goTo(current - 1); });
-                if (nextBtn) nextBtn.addEventListener('click', function () { stopAuto(); userInteracted = true; goTo(current + 1); });
+                if (prevBtn) prevBtn.addEventListener('click', function () { goTo(current - 1); });
+                if (nextBtn) nextBtn.addEventListener('click', function () { goTo(current + 1); });
                 dots.forEach(function (d, i) {
-                    d.addEventListener('click', function () { stopAuto(); userInteracted = true; goTo(i); });
+                    d.addEventListener('click', function () { goTo(i); });
                 });
-
-                // Touch / swipe
-                var touchStartX = 0;
-                if (track) {
-                    track.addEventListener('touchstart', function (e) { touchStartX = e.touches[0].clientX; stopAuto(); }, { passive: true });
-                    track.addEventListener('touchend', function (e) {
-                        var diff = touchStartX - e.changedTouches[0].clientX;
-                        if (Math.abs(diff) > 50) { userInteracted = true; goTo(diff > 0 ? current + 1 : current - 1); }
-                    }, { passive: true });
-                }
-
-                startAuto();
-                // Equalize after fonts/images load, and on resize/orientation
-                equalizeHeights();
-                window.addEventListener('load', equalizeHeights);
-                window.addEventListener('resize', equalizeHeights);
-            })();
-        </script>
-
-        <!-- Navbar scroll shadow + mobile toggle -->
-        <script>
-            (function() {
-                var nav = document.getElementById('vsNav');
-                var toggle = document.getElementById('navToggle');
-                var links = document.getElementById('navLinks');
-                if (nav) {
-                    window.addEventListener('scroll', function() {
-                        nav.classList.toggle('scrolled', window.scrollY > 10);
-                    });
-                }
-                if (toggle && links) {
-                    toggle.addEventListener('click', function() {
-                        links.classList.toggle('open');
-                    });
-                }
             })();
         </script>
     </body>

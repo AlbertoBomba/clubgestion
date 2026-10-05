@@ -68,6 +68,14 @@ Route::get('/vaed-sport', function () {
     return view('vaed-sport-home');
 })->name('vaed-sport.home');
 
+Route::get('/roadmap', function () {
+    return view('roadmap');
+})->name('roadmap');
+
+Route::get('/exito', function () {
+    return view('exito');
+})->name('exito');
+
 // Ruta específica para clubs (tenant)
 Route::get('/club', WebClubsHome::class)->name('webclubs.home');
 

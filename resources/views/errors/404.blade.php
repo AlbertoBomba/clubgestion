@@ -115,8 +115,8 @@
                                     Contacto
                                 </a>
                                 <span class="text-gray-300">•</span>
-                                <a href="{{ url('/') }}#por-que-gratis" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">
-                                    ¿Por qué gratis?
+                                <a href="{{ route('exito') }}#por-que-gratis" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">
+                                    Casos de Éxito
                                 </a>
                                 @auth
                                     <span class="text-gray-300">•</span>
