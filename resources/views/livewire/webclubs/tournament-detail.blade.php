@@ -585,12 +585,13 @@
 
             {{-- --------------- TAB: CLASIFICACION --------------- --}}
             <div x-show="tab === 'clasificacion'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
-                @if($standings->isEmpty())
+               
+                @if($standings->isEmpty() && $bracketData->isEmpty())
                     <div class="text-center py-24 bg-gray-50 border border-gray-100 rounded-2xl">
                         <div class="text-6xl mb-4 opacity-10">??</div>
                         <p class="text-gray-400 text-lg font-semibold">La clasificacion no esta disponible aun.</p>
                     </div>
-                @else
+                @elseif($standings->isNotEmpty())
                     <div class="space-y-10">
                         @foreach($standings as $groupName => $groupStandings)
                             
@@ -662,6 +663,9 @@
                             </div>
                         @endforeach
                     </div>
+                @endif
+                 @if ($bracketData->isNotEmpty())
+                    @include('livewire.webclubs._tournament-bracket')
                 @endif
             </div>
 

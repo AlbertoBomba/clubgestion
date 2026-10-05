@@ -43,7 +43,21 @@
             <div class="live-main-grid {{ $hasLive ? 'live-main-grid--active' : '' }}">
 
                 {{-- ── LEFT: Classification ── --}}
-                <div class="live-col live-col--classification">
+                <div class="live-col live-col--classification" x-data="{ panel: '{{ $standings->isEmpty() && $bracketData->isNotEmpty() ? 'bracket' : 'standings' }}' }">
+                    @if ($bracketData->isNotEmpty())
+                        <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-shrink: 0;">
+                            <button type="button" @click="panel = 'standings'" :aria-pressed="panel === 'standings'"
+                                    :style="{ backgroundColor: panel === 'standings' ? '#176b51' : 'transparent', color: panel === 'standings' ? '#ffffff' : 'inherit' }"
+                                    style="padding: 8px 12px; border: 1px solid #94a3b8; border-radius: 8px;">Clasificación</button>
+                            <button type="button" @click="panel = 'bracket'" :aria-pressed="panel === 'bracket'"
+                                    :style="{ backgroundColor: panel === 'bracket' ? '#176b51' : 'transparent', color: panel === 'bracket' ? '#ffffff' : 'inherit' }"
+                                    style="padding: 8px 12px; border: 1px solid #94a3b8; border-radius: 8px;">Cuadro de cruces</button>
+                        </div>
+                        <div x-show="panel === 'bracket'" x-cloak style="overflow: auto; min-height: 0;">
+                            @include('livewire.webclubs._tournament-bracket')
+                        </div>
+                    @endif
+                    <div x-show="panel === 'standings'" style="display: flex; flex-direction: column; overflow: auto; min-height: 0;">
                     <h2 class="live-section__heading">
                         <svg class="live-section__heading-icon" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M3 4h18v3H3zM3 10.5h18v3H3zM3 17h18v3H3z"/>
@@ -118,6 +132,7 @@
                             @endforeach
                         </div>
                     @endif
+                    </div>
                 </div>{{-- /live-col--classification --}}
 
                 {{-- ── RIGHT: Live matches OR Top Scorers ── --}}

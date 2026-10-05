@@ -9,6 +9,18 @@
 
 ## About Laravel
 
+### Public knockout brackets
+
+When a tournament has a knockout phase, its public tournament page displays
+the bracket in the **Clasificación** tab, alongside any league standings,
+not in the match list. The Live page offers **Cuadro de cruces**
+beside **Clasificación**, defaulting to the bracket when standings are empty.
+Both pages share the same read-only bracket: rounds, connecting lines, team
+names, dates, scores including extra time, penalty winners and a separate
+third-place match. Unassigned teams display **Por definir** and empty phases
+show that pairings have not yet been generated. On mobile the rounds scroll
+horizontally; the Live bracket refreshes with the existing five-second polling.
+
 ### Printable live tournament QR
 
 **Descargar QR**, beside the tournament PDF download on desktop and mobile,

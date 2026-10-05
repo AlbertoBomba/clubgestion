@@ -7,6 +7,7 @@ use App\Models\Tournament;
 use App\Models\TournamentMatchGoal;
 use App\Models\TournamentMatchCard;
 use App\Models\TournamentPhase;
+use App\Services\TournamentBracket;
 
 
 class LiveDetail extends Component
@@ -183,37 +184,7 @@ class LiveDetail extends Component
         $recentAndUpcoming = $recentMatches->concat($upcomingMatches);
 
         // Bracket data for knockout phases
-        $bracketData = collect();
-        foreach ($phases->whereIn('type', ['knockout', 'double_elimination']) as $kPhase) {
-            $kMatches = $allMatchesFlat->where('phase_id', $kPhase->id)
-                ->filter(fn($m) => !(($m->settings['is_third_place'] ?? false)))
-                ->sortBy([['round', 'asc'], ['match_number', 'asc']])
-                ->values();
-
-            $maxRound             = $kMatches->max('round') ?? 0;
-            $firstRound           = $kMatches->min('round') ?? 1;
-            $totalRounds          = $maxRound > 0 ? $maxRound - $firstRound + 1 : 0;
-            $numFirstRoundMatches = max($kMatches->where('round', $firstRound)->count(), 1);
-
-            $rounds = collect();
-            for ($r = $firstRound; $r <= $maxRound; $r++) {
-                $rounds->put($r, $kMatches->where('round', $r)->sortBy('match_number')->values());
-            }
-
-            $thirdPlace = $allMatchesFlat->where('phase_id', $kPhase->id)
-                ->first(fn($m) => ($m->settings['is_third_place'] ?? false));
-
-            $bracketData->put($kPhase->id, [
-                'phase'                => $kPhase,
-                'rounds'               => $rounds,
-                'maxRound'             => $maxRound,
-                'firstRound'           => $firstRound,
-                'totalRounds'          => $totalRounds,
-                'numFirstRoundMatches' => $numFirstRoundMatches,
-                'thirdPlace'           => $thirdPlace,
-                'hasMatches'           => $kMatches->isNotEmpty(),
-            ]);
-        }
+        $bracketData = app(TournamentBracket::class)->build($phases, $allMatchesFlat);
 
         // Standings indexed by phase_id (for per-phase display in rotating panel)
         $standingsByPhaseId = $standings->flatten(1)->groupBy('phase_id');

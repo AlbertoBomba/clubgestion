@@ -5,6 +5,7 @@ namespace App\Livewire\WebClubs;
 use App\Models\Tournament;
 use App\Models\TournamentMatchGoal;
 use App\Models\TournamentMatchCard;
+use App\Services\TournamentBracket;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 
@@ -70,6 +71,10 @@ class TournamentDetail extends Component
         $matchesByPhaseAndRound = $matches->map(fn ($phaseMatches) =>
             $phaseMatches->groupBy(fn ($m) => $m->round ? 'Jornada ' . $m->round : 'Sin jornada')
         );
+        $bracketData = app(TournamentBracket::class)->build(
+            $this->tournament->phases()->get(),
+            $matches->flatten(1)
+        );
 
         // Get all match IDs for statistics
         $matchIds = $this->tournament->matches()->pluck('id');
@@ -113,6 +118,7 @@ class TournamentDetail extends Component
             'teams'                  => $teams,
             'standings'              => $standings,
             'matchesByPhaseAndRound' => $matchesByPhaseAndRound,
+            'bracketData'            => $bracketData,
             'topScorers'             => $topScorers,
             'playerCards'            => $playerCards,
             'canRegister'            => $this->tournament->status === 'registration_open'
