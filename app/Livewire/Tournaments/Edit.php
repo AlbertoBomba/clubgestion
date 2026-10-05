@@ -29,6 +29,7 @@ class Edit extends Component
     public string  $min_age                       = '';
     public string  $team_type                     = '';
     public string  $status                        = 'draft';
+    public bool    $live                          = true;
     public string  $visibility                    = 'private';
     public         $logo                  = null;
     public int    $points_per_win         = 3;
@@ -51,6 +52,7 @@ class Edit extends Component
             'min_age'                       => 'nullable|integer|min:1|max:100',
             'team_type'                     => 'nullable|in:school_teams,open',
             'status'                        => 'required|in:draft,registration_open,in_progress,completed,cancelled',
+            'live'                          => 'boolean|nullable',
             'visibility'            => 'required|in:private,public',
             'logo'                  => 'nullable|image|max:2048',
             'points_per_win'        => 'integer|min:0|max:10',
@@ -77,6 +79,7 @@ class Edit extends Component
         $this->min_age                      = $tournament->min_age ? (string) $tournament->min_age : '';
         $this->team_type                    = $tournament->team_type ?? '';
         $this->status                       = $tournament->status;
+        $this->live                         = $tournament->live ?? true;
         $this->visibility             = $tournament->visibility;
         $this->points_per_win         = $tournament->settings['points_per_win']  ?? 3;
         $this->points_per_draw        = $tournament->settings['points_per_draw'] ?? 1;
@@ -107,6 +110,7 @@ class Edit extends Component
             'min_age'                       => $this->min_age ?: null,
             'team_type'                     => $this->team_type ?: null,
             'status'                        => $this->status,
+            'live'                          => $this->live,
             'visibility'            => $this->visibility,
             'logo'                  => $logoPath,
             'settings'              => [

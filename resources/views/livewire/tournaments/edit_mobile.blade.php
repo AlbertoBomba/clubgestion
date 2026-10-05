@@ -202,6 +202,15 @@
                     </h2>
                     
                     <div class="space-y-4">
+                        <div class="flex items-center">
+                            <input type="checkbox" 
+                                wire:model="live" 
+                                id="live"
+                                class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary focus:ring-2 cursor-pointer">
+                            <label for="live" class="ml-2 text-sm text-gray-700">
+                                Retrasmisión en live
+                            </label>
+                        </div>
                         <div>
                             <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Estado del Torneo</label>
                             <select wire:model="status" class="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-0">

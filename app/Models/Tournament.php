@@ -26,11 +26,12 @@ class Tournament extends Model
         'min_age',
         'team_type',
         'status',
+        'live',
         'visibility',
         'settings',
         'created_user',
         'updated_user',
-        'live',
+        //'live',
     ];
 
     protected $casts = [

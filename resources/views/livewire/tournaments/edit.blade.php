@@ -169,6 +169,17 @@
                     Configuración
                 </h2>
                 <div class="space-y-4">
+                <div>
+                    <div class="flex items-center">
+                        <input type="checkbox" 
+                            wire:model="live" 
+                            id="live"
+                            class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary focus:ring-2 cursor-pointer">
+                        <label for="live" class="ml-2 text-sm text-gray-700">
+                            Retrasmisión en live
+                        </label>
+                    </div>
+                </div>
                     <div>
                         <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Estado</label>
                         <select wire:model="status"
