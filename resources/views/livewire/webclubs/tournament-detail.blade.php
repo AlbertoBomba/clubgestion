@@ -44,7 +44,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
                     </svg>
                     <span class="flex flex-col leading-tight">
-                        <span class="text-xs font-black text-gray-800">Acceso equipos</span>
+                        <span class="text-xs font-black text-gray-800">Acceso </span>
                         {{-- <span class="text-[10px] text-gray-400 font-medium">Inscríbete si aún no estás inscrito</span> --}}
                     </span>
                 </a>
@@ -203,29 +203,29 @@
                         </div>
 
                         {{-- CTAs --}}
-                        <div class="mt-6 flex flex-wrap items-center gap-3">
+                        <div class="mt-6 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 w-full">
                             @if($canRegister)
                                 <a href="{{ route('webclubs.team.register', $tournament) }}"
-                                   class="inline-flex items-center gap-2.5 px-6 py-3 rounded-2xl text-white font-bold text-sm shadow-lg hover:opacity-90 active:scale-95 transition-all duration-150"
-                                   style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary))">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl text-white font-bold text-sm shadow-lg hover:opacity-90 active:scale-95 transition-all duration-150"
+                                style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary))">
+                                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
                                     </svg>
-                                    Inscribir equipo
+                                    <span>Inscribir equipo</span>
                                 </a>
                             @endif
+
                             <a href="{{ route('webclubs.team.login', $tournament) }}"
-                               class="inline-flex items-center gap-2.5 px-6 py-3 rounded-2xl text-gray-700 font-bold text-sm border border-gray-200 bg-white hover:bg-gray-50 active:scale-95 transition-all duration-150 shadow-sm">
-                                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl text-gray-700 font-bold text-sm border border-gray-200 bg-white hover:bg-gray-50 active:scale-95 transition-all duration-150 shadow-sm">
+                                <svg class="w-5 h-5 text-gray-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
                                 </svg>
-                                Acceso equipos
+                                <span>Acceso equipos</span>
                             </a>
+
                             @if($tournament->live)
                                 <a href="{{ route('webclubs.live.detail', ['tournament' => $tournament->id]) }}" 
-                                    class="relative inline-flex items-center justify-center gap-2.5 px-6 py-3 bg-red-600 text-white rounded-2xl font-black text-xs sm:text-sm uppercase tracking-widest overflow-visible shadow-lg shadow-red-600/40 hover:bg-red-700 hover:shadow-red-600/50 active:scale-95 transition-all">
-                                    
-                                    {{-- Punto parpadeante (Efecto Radar/Ping) --}}
+                                class="w-full sm:w-auto relative inline-flex items-center justify-center gap-2.5 px-6 py-3.5 bg-red-600 text-white rounded-2xl font-black text-xs sm:text-sm uppercase tracking-widest overflow-visible shadow-lg shadow-red-600/40 hover:bg-red-700 hover:shadow-red-600/50 active:scale-95 transition-all">
                                     <span class="relative flex h-2.5 w-2.5 shrink-0">
                                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
                                         <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
@@ -233,7 +233,6 @@
                                     
                                     <span>Ver en directo</span>
                                     
-                                    {{-- Icono de Play (Opcional) --}}
                                     <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M8 5v14l11-7z"/>
                                     </svg>
