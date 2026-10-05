@@ -45,7 +45,7 @@
                     </svg>
                     <span class="flex flex-col leading-tight">
                         <span class="text-xs font-black text-gray-800">Acceso equipos</span>
-                        <span class="text-[10px] text-gray-400 font-medium">Inscríbete si aún no estás inscrito</span>
+                        {{-- <span class="text-[10px] text-gray-400 font-medium">Inscríbete si aún no estás inscrito</span> --}}
                     </span>
                 </a>
                 <button @click="showBases = true"
@@ -55,6 +55,24 @@
                     </svg>
                     Bases
                 </button>
+                 @if($tournament->live)
+                    <a href="{{ route('webclubs.live.detail', ['tournament' => $tournament->id]) }}" 
+                        class="relative inline-flex items-center justify-center gap-2.5 px-6 py-3 bg-red-600 text-white rounded-2xl font-black text-xs sm:text-sm uppercase tracking-widest overflow-visible shadow-lg shadow-red-600/40 hover:bg-red-700 hover:shadow-red-600/50 active:scale-95 transition-all">
+                        
+                        {{-- Punto parpadeante (Efecto Radar/Ping) --}}
+                        <span class="relative flex h-2.5 w-2.5 shrink-0">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+                        </span>
+                        
+                        <span>Ver en directo</span>
+                        
+                        {{-- Icono de Play (Opcional) --}}
+                        <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </a>
+                @endif
             </div>
         </header>
 
@@ -203,6 +221,24 @@
                                 </svg>
                                 Acceso equipos
                             </a>
+                            @if($tournament->live)
+                                <a href="{{ route('webclubs.live.detail', ['tournament' => $tournament->id]) }}" 
+                                    class="relative inline-flex items-center justify-center gap-2.5 px-6 py-3 bg-red-600 text-white rounded-2xl font-black text-xs sm:text-sm uppercase tracking-widest overflow-visible shadow-lg shadow-red-600/40 hover:bg-red-700 hover:shadow-red-600/50 active:scale-95 transition-all">
+                                    
+                                    {{-- Punto parpadeante (Efecto Radar/Ping) --}}
+                                    <span class="relative flex h-2.5 w-2.5 shrink-0">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+                                    </span>
+                                    
+                                    <span>Ver en directo</span>
+                                    
+                                    {{-- Icono de Play (Opcional) --}}
+                                    <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M8 5v14l11-7z"/>
+                                    </svg>
+                                </a>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -557,7 +593,9 @@
                 @else
                     <div class="space-y-10">
                         @foreach($standings as $groupName => $groupStandings)
+                            
                             <div>
+                                @if($groupName != 'General')
                                 @if($standings->count() > 1)
                                     <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
                                         <span class="w-1.5 h-7 rounded-full inline-block shrink-0" style="background: var(--color-primary)"></span>
@@ -620,6 +658,7 @@
                                         </table>
                                     </div>
                                 </div>
+                                @endif
                             </div>
                         @endforeach
                     </div>
@@ -806,8 +845,12 @@
                             <p class="text-[15px] sm:text-base text-gray-700 leading-7 sm:leading-8 whitespace-pre-line [&>br]:block [&>br]:content-['']">{{ $tournament->description }}</p>
                         </div>
                     </div>
+                  
                 </div>
+                
             @endif
+           
+
 
             {{-- --------------- TAB: RANKING --------------- --}}
             <div x-show="tab === 'ranking'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
