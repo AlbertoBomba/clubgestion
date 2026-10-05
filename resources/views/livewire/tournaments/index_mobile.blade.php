@@ -166,11 +166,11 @@
                         </div>
 
                         {{-- Descripción (Si existe) --}}
-                        @if ($tournament->description)
+                        {{-- @if ($tournament->description)
                             <div class="mb-3 bg-gray-50 rounded-xl p-3 border border-gray-100">
                                 <p class="text-[11px] font-medium text-gray-500 line-clamp-2 italic">"{{ $tournament->description }}"</p>
                             </div>
-                        @endif
+                        @endif --}}
 
                         {{-- Métricas Grid --}}
                         <div class="grid grid-cols-2 gap-2 mb-3">
@@ -184,7 +184,7 @@
                                 </div>
                             </div>
                             
-                            <div class="bg-purple-50/50 rounded-xl p-2.5 border border-purple-100 flex items-center gap-2">
+                            {{-- <div class="bg-purple-50/50 rounded-xl p-2.5 border border-purple-100 flex items-center gap-2">
                                 <div class="w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center flex-shrink-0">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h7"/></svg>
                                 </div>
@@ -192,15 +192,15 @@
                                     <span class="block text-[9px] font-bold text-purple-700 uppercase tracking-wider">Fases</span>
                                     <span class="block text-xs font-black text-purple-900">{{ $tournament->phases_count }}</span>
                                 </div>
-                            </div>
+                            </div> --}}
 
                             @if ($tournament->start_date)
-                                <div class="col-span-2 bg-gray-50 rounded-xl p-2.5 border border-gray-100 flex items-center gap-2">
+                                <div class="bg-purple-50/50 rounded-xl p-2.5 border border-purple-100 flex items-center gap-2">
                                     <div class="w-6 h-6 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center flex-shrink-0">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                     </div>
                                     <div class="min-w-0 flex-1 flex justify-between items-center">
-                                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Inicio Competición</span>
+                                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Inicio</span>
                                         <span class="text-xs font-black text-titanium">{{ $tournament->start_date->format('d/m/Y') }}</span>
                                     </div>
                                 </div>
@@ -208,7 +208,7 @@
                         </div>
 
                         {{-- Barra de Progreso (Solo en curso) --}}
-                        @if ($tournament->status === 'in_progress' && $tournament->matches_count > 0)
+                        {{-- @if ($tournament->status === 'in_progress' && $tournament->matches_count > 0)
                             @php $pct = round(($tournament->completed_matches_count / $tournament->matches_count) * 100); @endphp
                             <div class="mb-4">
                                 <div class="flex items-center justify-between text-[10px] font-black mb-1.5">
@@ -219,7 +219,7 @@
                                     <div class="h-full bg-primary rounded-full transition-all" style="width: {{ $pct }}%"></div>
                                 </div>
                             </div>
-                        @endif
+                        @endif --}}
 
                         {{-- Botones de Acción --}}
                         <div class="flex items-center gap-2 mt-auto pt-3 border-t border-gray-50">
