@@ -9,6 +9,31 @@
 
 ## About Laravel
 
+### Reusing recent tournament teams
+
+In tournament management, **Add team** offers **Create from scratch** and
+**Recent teams**, on desktop and mobile. Recent teams belong to the same club
+and to non-cancelled tournaments created between the start of the day one
+calendar month ago and now. Their event dates do not affect eligibility:
+upcoming tournaments and tournaments without event dates are included.
+Teams already registered in the destination category are excluded; repeated
+entries use the most recently updated record.
+
+Select multiple recent teams with the checkboxes and use the single
+**Add selected** button in the fixed modal footer, outside the scrolling list.
+The batch is atomic: if an entry cannot be imported, no selected team is added.
+After success, the modal stays open, the selection clears and imported teams
+disappear from the available list.
+
+Adding a recent team copies its name, school-team reference where applicable,
+contact details, email, existing password hash, seed, notes and an independent
+copy of its logo. The group is empty, the status becomes registered and the
+registration token is not reused. Players, matches, standings and sanctions
+are not copied. School teams become external teams when added to an open
+tournament.
+
+Focused regression tests: `php vendor/phpunit/phpunit/phpunit tests/Feature/RecentTournamentTeamsTest.php`.
+
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
 - [Simple, fast routing engine](https://laravel.com/docs/routing).

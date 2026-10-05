@@ -15,6 +15,7 @@ use App\Models\TournamentPlayer;
 use App\Models\TournamentStanding;
 use App\Models\TournamentTeam;
 use App\Models\User;
+use App\Services\RecentTournamentTeams;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
@@ -78,6 +79,8 @@ class Show extends Component
     public string $team_password     = '';
     public string $team_seed         = '';
     public string $team_group        = '';
+    public string $teamCreationMode = 'new';
+    public array $selectedRecentTeamIds = [];
 
     // ------------------------------------------------------------------
     // Match modal
@@ -335,7 +338,10 @@ class Show extends Component
             'team_logo', 'team_logo_upload',
             'team_contact_name', 'team_contact_phone', 'team_email', 'team_password',
             'team_seed', 'team_group',
+            'teamCreationMode',
+            'selectedRecentTeamIds',
         ]);
+        $this->resetValidation();
         // Open tournaments only allow external teams
         if ($this->tournament->team_type === 'open') {
             $this->external_team = true;
@@ -345,6 +351,7 @@ class Show extends Component
 
     public function openEditTeamModal(int $id): void
     {
+        $this->teamCreationMode = 'new';
         $tt = TournamentTeam::findOrFail($id);
         $this->editingTeamId       = $id;
         $this->team_id             = $tt->team_id;
@@ -422,6 +429,41 @@ class Show extends Component
 
         $this->showTeamModal = false;
         $this->tournament->refresh();
+    }
+
+    public function addRecentTeam(int $sourceId): void
+    {
+        $this->selectedRecentTeamIds = [$sourceId];
+        $this->addSelectedRecentTeams();
+    }
+
+    public function addSelectedRecentTeams(): void
+    {
+        abort_unless(auth()->user()?->sports_school_id === $this->tournament->sports_school_id, 403);
+        abort_if($this->editingTeamId !== null, 403);
+        $this->validate([
+            'selectedRecentTeamIds' => 'required|array|min:1',
+            'selectedRecentTeamIds.*' => 'required|integer|distinct|min:1',
+        ], [
+            'selectedRecentTeamIds.required' => 'Selecciona al menos un equipo.',
+            'selectedRecentTeamIds.min' => 'Selecciona al menos un equipo.',
+        ]);
+
+        if ($this->tournament->team_type !== 'open') {
+            if (!$this->activeCategoryId) {
+                $this->addError('recentTeam', 'Selecciona una categoría antes de añadir un equipo.');
+                return;
+            }
+            $this->tournament->categories()->findOrFail($this->activeCategoryId);
+        }
+
+        $copies = app(RecentTournamentTeams::class)->importMany(
+            $this->tournament, $this->activeCategoryId, $this->selectedRecentTeamIds
+        );
+        $this->selectedRecentTeamIds = [];
+        $this->resetValidation();
+        $this->tournament->refresh();
+        session()->flash('message', $copies->count() . ' equipo(s) añadido(s) con sus datos y acceso, sin grupo ni jugadores.');
     }
 
     public function deleteTeamLogo(): void
@@ -1745,6 +1787,9 @@ class Show extends Component
 
     public function render()
     {
+        $recentTeams = $this->showTeamModal && !$this->editingTeamId && $this->teamCreationMode === 'recent'
+            ? app(RecentTournamentTeams::class)->available($this->tournament, $this->activeCategoryId)
+            : collect();
         $categories = $this->tournament->categories()
             ->withCount(['tournamentTeams', 'phases', 'matches'])
             ->get();
@@ -1950,7 +1995,7 @@ class Show extends Component
                 'schoolTeams', 'schoolCategories',
                 'goalsModalMatch', 'goalsForModal', 'gmCardsForModal', 'gmTeamPlayers', 'gmMatchTeams', 'gmAllPlayers',
                 'availableReferees', 'assignedReferees',
-                'hasKnockoutPhase', 'bracketData', 'bracketModalTeams', 'bracketModalStandings'
+                'hasKnockoutPhase', 'bracketData', 'bracketModalTeams', 'bracketModalStandings', 'recentTeams'
             ));
         //  return view('livewire.tournaments.show', compact(
         //     'categories', 'activeCategory',
@@ -1970,7 +2015,7 @@ class Show extends Component
             'goalsModalMatch', 'goalsForModal', 'gmCardsForModal', 'gmTeamPlayers', 'gmMatchTeams', 'gmAllPlayers',
             'availableReferees', 'assignedReferees',
             'hasKnockoutPhase', 'bracketData', 'bracketModalTeams', 'bracketModalStandings',
-            'leagueSubsetSettings'
+            'leagueSubsetSettings', 'recentTeams'
         ));
     }
 }

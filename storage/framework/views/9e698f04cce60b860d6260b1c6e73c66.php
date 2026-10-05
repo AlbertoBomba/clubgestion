@@ -1,45 +1,47 @@
-<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100" x-data="{ tab: '{{ $phases->isNotEmpty() ? 'matches' : 'setup' }}' }">
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100" x-data="{ tab: '<?php echo e($phases->isNotEmpty() ? 'matches' : 'setup'); ?>' }">
 
-    {{-- Flash messages (toast, fixed top-right) --}}
-    @if (session('message'))
+    
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(session('message')): ?>
         <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 4000)" x-show="show"
              x-transition:leave="transition ease-in duration-300"
              x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
              class="fixed top-4 right-4 z-[60] max-w-sm bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3 text-sm font-medium shadow-lg flex items-center gap-2">
             <svg class="w-4 h-4 shrink-0 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-            {{ session('message') }}
+            <?php echo e(session('message')); ?>
+
         </div>
-    @endif
-    @if (session('error'))
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(session('error')): ?>
         <div class="fixed top-4 right-4 z-[60] max-w-sm bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm font-medium shadow-lg flex items-center gap-2">
             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            {{ session('error') }}
+            <?php echo e(session('error')); ?>
+
         </div>
-    @endif
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
 
-    {{-- ================================================================ WRAPPER --}}
+    
     <div class="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 py-6">
 
-        {{-- ========================= HERO HEADER ========================= --}}
+        
         <div class="bg-white-pure border border-silver rounded-2xl shadow-sm mb-5 overflow-hidden">
             <div class="h-1.5 bg-gradient-to-r from-primary via-primary/60 to-primary/20"></div>
             <div class="p-5 sm:p-6">
                 <div class="flex flex-col sm:flex-row sm:items-center gap-4">
-                    {{-- Logo --}}
-                    @if ($tournament->logo)
-                        <img src="{{ Storage::url($tournament->logo) }}"
+                    
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tournament->logo): ?>
+                        <img src="<?php echo e(Storage::url($tournament->logo)); ?>"
                              class="w-16 h-16 rounded-2xl object-cover border border-silver shadow-sm shrink-0" alt="">
-                    @else
+                    <?php else: ?>
                         <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center shrink-0">
                             <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
                         </div>
-                    @endif
-                    {{-- Info --}}
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    
                     <div class="flex-1 min-w-0">
                         <div class="flex flex-wrap items-center gap-2 mb-1.5">
-                            <h1 class="text-2xl font-bold text-black-deep leading-tight">{{ $tournament->name }}</h1>
-                            @php
+                            <h1 class="text-2xl font-bold text-black-deep leading-tight"><?php echo e($tournament->name); ?></h1>
+                            <?php
                                 $statusStyles = [
                                     'draft'             => 'bg-gray-100 text-gray-600',
                                     'registration_open' => 'bg-blue-50 text-blue-700 border border-blue-200',
@@ -54,40 +56,43 @@
                                     'completed'         => 'Finalizado',
                                     'cancelled'         => 'Cancelado',
                                 ];
-                            @endphp
-                            <span class="px-2.5 py-1 rounded-full text-xs font-bold {{ $statusStyles[$tournament->status] ?? 'bg-gray-100 text-gray-600' }}">
-                                {{ $statusLabels[$tournament->status] ?? $tournament->status }}
+                            ?>
+                            <span class="px-2.5 py-1 rounded-full text-xs font-bold <?php echo e($statusStyles[$tournament->status] ?? 'bg-gray-100 text-gray-600'); ?>">
+                                <?php echo e($statusLabels[$tournament->status] ?? $tournament->status); ?>
+
                             </span>
                         </div>
                         <div class="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-titanium">
-                            @if ($tournament->start_date)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tournament->start_date): ?>
                                 <span class="flex items-center gap-1.5">
                                     <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                    {{ $tournament->start_date->translatedFormat('d M Y') }}
-                                    @if ($tournament->end_date) – {{ $tournament->end_date->translatedFormat('d M Y') }} @endif
+                                    <?php echo e($tournament->start_date->translatedFormat('d M Y')); ?>
+
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tournament->end_date): ?> – <?php echo e($tournament->end_date->translatedFormat('d M Y')); ?> <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </span>
-                            @endif
-                            @if ($tournament->location)
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tournament->location): ?>
                                 <span class="flex items-center gap-1.5">
                                     <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                    {{ $tournament->location }}
+                                    <?php echo e($tournament->location); ?>
+
                                 </span>
-                            @endif
-                            @if ($teams->isNotEmpty())
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($teams->isNotEmpty()): ?>
                                 <span class="flex items-center gap-1.5">
                                     <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                    {{ $teams->count() }} equipos
+                                    <?php echo e($teams->count()); ?> equipos
                                 </span>
-                            @endif
-                            @if ($matches->isNotEmpty())
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($matches->isNotEmpty()): ?>
                                 <span class="flex items-center gap-1.5">
                                     <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                    {{ $matches->where('status', 'completed')->count() }} / {{ $matches->count() }} partidos jugados
+                                    <?php echo e($matches->where('status', 'completed')->count()); ?> / <?php echo e($matches->count()); ?> partidos jugados
                                 </span>
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                     </div>
-                    {{-- Header actions --}}
+                    
                     <div class="flex items-center gap-2 shrink-0">
                         <button type="button"
                                 wire:click="exportPdf"
@@ -99,7 +104,7 @@
                             <span class="hidden sm:inline" wire:loading.remove wire:target="exportPdf">Descargar PDF</span>
                             <span class="hidden sm:inline" wire:loading wire:target="exportPdf">Generando…</span>
                         </button>
-                        <a href="{{ route('tournaments.edit', $tournament) }}"
+                        <a href="<?php echo e(route('tournaments.edit', $tournament)); ?>"
                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary/5 text-primary border border-primary/20 text-sm font-semibold hover:bg-primary/10 transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             <span class="hidden sm:inline">Editar torneo</span>
@@ -109,52 +114,53 @@
             </div>
         </div>
 
-        {{-- ========================= CATEGORY SELECTOR ========================= --}}
-        @if ($tournament->team_type === 'open')
+        
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tournament->team_type === 'open'): ?>
             <div class="flex items-center gap-2 mb-4 p-3 bg-blue-50 rounded-xl border border-blue-100">
                 <svg class="w-4 h-4 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <p class="text-xs text-blue-700 font-medium">Torneo abierto: las categorías no aplican. Los equipos se gestionan por edad mínima{{ $tournament->min_age ? ' (' . $tournament->min_age . ' años)' : '' }}.</p>
+                <p class="text-xs text-blue-700 font-medium">Torneo abierto: las categorías no aplican. Los equipos se gestionan por edad mínima<?php echo e($tournament->min_age ? ' (' . $tournament->min_age . ' años)' : ''); ?>.</p>
             </div>
-        @else
-            @if ($categories->isNotEmpty())
+        <?php else: ?>
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($categories->isNotEmpty()): ?>
                 <div class="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
-                    @foreach ($categories as $cat)
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="relative group shrink-0">
-                            <button wire:click="selectCategory({{ $cat->id }})"
+                            <button wire:click="selectCategory(<?php echo e($cat->id); ?>)"
                                     class="whitespace-nowrap pl-4 pr-3 py-2 rounded-xl text-sm font-semibold transition-all
-                                        {{ $activeCategoryId === $cat->id
+                                        <?php echo e($activeCategoryId === $cat->id
                                             ? 'bg-primary text-white shadow-sm'
-                                            : 'bg-white-pure text-titanium border border-silver hover:border-primary/30 hover:text-primary' }}">
-                                {{ $cat->name ?? $cat->category?->category ?? 'Categoría' }}
-                                <span class="ml-1.5 text-xs opacity-60">{{ $cat->tournament_teams_count }}</span>
+                                            : 'bg-white-pure text-titanium border border-silver hover:border-primary/30 hover:text-primary'); ?>">
+                                <?php echo e($cat->name ?? $cat->category?->category ?? 'Categoría'); ?>
+
+                                <span class="ml-1.5 text-xs opacity-60"><?php echo e($cat->tournament_teams_count); ?></span>
                             </button>
-                            @if ($activeCategoryId === $cat->id)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($activeCategoryId === $cat->id): ?>
                                 <div class="absolute -top-1.5 -right-1.5 hidden group-hover:flex items-center gap-0.5 z-10">
-                                    <button wire:click.stop="openEditCategoryModal({{ $cat->id }})"
+                                    <button wire:click.stop="openEditCategoryModal(<?php echo e($cat->id); ?>)"
                                             class="w-5 h-5 rounded-full bg-white border border-silver shadow text-titanium hover:text-primary flex items-center justify-center" title="Editar categoría">
                                         <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                     </button>
-                                    <button wire:click.stop="confirmDeleteCategory({{ $cat->id }})"
+                                    <button wire:click.stop="confirmDeleteCategory(<?php echo e($cat->id); ?>)"
                                             class="w-5 h-5 rounded-full bg-white border border-silver shadow text-titanium hover:text-red-500 flex items-center justify-center" title="Eliminar categoría">
                                         <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                     </button>
                                 </div>
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     <button wire:click="openCreateCategoryModal"
                             class="shrink-0 whitespace-nowrap px-3 py-2 rounded-xl text-sm font-semibold text-primary border border-dashed border-primary/40 hover:bg-primary/5 transition-colors">
                         + Nueva
                     </button>
                 </div>
-            @endif
-        @endif
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-        {{-- ========================= MAIN CONTENT ========================= --}}
-        @if ($activeCategoryId || $tournament->team_type === 'open')
+        
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($activeCategoryId || $tournament->team_type === 'open'): ?>
 
-            @if ($teams->isEmpty() && $matches->isEmpty())
-                {{-- EMPTY STATE: NO TEAMS --}}
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($teams->isEmpty() && $matches->isEmpty()): ?>
+                
                 <div class="bg-white-pure border border-silver rounded-2xl shadow-sm p-12 text-center">
                     <div class="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
                         <svg class="w-10 h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
@@ -168,45 +174,45 @@
                     </button>
                 </div>
 
-            @else
-                {{-- ========================= TABS NAV ========================= --}}
+            <?php else: ?>
+                
                 <div class="bg-white-pure border border-silver rounded-2xl shadow-sm mb-5 p-1.5">
                     <nav class="flex gap-1 overflow-x-auto">
-                        @if ($phases->isNotEmpty())
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($phases->isNotEmpty()): ?>
                             <button @click="tab = 'teams'"
                                     :class="tab === 'teams' ? 'bg-primary text-white shadow-sm' : 'text-titanium hover:text-black-deep hover:bg-gray-100'"
                                     class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                 Equipos
                                 <span :class="tab === 'teams' ? 'bg-white/20 text-white' : 'bg-gray-100 text-titanium'"
-                                      class="px-2 py-0.5 rounded-full text-xs font-bold">{{ $teams->count() }}</span>
+                                      class="px-2 py-0.5 rounded-full text-xs font-bold"><?php echo e($teams->count()); ?></span>
                             </button>
                             <button @click="tab = 'matches'"
                                     :class="tab === 'matches' ? 'bg-primary text-white shadow-sm' : 'text-titanium hover:text-black-deep hover:bg-gray-100'"
                                     class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                 Partidos
-                                @if ($matches->isNotEmpty())
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($matches->isNotEmpty()): ?>
                                     <span :class="tab === 'matches' ? 'bg-white/20 text-white' : 'bg-gray-100 text-titanium'"
-                                          class="px-2 py-0.5 rounded-full text-xs font-bold">{{ $matches->count() }}</span>
-                                @endif
+                                          class="px-2 py-0.5 rounded-full text-xs font-bold"><?php echo e($matches->count()); ?></span>
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </button>
-                            @if ($standings->isNotEmpty() || ($hasLeaguePhase && $teams->isNotEmpty()))
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($standings->isNotEmpty() || ($hasLeaguePhase && $teams->isNotEmpty())): ?>
                                 <button @click="tab = 'standings'"
                                         :class="tab === 'standings' ? 'bg-primary text-white shadow-sm' : 'text-titanium hover:text-black-deep hover:bg-gray-100'"
                                         class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                                     Clasificación
                                 </button>
-                            @endif
-                            @if ($hasKnockoutPhase)
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($hasKnockoutPhase): ?>
                                 <button @click="tab = 'bracket'"
                                         :class="tab === 'bracket' ? 'bg-primary text-white shadow-sm' : 'text-titanium hover:text-black-deep hover:bg-gray-100'"
                                         class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
                                     Cuadro
                                 </button>
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             <button @click="tab = 'stats'"
                                     :class="tab === 'stats' ? 'bg-primary text-white shadow-sm' : 'text-titanium hover:text-black-deep hover:bg-gray-100'"
                                     class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all">
@@ -219,9 +225,9 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                                 Árbitros
                                 <span :class="tab === 'referees' ? 'bg-white/20 text-white' : 'bg-gray-100 text-titanium'"
-                                      class="px-2 py-0.5 rounded-full text-xs font-bold">{{ $assignedReferees->count() }}</span>
+                                      class="px-2 py-0.5 rounded-full text-xs font-bold"><?php echo e($assignedReferees->count()); ?></span>
                             </button>
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         <button @click="tab = 'setup'"
                                 :class="tab === 'setup' ? 'bg-primary text-white shadow-sm' : 'text-titanium hover:text-black-deep hover:bg-gray-100'"
                                 class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ml-auto">
@@ -231,9 +237,9 @@
                     </nav>
                 </div>
 
-                {{-- ========================= TAB: PARTIDOS ========================= --}}
+                
                 <div x-show="tab === 'matches'" x-cloak>
-                    @if ($matches->isEmpty())
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($matches->isEmpty()): ?>
                         <div class="bg-white-pure border border-silver rounded-2xl shadow-sm p-12 text-center">
                             <div class="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center mx-auto mb-4">
                                 <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.78 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
@@ -253,13 +259,13 @@
                                 </button>
                             </div>
                         </div>
-                    @else
-                        {{-- Counter + add button --}}
+                    <?php else: ?>
+                        
                         <div class="flex items-center justify-between mb-4">
                             <p class="text-sm text-titanium">
-                                <span class="font-bold text-black-deep">{{ $matches->where('status', 'completed')->count() }}</span>
+                                <span class="font-bold text-black-deep"><?php echo e($matches->where('status', 'completed')->count()); ?></span>
                                 de
-                                <span class="font-bold text-black-deep">{{ $matches->count() }}</span>
+                                <span class="font-bold text-black-deep"><?php echo e($matches->count()); ?></span>
                                 partidos jugados
                             </p>
                             <div class="flex items-center gap-2">
@@ -276,35 +282,35 @@
                             </div>
                         </div>
 
-                        {{-- Rounds agrupados por fase --}}
+                        
                         <div class="space-y-8">
-                            @foreach ($matches->sortBy([['phase_id', 'asc'], ['round', 'asc'], ['match_number', 'asc'], ['scheduled_at', 'asc']])->groupBy(fn($m) => $m->phase_id ?? 0) as $phaseId => $phaseMatches)
-                                @php
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $matches->sortBy([['phase_id', 'asc'], ['round', 'asc'], ['match_number', 'asc'], ['scheduled_at', 'asc']])->groupBy(fn($m) => $m->phase_id ?? 0); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $phaseId => $phaseMatches): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <?php
                                     $phase     = $phaseMatches->first()?->phase;
                                     $phaseName = $phase?->name ?? 'Sin fase';
-                                @endphp
+                                ?>
                                
 
-                                {{-- Phase header --}}
+                                
                                 <div>
                                     <div class="flex items-center gap-3 mb-4 px-1">
                                         <div class="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                                             <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
                                         </div>
-                                        <h3 class="text-base font-black text-black-deep uppercase tracking-wide">{{ $phaseName }}</h3>
-                                        @if ($phase)
-                                            <span class="text-xs font-semibold text-titanium bg-gray-100 border border-silver px-2.5 py-1 rounded-full">{{ $phase->typeLabel() }}</span>
-                                        @endif
+                                        <h3 class="text-base font-black text-black-deep uppercase tracking-wide"><?php echo e($phaseName); ?></h3>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($phase): ?>
+                                            <span class="text-xs font-semibold text-titanium bg-gray-100 border border-silver px-2.5 py-1 rounded-full"><?php echo e($phase->typeLabel()); ?></span>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                         <div class="flex-1 h-px bg-silver mx-1"></div>
                                         <span class="text-xs font-semibold text-titanium shrink-0">
-                                            {{ $phaseMatches->where('status', 'completed')->count() }}/{{ $phaseMatches->count() }} jugados
+                                            <?php echo e($phaseMatches->where('status', 'completed')->count()); ?>/<?php echo e($phaseMatches->count()); ?> jugados
                                         </span>
                                     </div>
 
                                     <div class="space-y-6">
-                                    @foreach ($phaseMatches->groupBy(fn($m) => $m->round ?? 0) as $round => $roundMatches)
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $phaseMatches->groupBy(fn($m) => $m->round ?? 0); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $round => $roundMatches): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             
-                                @php
+                                <?php
                                     $roundLabel     = $round > 0 ? 'Jornada ' . $round : 'Sin jornada';
                                     $completedCount = $roundMatches->where('status', 'completed')->count();
                                     $totalCount     = $roundMatches->count();
@@ -320,241 +326,240 @@
                                         $roundSubLabel = null;
                                     }
                                     $allCompleted = $completedCount === $totalCount;
-                                @endphp
+                                ?>
                                 <div>
-                                    {{-- Round header --}}
+                                    
                                     <div class="flex items-center gap-3 mb-3 px-1">
                                         <div class="w-10 h-10 rounded-xl shrink-0 flex items-center justify-center text-sm font-black
-                                            {{ $allCompleted ? 'bg-green-100 text-green-700' : 'bg-primary/10 text-primary' }}">
-                                            {{ $round > 0 ? $round : '—' }}
+                                            <?php echo e($allCompleted ? 'bg-green-100 text-green-700' : 'bg-primary/10 text-primary'); ?>">
+                                            <?php echo e($round > 0 ? $round : '—'); ?>
+
                                         </div>
                                         <div>
-                                            <p class="text-base font-bold text-black-deep leading-tight">{{ $roundLabel }}</p>
-                                            @if ($roundSubLabel)
-                                                <p class="text-xs text-titanium mt-0.5">{{ $roundSubLabel }}</p>
-                                            @endif
+                                            <p class="text-base font-bold text-black-deep leading-tight"><?php echo e($roundLabel); ?></p>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($roundSubLabel): ?>
+                                                <p class="text-xs text-titanium mt-0.5"><?php echo e($roundSubLabel); ?></p>
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                         </div>
                                         <div class="flex-1 h-px bg-silver mx-1"></div>
-                                        @if ($allCompleted)
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($allCompleted): ?>
                                             <span class="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full shrink-0">
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                                 Completada
                                             </span>
-                                        @else
-                                            <span class="text-sm font-semibold text-titanium shrink-0">{{ $completedCount }}/{{ $totalCount }}</span>
-                                        @endif
+                                        <?php else: ?>
+                                            <span class="text-sm font-semibold text-titanium shrink-0"><?php echo e($completedCount); ?>/<?php echo e($totalCount); ?></span>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                     </div>
 
-                                    {{-- Match rows --}}
+                                    
                                     <div class="bg-white-pure border border-silver rounded-2xl shadow-sm overflow-hidden">
-                                        @foreach ($roundMatches as $match)
-                                            @php
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $roundMatches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $match): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <?php
                                                 $matchGroup = $match->phase?->type === 'group'
                                                     ? ($match->homeTeam?->group_label ?? $match->awayTeam?->group_label)
                                                     : null;
-                                            @endphp
+                                            ?>
                                             
                                             <div class="px-5 py-4 border-b last:border-0 transition-colors
-                                                {{ $match->status === 'in_progress'
+                                                <?php echo e($match->status === 'in_progress'
                                                     ? 'border-green-100 bg-green-50/40 hover:bg-green-50/70'
-                                                    : 'border-gray-50 hover:bg-gray-50/60' }}">
-                                                {{-- ========== MOBILE layout (< sm) ========== --}}
+                                                    : 'border-gray-50 hover:bg-gray-50/60'); ?>">
+                                                
                                                 <div class="sm:hidden space-y-2.5">
-                                                    {{-- Fila 1: fecha/estado + campo --}}
+                                                    
                                                     <div class="flex items-center justify-between gap-2">
                                                         <div class="flex items-center gap-1.5 min-w-0">
-                                                            @if ($match->status === 'in_progress')
+                                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->status === 'in_progress'): ?>
                                                                 <span class="inline-flex items-center gap-1.5 text-[11px] font-black text-white bg-red-500 px-2.5 py-1 rounded-full animate-pulse">
                                                                     <span class="w-1.5 h-1.5 rounded-full bg-white shrink-0"></span>
                                                                     EN VIVO
                                                                 </span>
-                                                            @elseif ($match->scheduled_at)
-                                                                <span class="text-xs font-semibold text-titanium">{{ $match->scheduled_at->translatedFormat('d M · H:i') }}</span>
-                                                            @else
+                                                            <?php elseif($match->scheduled_at): ?>
+                                                                <span class="text-xs font-semibold text-titanium"><?php echo e($match->scheduled_at->translatedFormat('d M · H:i')); ?></span>
+                                                            <?php else: ?>
                                                                 <span class="text-xs text-titanium/40">Sin fecha</span>
-                                                            @endif
-                                                            @if ($matchGroup)
+                                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($matchGroup): ?>
                                                                 <span class="inline-flex items-center gap-1 text-[10px] font-black text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full shrink-0">
-                                                                    Grupo {{ $matchGroup }}
+                                                                    Grupo <?php echo e($matchGroup); ?>
+
                                                                 </span>
-                                                            @endif
+                                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                         </div>
                                                         <div class="flex items-center gap-2">
-                                                            @if ($match->location)
+                                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->location): ?>
                                                                 <span class="text-[11px] text-titanium truncate max-w-[140px]">
                                                                     <svg class="w-3 h-3 inline-block mr-0.5 -mt-px text-titanium/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                                                    {{ $match->location }}
+                                                                    <?php echo e($match->location); ?>
+
                                                                 </span>
-                                                            @endif
-                                                            @if ($match->status === 'completed')
+                                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->status === 'completed'): ?>
                                                                 <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full shrink-0">
                                                                     <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                                                     Jugado
                                                                 </span>
-                                                            @elseif ($match->status === 'cancelled')
+                                                            <?php elseif($match->status === 'cancelled'): ?>
                                                                 <span class="text-[10px] font-semibold text-red-500 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full shrink-0">Cancelado</span>
-                                                            @elseif ($match->status === 'postponed')
+                                                            <?php elseif($match->status === 'postponed'): ?>
                                                                 <span class="text-[10px] font-semibold text-gray-500 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full shrink-0">Aplazado</span>
-                                                            @endif
+                                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                         </div>
                                                     </div>
 
-                                                    {{-- Fila 2: equipo local · marcador · equipo visitante --}}
+                                                    
                                                     <div class="flex items-center gap-2">
-                                                        <p class="flex-1 text-right text-sm font-bold text-black-deep leading-tight truncate">{{ $match->homeTeam?->displayName() ?? '—' }}</p>
-                                                        <button wire:click="openGoalsModal({{ $match->id }})"
+                                                        <p class="flex-1 text-right text-sm font-bold text-black-deep leading-tight truncate"><?php echo e($match->homeTeam?->displayName() ?? '—'); ?></p>
+                                                        <button wire:click="openGoalsModal(<?php echo e($match->id); ?>)"
                                                                 class="shrink-0 w-[72px] py-2 rounded-xl text-center font-black text-base transition-all
-                                                                    {{ $match->status === 'completed'
+                                                                    <?php echo e($match->status === 'completed'
                                                                         ? 'bg-gray-50 border border-silver text-black-deep'
                                                                         : ($match->status === 'in_progress'
                                                                             ? 'bg-green-500 border border-green-600 text-white shadow-sm shadow-green-200'
-                                                                            : 'bg-amber-50 border-2 border-dashed border-amber-300 text-amber-600') }}">
-                                                            @if ($match->status === 'completed')
-                                                                {{ $match->home_score }} – {{ $match->away_score }}
-                                                            @elseif ($match->status === 'in_progress')
-                                                                {{ $match->home_score ?? 0 }} – {{ $match->away_score ?? 0 }}
-                                                            @elseif ($match->status === 'cancelled')
+                                                                            : 'bg-amber-50 border-2 border-dashed border-amber-300 text-amber-600')); ?>">
+                                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->status === 'completed'): ?>
+                                                                <?php echo e($match->home_score); ?> – <?php echo e($match->away_score); ?>
+
+                                                            <?php elseif($match->status === 'in_progress'): ?>
+                                                                <?php echo e($match->home_score ?? 0); ?> – <?php echo e($match->away_score ?? 0); ?>
+
+                                                            <?php elseif($match->status === 'cancelled'): ?>
                                                                 <span class="text-xs font-bold text-red-400">CANC.</span>
-                                                            @elseif ($match->status === 'postponed')
+                                                            <?php elseif($match->status === 'postponed'): ?>
                                                                 <span class="text-xs font-bold text-gray-400">APL.</span>
-                                                            @else
+                                                            <?php else: ?>
                                                                 <span class="text-xs font-bold">⚽ Goles</span>
-                                                            @endif
+                                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                         </button>
-                                                        <p class="flex-1 text-left text-sm font-bold text-black-deep leading-tight truncate">{{ $match->awayTeam?->displayName() ?? '—' }}</p>
+                                                        <p class="flex-1 text-left text-sm font-bold text-black-deep leading-tight truncate"><?php echo e($match->awayTeam?->displayName() ?? '—'); ?></p>
                                                     </div>
-                                                     @if($match->notes)
-                                                        <p class="text-xs font-bold text-gray-400">{{ $match->notes }}</p>
-                                                    @endif
-                                                    {{-- Fila 3: botón Eventos (ancho completo) --}}
-                                                    {{-- <a href="{{ route('tournament.match.events', [$tournament, $match]) }}" wire:navigate
-                                                       class="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 active:bg-indigo-100 transition-colors">
-                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                                                        Eventos
-                                                    </a> --}}
-                                                    <a wire:click="openEditMatchModal({{ $match->id }})" wire:navigate
+                                                     <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->notes): ?>
+                                                        <p class="text-xs font-bold text-gray-400"><?php echo e($match->notes); ?></p>
+                                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                                    
+                                                    
+                                                    <a wire:click="openEditMatchModal(<?php echo e($match->id); ?>)" wire:navigate
                                                        class="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 active:bg-indigo-100 transition-colors">
                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg> 
-                                                       {{-- <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg> --}}
+                                                       
                                                         Editas Partido
                                                     </a>
                                                 </div>
 
-                                                {{-- ========== DESKTOP layout (sm+) ========== --}}
+                                                
                                                 <div class="hidden sm:flex sm:items-center gap-3">
-                                                    {{-- Date/time block --}}
-                                                    @if ($match->status === 'in_progress')
+                                                    
+                                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->status === 'in_progress'): ?>
                                                         <div class="flex flex-col items-center justify-center shrink-0 w-16 h-14 bg-red-500 rounded-xl border border-red-600 text-center shadow-sm shadow-red-200 animate-pulse">
                                                             <span class="flex items-center gap-1">
                                                                 <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
                                                                 <span class="text-[10px] font-black text-white tracking-wider">EN VIVO</span>
                                                             </span>
-                                                            @if ($match->scheduled_at)
-                                                                <span class="text-[10px] text-red-100 mt-0.5">{{ $match->scheduled_at->format('H:i') }}</span>
-                                                            @endif
+                                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->scheduled_at): ?>
+                                                                <span class="text-[10px] text-red-100 mt-0.5"><?php echo e($match->scheduled_at->format('H:i')); ?></span>
+                                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                         </div>
-                                                    @else
+                                                    <?php else: ?>
                                                         <div class="flex flex-col items-center justify-center shrink-0 w-16 h-14 bg-gray-50 rounded-xl border border-silver/60 text-center">
-                                                            @if ($match->scheduled_at)
-                                                                <span class="text-xs font-bold text-black-deep">{{ $match->scheduled_at->format('d/m') }}</span>
-                                                                <span class="text-xs text-titanium">{{ $match->scheduled_at->format('H:i') }}</span>
-                                                            @else
+                                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->scheduled_at): ?>
+                                                                <span class="text-xs font-bold text-black-deep"><?php echo e($match->scheduled_at->format('d/m')); ?></span>
+                                                                <span class="text-xs text-titanium"><?php echo e($match->scheduled_at->format('H:i')); ?></span>
+                                                            <?php else: ?>
                                                                 <span class="text-xs text-titanium/40 font-semibold">—</span>
-                                                            @endif
+                                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                         </div>
-                                                    @endif
-                                                    {{-- Teams + score --}}
+                                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                                    
                                                     <div class="flex items-center gap-3 flex-1 min-w-0">
                                                         <div class="flex-1 flex items-center justify-end gap-2 min-w-0">
-                                                            <p class="text-sm font-bold text-black-deep truncate">{{ $match->homeTeam?->displayName() ?? '—' }}</p>
-                                                            @if ($match->homeTeam?->logo)
-                                                                <img src="{{ asset('storage/' . $match->homeTeam->logo) }}" alt="{{ $match->homeTeam->displayName() }}" class="w-8 h-8 rounded-lg object-contain shrink-0">
-                                                            @elseif ($match->homeTeam?->team?->logo)
-                                                                <img src="{{ Storage::url($match->homeTeam->team->logo) }}" alt="{{ $match->homeTeam->displayName() }}" class="w-8 h-8 rounded-lg object-contain shrink-0">
-                                                            @elseif ($match->homeTeam)
+                                                            <p class="text-sm font-bold text-black-deep truncate"><?php echo e($match->homeTeam?->displayName() ?? '—'); ?></p>
+                                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->homeTeam?->logo): ?>
+                                                                <img src="<?php echo e(asset('storage/' . $match->homeTeam->logo)); ?>" alt="<?php echo e($match->homeTeam->displayName()); ?>" class="w-8 h-8 rounded-lg object-contain shrink-0">
+                                                            <?php elseif($match->homeTeam?->team?->logo): ?>
+                                                                <img src="<?php echo e(Storage::url($match->homeTeam->team->logo)); ?>" alt="<?php echo e($match->homeTeam->displayName()); ?>" class="w-8 h-8 rounded-lg object-contain shrink-0">
+                                                            <?php elseif($match->homeTeam): ?>
                                                                 <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                                                                    <span class="text-xs font-black text-primary">{{ mb_strtoupper(mb_substr($match->homeTeam->displayName(), 0, 1)) }}</span>
+                                                                    <span class="text-xs font-black text-primary"><?php echo e(mb_strtoupper(mb_substr($match->homeTeam->displayName(), 0, 1))); ?></span>
                                                                 </div>
-                                                            @endif
+                                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                         </div>
                                                         <div class="flex flex-col items-center gap-2">
 
-                                                                <button wire:click="openGoalsModal({{ $match->id }})"
+                                                                <button wire:click="openGoalsModal(<?php echo e($match->id); ?>)"
                                                                     class="shrink-0 min-w-[76px] px-3 py-2.5 rounded-xl text-center transition-all font-black text-base
-                                                                        {{ $match->status === 'completed'
+                                                                        <?php echo e($match->status === 'completed'
                                                                             ? 'bg-gray-50 border border-silver text-black-deep hover:bg-amber-50 hover:border-amber-200'
                                                                             : ($match->status === 'in_progress'
                                                                                 ? 'bg-green-500 border border-green-600 text-white shadow-sm shadow-green-200 hover:bg-green-600'
-                                                                                : 'bg-amber-50 border-2 border-dashed border-amber-300 text-amber-600 hover:bg-amber-100 hover:border-amber-400') }}"
+                                                                                : 'bg-amber-50 border-2 border-dashed border-amber-300 text-amber-600 hover:bg-amber-100 hover:border-amber-400')); ?>"
                                                                     title="Registrar goles / ver resultado">
 
-                                                                        @if ($match->status === 'completed')
-                                                                            {{ $match->home_score }} – {{ $match->away_score }}
-                                                                        @elseif ($match->status === 'in_progress')
-                                                                            {{ $match->home_score ?? 0 }} – {{ $match->away_score ?? 0 }}
-                                                                        @elseif ($match->status === 'cancelled')
+                                                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->status === 'completed'): ?>
+                                                                            <?php echo e($match->home_score); ?> – <?php echo e($match->away_score); ?>
+
+                                                                        <?php elseif($match->status === 'in_progress'): ?>
+                                                                            <?php echo e($match->home_score ?? 0); ?> – <?php echo e($match->away_score ?? 0); ?>
+
+                                                                        <?php elseif($match->status === 'cancelled'): ?>
                                                                             <span class="text-xs font-bold text-red-400">CANC.</span>
-                                                                        @elseif ($match->status === 'postponed')
+                                                                        <?php elseif($match->status === 'postponed'): ?>
                                                                             <span class="text-xs font-bold text-gray-400">APL.</span>
-                                                                        @else
+                                                                        <?php else: ?>
                                                                             <span class="text-xs font-bold">⚽ Goles</span>
-                                                                        @endif
+                                                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                                 </button>
 
-                                                            @if($match->notes)
-                                                                <p class="text-xs font-bold text-gray-400">{{ $match->notes }}</p>
-                                                            @endif
+                                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->notes): ?>
+                                                                <p class="text-xs font-bold text-gray-400"><?php echo e($match->notes); ?></p>
+                                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                         </div>
                                                         <div class="flex-1 flex items-center gap-2 min-w-0">
-                                                            @if ($match->awayTeam?->logo)
-                                                                <img src="{{ asset('storage/' . $match->awayTeam->logo) }}" alt="{{ $match->awayTeam->displayName() }}" class="w-8 h-8 rounded-lg object-contain shrink-0">
-                                                            @elseif ($match->awayTeam?->team?->logo)
-                                                                <img src="{{ Storage::url($match->awayTeam->team->logo) }}" alt="{{ $match->awayTeam->displayName() }}" class="w-8 h-8 rounded-lg object-contain shrink-0">
-                                                            @elseif ($match->awayTeam)
+                                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->awayTeam?->logo): ?>
+                                                                <img src="<?php echo e(asset('storage/' . $match->awayTeam->logo)); ?>" alt="<?php echo e($match->awayTeam->displayName()); ?>" class="w-8 h-8 rounded-lg object-contain shrink-0">
+                                                            <?php elseif($match->awayTeam?->team?->logo): ?>
+                                                                <img src="<?php echo e(Storage::url($match->awayTeam->team->logo)); ?>" alt="<?php echo e($match->awayTeam->displayName()); ?>" class="w-8 h-8 rounded-lg object-contain shrink-0">
+                                                            <?php elseif($match->awayTeam): ?>
                                                                 <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                                                                    <span class="text-xs font-black text-primary">{{ mb_strtoupper(mb_substr($match->awayTeam->displayName(), 0, 1)) }}</span>
+                                                                    <span class="text-xs font-black text-primary"><?php echo e(mb_strtoupper(mb_substr($match->awayTeam->displayName(), 0, 1))); ?></span>
                                                                 </div>
-                                                            @endif
-                                                            <p class="text-sm font-bold text-black-deep truncate">{{ $match->awayTeam?->displayName() ?? '—' }}</p>
+                                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                                            <p class="text-sm font-bold text-black-deep truncate"><?php echo e($match->awayTeam?->displayName() ?? '—'); ?></p>
                                                         </div>
                                                     </div>
-                                                    {{-- Status + Actions --}}
+                                                    
                                                     <div class="flex items-center gap-2 shrink-0">
-                                                        @if ($matchGroup)
+                                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($matchGroup): ?>
                                                             <span class="inline-flex items-center gap-1 text-xs font-black text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full shrink-0">
-                                                                Grupo {{ $matchGroup }}
+                                                                Grupo <?php echo e($matchGroup); ?>
+
                                                             </span>
-                                                        @endif
-                                                        @if ($match->status === 'completed')
+                                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->status === 'completed'): ?>
                                                             <span class="hidden md:inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full shrink-0">
                                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                                                 Jugado
                                                             </span>
-                                                        @elseif ($match->status === 'in_progress')
+                                                        <?php elseif($match->status === 'in_progress'): ?>
                                                             <span class="inline-flex items-center gap-1.5 text-xs font-black text-white bg-red-500 border border-red-600 px-2.5 py-1 rounded-full animate-pulse shrink-0 shadow-sm shadow-red-200">
                                                                 <span class="w-1.5 h-1.5 rounded-full bg-white shrink-0"></span>
                                                                 EN VIVO
                                                             </span>
-                                                        @elseif ($match->status === 'cancelled')
+                                                        <?php elseif($match->status === 'cancelled'): ?>
                                                             <span class="hidden md:inline-flex items-center gap-1 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 px-2.5 py-1 rounded-full shrink-0">Cancelado</span>
-                                                        @elseif ($match->status === 'postponed')
+                                                        <?php elseif($match->status === 'postponed'): ?>
                                                             <span class="hidden md:inline-flex items-center gap-1 text-xs font-semibold text-gray-500 bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-full shrink-0">Aplazado</span>
-                                                        @else
+                                                        <?php else: ?>
                                                             <span class="hidden md:inline-flex items-center gap-1 text-xs font-semibold text-titanium bg-gray-50 border border-silver px-2.5 py-1 rounded-full shrink-0">Programado</span>
-                                                        @endif
-                                                        {{-- <a href="{{ route('tournament.match.events', [$tournament, $match]) }}" wire:navigate
-                                                           class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition-colors"
-                                                           title="Tarjetas y sanciones">
-                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                                                            <span class="hidden lg:inline">Eventos</span>
-                                                        </a> --}}
-                                                        <button wire:click="openEditMatchModal({{ $match->id }})"
+                                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                                        
+                                                        <button wire:click="openEditMatchModal(<?php echo e($match->id); ?>)"
                                                                 class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 transition-colors"
                                                                 title="Editar fecha, lugar, estado">
                                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                                             <span class="hidden lg:inline">Editar</span>
                                                         </button>
-                                                        <button wire:click="confirmDeleteMatch({{ $match->id }})"
+                                                        <button wire:click="confirmDeleteMatch(<?php echo e($match->id); ?>)"
                                                                 class="p-2 rounded-xl text-titanium/40 hover:text-red-500 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors"
                                                                 title="Eliminar partido">
                                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -562,45 +567,45 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        @endforeach
-                                        {{-- Bye rows: teams not playing this round --}}
-                                        @if ($round > 0 && $teams->isNotEmpty())
-                                            @php
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($round > 0 && $teams->isNotEmpty()): ?>
+                                            <?php
                                                 $busyIds      = $roundMatches->flatMap(fn($m) => [$m->home_team_id, $m->away_team_id])->unique();
                                                 $restingTeams = $teams->whereNotIn('id', $busyIds);
-                                            @endphp
-                                            @foreach ($restingTeams as $restingTeam)
-                                                @if($phase?->type === 'league')
-                                                    {{-- @dump($restingTeam) --}}
+                                            ?>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $restingTeams; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $restingTeam): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($phase?->type === 'league'): ?>
+                                                    
                                                     <div class="px-5 py-4 border-t-2 border-dashed border-amber-200 bg-amber-50/60 flex items-center gap-4">
                                                         <div class="w-9 h-9 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center shrink-0">
                                                             <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
                                                             </svg>
                                                         </div>
-                                                        <span class="text-sm font-bold text-amber-900">{{ $restingTeam->displayName() }}</span>
+                                                        <span class="text-sm font-bold text-amber-900"><?php echo e($restingTeam->displayName()); ?></span>
                                                         <span class="text-[11px] font-black uppercase tracking-wider text-amber-700 bg-amber-100 border border-amber-200 px-3 py-1 rounded-full">Descansa esta jornada</span>
                                                     </div>
-                                                @endif
-                                            @endforeach
-                                        @endif
+                                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                     </div>
                                 </div>
-                                    @endforeach
-                                    </div>{{-- /space-y-6 --}}
-                                </div>{{-- /phase wrapper --}}
-                            @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
 
-                {{-- ========================= TAB: CLASIFICACIÓN ========================= --}}
-                @php
+                
+                <?php
                     $leagueSubsetSettings = $leagueSubsetSettings ?? [];
                     $subsetLeaguePhases   = $phases->filter(fn($p) => $p->type === 'league' && isset($leagueSubsetSettings[$p->id]));
                     $hasSubsetLeague      = $subsetLeaguePhases->isNotEmpty();
-                @endphp
-                @if ($standings->isNotEmpty() || ($hasLeaguePhase && $teams->isNotEmpty()) || $hasSubsetLeague)
+                ?>
+                <?php if($standings->isNotEmpty() || ($hasLeaguePhase && $teams->isNotEmpty()) || $hasSubsetLeague): ?>
                     <div x-show="tab === 'standings'" x-cloak>
 
 
@@ -611,12 +616,12 @@
                                 Recalcular
                             </button>
                         </div>
-                        @if ($standings->isNotEmpty())
+                        <?php if($standings->isNotEmpty()): ?>
                             <div class="space-y-5">
-                                @foreach ($standings->groupBy(fn($s) => $s->phase?->name ?? 'General') as $phaseName => $phaseStandings)
-                                {{-- @dump($phaseName) --}}
-                                    @foreach ($phaseStandings->groupBy('group_label') as $groupLabel => $groupStandings)
-                                        @php
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $standings->groupBy(fn($s) => $s->phase?->name ?? 'General'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $phaseName => $phaseStandings): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $phaseStandings->groupBy('group_label'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $groupLabel => $groupStandings): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <?php
                                             $__firstStanding   = $groupStandings->first();
                                             $__phaseId         = $__firstStanding?->phase_id;
                                             $__phaseIsSubset   = $__phaseId && isset($leagueSubsetSettings[$__phaseId]);
@@ -625,17 +630,18 @@
                                                 ? max(0, $__subsetTotal - $groupStandings->count())
                                                 : 0;
                                             $__realCount       = $groupStandings->count();
-                                        @endphp
+                                        ?>
                                         <div class="bg-white-pure border border-silver rounded-2xl shadow-sm overflow-hidden">
                                             <div class="bg-gray-50 border-b border-silver px-5 py-3">
                                                 <h3 class="text-sm font-bold text-black-deep">
-                                                    {{ $phaseName }}
-                                                    @if($groupLabel) <span class="text-titanium font-normal ml-1">· Grupo {{ $groupLabel }}</span> @endif
-                                                    @if($__phaseIsSubset)
+                                                    <?php echo e($phaseName); ?>
+
+                                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($groupLabel): ?> <span class="text-titanium font-normal ml-1">· Grupo <?php echo e($groupLabel); ?></span> <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($__phaseIsSubset): ?>
                                                         <span class="ml-2 text-[11px] font-black uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full align-middle">
-                                                            {{ $__realCount }}/{{ $__subsetTotal }} equipos
+                                                            <?php echo e($__realCount); ?>/<?php echo e($__subsetTotal); ?> equipos
                                                         </span>
-                                                    @endif
+                                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                 </h3>
                                             </div>
                                             <div class="overflow-x-auto">
@@ -656,43 +662,43 @@
                                                         </tr>
                                                     </thead>
                                                     <tbody class="divide-y divide-gray-50">
-                                                        @foreach ($groupStandings as $standing)
-                                                            <tr class="{{ $loop->first ? 'bg-primary/5' : '' }} hover:bg-gray-50 transition-colors">
+                                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $groupStandings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $standing): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                            <tr class="<?php echo e($loop->first ? 'bg-primary/5' : ''); ?> hover:bg-gray-50 transition-colors">
                                                                 <td class="px-5 py-4">
-                                                                    @if ($loop->first)
+                                                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($loop->first): ?>
                                                                         <span class="w-6 h-6 rounded-full bg-primary text-white text-xs font-black flex items-center justify-center">1</span>
-                                                                    @elseif ($loop->index === 1)
+                                                                    <?php elseif($loop->index === 1): ?>
                                                                         <span class="w-6 h-6 rounded-full bg-gray-200 text-gray-700 text-xs font-black flex items-center justify-center">2</span>
-                                                                    @elseif ($loop->index === 2)
+                                                                    <?php elseif($loop->index === 2): ?>
                                                                         <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-xs font-black flex items-center justify-center">3</span>
-                                                                    @else
-                                                                        <span class="text-xs text-titanium font-semibold pl-1">{{ $standing->position }}</span>
-                                                                    @endif
+                                                                    <?php else: ?>
+                                                                        <span class="text-xs text-titanium font-semibold pl-1"><?php echo e($standing->position); ?></span>
+                                                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                                 </td>
-                                                                <td class="px-4 py-4 font-semibold text-black-deep"><div class="flex items-center gap-2"><img src="{{ asset('storage/' . $standing->tournamentTeam?->logo) }}" alt="{{ $standing->tournamentTeam?->displayName() }}" class="w-8 h-8  object-contain shrink-0"> {{ $standing->tournamentTeam?->displayName() ?? '—' }}</div></td>
-                                                                <td class="px-5 py-4 text-center"><span class="text-xl font-black text-primary">{{ $standing->points }}</span></td>
-                                                                <td class="px-3 py-4 text-center text-titanium">{{ $standing->played }}</td>
-                                                                <td class="px-3 py-4 text-center font-semibold text-green-700">{{ $standing->won }}</td>
-                                                                <td class="px-3 py-4 text-center text-titanium">{{ $standing->drawn }}</td>
-                                                                <td class="px-3 py-4 text-center font-semibold text-red-600">{{ $standing->lost }}</td>
-                                                                <td class="px-3 py-4 text-center text-titanium">{{ $standing->goals_for }}</td>
-                                                                <td class="px-3 py-4 text-center text-titanium">{{ $standing->goals_against }}</td>
-                                                                <td class="px-3 py-4 text-center text-titanium">{{ ($standing->goals_for - $standing->goals_against) >= 0 ? '+' : '' }}{{ $standing->goals_for - $standing->goals_against }}</td>
+                                                                <td class="px-4 py-4 font-semibold text-black-deep"><div class="flex items-center gap-2"><img src="<?php echo e(asset('storage/' . $standing->tournamentTeam?->logo)); ?>" alt="<?php echo e($standing->tournamentTeam?->displayName()); ?>" class="w-8 h-8  object-contain shrink-0"> <?php echo e($standing->tournamentTeam?->displayName() ?? '—'); ?></div></td>
+                                                                <td class="px-5 py-4 text-center"><span class="text-xl font-black text-primary"><?php echo e($standing->points); ?></span></td>
+                                                                <td class="px-3 py-4 text-center text-titanium"><?php echo e($standing->played); ?></td>
+                                                                <td class="px-3 py-4 text-center font-semibold text-green-700"><?php echo e($standing->won); ?></td>
+                                                                <td class="px-3 py-4 text-center text-titanium"><?php echo e($standing->drawn); ?></td>
+                                                                <td class="px-3 py-4 text-center font-semibold text-red-600"><?php echo e($standing->lost); ?></td>
+                                                                <td class="px-3 py-4 text-center text-titanium"><?php echo e($standing->goals_for); ?></td>
+                                                                <td class="px-3 py-4 text-center text-titanium"><?php echo e($standing->goals_against); ?></td>
+                                                                <td class="px-3 py-4 text-center text-titanium"><?php echo e(($standing->goals_for - $standing->goals_against) >= 0 ? '+' : ''); ?><?php echo e($standing->goals_for - $standing->goals_against); ?></td>
                                                                 
                                                             </tr>
-                                                        @endforeach
-                                                        {{-- Plazas aún por asignar (subset) --}}
-                                                        @for ($__i = 1; $__i <= $__placeholderRows; $__i++)
+                                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                                        
+                                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php for($__i = 1; $__i <= $__placeholderRows; $__i++): ?>
                                                             <tr class="bg-indigo-50/30 hover:bg-indigo-50/50 transition-colors">
                                                                 <td class="px-5 py-4">
-                                                                    <span class="text-xs text-titanium font-semibold pl-1">{{ $__realCount + $__i }}</span>
+                                                                    <span class="text-xs text-titanium font-semibold pl-1"><?php echo e($__realCount + $__i); ?></span>
                                                                 </td>
                                                                 <td class="px-4 py-4 font-semibold">
                                                                     <div class="flex items-center gap-2">
                                                                         <span class="w-8 h-8 rounded-lg border border-dashed border-indigo-300 bg-white flex items-center justify-center shrink-0">
                                                                             <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                                                                         </span>
-                                                                        <span class="text-indigo-500 italic">Equipo {{ $__realCount + $__i }} · por definir</span>
+                                                                        <span class="text-indigo-500 italic">Equipo <?php echo e($__realCount + $__i); ?> · por definir</span>
                                                                     </div>
                                                                 </td>
                                                                 <td class="px-5 py-4 text-center"><span class="text-xl font-black text-titanium/40">0</span></td>
@@ -704,36 +710,36 @@
                                                                 <td class="px-3 py-4 text-center text-titanium/40">0</td>
                                                                 <td class="px-3 py-4 text-center text-titanium/40">0</td>
                                                             </tr>
-                                                        @endfor
+                                                        <?php endfor; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                     </tbody>
                                                 </table>
                                             </div>
                                         </div>
-                                    @endforeach
-                                @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                                {{-- Fases «liga» con subset y aún sin ningún equipo asignado --}}
-                                @foreach ($subsetLeaguePhases as $__subsetPhase)
-                                    @if ($standings->where('phase_id', $__subsetPhase->id)->isEmpty())
-                                        @include('livewire.tournaments._subset-placeholder-block', [
+                                
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $subsetLeaguePhases; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $__subsetPhase): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($standings->where('phase_id', $__subsetPhase->id)->isEmpty()): ?>
+                                        <?php echo $__env->make('livewire.tournaments._subset-placeholder-block', [
                                             'phase'     => $__subsetPhase,
                                             'slotCount' => $leagueSubsetSettings[$__subsetPhase->id],
-                                        ])
-                                    @endif
-                                @endforeach
+                                        ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </div>
-                        @elseif ($hasSubsetLeague)
-                            {{-- Solo hay fases de liga con subset y sin equipos asignados aún --}}
+                        <?php elseif($hasSubsetLeague): ?>
+                            
                             <div class="space-y-5">
-                                @foreach ($subsetLeaguePhases as $__subsetPhase)
-                                    @include('livewire.tournaments._subset-placeholder-block', [
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $subsetLeaguePhases; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $__subsetPhase): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <?php echo $__env->make('livewire.tournaments._subset-placeholder-block', [
                                         'phase'     => $__subsetPhase,
                                         'slotCount' => $leagueSubsetSettings[$__subsetPhase->id],
-                                    ])
-                                @endforeach
+                                    ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </div>
-                        @elseif ($hasLeaguePhase && $teams->isNotEmpty())
-                            {{-- Virtual standings: league phase exists but no matches played yet --}}
+                        <?php elseif($hasLeaguePhase && $teams->isNotEmpty()): ?>
+                            
                             <div class="bg-white-pure border border-silver rounded-2xl shadow-sm overflow-hidden">
                                 <div class="bg-gray-50 border-b border-silver px-5 py-3 flex items-center gap-2">
                                     <h3 class="text-sm font-bold text-black-deep">Clasificación</h3>
@@ -756,12 +762,12 @@
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-50">
-                                            @foreach ($teams->sortBy(fn($t) => $t->displayName())->values() as $team)
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $teams->sortBy(fn($t) => $t->displayName())->values(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $team): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                 <tr class="hover:bg-gray-50 transition-colors">
                                                     <td class="px-5 py-4">
-                                                        <span class="text-xs text-titanium font-semibold pl-1">{{ $loop->iteration }}</span>
+                                                        <span class="text-xs text-titanium font-semibold pl-1"><?php echo e($loop->iteration); ?></span>
                                                     </td>
-                                                    <td class="px-4 py-4 font-semibold text-black-deep">{{ $team->displayName() }}</td>
+                                                    <td class="px-4 py-4 font-semibold text-black-deep"><?php echo e($team->displayName()); ?></td>
                                                     <td class="px-3 py-4 text-center text-titanium">0</td>
                                                     <td class="px-3 py-4 text-center text-titanium">0</td>
                                                     <td class="px-3 py-4 text-center text-titanium">0</td>
@@ -771,19 +777,19 @@
                                                     <td class="px-3 py-4 text-center text-titanium">0</td>
                                                     <td class="px-5 py-4 text-center"><span class="text-xl font-black text-primary">0</span></td>
                                                 </tr>
-                                            @endforeach
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
-                @endif
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                {{-- ========================= TAB: CUADRO ELIMINATORIO ========================= --}}
-                @if ($hasKnockoutPhase)
+                
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($hasKnockoutPhase): ?>
                     <div x-show="tab === 'bracket'" x-cloak>
-                        @php
+                        <?php
                             $getRoundLabel = function(int $roundIndex, int $totalRounds): string {
                                 $fromFinal = $totalRounds - 1 - $roundIndex;
                                 return match($fromFinal) {
@@ -799,11 +805,11 @@
                             $matchW = 232;
                             $gapX   = 24;
                             $unit   = $matchH + 32;
-                        @endphp
+                        ?>
 
-                        @foreach ($bracketData as $phaseId => $bracket)
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $bracketData; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $phaseId => $bracket): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <div class="bg-white-pure border border-silver rounded-2xl shadow-sm p-5 mb-5">
-                                {{-- Phase header --}}
+                                
                                 <div class="flex items-center justify-between mb-5">
                                     <div class="flex items-center gap-3">
                                         <div class="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -812,32 +818,32 @@
                                             </svg>
                                         </div>
                                         <div>
-                                            <h3 class="text-sm font-bold text-black-deep">{{ $bracket['phase']->name }}</h3>
-                                            <p class="text-xs text-titanium">{{ $bracket['phase']->typeLabel() }} · {{ $bracket['phase']->statusLabel() }}</p>
+                                            <h3 class="text-sm font-bold text-black-deep"><?php echo e($bracket['phase']->name); ?></h3>
+                                            <p class="text-xs text-titanium"><?php echo e($bracket['phase']->typeLabel()); ?> · <?php echo e($bracket['phase']->statusLabel()); ?></p>
                                         </div>
                                     </div>
-                                    <button wire:click="openBracketModal({{ $phaseId }})"
+                                    <button wire:click="openBracketModal(<?php echo e($phaseId); ?>)"
                                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-primary bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-colors">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                                         Configurar cuadro
                                     </button>
                                 </div>
 
-                                @if (!$bracket['hasMatches'])
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$bracket['hasMatches']): ?>
                                     <div class="flex flex-col items-center justify-center py-14 border-2 border-dashed border-silver rounded-2xl">
                                         <svg class="w-12 h-12 text-titanium/20 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                                         </svg>
                                         <p class="text-sm font-semibold text-titanium mb-1">Sin cuadro generado</p>
                                         <p class="text-xs text-titanium/60 mb-4 text-center max-w-xs">Selecciona los equipos clasificados para generar el cuadro de eliminatorias.</p>
-                                        <button wire:click="openBracketModal({{ $phaseId }})"
+                                        <button wire:click="openBracketModal(<?php echo e($phaseId); ?>)"
                                                 class="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow transition-colors">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                                             Generar cuadro
                                         </button>
                                     </div>
-                                @else
-                                    @php
+                                <?php else: ?>
+                                    <?php
                                         $numFirstRound = $bracket['numFirstRoundMatches'];
                                         $totalRounds   = $bracket['totalRounds'];
                                         $firstRound    = $bracket['firstRound'];
@@ -847,50 +853,51 @@
                                         $firstRoundUsedTeams = collect($bracket['rounds'][$firstRound] ?? [])
                                             ->flatMap(fn($m) => [$m->home_team_id, $m->away_team_id])
                                             ->filter()->unique();
-                                    @endphp
+                                    ?>
                                     <div class="overflow-x-auto pb-2">
                                         <div class="flex min-w-max" style="align-items: flex-start;">
-                                            @foreach ($bracket['rounds'] as $roundNum => $roundMatches)
-                                                @php
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $bracket['rounds']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $roundNum => $roundMatches): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <?php
                                                     $roundIndex = $roundNum - $firstRound;
                                                     $roundLabel = $getRoundLabel($roundIndex, $totalRounds);
                                                     $isLast     = ($roundNum === $maxRound);
-                                                @endphp
+                                                ?>
 
-                                                {{-- Round column --}}
-                                                <div style="width: {{ $matchW }}px; flex-shrink: 0;">
+                                                
+                                                <div style="width: <?php echo e($matchW); ?>px; flex-shrink: 0;">
                                                     <div class="text-center mb-2">
                                                         <span class="inline-block px-3 py-1 rounded-full text-xs font-bold
-                                                            {{ $isLast ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-gray-100 text-gray-600 border border-gray-200' }}">
-                                                            {{ $roundLabel }}
+                                                            <?php echo e($isLast ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-gray-100 text-gray-600 border border-gray-200'); ?>">
+                                                            <?php echo e($roundLabel); ?>
+
                                                         </span>
                                                     </div>
 
-                                                    <div class="relative" style="height: {{ $containerH }}px;">
-                                                        @foreach ($roundMatches as $matchIdx => $match)
-                                                            @php
+                                                    <div class="relative" style="height: <?php echo e($containerH); ?>px;">
+                                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $roundMatches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $matchIdx => $match): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                            <?php
                                                                 $slotMult = (int) pow(2, $roundIndex);
                                                                 $centerY  = (int)(($matchIdx + 0.5) * $unit * $slotMult);
                                                                 $topPx    = $centerY - (int)($matchH / 2);
                                                                 $mWinner  = $match->status === 'completed' ? $match->winner() : null;
                                                                 $homeWins = $mWinner && $mWinner->id === $match->home_team_id;
                                                                 $awayWins = $mWinner && $mWinner->id === $match->away_team_id;
-                                                            @endphp
-                                                            <div class="absolute left-0 right-0 group z-10 hover:z-20 transition-all" style="top: {{ $topPx }}px;">
-    {{-- Match card --}}
-    <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-gray-300 transition-all flex flex-col relative overflow-hidden" style="height: {{ $matchH }}px;">
+                                                            ?>
+                                                            <div class="absolute left-0 right-0 group z-10 hover:z-20 transition-all" style="top: <?php echo e($topPx); ?>px;">
+    
+    <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-gray-300 transition-all flex flex-col relative overflow-hidden" style="height: <?php echo e($matchH); ?>px;">
         <div class="h-7 shrink-0 flex items-center justify-between gap-2 px-2.5 bg-gray-50 border-b border-gray-100">
             <div class="min-w-0 flex items-center gap-1.5">
-                @if (!empty($match->notes))
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!empty($match->notes)): ?>
                     <svg class="w-3.5 h-3.5 shrink-0 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <span class="text-[10px] leading-3 font-medium text-amber-800 line-clamp-2" title="{{ $match->notes }}">{{ $match->notes }}</span>
-                @else
-                    <span class="text-[9px] font-semibold uppercase tracking-wide text-gray-400">{{ $match->statusLabel() }}</span>
-                @endif
+                    <span class="text-[10px] leading-3 font-medium text-amber-800 line-clamp-2" title="<?php echo e($match->notes); ?>"><?php echo e($match->notes); ?></span>
+                <?php else: ?>
+                    <span class="text-[9px] font-semibold uppercase tracking-wide text-gray-400"><?php echo e($match->statusLabel()); ?></span>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </div>
-            <a wire:click="openEditMatchModal({{ $match->id }})" wire:navigate
+            <a wire:click="openEditMatchModal(<?php echo e($match->id); ?>)" wire:navigate
                 title="Editar partido"
                 class="shrink-0 flex items-center justify-center w-5 h-5 rounded-md text-gray-400 hover:text-primary hover:bg-white transition-colors">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -899,154 +906,156 @@
             </a>
         </div>
         
-        {{-- HOME TEAM --}}
-        <div class="flex-1 min-h-0 flex items-center justify-between pr-2.5 relative border-l-[3px] {{ $homeWins ? 'bg-emerald-50/60 border-emerald-500' : 'border-transparent hover:bg-gray-50' }} transition-colors group/home">
+        
+        <div class="flex-1 min-h-0 flex items-center justify-between pr-2.5 relative border-l-[3px] <?php echo e($homeWins ? 'bg-emerald-50/60 border-emerald-500' : 'border-transparent hover:bg-gray-50'); ?> transition-colors group/home">
             
             <div class="flex items-center gap-2 flex-1 min-w-0 pl-2">
-                @if ($match->homeTeam)
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->homeTeam): ?>
                     <!-- Logo -->
                     <div class="w-5 h-5 rounded-md shrink-0 flex items-center justify-center bg-white border border-gray-100 overflow-hidden">
-                        @if ($match->homeTeam->logo)
-                            <img src="{{ asset('storage/'.$match->homeTeam->logo) }}" class="w-full h-full object-contain" alt="">
-                        @elseif ($match->homeTeam->team?->logo)
-                            <img src="{{ Storage::url($match->homeTeam->team->logo) }}" class="w-full h-full object-contain" alt="">
-                        @else
-                            <span class="text-[8px] font-black text-gray-400">{{ mb_strtoupper(mb_substr($match->homeTeam->displayName(), 0, 1)) }}</span>
-                        @endif
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->homeTeam->logo): ?>
+                            <img src="<?php echo e(asset('storage/'.$match->homeTeam->logo)); ?>" class="w-full h-full object-contain" alt="">
+                        <?php elseif($match->homeTeam->team?->logo): ?>
+                            <img src="<?php echo e(Storage::url($match->homeTeam->team->logo)); ?>" class="w-full h-full object-contain" alt="">
+                        <?php else: ?>
+                            <span class="text-[8px] font-black text-gray-400"><?php echo e(mb_strtoupper(mb_substr($match->homeTeam->displayName(), 0, 1))); ?></span>
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
                     <!-- Nombre -->
-                    <span class="text-xs leading-tight truncate {{ $homeWins ? 'font-bold text-gray-900' : 'font-medium text-gray-700' }}">
-                        {{ $match->homeTeam->displayName() }}
+                    <span class="text-xs leading-tight truncate <?php echo e($homeWins ? 'font-bold text-gray-900' : 'font-medium text-gray-700'); ?>">
+                        <?php echo e($match->homeTeam->displayName()); ?>
+
                     </span>
-                @else
+                <?php else: ?>
                     <!-- Select cuando no hay equipo -->
-                    @if ($roundNum === $firstRound)
-                        <select @change="$wire.assignTeamToSlot({{ $match->id }}, 'home', $event.target.value || null)"
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($roundNum === $firstRound): ?>
+                        <select @change="$wire.assignTeamToSlot(<?php echo e($match->id); ?>, 'home', $event.target.value || null)"
                             class="w-full text-[11px] text-gray-500 font-medium italic bg-transparent border-0 p-0 focus:ring-0 cursor-pointer appearance-none truncate">
                             <option value="">Por definir…</option>
-                            @foreach ($teams as $t)
-                                @php
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $teams; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $t): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <?php
                                     $takenElsewhere = $firstRoundUsedTeams->reject(fn($id) => $id === ($match->home_team_id ?? 0))->contains($t->id);
                                     $isOpponent     = $t->id === ($match->away_team_id ?? 0);
-                                @endphp
-                                @if (!$takenElsewhere && !$isOpponent)
-                                    <option value="{{ $t->id }}">{{ $t->displayName() }}</option>
-                                @endif
-                            @endforeach
+                                ?>
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$takenElsewhere && !$isOpponent): ?>
+                                    <option value="<?php echo e($t->id); ?>"><?php echo e($t->displayName()); ?></option>
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </select>
-                    @else
+                    <?php else: ?>
                         <span class="text-[11px] text-gray-400 italic truncate">Por definir</span>
-                    @endif
-                @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </div>
 
             <!-- Score y Acciones Derecha -->
             <div class="flex items-center gap-1.5 shrink-0 pl-1">
-                @if ($match->homeTeam)
-                    @if ($match->status === 'completed')
-                        <span class="text-[11px] font-black {{ $homeWins ? 'text-emerald-600' : 'text-gray-400' }}">{{ $match->home_score ?? 0 }}</span>
-                    @endif
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->homeTeam): ?>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->status === 'completed'): ?>
+                        <span class="text-[11px] font-black <?php echo e($homeWins ? 'text-emerald-600' : 'text-gray-400'); ?>"><?php echo e($match->home_score ?? 0); ?></span>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                    @if ($homeWins)
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($homeWins): ?>
                         <svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                    @if ($match->status === 'scheduled' && $roundNum === $firstRound)
-                        <button @click="$wire.assignTeamToSlot({{ $match->id }}, 'home', null)"
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->status === 'scheduled' && $roundNum === $firstRound): ?>
+                        <button @click="$wire.assignTeamToSlot(<?php echo e($match->id); ?>, 'home', null)"
                             class="w-3.5 h-3.5 rounded-full bg-gray-100 hover:bg-red-100 hover:text-red-500 text-gray-400 text-[9px] font-black flex items-center justify-center transition-colors opacity-0 group-hover/home:opacity-100" title="Quitar equipo">×</button>
-                    @endif
-                @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </div>
         </div>
 
         <!-- Divisor Central -->
         <div class="h-px bg-gray-100 w-full"></div>
 
-        {{-- AWAY TEAM --}}
-        <div class="flex-1 min-h-0 flex items-center justify-between pr-2.5 relative border-l-[3px] {{ $awayWins ? 'bg-emerald-50/60 border-emerald-500' : 'border-transparent hover:bg-gray-50' }} transition-colors group/away">
+        
+        <div class="flex-1 min-h-0 flex items-center justify-between pr-2.5 relative border-l-[3px] <?php echo e($awayWins ? 'bg-emerald-50/60 border-emerald-500' : 'border-transparent hover:bg-gray-50'); ?> transition-colors group/away">
             
             <div class="flex items-center gap-2 flex-1 min-w-0 pl-2">
-                @if ($match->awayTeam)
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->awayTeam): ?>
                     <!-- Logo -->
                     <div class="w-5 h-5 rounded-md shrink-0 flex items-center justify-center bg-white border border-gray-100 overflow-hidden">
-                        @if ($match->awayTeam->logo)
-                            <img src="{{ asset('storage/'.$match->awayTeam->logo) }}" class="w-full h-full object-contain" alt="">
-                        @elseif ($match->awayTeam->team?->logo)
-                            <img src="{{ Storage::url($match->awayTeam->team->logo) }}" class="w-full h-full object-contain" alt="">
-                        @else
-                            <span class="text-[8px] font-black text-gray-400">{{ mb_strtoupper(mb_substr($match->awayTeam->displayName(), 0, 1)) }}</span>
-                        @endif
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->awayTeam->logo): ?>
+                            <img src="<?php echo e(asset('storage/'.$match->awayTeam->logo)); ?>" class="w-full h-full object-contain" alt="">
+                        <?php elseif($match->awayTeam->team?->logo): ?>
+                            <img src="<?php echo e(Storage::url($match->awayTeam->team->logo)); ?>" class="w-full h-full object-contain" alt="">
+                        <?php else: ?>
+                            <span class="text-[8px] font-black text-gray-400"><?php echo e(mb_strtoupper(mb_substr($match->awayTeam->displayName(), 0, 1))); ?></span>
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
                     <!-- Nombre -->
-                    <span class="text-xs leading-tight truncate {{ $awayWins ? 'font-bold text-gray-900' : 'font-medium text-gray-700' }}">
-                        {{ $match->awayTeam->displayName() }}
+                    <span class="text-xs leading-tight truncate <?php echo e($awayWins ? 'font-bold text-gray-900' : 'font-medium text-gray-700'); ?>">
+                        <?php echo e($match->awayTeam->displayName()); ?>
+
                     </span>
-                @else
+                <?php else: ?>
                     <!-- Select cuando no hay equipo -->
-                    @if ($roundNum === $firstRound)
-                        <select @change="$wire.assignTeamToSlot({{ $match->id }}, 'away', $event.target.value || null)"
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($roundNum === $firstRound): ?>
+                        <select @change="$wire.assignTeamToSlot(<?php echo e($match->id); ?>, 'away', $event.target.value || null)"
                             class="w-full text-[11px] text-gray-500 font-medium italic bg-transparent border-0 p-0 focus:ring-0 cursor-pointer appearance-none truncate">
                             <option value="">Por definir…</option>
-                            @foreach ($teams as $t)
-                                @php
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $teams; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $t): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <?php
                                     $takenElsewhere = $firstRoundUsedTeams->reject(fn($id) => $id === ($match->away_team_id ?? 0))->contains($t->id);
                                     $isOpponent     = $t->id === ($match->home_team_id ?? 0);
-                                @endphp
-                                @if (!$takenElsewhere && !$isOpponent)
-                                    <option value="{{ $t->id }}">{{ $t->displayName() }}</option>
-                                @endif
-                            @endforeach
+                                ?>
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$takenElsewhere && !$isOpponent): ?>
+                                    <option value="<?php echo e($t->id); ?>"><?php echo e($t->displayName()); ?></option>
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </select>
-                    @else
+                    <?php else: ?>
                         <span class="text-[11px] text-gray-400 italic truncate">Por definir</span>
-                    @endif
-                @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </div>
 
             <!-- Score y Acciones Derecha -->
             <div class="flex items-center gap-1.5 shrink-0 pl-1">
-                @if ($match->awayTeam)
-                    @if ($match->status === 'completed')
-                        <span class="text-[11px] font-black {{ $awayWins ? 'text-emerald-600' : 'text-gray-400' }}">{{ $match->away_score ?? 0 }}</span>
-                    @endif
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->awayTeam): ?>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->status === 'completed'): ?>
+                        <span class="text-[11px] font-black <?php echo e($awayWins ? 'text-emerald-600' : 'text-gray-400'); ?>"><?php echo e($match->away_score ?? 0); ?></span>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                    @if ($awayWins)
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($awayWins): ?>
                         <svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                    @if ($match->status === 'scheduled' && $roundNum === $firstRound)
-                        <button @click="$wire.assignTeamToSlot({{ $match->id }}, 'away', null)"
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($match->status === 'scheduled' && $roundNum === $firstRound): ?>
+                        <button @click="$wire.assignTeamToSlot(<?php echo e($match->id); ?>, 'away', null)"
                             class="w-3.5 h-3.5 rounded-full bg-gray-100 hover:bg-red-100 hover:text-red-500 text-gray-400 text-[9px] font-black flex items-center justify-center transition-colors opacity-0 group-hover/away:opacity-100" title="Quitar equipo">×</button>
-                    @endif
-                @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </div>
         </div>
     </div>
 </div>
-                                                        @endforeach
+                                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                     </div>
                                                 </div>
 
-                                                {{-- Connector lines between rounds --}}
-                                                @if (!$isLast)
-                                                    @php
+                                                
+                                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$isLast): ?>
+                                                    <?php
                                                         $nextRoundMatches = $bracket['rounds'][$roundNum + 1] ?? collect();
                                                         $nextCount = $nextRoundMatches->count();
-                                                    @endphp
-                                                    <div style="width: {{ $gapX }}px; flex-shrink: 0; position: relative; height: {{ $containerH + 32 }}px; margin-top: 32px;">
-                                                        @for ($ci = 0; $ci < $nextCount; $ci++)
-                                                            @php
+                                                    ?>
+                                                    <div style="width: <?php echo e($gapX); ?>px; flex-shrink: 0; position: relative; height: <?php echo e($containerH + 32); ?>px; margin-top: 32px;">
+                                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php for($ci = 0; $ci < $nextCount; $ci++): ?>
+                                                            <?php
                                                                 $slotMult   = (int) pow(2, $roundIndex);
                                                                 $topCenter  = (int)(($ci * 2 + 0.5) * $unit * $slotMult);
                                                                 $botCenter  = (int)(($ci * 2 + 1.5) * $unit * $slotMult);
                                                                 $midCenter  = (int)(($ci + 0.5) * $unit * (int)pow(2, $roundIndex + 1));
-                                                            @endphp
+                                                            ?>
                                                             <div style="
                                                                 position: absolute;
                                                                 left: 0;
-                                                                top: {{ $topCenter }}px;
+                                                                top: <?php echo e($topCenter); ?>px;
                                                                 width: 50%;
-                                                                height: {{ max($botCenter - $topCenter, 2) }}px;
+                                                                height: <?php echo e(max($botCenter - $topCenter, 2)); ?>px;
                                                                 border-right: 2px solid #d1d5db;
                                                                 border-top: 2px solid #d1d5db;
                                                                 border-bottom: 2px solid #d1d5db;
@@ -1055,21 +1064,21 @@
                                                             <div style="
                                                                 position: absolute;
                                                                 left: 50%;
-                                                                top: {{ $midCenter }}px;
+                                                                top: <?php echo e($midCenter); ?>px;
                                                                 width: 50%;
                                                                 height: 2px;
                                                                 background: #d1d5db;
                                                             "></div>
-                                                        @endfor
+                                                        <?php endfor; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                     </div>
-                                                @endif
-                                            @endforeach
+                                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                         </div>
                                     </div>
 
-                                    {{-- 3rd place match --}}
-                                    @if ($bracket['thirdPlace'])
-                                        @php $tp = $bracket['thirdPlace']; @endphp
+                                    
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bracket['thirdPlace']): ?>
+                                        <?php $tp = $bracket['thirdPlace']; ?>
                                         <div class="mt-6 pt-6 border-t border-dashed border-gray-300">
     
                                             <!-- Cabecera: Título y Botón de Editar separados -->
@@ -1085,7 +1094,7 @@
                                                 </div>
                                                 
                                                 <!-- Botón Editar (Arreglado: ya no ocupa todo el ancho) -->
-                                                <button wire:click="openEditMatchModal({{ $tp->id }})" wire:navigate
+                                                <button wire:click="openEditMatchModal(<?php echo e($tp->id); ?>)" wire:navigate
                                                     class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 active:bg-indigo-100 transition-all shadow-sm">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -1099,50 +1108,52 @@
                                                 
                                                 <!-- Equipo Local -->
                                                 <div class="flex-1 flex justify-end">
-                                                    <span class="text-sm md:text-base font-bold text-gray-900 text-right truncate" title="{{ $tp->homeTeam?->displayName() ?? 'Por definir' }}">
-                                                        {{ $tp->homeTeam?->displayName() ?? 'Por definir' }}
+                                                    <span class="text-sm md:text-base font-bold text-gray-900 text-right truncate" title="<?php echo e($tp->homeTeam?->displayName() ?? 'Por definir'); ?>">
+                                                        <?php echo e($tp->homeTeam?->displayName() ?? 'Por definir'); ?>
+
                                                     </span>
                                                 </div>
 
                                                 <!-- Marcador / VS Central -->
                                                 <div class="shrink-0 flex flex-col items-center justify-center">
-                                                    @if ($tp->status === 'completed')
+                                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tp->status === 'completed'): ?>
                                                         <div class="px-4 py-2 bg-white rounded-xl border border-amber-200 shadow-sm min-w-[70px] md:min-w-[80px] text-center">
                                                             <span class="text-lg md:text-xl font-black text-gray-900 tracking-wider">
-                                                                {{ $tp->home_score }} <span class="text-gray-300 mx-0.5">-</span> {{ $tp->away_score }}
+                                                                <?php echo e($tp->home_score); ?> <span class="text-gray-300 mx-0.5">-</span> <?php echo e($tp->away_score); ?>
+
                                                             </span>
                                                         </div>
                                                         <span class="text-[10px] font-bold text-amber-600 uppercase tracking-widest mt-1.5">Final</span>
-                                                    @else
-                                                        {{-- <button wire:click="openGoalsModal({{ $tp->id }})" 
-                                                            class="px-4 py-2 bg-white hover:bg-amber-100 rounded-xl border border-amber-200 shadow-sm min-w-[70px] transition-all transform hover:scale-105 group"> --}}
+                                                    <?php else: ?>
+                                                        
                                                             <span class="text-sm font-black text-amber-500 group-hover:text-amber-700 uppercase tracking-widest">VS</span>
-                                                        {{-- </button> --}}
+                                                        
                                                         <span class="text-[10px] font-medium text-gray-400 uppercase tracking-widest mt-1.5">Pendiente</span>
-                                                    @endif
+                                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                 </div>
 
                                                 <!-- Equipo Visitante -->
                                                 <div class="flex-1 flex justify-start">
-                                                    <span class="text-sm md:text-base font-bold text-gray-900 text-left truncate" title="{{ $tp->awayTeam?->displayName() ?? 'Por definir' }}">
-                                                        {{ $tp->awayTeam?->displayName() ?? 'Por definir' }}
+                                                    <span class="text-sm md:text-base font-bold text-gray-900 text-left truncate" title="<?php echo e($tp->awayTeam?->displayName() ?? 'Por definir'); ?>">
+                                                        <?php echo e($tp->awayTeam?->displayName() ?? 'Por definir'); ?>
+
                                                     </span>
                                                 </div>
                                                 
                                             </div>
                                         </div>
-                                    @endif
-                                @endif
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </div>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
-                @endif
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                {{-- ========================= TAB: EQUIPOS ========================= --}}
+                
                 <div x-show="tab === 'teams'" x-cloak>
                     <div class="flex items-center justify-between mb-4">
                         <p class="text-sm text-titanium">
-                            <span class="font-bold text-black-deep">{{ $teams->count() }}</span> equipos inscritos
+                            <span class="font-bold text-black-deep"><?php echo e($teams->count()); ?></span> equipos inscritos
                         </p>
                         <button wire:click="openCreateTeamModal"
                                 class="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow transition-colors">
@@ -1151,27 +1162,27 @@
                         </button>
                     </div>
 
-                    @php
+                    <?php
                         $hasGroups = $teams->contains(fn($t) => filled($t->group_label));
                         $teamGroups = $hasGroups
                             ? $teams->sortBy([['group_label','asc'],['seed','asc'],['name_override','asc']])->groupBy(fn($t) => $t->group_label ?: '')
                             : collect(['' => $teams->sortBy([['seed','asc'],['name_override','asc']])]);
-                    @endphp
+                    ?>
 
                     <div class="space-y-5">
-                        @foreach ($teamGroups as $groupKey => $groupTeams)
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $teamGroups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $groupKey => $groupTeams): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <div class="bg-white-pure border border-silver rounded-2xl shadow-sm overflow-hidden">
-                                @if ($hasGroups)
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($hasGroups): ?>
                                     <div class="bg-gray-50 border-b border-silver px-5 py-3 flex items-center gap-2">
-                                        @if ($groupKey !== '')
-                                            <span class="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-xs font-black text-primary shrink-0">{{ $groupKey }}</span>
-                                            <h3 class="text-sm font-bold text-black-deep">Grupo {{ $groupKey }}</h3>
-                                        @else
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($groupKey !== ''): ?>
+                                            <span class="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-xs font-black text-primary shrink-0"><?php echo e($groupKey); ?></span>
+                                            <h3 class="text-sm font-bold text-black-deep">Grupo <?php echo e($groupKey); ?></h3>
+                                        <?php else: ?>
                                             <h3 class="text-sm font-bold text-black-deep">Sin grupo</h3>
-                                        @endif
-                                        <span class="text-xs text-titanium bg-gray-100 px-2 py-0.5 rounded-full ml-1">{{ $groupTeams->count() }} equipos</span>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <span class="text-xs text-titanium bg-gray-100 px-2 py-0.5 rounded-full ml-1"><?php echo e($groupTeams->count()); ?> equipos</span>
                                     </div>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 <div class="overflow-x-auto">
                                     <table class="w-full text-sm">
                                         <thead>
@@ -1181,105 +1192,109 @@
                                                 <th class="text-left text-xs font-semibold text-titanium uppercase tracking-wide px-4 py-3 hidden md:table-cell">Contacto</th>
                                                 <th class="text-left text-xs font-semibold text-titanium uppercase tracking-wide px-4 py-3 hidden sm:table-cell">Teléfono</th>
                                                 <th class="text-center text-xs font-semibold text-titanium uppercase tracking-wide px-4 py-3">Jugadores</th>
-                                                @if ($hasGroups)
+                                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($hasGroups): ?>
                                                     <th class="text-center text-xs font-semibold text-titanium uppercase tracking-wide px-4 py-3 hidden lg:table-cell">Grupo</th>
-                                                @endif
+                                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                 <th class="text-right text-xs font-semibold text-titanium uppercase tracking-wide px-5 py-3">Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-50">
-                                            @foreach ($groupTeams as $team)
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $groupTeams; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $team): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                 <tr class="hover:bg-gray-50/60 transition-colors">
-                                                    {{-- Escudo --}}
+                                                    
                                                     <td class="px-5 py-3">
-                                                        @if ($team->logo)
-                                                            <img src="{{ asset('storage/' . $team->logo) }}"
+                                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($team->logo): ?>
+                                                            <img src="<?php echo e(asset('storage/' . $team->logo)); ?>"
                                                                  class="w-9 h-9 rounded-lg object-contain   shrink-0" alt="">
-                                                        @elseif ($team->team?->logo)
-                                                            <img src="{{ Storage::url($team->team->logo) }}"
+                                                        <?php elseif($team->team?->logo): ?>
+                                                            <img src="<?php echo e(Storage::url($team->team->logo)); ?>"
                                                                  class="w-9 h-9 rounded-lg object-contain   shrink-0" alt="">
-                                                        @else
+                                                        <?php else: ?>
                                                             <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                                                                <span class="text-sm font-black text-primary">{{ mb_strtoupper(mb_substr($team->displayName(), 0, 1)) }}</span>
+                                                                <span class="text-sm font-black text-primary"><?php echo e(mb_strtoupper(mb_substr($team->displayName(), 0, 1))); ?></span>
                                                             </div>
-                                                        @endif
+                                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                     </td>
-                                                    {{-- Nombre + badges --}}
+                                                    
                                                     <td class="px-4 py-3">
                                                         <div class="flex items-center gap-2 flex-wrap">
-                                                            <span class="font-semibold text-black-deep">{{ $team->displayName() }}</span>
-                                                            @if ($team->seed)
+                                                            <span class="font-semibold text-black-deep"><?php echo e($team->displayName()); ?></span>
+                                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($team->seed): ?>
                                                                 <span class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full">
                                                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
-                                                                    Cabeza {{ $team->seed }}
+                                                                    Cabeza <?php echo e($team->seed); ?>
+
                                                                 </span>
-                                                            @endif
-                                                            @if ($team->external_team)
+                                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($team->external_team): ?>
                                                                 <span class="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">Externo</span>
-                                                            @endif
+                                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                         </div>
                                                     </td>
-                                                    {{-- Contacto --}}
+                                                    
                                                     <td class="px-4 py-3 hidden md:table-cell text-titanium">
-                                                        {{ $team->contact_name ?: '—' }}
+                                                        <?php echo e($team->contact_name ?: '—'); ?>
+
                                                     </td>
-                                                    {{-- Teléfono --}}
+                                                    
                                                     <td class="px-4 py-3 hidden sm:table-cell text-titanium">
-                                                        {{ $team->contact_phone ?: '—' }}
+                                                        <?php echo e($team->contact_phone ?: '—'); ?>
+
                                                     </td>
-                                                    {{-- Jugadores --}}
+                                                    
                                                     <td class="px-4 py-3">
-                                                        @php
+                                                        <?php
                                                             $totalPlayers    = $team->players()->count();
                                                             $approvedPlayers = $team->players()->where('status', 'approved')->count();
                                                             $pct             = $totalPlayers > 0 ? round($approvedPlayers / $totalPlayers * 100) : 0;
                                                             $barColor        = $pct === 100 ? 'bg-green-500' : ($pct >= 50 ? 'bg-indigo-500' : ($pct > 0 ? 'bg-amber-400' : 'bg-gray-200'));
-                                                        @endphp
-                                                        @if($totalPlayers > 0)
+                                                        ?>
+                                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($totalPlayers > 0): ?>
                                                             <div class="flex flex-col gap-1 min-w-[80px]">
                                                                 <div class="flex items-center justify-between gap-2">
-                                                                    <span class="text-xs font-bold {{ $pct === 100 ? 'text-green-700' : 'text-indigo-700' }}">
-                                                                        {{ $approvedPlayers }}/{{ $totalPlayers }}
+                                                                    <span class="text-xs font-bold <?php echo e($pct === 100 ? 'text-green-700' : 'text-indigo-700'); ?>">
+                                                                        <?php echo e($approvedPlayers); ?>/<?php echo e($totalPlayers); ?>
+
                                                                     </span>
-                                                                    <span class="text-[10px] font-black {{ $pct === 100 ? 'text-green-600' : 'text-titanium' }}">
-                                                                        {{ $pct }}%
+                                                                    <span class="text-[10px] font-black <?php echo e($pct === 100 ? 'text-green-600' : 'text-titanium'); ?>">
+                                                                        <?php echo e($pct); ?>%
                                                                     </span>
                                                                 </div>
                                                                 <div class="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
-                                                                    <div class="h-full rounded-full transition-all {{ $barColor }}"
-                                                                         style="width: {{ $pct }}%"></div>
+                                                                    <div class="h-full rounded-full transition-all <?php echo e($barColor); ?>"
+                                                                         style="width: <?php echo e($pct); ?>%"></div>
                                                                 </div>
                                                             </div>
-                                                        @else
+                                                        <?php else: ?>
                                                             <span class="text-xs text-titanium/40 font-semibold">—</span>
-                                                        @endif
+                                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                     </td>
-                                                    {{-- Grupo --}}
-                                                    @if ($hasGroups)
+                                                    
+                                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($hasGroups): ?>
                                                         <td class="px-4 py-3 text-center hidden lg:table-cell">
-                                                            @if ($team->group_label)
-                                                                <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10 text-xs font-black text-primary">{{ $team->group_label }}</span>
-                                                            @else
+                                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($team->group_label): ?>
+                                                                <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10 text-xs font-black text-primary"><?php echo e($team->group_label); ?></span>
+                                                            <?php else: ?>
                                                                 <span class="text-titanium/40">—</span>
-                                                            @endif
+                                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                         </td>
-                                                    @endif
-                                                    {{-- Acciones --}}
+                                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                                    
                                                     <td class="px-5 py-3">
                                                         <div class="flex items-center justify-end gap-1.5">
-                                                            <a href="{{ route('tournament.team.players', [$tournament, $team]) }}"
+                                                            <a href="<?php echo e(route('tournament.team.players', [$tournament, $team])); ?>"
                                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition-colors"
                                                                title="Jugadores">
                                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                                                                 <span class="hidden sm:inline">Jugadores</span>
                                                             </a>
-                                                            <button wire:click="openEditTeamModal({{ $team->id }})"
+                                                            <button wire:click="openEditTeamModal(<?php echo e($team->id); ?>)"
                                                                     class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 transition-colors"
                                                                     title="Editar equipo">
                                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                                                 <span class="hidden sm:inline">Editar</span>
                                                             </button>
-                                                            <button wire:click="confirmDeleteTeam({{ $team->id }})"
+                                                            <button wire:click="confirmDeleteTeam(<?php echo e($team->id); ?>)"
                                                                     class="p-1.5 rounded-lg text-titanium/40 hover:text-red-500 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors"
                                                                     title="Eliminar equipo">
                                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -1287,19 +1302,19 @@
                                                         </div>
                                                     </td>
                                                 </tr>
-                                            @endforeach
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
                 </div>
 
-                {{-- ========================= TAB: CONFIGURAR ========================= --}}
+                
                 <div x-show="tab === 'setup'" x-cloak>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {{-- Phases panel --}}
+                        
                         <div class="bg-white-pure border border-silver rounded-2xl shadow-sm p-6">
                             <div class="flex items-center justify-between mb-5">
                                 <div class="flex items-center gap-3">
@@ -1317,7 +1332,7 @@
                                     Nueva fase
                                 </button>
                             </div>
-                            @if ($phases->isEmpty())
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($phases->isEmpty()): ?>
                                 <div class="flex flex-col items-center justify-center py-10 border-2 border-dashed border-silver rounded-2xl">
                                     <svg class="w-10 h-10 text-titanium/30 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                                     <p class="text-sm text-titanium mb-3">Sin fases definidas</p>
@@ -1326,40 +1341,40 @@
                                         + Crear primera fase
                                     </button>
                                 </div>
-                            @else
+                            <?php else: ?>
                                 <div class="space-y-2">
-                                    @foreach ($phases as $phase)
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $phases; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $phase): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <div class="flex items-center gap-3 p-3.5 bg-gray-50 rounded-xl border border-silver/50">
-                                            <span class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-sm font-black text-primary shrink-0">{{ $phase->order }}</span>
+                                            <span class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-sm font-black text-primary shrink-0"><?php echo e($phase->order); ?></span>
                                             <div class="flex-1 min-w-0">
-                                                <p class="text-sm font-semibold text-black-deep">{{ $phase->name }}</p>
-                                                <p class="text-xs text-titanium mt-0.5">{{ $phase->typeLabel() }} · {{ $phase->matches_count }} partidos</p>
+                                                <p class="text-sm font-semibold text-black-deep"><?php echo e($phase->name); ?></p>
+                                                <p class="text-xs text-titanium mt-0.5"><?php echo e($phase->typeLabel()); ?> · <?php echo e($phase->matches_count); ?> partidos</p>
                                             </div>
                                             <div class="flex items-center gap-1 shrink-0">
-                                                @if (in_array($phase->type, ['knockout', 'double_elimination']))
-                                                    <button wire:click="openBracketModal({{ $phase->id }})"
+                                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(in_array($phase->type, ['knockout', 'double_elimination'])): ?>
+                                                    <button wire:click="openBracketModal(<?php echo e($phase->id); ?>)"
                                                             class="p-2 rounded-lg text-titanium hover:text-amber-600 hover:bg-amber-50 transition-colors" title="Configurar cuadro eliminatorio">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
                                                     </button>
-                                                @endif
-                                                <button wire:click="openEditPhaseModal({{ $phase->id }})"
+                                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                                <button wire:click="openEditPhaseModal(<?php echo e($phase->id); ?>)"
                                                         class="p-2 rounded-lg text-titanium hover:text-primary hover:bg-primary/10 transition-colors" title="Editar fase">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                                 </button>
-                                                <button wire:click="confirmDeletePhase({{ $phase->id }})"
+                                                <button wire:click="confirmDeletePhase(<?php echo e($phase->id); ?>)"
                                                         class="p-2 rounded-lg text-titanium hover:text-red-500 hover:bg-red-50 transition-colors" title="Eliminar fase">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                                 </button>
                                             </div>
                                         </div>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </div>
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
 
-                        {{-- Actions panel --}}
+                        
                         <div class="space-y-4">
-                            @if ($standings->isNotEmpty() || $matches->where('status', 'completed')->count() > 0)
+                            <?php if($standings->isNotEmpty() || $matches->where('status', 'completed')->count() > 0): ?>
                                 <div class="bg-white-pure border border-silver rounded-2xl shadow-sm p-6">
                                     <div class="flex items-center gap-3 mb-4">
                                         <div class="w-9 h-9 rounded-xl bg-green-100 flex items-center justify-center shrink-0">
@@ -1376,12 +1391,12 @@
                                         Recalcular clasificación
                                     </button>
                                 </div>
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                     </div>
                 </div>
 
-                {{-- ========================= TAB: ESTADÍSTICAS ========================= --}}
+                
                 <div x-show="tab === 'stats'" x-cloak>
                     <div class="bg-white-pure border border-silver rounded-2xl shadow-sm p-6 text-center">
                         <div class="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center mx-auto mb-4">
@@ -1389,7 +1404,7 @@
                         </div>
                         <h3 class="text-base font-bold text-black-deep mb-1">Estadísticas detalladas</h3>
                         <p class="text-sm text-titanium mb-5">Goleadores, tarjetas y sanciones del torneo.</p>
-                        <a href="{{ route('tournament.stats', $tournament) }}" wire:navigate
+                        <a href="<?php echo e(route('tournament.stats', $tournament)); ?>" wire:navigate
                            class="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                             Ver estadísticas completas
@@ -1397,11 +1412,11 @@
                     </div>
                 </div>
 
-                {{-- ========================= TAB: ÁRBITROS ========================= --}}
+                
                 <div x-show="tab === 'referees'" x-cloak>
                     <div class="flex items-center justify-between mb-4">
                         <p class="text-sm text-titanium">
-                            <span class="font-bold text-black-deep">{{ $assignedReferees->count() }}</span> árbitros asignados
+                            <span class="font-bold text-black-deep"><?php echo e($assignedReferees->count()); ?></span> árbitros asignados
                         </p>
                         <button wire:click="openRefereesModal"
                                 class="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow transition-colors">
@@ -1410,7 +1425,7 @@
                         </button>
                     </div>
 
-                    @if ($assignedReferees->isEmpty())
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($assignedReferees->isEmpty()): ?>
                         <div class="bg-white-pure border border-silver rounded-2xl shadow-sm p-12 text-center">
                             <div class="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center mx-auto mb-4">
                                 <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
@@ -1423,7 +1438,7 @@
                                 Asignar árbitros
                             </button>
                         </div>
-                    @else
+                    <?php else: ?>
                         <div class="bg-white-pure border border-silver rounded-2xl shadow-sm overflow-hidden">
                             <div class="overflow-x-auto">
                                 <table class="w-full text-sm">
@@ -1435,51 +1450,52 @@
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-50">
-                                        @foreach ($assignedReferees as $referee)
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $assignedReferees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $referee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                             <tr class="hover:bg-gray-50/60 transition-colors">
                                                 <td class="px-5 py-4">
                                                     <div class="flex items-center gap-3">
-                                                        @if ($referee->profile_photo_path)
-                                                            <img src="{{ asset('storage/' . $referee->profile_photo_path) }}"
+                                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($referee->profile_photo_path): ?>
+                                                            <img src="<?php echo e(asset('storage/' . $referee->profile_photo_path)); ?>"
                                                                  class="w-10 h-10 rounded-full object-cover border border-silver" alt="">
-                                                        @else
+                                                        <?php else: ?>
                                                             <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-                                                                <span class="text-sm font-black text-indigo-700">{{ strtoupper(substr($referee->name, 0, 1)) }}</span>
+                                                                <span class="text-sm font-black text-indigo-700"><?php echo e(strtoupper(substr($referee->name, 0, 1))); ?></span>
                                                             </div>
-                                                        @endif
+                                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                         <div>
-                                                            <p class="font-semibold text-black-deep">{{ $referee->name }}</p>
+                                                            <p class="font-semibold text-black-deep"><?php echo e($referee->name); ?></p>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td class="px-4 py-4 text-titanium hidden md:table-cell">
-                                                    {{ $referee->email }}
+                                                    <?php echo e($referee->email); ?>
+
                                                 </td>
                                                 <td class="px-4 py-4 text-center hidden sm:table-cell">
-                                                    @if ($referee->is_active)
+                                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($referee->is_active): ?>
                                                         <span class="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full">
                                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                                             Activo
                                                         </span>
-                                                    @else
+                                                    <?php else: ?>
                                                         <span class="inline-flex items-center gap-1 text-xs font-semibold text-gray-600 bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-full">
                                                             Inactivo
                                                         </span>
-                                                    @endif
+                                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                 </td>
                                             </tr>
-                                        @endforeach
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
 
-            @endif
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-        @else
-            @if ($categories->isEmpty() && $tournament->team_type !== 'open')
+        <?php else: ?>
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($categories->isEmpty() && $tournament->team_type !== 'open'): ?>
                 <div class="bg-white-pure border border-silver rounded-2xl shadow-sm p-12 text-center">
                     <div class="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
                         <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
@@ -1492,15 +1508,15 @@
                         Nueva Categoría
                     </button>
                 </div>
-            @endif
-        @endif
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
     </div>
 
-    {{-- ======================= MODALS ======================= --}}
+    
 
-    {{-- Generate matches modal --}}
-    @if ($showGenerateModal)
+    
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($showGenerateModal): ?>
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
             <div class="bg-white-pure rounded-2xl shadow-2xl border border-silver w-full max-w-md p-6">
                 <div class="flex items-center justify-between mb-5">
@@ -1518,14 +1534,21 @@
                         <select wire:model.live="generate_phase_id"
                                 class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-500">
                             <option value="">— Selecciona una fase —</option>
-                            @foreach ($phases as $phase)
-                                <option value="{{ $phase->id }}">{{ $phase->name }} ({{ $phase->typeLabel() }})</option>
-                            @endforeach
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $phases; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $phase): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($phase->id); ?>"><?php echo e($phase->name); ?> (<?php echo e($phase->typeLabel()); ?>)</option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </select>
-                        @error('generate_phase_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['generate_phase_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="text-red-500 text-xs mt-1"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
 
-                    @php
+                    <?php
                         $selectedGenPhase = $generate_phase_id ? $phases->firstWhere('id', (int) $generate_phase_id) : null;
                         $selectedGenPhaseType = $selectedGenPhase?->type;
                         $generateMaxTeams = 0;
@@ -1538,9 +1561,9 @@
                             }
                             $generateMaxTeams = $__q->count();
                         }
-                    @endphp
+                    ?>
 
-                    @if ($selectedGenPhaseType === 'league' && $generateMaxTeams >= 2)
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($selectedGenPhaseType === 'league' && $generateMaxTeams >= 2): ?>
                         <div>
                             <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">
                                 Equipos participantes en la liguilla
@@ -1549,31 +1572,38 @@
                                 <input type="number"
                                        wire:model="generate_team_count"
                                        min="2"
-                                       max="{{ $generateMaxTeams }}"
-                                       placeholder="Todos ({{ $generateMaxTeams }})"
+                                       max="<?php echo e($generateMaxTeams); ?>"
+                                       placeholder="Todos (<?php echo e($generateMaxTeams); ?>)"
                                        class="w-32 px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-500"/>
                                 <span class="text-xs text-titanium">
-                                    de <strong class="text-black-deep">{{ $generateMaxTeams }}</strong> disponibles
+                                    de <strong class="text-black-deep"><?php echo e($generateMaxTeams); ?></strong> disponibles
                                 </span>
                             </div>
                             <p class="text-xs text-titanium mt-1.5 leading-relaxed">
-                                Déjalo vacío (o pon <strong>{{ $generateMaxTeams }}</strong>) para generar el calendario con todos los equipos cruzados.
+                                Déjalo vacío (o pon <strong><?php echo e($generateMaxTeams); ?></strong>) para generar el calendario con todos los equipos cruzados.
                                 Indica un número <strong>menor</strong> para generar los partidos <strong>sin equipos asignados</strong> y rellenarlos a mano después.
                             </p>
-                            @error('generate_team_count') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['generate_team_count'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="text-red-500 text-xs mt-1"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                     <div>
                         <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Vueltas</label>
                         <div class="grid grid-cols-2 gap-3">
                             <label class="flex items-center gap-2 px-4 py-2.5 border rounded-xl cursor-pointer transition-colors
-                                {{ $generate_legs == 1 ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-silver text-titanium hover:border-indigo-300' }}">
+                                <?php echo e($generate_legs == 1 ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-silver text-titanium hover:border-indigo-300'); ?>">
                                 <input type="radio" wire:model="generate_legs" value="1" class="text-indigo-600"/>
                                 <span class="text-sm font-semibold">1 vuelta</span>
                             </label>
                             <label class="flex items-center gap-2 px-4 py-2.5 border rounded-xl cursor-pointer transition-colors
-                                {{ $generate_legs == 2 ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-silver text-titanium hover:border-indigo-300' }}">
+                                <?php echo e($generate_legs == 2 ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-silver text-titanium hover:border-indigo-300'); ?>">
                                 <input type="radio" wire:model="generate_legs" value="2" class="text-indigo-600"/>
                                 <span class="text-sm font-semibold">2 vueltas</span>
                             </label>
@@ -1599,14 +1629,14 @@
                 </div>
             </div>
         </div>
-    @endif
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-    {{-- Phase modal --}}
-    @if ($showPhaseModal)
+    
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($showPhaseModal): ?>
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
             <div class="bg-white-pure rounded-2xl shadow-2xl border border-silver w-full max-w-md p-6">
                 <div class="flex items-center justify-between mb-5">
-                    <h3 class="text-base font-bold text-black-deep">{{ $editingPhaseId ? 'Editar Fase' : 'Nueva Fase' }}</h3>
+                    <h3 class="text-base font-bold text-black-deep"><?php echo e($editingPhaseId ? 'Editar Fase' : 'Nueva Fase'); ?></h3>
                     <button wire:click="$set('showPhaseModal', false)" class="p-1.5 rounded-lg text-titanium hover:bg-gray-100 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
@@ -1616,7 +1646,14 @@
                         <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Nombre *</label>
                         <input wire:model="phase_name" type="text" placeholder="Ej: Fase de grupos"
                                class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"/>
-                        @error('phase_name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['phase_name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="text-red-500 text-xs mt-1"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -1636,8 +1673,8 @@
                                    class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-center font-bold"/>
                         </div>
                     </div>
-                    {{-- Dynamic phase type description --}}
-                    @php
+                    
+                    <?php
                         $phaseDescriptions = [
                             'league'             => ['icon' => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', 'color' => 'blue', 'title' => 'Liga', 'text' => 'Todos los equipos se enfrentan entre sí. Se puntúan victorias, empates y derrotas. Ideal para competiciones donde todos se miden entre sí.'],
                             'group'              => ['icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v2h5m-5-2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', 'color' => 'violet', 'title' => 'Fase de Grupos', 'text' => 'Los equipos se dividen en grupos donde juegan todos contra todos. Los primeros de cada grupo pasan a la siguiente ronda.'],
@@ -1648,14 +1685,14 @@
                         $desc = $phaseDescriptions[$phase_type] ?? $phaseDescriptions['league'];
                         $colorMap = ['blue' => 'bg-blue-50 border-blue-200 text-blue-800', 'violet' => 'bg-violet-50 border-violet-200 text-violet-800', 'red' => 'bg-red-50 border-red-200 text-red-800', 'amber' => 'bg-amber-50 border-amber-200 text-amber-800', 'green' => 'bg-green-50 border-green-200 text-green-800'];
                         $iconColor = ['blue' => 'text-blue-500', 'violet' => 'text-violet-500', 'red' => 'text-red-500', 'amber' => 'text-amber-500', 'green' => 'text-green-500'];
-                    @endphp
-                    <div class="flex gap-3 p-3 rounded-xl border {{ $colorMap[$desc['color']] }}">
-                        <svg class="w-5 h-5 shrink-0 mt-0.5 {{ $iconColor[$desc['color']] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $desc['icon'] }}"/>
+                    ?>
+                    <div class="flex gap-3 p-3 rounded-xl border <?php echo e($colorMap[$desc['color']]); ?>">
+                        <svg class="w-5 h-5 shrink-0 mt-0.5 <?php echo e($iconColor[$desc['color']]); ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<?php echo e($desc['icon']); ?>"/>
                         </svg>
                         <div>
-                            <p class="text-xs font-bold mb-0.5">{{ $desc['title'] }}</p>
-                            <p class="text-xs leading-relaxed">{{ $desc['text'] }}</p>
+                            <p class="text-xs font-bold mb-0.5"><?php echo e($desc['title']); ?></p>
+                            <p class="text-xs leading-relaxed"><?php echo e($desc['text']); ?></p>
                         </div>
                     </div>
                     <div>
@@ -1675,57 +1712,65 @@
                     </button>
                     <button wire:click="savePhase"
                             class="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors">
-                        {{ $editingPhaseId ? 'Guardar cambios' : 'Crear Fase' }}
+                        <?php echo e($editingPhaseId ? 'Guardar cambios' : 'Crear Fase'); ?>
+
                     </button>
                 </div>
             </div>
         </div>
-    @endif
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-    {{-- Team modal --}}
-    @if ($showTeamModal)
+    
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($showTeamModal): ?>
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
             <div class="bg-white-pure rounded-2xl shadow-2xl border border-silver w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
                 <div class="flex items-center justify-between p-6 pb-5 shrink-0">
-                    <h3 class="text-base font-bold text-black-deep">{{ $editingTeamId ? 'Editar Equipo' : 'Añadir Equipo' }}</h3>
+                    <h3 class="text-base font-bold text-black-deep"><?php echo e($editingTeamId ? 'Editar Equipo' : 'Añadir Equipo'); ?></h3>
                     <button wire:click="$set('showTeamModal', false)" class="p-1.5 rounded-lg text-titanium hover:bg-gray-100 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
                 <div class="px-6 pb-6 flex-1 min-h-0 overflow-y-auto">
-                @include('livewire.tournaments._recent-teams')
-                @if ($editingTeamId || $teamCreationMode === 'new')
+                <?php echo $__env->make('livewire.tournaments._recent-teams', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($editingTeamId || $teamCreationMode === 'new'): ?>
                 <div class="space-y-4">
-                    @if ($tournament->team_type === 'open')
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tournament->team_type === 'open'): ?>
                         <div class="flex items-center gap-2 p-3 bg-blue-50 rounded-xl border border-blue-100">
                             <svg class="w-4 h-4 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <p class="text-xs text-blue-700 font-medium">Torneo abierto: solo se pueden inscribir equipos externos.</p>
                         </div>
-                    @else
+                    <?php else: ?>
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-silver">
                             <label class="text-sm font-medium text-black-deep">Equipo externo</label>
-                            <button wire:click="$set('external_team', {{ $external_team ? 'false' : 'true' }})"
-                                    class="relative inline-flex items-center w-10 h-6 rounded-full transition-colors {{ $external_team ? 'bg-primary' : 'bg-silver' }}">
-                                <span class="inline-block w-4 h-4 bg-white rounded-full shadow transition-transform {{ $external_team ? 'translate-x-5' : 'translate-x-1' }}"></span>
+                            <button wire:click="$set('external_team', <?php echo e($external_team ? 'false' : 'true'); ?>)"
+                                    class="relative inline-flex items-center w-10 h-6 rounded-full transition-colors <?php echo e($external_team ? 'bg-primary' : 'bg-silver'); ?>">
+                                <span class="inline-block w-4 h-4 bg-white rounded-full shadow transition-transform <?php echo e($external_team ? 'translate-x-5' : 'translate-x-1'); ?>"></span>
                             </button>
                         </div>
-                    @endif
-                    @if ($external_team)
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($external_team): ?>
                         <div>
                             <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Nombre del equipo *</label>
                             <input wire:model="name_override" type="text" placeholder="Nombre del equipo externo"
                                    class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"/>
-                            @error('name_override') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['name_override'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="text-red-500 text-xs mt-1"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
-                    @else
+                    <?php else: ?>
                         <div>
                             <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Equipo de la escuela</label>
                             <select wire:model="team_id"
                                     class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary">
                                 <option value="">Seleccionar equipo...</option>
-                                @foreach ($schoolTeams as $st)
-                                    <option value="{{ $st->id }}">{{ $st->team }}</option>
-                                @endforeach
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $schoolTeams; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $st): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($st->id); ?>"><?php echo e($st->team); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </select>
                         </div>
                         <div>
@@ -1733,59 +1778,96 @@
                             <input wire:model="name_override" type="text" placeholder="Dejar vacío para usar nombre del equipo"
                                    class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"/>
                         </div>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                    {{-- Logo / Escudo --}}
+                    
                     <div>
                         <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Escudo del equipo</label>
-                        @if ($team_logo && !$team_logo_upload)
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($team_logo && !$team_logo_upload): ?>
                             <div class="flex items-center gap-3 mb-2">
-                                <img src="{{ asset('storage/' . $team_logo) }}" class="w-14 h-14 object-cover rounded-xl border border-silver">
+                                <img src="<?php echo e(asset('storage/' . $team_logo)); ?>" class="w-14 h-14 object-cover rounded-xl border border-silver">
                                 <button wire:click="deleteTeamLogo" type="button" class="text-xs text-red-500 hover:text-red-700 font-semibold">Eliminar</button>
                             </div>
-                        @endif
-                        @if ($team_logo_upload)
-                            <img src="{{ $team_logo_upload->temporaryUrl() }}" class="w-14 h-14 object-cover rounded-xl border border-silver mb-2">
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($team_logo_upload): ?>
+                            <img src="<?php echo e($team_logo_upload->temporaryUrl()); ?>" class="w-14 h-14 object-cover rounded-xl border border-silver mb-2">
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         <input wire:model="team_logo_upload" type="file" accept="image/*"
                                class="w-full text-sm text-titanium file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"/>
                         <div wire:loading wire:target="team_logo_upload" class="text-xs text-primary mt-1">Subiendo...</div>
-                        @error('team_logo_upload') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['team_logo_upload'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="text-red-500 text-xs mt-1"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         <p class="text-xs text-titanium/60 mt-1">PNG, JPG (máx. 2MB)</p>
                     </div>
 
-                    {{-- Contact --}}
+                    
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Nombre de contacto</label>
                             <input wire:model="team_contact_name" type="text" placeholder="Nombre"
                                    class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"/>
-                            @error('team_contact_name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['team_contact_name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="text-red-500 text-xs mt-1"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Teléfono</label>
                             <input wire:model="team_contact_phone" type="tel" placeholder="600 000 000"
                                    class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"/>
-                            @error('team_contact_phone') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['team_contact_phone'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="text-red-500 text-xs mt-1"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                     </div>
 
-                    {{-- Access credentials --}}
+                    
                     <div>
                         <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">
-                            Email de acceso {{ $tournament->team_type === 'open' ? '*' : '(opcional)' }}
+                            Email de acceso <?php echo e($tournament->team_type === 'open' ? '*' : '(opcional)'); ?>
+
                         </label>
                         <input wire:model="team_email" type="email" placeholder="equipo@ejemplo.com"
                                class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"/>
-                        @error('team_email') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['team_email'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="text-red-500 text-xs mt-1"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">
-                            Contraseña {{ $editingTeamId ? '(dejar vacío para no cambiar)' : ($tournament->team_type === 'open' ? '*' : '(opcional)') }}
+                            Contraseña <?php echo e($editingTeamId ? '(dejar vacío para no cambiar)' : ($tournament->team_type === 'open' ? '*' : '(opcional)')); ?>
+
                         </label>
-                        <input wire:model="team_password" type="password" placeholder="{{ $editingTeamId ? '••••••' : 'Contraseña de acceso' }}"
+                        <input wire:model="team_password" type="password" placeholder="<?php echo e($editingTeamId ? '••••••' : 'Contraseña de acceso'); ?>"
                                class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"/>
-                        @error('team_password') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['team_password'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="text-red-500 text-xs mt-1"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         <p class="text-xs text-titanium/60 mt-1">Acceso al área de gestión del equipo (mínimo 6 caracteres).</p>
                     </div>
 
@@ -1802,31 +1884,32 @@
                         </div>
                     </div>
                 </div>
-                @endif
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
                 <div class="flex gap-3 p-6 border-t border-gray-100 bg-white-pure shrink-0" data-team-modal-footer>
                     <button wire:click="$set('showTeamModal', false)"
                             class="flex-1 py-2.5 rounded-xl border border-silver text-sm font-semibold text-titanium hover:bg-gray-50 transition-colors">
                         Cancelar
                     </button>
-                    @if ($editingTeamId || $teamCreationMode === 'new')
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($editingTeamId || $teamCreationMode === 'new'): ?>
                     <button wire:click="saveTeam"
                             class="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors">
-                        {{ $editingTeamId ? 'Guardar cambios' : 'Añadir Equipo' }}
+                        <?php echo e($editingTeamId ? 'Guardar cambios' : 'Añadir Equipo'); ?>
+
                     </button>
-                    @else
-                        @include('livewire.tournaments._recent-teams-submit')
-                    @endif
+                    <?php else: ?>
+                        <?php echo $__env->make('livewire.tournaments._recent-teams-submit', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
             </div>
         </div>
-    @endif
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-    {{-- ========================= MODAL: BRACKET ========================= --}}
-    @if ($showBracketModal)
+    
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($showBracketModal): ?>
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm overflow-y-auto">
             <div class="bg-white-pure rounded-2xl shadow-2xl border border-silver w-full max-w-xl p-6 my-4">
-                {{-- Header --}}
+                
                 <div class="flex items-center justify-between mb-5">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
@@ -1839,44 +1922,44 @@
                     </button>
                 </div>
 
-                {{-- Quick-select top N --}}
+                
 
-                {{-- Round selector --}}
+                
                 <div class="mb-5">
                     <p class="text-xs font-semibold text-titanium uppercase tracking-wide mb-3">Primera ronda del cuadro</p>
                     <div class="grid grid-cols-2 gap-2">
-                        @foreach ([
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = [
                             1 => ['label' => 'Final',           'sub' => '2 equipos'],
                             2 => ['label' => 'Semifinal',       'sub' => '4 equipos'],
                             3 => ['label' => 'Cuartos de Final','sub' => '8 equipos'],
                             4 => ['label' => 'Octavos de Final','sub' => '16 equipos'],
                             5 => ['label' => '16avos de Final', 'sub' => '32 equipos'],
-                        ] as $rc => $info)
-                            <button wire:click="$set('bracketRoundCount', {{ $rc }})"
+                        ]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $rc => $info): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <button wire:click="$set('bracketRoundCount', <?php echo e($rc); ?>)"
                                     class="flex flex-col items-center justify-center gap-0.5 px-3 py-3 rounded-xl border-2 transition-all text-center
-                                        {{ $bracketRoundCount === $rc
+                                        <?php echo e($bracketRoundCount === $rc
                                             ? 'border-primary bg-primary/5 text-primary'
-                                            : 'border-silver bg-gray-50 text-titanium hover:border-primary/40 hover:text-black-deep' }}">
-                                <span class="text-sm font-bold leading-tight">{{ $info['label'] }}</span>
-                                <span class="text-[11px] font-medium {{ $bracketRoundCount === $rc ? 'text-primary/70' : 'text-titanium/60' }}">{{ $info['sub'] }}</span>
+                                            : 'border-silver bg-gray-50 text-titanium hover:border-primary/40 hover:text-black-deep'); ?>">
+                                <span class="text-sm font-bold leading-tight"><?php echo e($info['label']); ?></span>
+                                <span class="text-[11px] font-medium <?php echo e($bracketRoundCount === $rc ? 'text-primary/70' : 'text-titanium/60'); ?>"><?php echo e($info['sub']); ?></span>
                             </button>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
                 </div>
 
                 <div class="mb-5 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
                     <p class="text-xs text-blue-800">
                         Se generará un cuadro vacío con
-                        <strong>{{ (int) pow(2, $bracketRoundCount) }}</strong> plazas y
-                        <strong>{{ $bracketRoundCount }}</strong> {{ $bracketRoundCount === 1 ? 'ronda' : 'rondas' }}.
+                        <strong><?php echo e((int) pow(2, $bracketRoundCount)); ?></strong> plazas y
+                        <strong><?php echo e($bracketRoundCount); ?></strong> <?php echo e($bracketRoundCount === 1 ? 'ronda' : 'rondas'); ?>.
                         Asigna los equipos directamente en cada partido del cuadro.
                     </p>
                 </div>
 
-                @if ($bracketModalStandings->isNotEmpty())
-                @endif
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bracketModalStandings->isNotEmpty()): ?>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                {{-- Options --}}
+                
                 <div class="mb-5 space-y-3">
                     <label class="flex items-center gap-3 cursor-pointer">
                         <input type="checkbox" wire:model="bracketThirdPlace"
@@ -1896,7 +1979,7 @@
                     </label>
                 </div>
 
-                {{-- Actions --}}
+                
                 <div class="flex gap-3">
                     <button wire:click="$set('showBracketModal', false)"
                             class="flex-1 py-2.5 rounded-xl border border-silver text-sm font-semibold text-titanium hover:bg-gray-50 transition-colors">
@@ -1909,14 +1992,14 @@
                 </div>
             </div>
         </div>
-    @endif
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-    {{-- Match modal --}}
-    @if ($showMatchModal)
+    
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($showMatchModal): ?>
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm overflow-y-auto">
             <div class="bg-white-pure rounded-2xl shadow-2xl border border-silver w-full max-w-lg p-6 my-4">
                 <div class="flex items-center justify-between mb-5">
-                    <h3 class="text-base font-bold text-black-deep">{{ $editingMatchId ? 'Editar Partido' : 'Nuevo Partido' }}</h3>
+                    <h3 class="text-base font-bold text-black-deep"><?php echo e($editingMatchId ? 'Editar Partido' : 'Nuevo Partido'); ?></h3>
                     <button wire:click="$set('showMatchModal', false)" class="p-1.5 rounded-lg text-titanium hover:bg-gray-100 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
@@ -1927,9 +2010,9 @@
                         <select wire:model="match_phase_id"
                                 class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary">
                             <option value="">Sin fase</option>
-                            @foreach ($phases as $phase)
-                                <option value="{{ $phase->id }}">{{ $phase->name }}</option>
-                            @endforeach
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $phases; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $phase): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($phase->id); ?>"><?php echo e($phase->name); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </select>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
@@ -1938,22 +2021,36 @@
                             <select wire:model="match_home_id"
                                     class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary">
                                 <option value="">Seleccionar...</option>
-                                @foreach ($teams as $t)
-                                    <option value="{{ $t->id }}">{{ $t->displayName() }}</option>
-                                @endforeach
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $teams; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $t): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($t->id); ?>"><?php echo e($t->displayName()); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </select>
-                            @error('match_home_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['match_home_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="text-red-500 text-xs mt-1"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Equipo visitante *</label>
                             <select wire:model="match_away_id"
                                     class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary">
                                 <option value="">Seleccionar...</option>
-                                @foreach ($teams as $t)
-                                    <option value="{{ $t->id }}">{{ $t->displayName() }}</option>
-                                @endforeach
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $teams; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $t): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($t->id); ?>"><?php echo e($t->displayName()); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </select>
-                            @error('match_away_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['match_away_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="text-red-500 text-xs mt-1"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
@@ -2004,16 +2101,17 @@
                     </button>
                     <button wire:click="saveMatch"
                             class="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors">
-                        {{ $editingMatchId ? 'Guardar cambios' : 'Crear Partido' }}
+                        <?php echo e($editingMatchId ? 'Guardar cambios' : 'Crear Partido'); ?>
+
                     </button>
                 </div>
             </div>
         </div>
-    @endif
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-    {{-- Goals Modal — register match results by entering goal scorers --}}
-    @if ($showGoalsModal && $goalsModalMatch)
-        @php
+    
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($showGoalsModal && $goalsModalMatch): ?>
+        <?php
             $gm_homeTeamId = $goalsModalMatch->home_team_id;
             $gm_awayTeamId = $goalsModalMatch->away_team_id;
             // Merge goals + cards into a unified timeline sorted by minute (nulls last)
@@ -2036,13 +2134,13 @@
                     'teamId'  => $c->tournament_team_id,
                 ])
             )->sortBy(fn($e) => $e->minute ?? 999)->values();
-        @endphp
+        ?>
 
         <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/50 backdrop-blur-sm"
              wire:keydown.window.escape="closeGoalsModal">
             <div class="bg-white w-full sm:max-w-2xl max-h-[96vh] sm:max-h-[92vh] sm:rounded-2xl rounded-t-2xl shadow-2xl border border-silver flex flex-col overflow-hidden">
 
-                {{-- ===== HEADER: título + cerrar ===== --}}
+                
                 <div class="px-5 pt-4 pb-3 border-b border-silver shrink-0">
                     <div class="flex items-center justify-between">
                         <p class="text-xs font-semibold text-titanium uppercase tracking-wider">Control del partido</p>
@@ -2052,32 +2150,33 @@
                     </div>
                 </div>
 
-                {{-- ===== SCOREBOARD ===== --}}
+                
                 <div class="px-5 py-4 border-b border-silver shrink-0
-                    {{ $goalsModalMatch->status === 'in_progress' ? 'bg-green-50/60' : 'bg-gray-50/40' }}">
-                    {{-- Score row --}}
+                    <?php echo e($goalsModalMatch->status === 'in_progress' ? 'bg-green-50/60' : 'bg-gray-50/40'); ?>">
+                    
                     <div class="flex items-center gap-2">
-                        <p class="flex-1 text-right text-sm font-bold text-black-deep leading-tight">{{ $goalsModalMatch->homeTeam?->displayName() ?? '—' }}</p>
-                        <button wire:click="openGoalsModal({{ $goalsModalMatch->id }})"
+                        <p class="flex-1 text-right text-sm font-bold text-black-deep leading-tight"><?php echo e($goalsModalMatch->homeTeam?->displayName() ?? '—'); ?></p>
+                        <button wire:click="openGoalsModal(<?php echo e($goalsModalMatch->id); ?>)"
                                 class="shrink-0 px-4 py-2.5 rounded-xl text-center font-black text-2xl min-w-[90px]
-                                    {{ $goalsModalMatch->status === 'in_progress'
+                                    <?php echo e($goalsModalMatch->status === 'in_progress'
                                         ? 'bg-green-500 text-white border border-green-600 shadow-sm'
                                         : ($goalsModalMatch->status === 'completed'
                                             ? 'bg-gray-100 text-black-deep border border-silver'
-                                            : 'bg-white border-2 border-dashed border-silver text-titanium') }}">
-                            {{ $goalsModalMatch->home_score ?? 0 }} – {{ $goalsModalMatch->away_score ?? 0 }}
+                                            : 'bg-white border-2 border-dashed border-silver text-titanium')); ?>">
+                            <?php echo e($goalsModalMatch->home_score ?? 0); ?> – <?php echo e($goalsModalMatch->away_score ?? 0); ?>
+
                         </button>
-                        <p class="flex-1 text-left text-sm font-bold text-black-deep leading-tight">{{ $goalsModalMatch->awayTeam?->displayName() ?? '—' }}</p>
+                        <p class="flex-1 text-left text-sm font-bold text-black-deep leading-tight"><?php echo e($goalsModalMatch->awayTeam?->displayName() ?? '—'); ?></p>
                     </div>
-                    {{-- Status controls --}}
+                    
                     <div class="flex items-center justify-center gap-2 mt-3">
-                        @if ($goalsModalMatch->status === 'scheduled' || $goalsModalMatch->status === 'postponed')
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($goalsModalMatch->status === 'scheduled' || $goalsModalMatch->status === 'postponed'): ?>
                             <button wire:click="gmStartMatch"
                                     class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary/90 transition-colors shadow-sm">
                                 <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                                 Iniciar partido
                             </button>
-                        @elseif ($goalsModalMatch->status === 'in_progress')
+                        <?php elseif($goalsModalMatch->status === 'in_progress'): ?>
                             <span class="inline-flex items-center gap-1.5 text-xs font-black text-white bg-red-500 px-3 py-1.5 rounded-full animate-pulse">
                                 <span class="w-1.5 h-1.5 rounded-full bg-white shrink-0"></span>
                                 EN VIVO
@@ -2087,7 +2186,7 @@
                                 <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12"/></svg>
                                 Finalizar partido
                             </button>
-                        @elseif ($goalsModalMatch->status === 'completed')
+                        <?php elseif($goalsModalMatch->status === 'completed'): ?>
                             <span class="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-100 border border-green-200 px-3 py-1.5 rounded-full">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                 Partido finalizado
@@ -2096,26 +2195,26 @@
                                     class="text-xs font-semibold text-titanium border border-silver px-3 py-1.5 rounded-xl hover:bg-gray-50 transition-colors">
                                 Reabrir
                             </button>
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
                 </div>
 
-                {{-- ===== CUERPO DESPLAZABLE: timeline + panel ===== --}}
+                
                 <div class="flex-1 overflow-y-auto min-h-0">
 
-                {{-- ===== TIMELINE (goles + tarjetas) ===== --}}
+                
                 <div class="px-4 py-3 space-y-1.5">
-                    @if ($gm_timeline->isEmpty())
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($gm_timeline->isEmpty()): ?>
                         <div class="text-center py-8">
                             <div class="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
                                 <span class="text-2xl">⚽</span>
                             </div>
                             <p class="text-sm text-titanium">Aún no hay eventos registrados</p>
                         </div>
-                    @else
-                        @foreach ($gm_timeline as $event)
-                            @php $isHome = $event->teamId === $gm_homeTeamId; @endphp
-                            @if ($event->type === 'goal' && $gm_deletingGoalId === $event->id)
+                    <?php else: ?>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $gm_timeline; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $event): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <?php $isHome = $event->teamId === $gm_homeTeamId; ?>
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($event->type === 'goal' && $gm_deletingGoalId === $event->id): ?>
                                 <div class="flex items-center justify-between bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
                                     <span class="text-sm text-red-700">¿Eliminar este gol?</span>
                                     <div class="flex gap-2">
@@ -2123,7 +2222,7 @@
                                         <button wire:click="gmDeleteGoal" class="px-3 py-1 text-xs font-semibold text-white bg-red-500 rounded-lg hover:bg-red-600">Sí</button>
                                     </div>
                                 </div>
-                            @elseif ($event->type === 'card' && $gm_deletingCardId === $event->id)
+                            <?php elseif($event->type === 'card' && $gm_deletingCardId === $event->id): ?>
                                 <div class="flex items-center justify-between bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
                                     <span class="text-sm text-red-700">¿Eliminar esta tarjeta?</span>
                                     <div class="flex gap-2">
@@ -2131,235 +2230,250 @@
                                         <button wire:click="gmDeleteCard" class="px-3 py-1 text-xs font-semibold text-white bg-red-500 rounded-lg hover:bg-red-600">Sí</button>
                                     </div>
                                 </div>
-                            @else
+                            <?php else: ?>
                                 <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 group transition-colors
-                                    {{ $event->type === 'card' && in_array($event->subtype, ['red','double_yellow']) ? 'bg-red-50/60' : '' }}">
-                                    {{-- Minute --}}
+                                    <?php echo e($event->type === 'card' && in_array($event->subtype, ['red','double_yellow']) ? 'bg-red-50/60' : ''); ?>">
+                                    
                                     <span class="shrink-0 w-9 text-center text-[11px] font-bold text-titanium">
-                                        {{ $event->minute ? $event->minute . "'" : '—' }}
+                                        <?php echo e($event->minute ? $event->minute . "'" : '—'); ?>
+
                                     </span>
-                                    {{-- Icon --}}
+                                    
                                     <span class="shrink-0 text-base leading-none">
-                                        @if ($event->type === 'goal') ⚽
-                                        @elseif ($event->subtype === 'yellow') 🟨
-                                        @elseif ($event->subtype === 'red') 🟥
-                                        @else 🟨🟥
-                                        @endif
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($event->type === 'goal'): ?> ⚽
+                                        <?php elseif($event->subtype === 'yellow'): ?> 🟨
+                                        <?php elseif($event->subtype === 'red'): ?> 🟥
+                                        <?php else: ?> 🟨🟥
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                     </span>
-                                    {{-- Info --}}
+                                    
                                     <div class="flex-1 min-w-0">
                                         <p class="text-sm font-semibold text-black-deep truncate">
-                                            @if ($event->player)
-                                                {{ $event->player->dorsal ? '#' . $event->player->dorsal . ' ' : '' }}{{ $event->player->surname }} {{ $event->player->name }}
-                                            @else
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($event->player): ?>
+                                                <?php echo e($event->player->dorsal ? '#' . $event->player->dorsal . ' ' : ''); ?><?php echo e($event->player->surname); ?> <?php echo e($event->player->name); ?>
+
+                                            <?php else: ?>
                                                 <span class="italic text-titanium">Gol sin jugador</span>
-                                            @endif
-                                            @if ($event->type === 'goal')
-                                                @if ($event->subtype === 'own_goal')
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($event->type === 'goal'): ?>
+                                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($event->subtype === 'own_goal'): ?>
                                                     <span class="text-xs font-normal text-red-500">(p.p.)</span>
-                                                @elseif ($event->subtype === 'penalty')
+                                                <?php elseif($event->subtype === 'penalty'): ?>
                                                     <span class="text-xs font-normal text-blue-500">(pen.)</span>
-                                                @endif
-                                            @elseif ($event->subtype === 'double_yellow')
+                                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <?php elseif($event->subtype === 'double_yellow'): ?>
                                                 <span class="text-xs font-normal text-orange-500">(2ª amarilla)</span>
-                                            @endif
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                         </p>
-                                        <p class="text-xs text-titanium truncate">{{ $event->team?->displayName() }}</p>
+                                        <p class="text-xs text-titanium truncate"><?php echo e($event->team?->displayName()); ?></p>
                                     </div>
-                                    {{-- Side indicator --}}
+                                    
                                     <span class="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded
-                                        {{ $isHome ? 'bg-primary/10 text-primary' : 'bg-orange-100 text-orange-600' }}">
-                                        {{ $isHome ? 'L' : 'V' }}
+                                        <?php echo e($isHome ? 'bg-primary/10 text-primary' : 'bg-orange-100 text-orange-600'); ?>">
+                                        <?php echo e($isHome ? 'L' : 'V'); ?>
+
                                     </span>
-                                    {{-- Delete --}}
-                                    <button wire:click="{{ $event->type === 'goal' ? 'gmConfirmDeleteGoal' : 'gmConfirmDeleteCard' }}({{ $event->id }})"
+                                    
+                                    <button wire:click="<?php echo e($event->type === 'goal' ? 'gmConfirmDeleteGoal' : 'gmConfirmDeleteCard'); ?>(<?php echo e($event->id); ?>)"
                                             class="shrink-0 p-1.5 rounded-lg text-titanium/20 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     </button>
                                 </div>
-                            @endif
-                        @endforeach
-                    @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
 
-                {{-- ===== ADD EVENT PANEL ===== --}}
+                
                 <div class="border-t border-silver bg-gray-50/60 rounded-b-2xl">
 
-                    {{-- Paso 1 · Tipo de evento --}}
+                    
                     <div class="flex px-4 pt-3 gap-2">
                         <button wire:click="gmSetAction('goal')"
                                 class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold transition-all
-                                    {{ $gm_action === 'goal' ? 'bg-primary text-white shadow-sm' : 'bg-white border border-silver text-titanium hover:bg-gray-50' }}">
+                                    <?php echo e($gm_action === 'goal' ? 'bg-primary text-white shadow-sm' : 'bg-white border border-silver text-titanium hover:bg-gray-50'); ?>">
                             ⚽ Gol
                         </button>
                         <button wire:click="gmSetAction('card')"
                                 class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold transition-all
-                                    {{ $gm_action === 'card' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white border border-silver text-titanium hover:bg-gray-50' }}">
+                                    <?php echo e($gm_action === 'card' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white border border-silver text-titanium hover:bg-gray-50'); ?>">
                             🟨 Tarjeta
                         </button>
                     </div>
 
                     <div class="px-4 pb-4 pt-4 space-y-4">
 
-                        {{-- Paso 2 · Seleccionar equipo --}}
+                        
                         <div>
                             <p class="text-[11px] font-bold text-titanium uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
                                 <span class="inline-flex w-4 h-4 rounded-full bg-titanium/20 items-center justify-center text-[10px] font-black shrink-0">1</span>
                                 ¿De qué equipo?
                             </p>
                             <div class="grid grid-cols-2 gap-2">
-                                @foreach ($gmMatchTeams as $t)
-                                    @php
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $gmMatchTeams; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $t): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <?php
                                         $isHome     = $t->id === $gm_homeTeamId;
                                         $isSelected = (string)$gm_team_id === (string)$t->id;
-                                    @endphp
-                                    <button wire:click="gmSelectTeam({{ $t->id }})"
+                                    ?>
+                                    <button wire:click="gmSelectTeam(<?php echo e($t->id); ?>)"
                                             class="relative flex flex-col items-center justify-center gap-0.5 px-3 py-3.5 rounded-xl border-2 transition-all min-h-[68px]
-                                                {{ $isSelected
+                                                <?php echo e($isSelected
                                                     ? ($isHome ? 'border-primary bg-primary text-white shadow-md' : 'border-orange-500 bg-orange-500 text-white shadow-md')
-                                                    : ($isHome ? 'border-primary/20 bg-white text-primary hover:border-primary/50 hover:bg-primary/5' : 'border-orange-200 bg-white text-orange-600 hover:border-orange-400 hover:bg-orange-50') }}">
-                                        @if ($isSelected)
+                                                    : ($isHome ? 'border-primary/20 bg-white text-primary hover:border-primary/50 hover:bg-primary/5' : 'border-orange-200 bg-white text-orange-600 hover:border-orange-400 hover:bg-orange-50')); ?>">
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($isSelected): ?>
                                             <svg class="absolute top-1.5 right-1.5 w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                                             </svg>
-                                        @endif
-                                        <span class="text-[10px] font-semibold uppercase tracking-wider {{ $isSelected ? 'text-white/70' : 'opacity-60' }}">
-                                            {{ $isHome ? 'Local' : 'Visitante' }}
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <span class="text-[10px] font-semibold uppercase tracking-wider <?php echo e($isSelected ? 'text-white/70' : 'opacity-60'); ?>">
+                                            <?php echo e($isHome ? 'Local' : 'Visitante'); ?>
+
                                         </span>
                                         <span class="text-xs font-bold text-center leading-tight mt-0.5">
-                                            {{ $t->displayName() }}
+                                            <?php echo e($t->displayName()); ?>
+
                                         </span>
                                     </button>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </div>
                         </div>
 
-                        {{-- Paso 3 · Seleccionar jugador (sólo si hay equipo seleccionado) --}}
-                        @if ($gm_team_id)
-                            @php
+                        
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($gm_team_id): ?>
+                            <?php
                                 $isHomeTeam     = (int)$gm_team_id === $gm_homeTeamId;
                                 $teamHasPlayers = $gmTeamPlayers->isNotEmpty() || $gm_player_search !== '';
-                            @endphp
+                            ?>
                             <div>
                                 <p class="text-[11px] font-bold text-titanium uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
                                     <span class="inline-flex w-4 h-4 rounded-full bg-titanium/20 items-center justify-center text-[10px] font-black shrink-0">2</span>
-                                    @if ($gm_action === 'goal')
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($gm_action === 'goal'): ?>
                                         ¿Qué jugador? <span class="text-titanium/60 normal-case font-semibold">(opcional)</span>
-                                    @else
+                                    <?php else: ?>
                                         ¿Qué jugador?
-                                    @endif
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </p>
-                                {{-- Buscador --}}
-                                @if ($teamHasPlayers)
+                                
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($teamHasPlayers): ?>
                                     <div class="relative mb-2.5">
                                         <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-titanium/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                                         <input wire:model.live="gm_player_search"
                                                type="text" placeholder="Buscar por dorsal o nombre..."
                                                class="w-full pl-9 pr-3 py-2 text-sm border border-silver rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"/>
                                     </div>
-                                @endif
-                                @if ($gmTeamPlayers->isEmpty())
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($gmTeamPlayers->isEmpty()): ?>
                                     <div class="bg-white border border-dashed border-silver rounded-xl px-4 py-4 text-center">
                                         <p class="text-xs text-titanium mb-2">
-                                            {{ $gm_player_search
+                                            <?php echo e($gm_player_search
                                                 ? 'Sin resultados para "' . $gm_player_search . '"'
-                                                : 'Este equipo no tiene jugadores inscritos.' }}
+                                                : 'Este equipo no tiene jugadores inscritos.'); ?>
+
                                         </p>
-                                        @if ($gm_action === 'goal' && $gm_player_search === '')
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($gm_action === 'goal' && $gm_player_search === ''): ?>
                                             <p class="text-[11px] text-titanium/70 leading-relaxed">
                                                 Puedes registrar el gol <strong class="text-black-deep">sin asignarlo a ningún jugador</strong>; solo contará para el marcador del equipo.
                                             </p>
-                                        @elseif ($gm_action === 'card')
+                                        <?php elseif($gm_action === 'card'): ?>
                                             <p class="text-[11px] text-titanium/70">Las tarjetas requieren un jugador registrado.</p>
-                                        @endif
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                     </div>
-                                @else
+                                <?php else: ?>
                                     <div class="grid grid-cols-3 gap-1.5">
-                                        @foreach ($gmTeamPlayers as $p)
-                                            @php $pSel = (string)$gm_player_id === (string)$p->id; @endphp
-                                            <button wire:click="gmSelectPlayer({{ $p->id }})"
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $gmTeamPlayers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $p): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <?php $pSel = (string)$gm_player_id === (string)$p->id; ?>
+                                            <button wire:click="gmSelectPlayer(<?php echo e($p->id); ?>)"
                                                     class="flex flex-col items-center gap-0.5 px-1.5 py-2.5 rounded-xl border-2 text-center transition-all
-                                                        {{ $pSel
+                                                        <?php echo e($pSel
                                                             ? ($isHomeTeam ? 'border-primary bg-primary text-white shadow-sm' : 'border-orange-500 bg-orange-500 text-white shadow-sm')
-                                                            : ($isHomeTeam ? 'border-silver bg-white hover:border-primary/40 hover:bg-primary/5' : 'border-silver bg-white hover:border-orange-300 hover:bg-orange-50') }}">
+                                                            : ($isHomeTeam ? 'border-silver bg-white hover:border-primary/40 hover:bg-primary/5' : 'border-silver bg-white hover:border-orange-300 hover:bg-orange-50')); ?>">
                                                 <span class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black mb-0.5
-                                                    {{ $pSel
+                                                    <?php echo e($pSel
                                                         ? 'bg-white/20 text-white'
-                                                        : ($isHomeTeam ? 'bg-primary/10 text-primary' : 'bg-orange-100 text-orange-600') }}">
-                                                    {{ $p->dorsal ?? '?' }}
+                                                        : ($isHomeTeam ? 'bg-primary/10 text-primary' : 'bg-orange-100 text-orange-600')); ?>">
+                                                    <?php echo e($p->dorsal ?? '?'); ?>
+
                                                 </span>
-                                                <span class="text-[11px] font-bold leading-tight w-full truncate {{ $pSel ? 'text-white' : 'text-black-deep' }}">
-                                                    {{ $p->surname }}
+                                                <span class="text-[11px] font-bold leading-tight w-full truncate <?php echo e($pSel ? 'text-white' : 'text-black-deep'); ?>">
+                                                    <?php echo e($p->surname); ?>
+
                                                 </span>
-                                                <span class="text-[10px] leading-tight w-full truncate {{ $pSel ? 'text-white/70' : 'text-titanium' }}">
-                                                    {{ $p->name }}
+                                                <span class="text-[10px] leading-tight w-full truncate <?php echo e($pSel ? 'text-white/70' : 'text-titanium'); ?>">
+                                                    <?php echo e($p->name); ?>
+
                                                 </span>
                                             </button>
-                                        @endforeach
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                     </div>
-                                @endif
-                                @error('gm_player_id') <p class="text-xs text-red-500 mt-1.5">{{ $message }}</p> @enderror
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['gm_player_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="text-xs text-red-500 mt-1.5"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </div>
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                        {{-- Paso 4 · Tipo + minuto + guardar
-                             Para GOL: basta con tener equipo (jugador opcional).
-                             Para TARJETA: se requiere jugador. --}}
-                        @if (
+                        
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(
                             ($gm_action === 'goal' && $gm_team_id)
                             || ($gm_action === 'card' && $gm_player_id)
-                        )
+                        ): ?>
                             <div class="space-y-3">
                                 <p class="text-[11px] font-bold text-titanium uppercase tracking-wider flex items-center gap-1.5">
                                     <span class="inline-flex w-4 h-4 rounded-full bg-titanium/20 items-center justify-center text-[10px] font-black shrink-0">3</span>
                                     Detalles
-                                    @if ($gm_action === 'goal' && !$gm_player_id)
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($gm_action === 'goal' && !$gm_player_id): ?>
                                         <span class="ml-1 text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
                                             Gol sin jugador
                                         </span>
-                                    @endif
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </p>
                                 <div class="flex gap-2">
-                                    @if ($gm_action === 'goal')
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($gm_action === 'goal'): ?>
                                         <select wire:model="gm_goal_type"
                                                 class="flex-1 px-3 py-2.5 text-sm border border-silver rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary">
                                             <option value="normal">⚽ Normal</option>
                                             <option value="penalty">🎯 Penalti</option>
                                             <option value="own_goal">↩️ En propia</option>
                                         </select>
-                                    @else
+                                    <?php else: ?>
                                         <select wire:model="gm_card_type"
                                                 class="flex-1 px-3 py-2.5 text-sm border border-silver rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-400">
                                             <option value="yellow">🟨 Amarilla</option>
                                             <option value="red">🟥 Roja directa</option>
                                             <option value="double_yellow">🟨🟥 Doble amarilla</option>
                                         </select>
-                                    @endif
-                                    <input wire:model="{{ $gm_action === 'goal' ? 'gm_minute' : 'gm_card_minute' }}"
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                    <input wire:model="<?php echo e($gm_action === 'goal' ? 'gm_minute' : 'gm_card_minute'); ?>"
                                            type="number" min="1" max="180" placeholder="Min."
                                            class="w-20 px-3 py-2.5 text-sm border border-silver rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-center"/>
                                 </div>
-                                <button wire:click="{{ $gm_action === 'goal' ? 'gmAddGoal' : 'gmAddCard' }}"
+                                <button wire:click="<?php echo e($gm_action === 'goal' ? 'gmAddGoal' : 'gmAddCard'); ?>"
                                         class="w-full py-3 rounded-xl text-sm font-bold transition-colors shadow-sm
-                                            {{ $gm_action === 'goal'
+                                            <?php echo e($gm_action === 'goal'
                                                 ? 'bg-primary text-white hover:bg-primary/90'
-                                                : 'bg-amber-500 text-white hover:bg-amber-600' }}">
-                                    {{ $gm_action === 'goal'
+                                                : 'bg-amber-500 text-white hover:bg-amber-600'); ?>">
+                                    <?php echo e($gm_action === 'goal'
                                         ? ($gm_player_id ? '+ Registrar gol' : '+ Registrar gol de equipo')
-                                        : '+ Registrar tarjeta' }}
+                                        : '+ Registrar tarjeta'); ?>
+
                                 </button>
                             </div>
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                     </div>
-                </div>{{-- /ADD EVENT PANEL --}}
-                </div>{{-- /scrollable body --}}
+                </div>
+                </div>
             </div>
         </div>
-    @endif
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-    {{-- Delete confirm modals --}}
-    @if ($confirmingPhaseDelete)
+    
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($confirmingPhaseDelete): ?>
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
             <div class="bg-white-pure rounded-2xl shadow-2xl border border-silver w-full max-w-sm p-6">
                 <h3 class="text-base font-bold text-black-deep text-center mb-2">¿Eliminar fase?</h3>
@@ -2372,9 +2486,9 @@
                 </div>
             </div>
         </div>
-    @endif
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-    @if ($confirmingTeamDelete)
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($confirmingTeamDelete): ?>
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
             <div class="bg-white-pure rounded-2xl shadow-2xl border border-silver w-full max-w-sm p-6">
                 <h3 class="text-base font-bold text-black-deep text-center mb-2">¿Eliminar equipo?</h3>
@@ -2387,10 +2501,10 @@
                 </div>
             </div>
         </div>
-    @endif
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-    {{-- Referees Modal --}}
-    @if ($showRefereesModal)
+    
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($showRefereesModal): ?>
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
             <div class="bg-white-pure rounded-2xl shadow-2xl border border-silver w-full max-w-2xl max-h-[90vh] flex flex-col">
                 <div class="flex items-center justify-between p-6 border-b border-silver shrink-0">
@@ -2407,7 +2521,7 @@
                 </div>
                 
                 <div class="flex-1 overflow-y-auto p-6">
-                    @if ($availableReferees->isEmpty())
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($availableReferees->isEmpty()): ?>
                         <div class="text-center py-12">
                             <div class="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-4">
                                 <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
@@ -2415,48 +2529,50 @@
                             <h4 class="text-base font-bold text-black-deep mb-2">No hay árbitros disponibles</h4>
                             <p class="text-sm text-titanium">No hay usuarios con el rol de "judge" en tu escuela deportiva.</p>
                         </div>
-                    @else
+                    <?php else: ?>
                         <div class="space-y-2">
-                            @foreach ($availableReferees as $referee)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $availableReferees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $referee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <label class="flex items-center gap-4 p-4 rounded-xl border border-silver hover:border-primary/30 hover:bg-primary/5 cursor-pointer transition-all
-                                    {{ in_array($referee->id, $selectedReferees) ? 'bg-primary/10 border-primary shadow-sm' : 'bg-white' }}">
+                                    <?php echo e(in_array($referee->id, $selectedReferees) ? 'bg-primary/10 border-primary shadow-sm' : 'bg-white'); ?>">
                                     <input type="checkbox" 
-                                           wire:click="toggleReferee({{ $referee->id }})"
-                                           {{ in_array($referee->id, $selectedReferees) ? 'checked' : '' }}
+                                           wire:click="toggleReferee(<?php echo e($referee->id); ?>)"
+                                           <?php echo e(in_array($referee->id, $selectedReferees) ? 'checked' : ''); ?>
+
                                            class="w-5 h-5 text-primary border-silver rounded focus:ring-2 focus:ring-primary/30">
                                     
                                     <div class="flex items-center gap-3 flex-1">
-                                        @if ($referee->profile_photo_path)
-                                            <img src="{{ asset('storage/' . $referee->profile_photo_path) }}"
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($referee->profile_photo_path): ?>
+                                            <img src="<?php echo e(asset('storage/' . $referee->profile_photo_path)); ?>"
                                                  class="w-12 h-12 rounded-full object-cover border-2 border-silver" alt="">
-                                        @else
+                                        <?php else: ?>
                                             <div class="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border-2 border-primary/20 flex items-center justify-center shrink-0">
-                                                <span class="text-lg font-black text-primary">{{ strtoupper(substr($referee->name, 0, 1)) }}</span>
+                                                <span class="text-lg font-black text-primary"><?php echo e(strtoupper(substr($referee->name, 0, 1))); ?></span>
                                             </div>
-                                        @endif
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                         
                                         <div class="flex-1 min-w-0">
-                                            <p class="font-semibold text-black-deep">{{ $referee->name }}</p>
-                                            <p class="text-sm text-titanium truncate">{{ $referee->email }}</p>
+                                            <p class="font-semibold text-black-deep"><?php echo e($referee->name); ?></p>
+                                            <p class="text-sm text-titanium truncate"><?php echo e($referee->email); ?></p>
                                         </div>
 
-                                        @if ($referee->is_active)
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($referee->is_active): ?>
                                             <span class="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-1 rounded-full shrink-0">
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                                 Activo
                                             </span>
-                                        @endif
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                     </div>
                                 </label>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
 
                 <div class="flex items-center justify-between gap-3 p-6 border-t border-silver shrink-0">
                     <p class="text-sm text-titanium">
-                        <span class="font-bold text-black-deep">{{ count($selectedReferees) }}</span> 
-                        {{ count($selectedReferees) === 1 ? 'árbitro seleccionado' : 'árbitros seleccionados' }}
+                        <span class="font-bold text-black-deep"><?php echo e(count($selectedReferees)); ?></span> 
+                        <?php echo e(count($selectedReferees) === 1 ? 'árbitro seleccionado' : 'árbitros seleccionados'); ?>
+
                     </p>
                     <div class="flex gap-3">
                         <button wire:click="$set('showRefereesModal', false)"
@@ -2472,9 +2588,9 @@
                 </div>
             </div>
         </div>
-    @endif
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-    @if ($confirmingMatchDelete)
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($confirmingMatchDelete): ?>
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
             <div class="bg-white-pure rounded-2xl shadow-2xl border border-silver w-full max-w-sm p-6">
                 <h3 class="text-base font-bold text-black-deep text-center mb-2">¿Eliminar partido?</h3>
@@ -2487,9 +2603,9 @@
                 </div>
             </div>
         </div>
-    @endif
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-    @if ($showPostponeModal)
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($showPostponeModal): ?>
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
             <div class="bg-white-pure rounded-2xl shadow-2xl border border-silver w-full max-w-sm p-6">
                 <div class="flex items-center justify-between mb-4">
@@ -2512,15 +2628,16 @@
                 </div>
             </div>
         </div>
-    @endif
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-    {{-- Category modal --}}
-    @if ($showCategoryModal)
+    
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($showCategoryModal): ?>
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
             <div class="bg-white-pure rounded-2xl shadow-2xl border border-silver w-full max-w-md p-6">
                 <div class="flex items-center justify-between mb-5">
                     <h3 class="text-base font-bold text-black-deep">
-                        {{ $editingCategoryId ? 'Editar Categoría' : 'Nueva Categoría' }}
+                        <?php echo e($editingCategoryId ? 'Editar Categoría' : 'Nueva Categoría'); ?>
+
                     </h3>
                     <button wire:click="$set('showCategoryModal', false)" class="p-1.5 rounded-lg text-titanium hover:bg-gray-100 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -2532,9 +2649,9 @@
                         <select wire:model="cat_category_id"
                                 class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary">
                             <option value="">Sin categoría (personalizada)</option>
-                            @foreach ($schoolCategories as $sc)
-                                <option value="{{ $sc->id }}">{{ $sc->category }}</option>
-                            @endforeach
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $schoolCategories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sc): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($sc->id); ?>"><?php echo e($sc->category); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </select>
                         <p class="text-xs text-titanium mt-1">Vincular a una categoría filtrará los equipos por edad.</p>
                     </div>
@@ -2542,7 +2659,14 @@
                         <label class="block text-xs font-semibold text-titanium uppercase tracking-wide mb-1.5">Nombre personalizado (opcional)</label>
                         <input wire:model="cat_name" type="text" placeholder="Ej: Alevín Verano 2026"
                                class="w-full px-4 py-2.5 text-sm border border-silver rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"/>
-                        @error('cat_name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['cat_name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="text-red-500 text-xs mt-1"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -2568,15 +2692,16 @@
                     </button>
                     <button wire:click="saveCategory"
                             class="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors">
-                        {{ $editingCategoryId ? 'Guardar cambios' : 'Crear Categoría' }}
+                        <?php echo e($editingCategoryId ? 'Guardar cambios' : 'Crear Categoría'); ?>
+
                     </button>
                 </div>
             </div>
         </div>
-    @endif
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-    {{-- Category delete confirm --}}
-    @if ($confirmingCategoryDelete)
+    
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($confirmingCategoryDelete): ?>
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
             <div class="bg-white-pure rounded-2xl shadow-2xl border border-silver w-full max-w-sm p-6">
                 <h3 class="text-base font-bold text-black-deep text-center mb-2">¿Eliminar categoría?</h3>
@@ -2589,5 +2714,5 @@
                 </div>
             </div>
         </div>
-    @endif
-</div>
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+</div><?php /**PATH C:\Users\Alberto Martín\Google Drive\PHP\Git Alberto\SVAclubsportal\resources\views/livewire/tournaments/show.blade.php ENDPATH**/ ?>

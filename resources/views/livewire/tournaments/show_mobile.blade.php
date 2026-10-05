@@ -725,6 +725,8 @@
                 </div>
 
                 <div class="flex-1 overflow-y-auto p-5 space-y-4">
+                    @include('livewire.tournaments._recent-teams')
+                    @if ($editingTeamId || $teamCreationMode === 'new')
                     {{-- Toggle Externo --}}
                     @if ($tournament->team_type !== 'open')
                     <div class="flex items-center justify-between p-3.5 bg-gray-50 rounded-2xl border border-gray-100">
@@ -739,6 +741,7 @@
                         <div>
                             <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Nombre del equipo *</label>
                             <input wire:model="name_override" type="text" class="w-full px-4 py-3.5 bg-gray-50 border-0 rounded-2xl text-xs font-bold text-titanium focus:ring-2 focus:ring-primary focus:bg-white"/>
+                            @error('name_override') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                     @else
                         <div>
@@ -755,6 +758,30 @@
                         <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Escudo / Logo</label>
                         <input wire:model="team_logo_upload" type="file" accept="image/*" class="block w-full text-xs text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"/>
                         <div wire:loading wire:target="team_logo_upload" class="text-[10px] text-primary mt-1 font-bold">Subiendo...</div>
+                        @error('team_logo_upload') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Contacto</label>
+                            <input wire:model="team_contact_name" type="text" class="w-full px-4 py-3.5 bg-gray-50 border-0 rounded-2xl text-xs font-bold text-titanium focus:ring-2 focus:ring-primary"/>
+                            @error('team_contact_name') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Teléfono</label>
+                            <input wire:model="team_contact_phone" type="tel" class="w-full px-4 py-3.5 bg-gray-50 border-0 rounded-2xl text-xs font-bold text-titanium focus:ring-2 focus:ring-primary"/>
+                            @error('team_contact_phone') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Email de acceso {{ $tournament->team_type === 'open' ? '*' : '(opcional)' }}</label>
+                        <input wire:model="team_email" type="email" class="w-full px-4 py-3.5 bg-gray-50 border-0 rounded-2xl text-xs font-bold text-titanium focus:ring-2 focus:ring-primary"/>
+                        @error('team_email') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Contraseña {{ $editingTeamId ? '(dejar vacía para mantenerla)' : ($tournament->team_type === 'open' ? '*' : '(opcional)') }}</label>
+                        <input wire:model="team_password" type="password" autocomplete="new-password" class="w-full px-4 py-3.5 bg-gray-50 border-0 rounded-2xl text-xs font-bold text-titanium focus:ring-2 focus:ring-primary"/>
+                        @error('team_password') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
                     {{-- Opciones Extra --}}
@@ -762,17 +789,24 @@
                         <div>
                             <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Grupo</label>
                             <input wire:model="team_group" type="text" placeholder="A, B..." class="w-full px-4 py-3.5 bg-gray-50 border-0 rounded-2xl text-xs font-bold text-titanium focus:ring-2 focus:ring-primary focus:bg-white text-center uppercase"/>
+                            @error('team_group') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Cabeza de Serie</label>
                             <input wire:model="team_seed" type="number" placeholder="1" class="w-full px-4 py-3.5 bg-gray-50 border-0 rounded-2xl text-xs font-bold text-titanium focus:ring-2 focus:ring-primary focus:bg-white text-center"/>
+                            @error('team_seed') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
+                    @endif
                 </div>
 
-                <div class="p-4 border-t border-gray-100 bg-white shrink-0 flex gap-2">
+                <div class="p-4 border-t border-gray-100 bg-white shrink-0 flex gap-2" data-team-modal-footer>
                     <button wire:click="$set('showTeamModal', false)" class="flex-1 py-3.5 bg-gray-100 text-titanium font-black text-xs rounded-2xl active:scale-95">Cancelar</button>
-                    <button wire:click="saveTeam" class="flex-[2] py-3.5 bg-primary text-white font-black text-xs rounded-2xl active:scale-95 shadow-md">Guardar Equipo</button>
+                    @if ($editingTeamId || $teamCreationMode === 'new')
+                        <button wire:click="saveTeam" class="flex-[2] py-3.5 bg-primary text-white font-black text-xs rounded-2xl active:scale-95 shadow-md">Guardar Equipo</button>
+                    @else
+                        @include('livewire.tournaments._recent-teams-submit')
+                    @endif
                 </div>
             </div>
         </div>
