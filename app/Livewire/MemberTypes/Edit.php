@@ -37,6 +37,9 @@ class Edit extends Component
     public bool $bank_account = false;
     public bool $credit_card = false;
 
+    public bool $showNotifyModal = false;
+    public array $notifyPreview = [];
+
     public function mount(MemberType $memberType): void
     {
         $memberType->load('memberSeasons.member'); // Cargamos la relación 'memberSeasons' y a su vez la relación 'memberSeasons.member' para evitar consultas adicionales
@@ -261,25 +264,62 @@ class Edit extends Component
         ]);
     }
 
+    // Recibos pendientes domiciliados que aún no han recibido el aviso de cargo
+    private function pendingChargeNotifications(): \Illuminate\Support\Collection
+    {
+        $this->memberType->load('memberSeasons.member', 'memberSeasons.season');
+
+        return $this->memberType->memberSeasons->filter(function ($ms) {
+            return $ms->payment_status === MemberPaymentStatus::Pending
+                && is_null($ms->charge_notified_at)
+                && $ms->member
+                && !empty($ms->member->sepa_mandate_ref);
+        })->values();
+    }
+
+    // Abre el modal con la previsualización de los emails que se van a enviar
+    public function openNotifyModal(): void
+    {
+        $pending = $this->pendingChargeNotifications();
+
+        if ($pending->isEmpty()) {
+            session()->flash('error', 'No hay socios con recibo pendiente domiciliado pendientes de notificar.');
+            return;
+        }
+
+        $this->notifyPreview = $pending->map(fn ($ms) => [
+            'id'    => $ms->id,
+            'name'  => trim($ms->member->name . ' ' . $ms->member->surname),
+            'email' => $ms->member->email,
+            'price' => (float) $ms->price,
+        ])->all();
+
+        $this->showNotifyModal = true;
+    }
+
+    public function closeNotifyModal(): void
+    {
+        $this->showNotifyModal = false;
+        $this->notifyPreview   = [];
+    }
+
     // Avisa por email a los socios con recibo pendiente domiciliado de que se pasará el cargo dentro de 10 días.
-    // Solo notifica a quienes aún no han sido avisados (charge_notified_at nulo).
+    // Solo notifica a los mostrados en el modal que aún no han sido avisados (charge_notified_at nulo).
     public function notifyBankCharge(): void
     {
         $school = auth()->user()->sportsSchool;
 
         if (!$school) {
+            $this->closeNotifyModal();
             session()->flash('error', 'No se ha encontrado el club del usuario.');
             return;
         }
 
-        $this->memberType->load('memberSeasons.member', 'memberSeasons.season');
+        $previewIds = array_column($this->notifyPreview, 'id');
+        $pending    = $this->pendingChargeNotifications()
+            ->filter(fn ($ms) => in_array($ms->id, $previewIds));
 
-        $pending = $this->memberType->memberSeasons->filter(function ($ms) {
-            return $ms->payment_status === MemberPaymentStatus::Pending
-                && is_null($ms->charge_notified_at)
-                && $ms->member
-                && !empty($ms->member->sepa_mandate_ref);
-        });
+        $this->closeNotifyModal();
 
         if ($pending->isEmpty()) {
             session()->flash('error', 'No hay socios con recibo pendiente domiciliado pendientes de notificar.');
