@@ -22,6 +22,7 @@ class MemberSeason extends Model
         'leave_date',
         'price',
         'payment_status',
+        'charge_notified_at',
         'status',
         'observations',
     ];
@@ -31,7 +32,8 @@ class MemberSeason extends Model
         'leave_date'     => 'date',
         'price'          => 'decimal:2',
         'payment_status' => MemberPaymentStatus::class,
-        'status'         => MemberSeasonStatus::class,
+        'charge_notified_at' => 'datetime',
+        'status'          => MemberSeasonStatus::class,
     ];
 
     public function member(): BelongsTo

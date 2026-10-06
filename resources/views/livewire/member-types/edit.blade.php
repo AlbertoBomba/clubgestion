@@ -181,6 +181,19 @@
                         </svg>
                         Descargar XML remesa SEPA
                     </button>
+
+                    <button type="button" wire:click="notifyBankCharge"
+                            wire:confirm="Se enviará un email a los socios con recibo pendiente (no notificados aún) avisando del cargo el {{ now()->addDays(10)->format('d/m/Y') }}. ¿Continuar?"
+                            wire:loading.attr="disabled" wire:target="notifyBankCharge"
+                            class="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors disabled:opacity-70">
+                        <span wire:loading.remove wire:target="notifyBankCharge">
+                            <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            Notificar cargo ({{ now()->addDays(10)->format('d/m/Y') }})
+                        </span>
+                        <span wire:loading wire:target="notifyBankCharge">Enviando...</span>
+                    </button>
                 </div>
 
                 @if (session()->has('error'))
@@ -201,6 +214,7 @@
                             <th class="px-4 py-2 border-b border-blue-200">Precio histórico (€)</th>
                             <th class="px-4 py-2 border-b border-blue-200">Fecha alta</th>
                             <th class="px-4 py-2 border-b border-blue-200">Estado pago</th>
+                            <th class="px-4 py-2 border-b border-blue-200">Aviso cargo</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -212,7 +226,14 @@
                                     <td class="px-4 py-2 border-b border-blue-200">€{{ number_format($memberSeason->price, 2) }}</td>
                                     <td class="px-4 py-2 border-b border-blue-200">{{ $memberSeason->created_at->format('d/m/Y') }}</td>
                                     <td class="px-4 py-2 border-b border-blue-200">{{ $memberSeason->payment_status }}</td>
-                                </tr>
+                                                                        <td class="px-4 py-2 border-b border-blue-200">
+                                                                            @if($memberSeason->charge_notified_at)
+                                                                                <span class="text-green-700">✔ {{ $memberSeason->charge_notified_at->format('d/m/Y') }}</span>
+                                                                            @else
+                                                                                <span class="text-gray-400">—</span>
+                                                                            @endif
+                                                                        </td>
+                                                                    </tr>
                         @endforeach
                     </tbody>
                 </table>

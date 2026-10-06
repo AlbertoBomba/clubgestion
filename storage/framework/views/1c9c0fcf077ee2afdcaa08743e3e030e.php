@@ -1,2 +1,0 @@
-<input type="checkbox" <?php echo $attributes->merge(['class' => 'rounded border-gray-300 text-night-blue shadow-sm focus:ring-indigo-500']); ?>>
-<?php /**PATH C:\Users\Alberto Martín\Google Drive\PHP\Git Alberto\SVAclubsportal\resources\views\components\checkbox.blade.php ENDPATH**/ ?>

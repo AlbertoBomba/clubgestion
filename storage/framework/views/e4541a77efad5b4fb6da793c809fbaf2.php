@@ -1,5 +1,0 @@
-<button <?php echo e($attributes->merge(['type' => 'submit', 'class' => 'inline-flex items-center px-4 py-2 bg-primary border border-transparent rounded-md font-semibold text-xs text-white-pure uppercase tracking-widest hover:bg-night-blue focus:bg-night-blue active:bg-night-blue focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 transition ease-in-out duration-150'])); ?>>
-    <?php echo e($slot); ?>
-
-</button>
-<?php /**PATH C:\Users\Alberto Martín\Google Drive\PHP\Git Alberto\SVAclubsportal\resources\views\components\button.blade.php ENDPATH**/ ?>

@@ -4,10 +4,13 @@ namespace App\Livewire\MemberTypes;
 
 use App\Enums\MemberPaymentStatus;
 use App\Enums\MemberPeriodicity;
+use App\Mail\MemberBankChargeNoticeMail;
 use App\Models\MemberType;
 use App\Models\Season;
+use App\Services\SchoolMailer;
 use DOMDocument;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -256,6 +259,70 @@ class Edit extends Component
         }, $fileName, [
             'Content-Type' => 'application/xml',
         ]);
+    }
+
+    // Avisa por email a los socios con recibo pendiente domiciliado de que se pasará el cargo dentro de 10 días.
+    // Solo notifica a quienes aún no han sido avisados (charge_notified_at nulo).
+    public function notifyBankCharge(): void
+    {
+        $school = auth()->user()->sportsSchool;
+
+        if (!$school) {
+            session()->flash('error', 'No se ha encontrado el club del usuario.');
+            return;
+        }
+
+        $this->memberType->load('memberSeasons.member', 'memberSeasons.season');
+
+        $pending = $this->memberType->memberSeasons->filter(function ($ms) {
+            return $ms->payment_status === MemberPaymentStatus::Pending
+                && is_null($ms->charge_notified_at)
+                && $ms->member
+                && !empty($ms->member->sepa_mandate_ref);
+        });
+
+        if ($pending->isEmpty()) {
+            session()->flash('error', 'No hay socios con recibo pendiente domiciliado pendientes de notificar.');
+            return;
+        }
+
+        $chargeDate = now()->addDays(10)->startOfDay();
+        $mailer     = SchoolMailer::forSchool($school);
+        $sent       = 0;
+        $failed     = [];
+
+        foreach ($pending as $ms) {
+            $member = $ms->member;
+
+            if (empty($member->email)) {
+                $failed[] = trim($member->name . ' ' . $member->surname) . ' (sin email)';
+                continue;
+            }
+
+            try {
+                $mailer->to($member->email, $member->name)
+                    ->send(new MemberBankChargeNoticeMail($ms, $school, $this->memberType, $chargeDate));
+
+                $ms->update(['charge_notified_at' => now()]);
+                $sent++;
+            } catch (\Throwable $e) {
+                Log::error('Error enviando aviso de cargo bancario', [
+                    'member_season_id' => $ms->id,
+                    'error'            => $e->getMessage(),
+                ]);
+                $failed[] = trim($member->name . ' ' . $member->surname);
+            }
+        }
+
+        $this->memberType->load('memberSeasons.member', 'memberSeasons.season');
+
+        if ($sent > 0) {
+            session()->flash('message', "Aviso de cargo para el {$chargeDate->format('d/m/Y')} enviado a {$sent} socio(s).");
+        }
+
+        if (!empty($failed)) {
+            session()->flash('error', 'No se pudo notificar a: ' . implode(', ', $failed));
+        }
     }
 
     // Genera el Identificador del Acreedor SEPA para Espaa: ES + 2 dgitos de control + sufijo 000 + NIF.
