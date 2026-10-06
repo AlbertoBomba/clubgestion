@@ -98,13 +98,16 @@ class Edit extends Component
 
         $memberType = $this->memberType->loadMissing('memberSeasons.member');
 
+
         // Recibos pendientes con IBAN y mandato SEPA vlidos
         $seasons = $memberType->memberSeasons->filter(function ($ms) {
             return $ms->payment_status === MemberPaymentStatus::Pending
                 && $ms->member
-                && !empty($ms->member->bank_account)
+                // && !empty($ms->member->bank_account);
                 && !empty($ms->member->sepa_mandate_ref);
         })->values();
+
+        // dd($seasons);
 
         if ($seasons->isEmpty()) {
             session()->flash('error', 'No hay recibos pendientes con IBAN y mandato SEPA asignados para remesar.');
@@ -114,7 +117,7 @@ class Edit extends Component
         $totalAmount   = (float) $seasons->sum(fn ($ms) => (float) $ms->price);
         $txCount       = $seasons->count();
         $msgId         = 'REM-' . date('YmdHis');
-        $executionDate = now()->addDays(3)->format('Y-m-d');
+        $executionDate = now()->addDays(10)->format('Y-m-d');
 
         $xml = new DOMDocument('1.0', 'UTF-8');
         $xml->formatOutput = true;
@@ -154,7 +157,7 @@ class Edit extends Component
         $lclInstrm = $xml->createElement('LclInstrm');
         $lclInstrm->appendChild($xml->createElement('Cd', 'CORE'));
         $pmtTpInf->appendChild($lclInstrm);
-        $pmtTpInf->appendChild($xml->createElement('SeqTp', 'RCUR'));
+        $pmtTpInf->appendChild($xml->createElement('SeqTp', 'FRST'));
         $pmtInf->appendChild($pmtTpInf);
 
         $pmtInf->appendChild($xml->createElement('ReqdColltnDt', $executionDate));
@@ -192,6 +195,7 @@ class Edit extends Component
         $cdtrSchmeId->appendChild($idSchme);
         $pmtInf->appendChild($cdtrSchmeId);
 
+        // dd($seasons);
         foreach ($seasons as $ms) {
             $member = $ms->member;
             $drctDbtTxInf = $xml->createElement('DrctDbtTxInf');
@@ -236,7 +240,7 @@ class Edit extends Component
             $drctDbtTxInf->appendChild($dbtrAcct);
 
             $rmtInf = $xml->createElement('RmtInf');
-            $rmtInf->appendChild($xml->createElement('Ustrd', 'Cuota ' . mb_substr($memberType->name, 0, 120)));
+            $rmtInf->appendChild($xml->createElement('Ustrd', 'Cuota CDPuebla26_27 ' . mb_substr($memberType->name, 0, 120)));
             $drctDbtTxInf->appendChild($rmtInf);
 
             $pmtInf->appendChild($drctDbtTxInf);
