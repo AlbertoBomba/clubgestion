@@ -24,6 +24,25 @@ class LiveTournamentDashboardTest extends TestCase
             ],
         ]);
 
+        Schema::create('seasons', function (Blueprint $table) {
+            $table->id();
+            $table->integer('sports_school_id');
+            $table->date('start_date');
+            $table->date('end_date');
+            $table->timestamps();
+            $table->softDeletes();
+        });
+        Schema::create('sponsors', function (Blueprint $table) {
+            $table->id();
+            $table->integer('sports_school_id');
+            $table->integer('season_id');
+            $table->integer('type_id');
+            $table->string('name');
+            $table->string('logo')->nullable();
+            $table->boolean('published')->default(true);
+            $table->integer('order')->default(0);
+            $table->softDeletes();
+        });
         Schema::create('tournament_phases', function (Blueprint $table) {
             $table->id();
             $table->integer('tournament_id');
@@ -97,14 +116,76 @@ class LiveTournamentDashboardTest extends TestCase
         parent::tearDown();
     }
 
-    private function dashboard(?LiveDetail $component = null): array
+    private function dashboard(?LiveDetail $component = null, ?int $schoolId = null): array
     {
         $component ??= new LiveDetail;
-        $component->tournament = (new Tournament)->forceFill(['id' => 1, 'name' => 'Torneo de prueba']);
+        $component->tournament = (new Tournament)->forceFill([
+            'id' => 1, 'name' => 'Torneo de prueba', 'sports_school_id' => $schoolId,
+        ]);
         $data = $component->render()->getData();
         $html = view('livewire.webclubs.live-detail', array_merge(get_object_vars($component), $data))->render();
 
         return [$data, $html];
+    }
+
+    public function test_sponsor_footer_only_includes_published_large_logos_from_the_current_school_season(): void
+    {
+        DB::table('seasons')->insert([
+            ['id' => 1, 'sports_school_id' => 1, 'start_date' => now()->subDay(), 'end_date' => now()->addDay()],
+            ['id' => 2, 'sports_school_id' => 1, 'start_date' => now()->subYear(), 'end_date' => now()->subMonth()],
+            ['id' => 3, 'sports_school_id' => 2, 'start_date' => now()->subDay(), 'end_date' => now()->addDay()],
+        ]);
+        foreach ([
+            [1, 1, 1, 1, true, 'very-large.png', 2, null],
+            [2, 1, 1, 2, true, 'large.png', 1, null],
+            [3, 1, 1, 3, true, 'medium.png', 0, null],
+            [4, 1, 1, 4, true, 'small.png', 0, null],
+            [5, 1, 1, 5, true, 'residual.png', 0, null],
+            [6, 1, 1, 1, false, 'unpublished.png', 0, null],
+            [7, 1, 2, 1, true, 'old-season.png', 0, null],
+            [8, 2, 3, 1, true, 'other-school.png', 0, null],
+            [9, 1, 1, 1, true, null, 0, null],
+            [10, 1, 1, 2, true, '', 0, null],
+            [11, 1, 1, 1, true, 'deleted.png', 0, now()],
+        ] as [$id, $schoolId, $seasonId, $typeId, $published, $logo, $order, $deletedAt]) {
+            DB::table('sponsors')->insert([
+                'id' => $id, 'sports_school_id' => $schoolId, 'season_id' => $seasonId,
+                'type_id' => $typeId, 'published' => $published, 'logo' => $logo,
+                'order' => $order, 'name' => 'Sponsor '.$id, 'deleted_at' => $deletedAt,
+            ]);
+        }
+        $component = new LiveDetail;
+        [$data, $html] = $this->dashboard($component, 1);
+
+        $this->assertSame([2, 1], $data['liveSponsors']->pluck('id')->all());
+        $this->assertStringContainsString('live-screen--with-sponsors', $html);
+        $this->assertStringContainsString('<footer class="live-sponsors"', $html);
+        $this->assertStringContainsString('wire:ignore x-data="liveSponsorCarousel(2)"', $html);
+        $this->assertSame(2, substr_count($html, 'alt="Sponsor 1"'));
+        $this->assertSame(2, substr_count($html, 'alt="Sponsor 2"'));
+        $this->assertStringNotContainsString('alt="Sponsor 8"', $html);
+        $this->assertStringNotContainsString('alt="Sponsor 6"', $html);
+
+        preg_match('/wire:key="(live-sponsors-[^"]+)"/', $html, $initialKey);
+        DB::table('sponsors')->where('id', 1)->update(['logo' => 'updated.png']);
+        [, $html] = $this->dashboard($component, 1);
+        preg_match('/wire:key="(live-sponsors-[^"]+)"/', $html, $updatedKey);
+        $this->assertNotSame($initialKey[1], $updatedKey[1]);
+        $this->assertStringContainsString('updated.png', $html);
+
+        DB::table('sponsors')->whereIn('id', [1, 2])->update(['published' => false]);
+        [$data, $html] = $this->dashboard($component, 1);
+        $this->assertTrue($data['liveSponsors']->isEmpty());
+        $this->assertStringNotContainsString('<footer class="live-sponsors"', $html);
+        $this->assertStringNotContainsString('class="live-screen live-screen--with-sponsors"', $html);
+    }
+
+    public function test_sponsor_footer_is_absent_without_a_current_season(): void
+    {
+        [$data, $html] = $this->dashboard(null, 1);
+
+        $this->assertTrue($data['liveSponsors']->isEmpty());
+        $this->assertStringNotContainsString('<footer class="live-sponsors"', $html);
     }
 
     public function test_desktop_bracket_waits_for_every_first_round_team_and_refreshes_automatically(): void

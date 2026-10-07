@@ -1,5 +1,5 @@
 @php $hasLive = $liveMatches->isNotEmpty(); @endphp
-<div wire:poll.5s class="live-screen">
+<div wire:poll.5s class="live-screen {{ $liveSponsors->isNotEmpty() ? 'live-screen--with-sponsors' : '' }}">
 
     {{-- ══════════════════════════════════════════════════════
          HEADER — Tournament name + live badge
@@ -287,6 +287,10 @@
         </span>
     </div>
 
+    @if ($liveSponsors->isNotEmpty())
+        @include('livewire.webclubs._live-sponsors')
+    @endif
+
     {{-- ══════════════════════════════════════════════════════
          LIVE EVENT MODAL — Goal / Card notification
          Goals without player data show the team name and logo instead,
@@ -384,6 +388,7 @@
    ═══════════════════════════════════════════════ */
 
 .live-screen {
+    --live-sponsors-height: clamp(80px, 8vw, 150px);
     --live-bg:              #080c14;
     --live-surface:         rgba(255,255,255,0.04);
     --live-surface-hover:   rgba(255,255,255,0.08);
@@ -402,6 +407,32 @@
     color: var(--live-text);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     -webkit-font-smoothing: antialiased;
+}
+
+.live-screen--with-sponsors { padding-bottom: calc(var(--live-sponsors-height) + env(safe-area-inset-bottom, 0px)); }
+.live-sponsors {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 60;
+    height: calc(var(--live-sponsors-height) + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: #fff;
+    border-top: 1px solid #e5e7eb;
+    box-shadow: 0 -8px 24px rgba(0,0,0,0.15);
+    overflow: hidden;
+}
+.live-sponsors__track { display: flex; width: max-content; height: var(--live-sponsors-height); animation: liveSponsorsMove var(--sponsors-duration, 30s) linear infinite; }
+.live-sponsors__group, .live-sponsors__set { display: flex; flex-shrink: 0; }
+.live-sponsors__item { width: clamp(160px, 16vw, 320px); height: var(--live-sponsors-height); padding: 14px 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.live-sponsors__logo { width: 100%; height: 100%; object-fit: contain; }
+@keyframes liveSponsorsMove {
+    from { transform: translateX(-50%); }
+    to { transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .live-sponsors { overflow-x: auto; }
+    .live-sponsors__track { animation: none; }
+    .live-sponsors__group[aria-hidden="true"], .live-sponsors__set[aria-hidden="true"] { display: none; }
 }
 
 /* ── Header ── */
@@ -1284,6 +1315,29 @@
      * state (queue, timer, visible flag) survives every wire:poll re-render.
      */
     document.addEventListener('alpine:init', () => {
+        Alpine.data('liveSponsorCarousel', (sponsorCount) => ({
+            repetitions: 1,
+            observer: null,
+
+            init() {
+                this.observer = new ResizeObserver(() => this.resize());
+                this.observer.observe(this.$el);
+                this.$nextTick(() => this.resize());
+            },
+
+            resize() {
+                const item = this.$el.querySelector('.live-sponsors__item');
+                if (!item) return;
+
+                const setWidth = item.getBoundingClientRect().width * sponsorCount;
+                this.repetitions = Math.max(1, Math.ceil(this.$el.clientWidth / setWidth));
+                this.$refs.track.style.setProperty('--sponsors-duration', `${setWidth * this.repetitions / 45}s`);
+            },
+
+            destroy() {
+                this.observer.disconnect();
+            },
+        }));
         Alpine.data('liveEventModal', () => ({
             visible: false,
             queue: [],

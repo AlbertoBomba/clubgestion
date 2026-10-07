@@ -7,6 +7,8 @@ use App\Models\Tournament;
 use App\Models\TournamentMatchGoal;
 use App\Models\TournamentMatchCard;
 use App\Models\TournamentPhase;
+use App\Models\Season;
+use App\Models\Sponsor;
 use App\Services\TournamentBracket;
 use App\Services\PublicTournamentStandings;
 
@@ -243,7 +245,28 @@ class LiveDetail extends Component
 
       
 
+        $liveSponsors = collect();
+        if ($this->tournament->sports_school_id !== null) {
+            $activeSeason = Season::where('sports_school_id', $this->tournament->sports_school_id)
+                ->current()
+                ->orderByDesc('created_at')
+                ->first();
+
+            if ($activeSeason) {
+                $liveSponsors = Sponsor::bySchool($this->tournament->sports_school_id)
+                    ->bySeason($activeSeason->id)
+                    ->published()
+                    ->whereIn('type_id', [1, 2])
+                    ->whereNotNull('logo')
+                    ->where('logo', '!=', '')
+                    ->orderBy('order')
+                    ->orderBy('id')
+                    ->get();
+            }
+        }
+
         return view('livewire.webclubs.live-detail', [
+            'liveSponsors'          => $liveSponsors,
             'liveMatches'           => $liveMatches,
             'teams'                 => $teams,
             'hasPlayers'            => $teams->contains(fn ($team) => (bool) $team->players_exists),

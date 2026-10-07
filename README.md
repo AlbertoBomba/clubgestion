@@ -62,6 +62,17 @@ higher-contrast secondary labels. From 1280 px, the right-hand summary uses
 two columns to make better use of TV/ultrawide screens while standings
 remain two tables per row. Smaller desktops keep the summary stacked.
 
+### Live sponsor footer
+
+On desktop and mobile, the Live page has a fixed white sponsor strip at the
+bottom when the club's current season has published **Muy Grande** (type 1)
+or **Grande** (type 2) sponsors with logos. Logos retain their proportions and
+follow sponsor display order. A repeated track moves continuously from left
+to right, including when only one sponsor is available. The page reserves
+space for the strip so it does not cover match content. The animation survives
+five-second refreshes; changes to sponsors replace the track. Reduced-motion
+users get a static, horizontally scrollable logo list instead.
+
 ### Printable live tournament QR
 
 **Descargar QR**, beside the tournament PDF download on desktop and mobile,
