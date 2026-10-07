@@ -54,8 +54,11 @@ two completed matches and the next two scheduled/postponed matches.
 Recent results use the playing date when available. Upcoming matches are
 ordered by scheduled date, with undated fixtures filling remaining slots.
 Empty sections show an explicit message. The knockout bracket, event
-notifications and five-second refresh are preserved, and the page scrolls
-normally so no sections are clipped while matches are in progress.
+notifications and five-second refresh are preserved. On desktop/TV screens
+(wider than 960 px) the dashboard always fills exactly the viewport height,
+including the sponsor footer, without page scroll; if a column has more
+content than fits, it scrolls inside that column. Mobile screens keep normal
+page scrolling.
 The dashboard uses the full screen width without a 1920 px container limit.
 Desktop text and spacing scale with viewport width for projection, with
 higher-contrast secondary labels. From 1280 px, the right-hand summary uses

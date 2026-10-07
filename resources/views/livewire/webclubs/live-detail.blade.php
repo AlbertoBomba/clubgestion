@@ -1055,6 +1055,25 @@
     .live-empty p, .live-col--summary .live-empty p { font-size: var(--live-unit); }
     .live-footer { padding: var(--live-unit); }
     .live-footer__refresh { font-size: calc(var(--live-unit) * 0.7); }
+
+    /* Fit the whole dashboard to the screen height (TV); columns scroll internally if needed. */
+    .live-screen {
+        box-sizing: border-box;
+        height: 100vh;
+        height: 100dvh;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .live-header, .live-footer { flex-shrink: 0; }
+    .live-section { flex: 1; min-height: 0; display: flex; }
+    .live-section__inner { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+    .live-main-grid { flex: 1; min-height: 0; align-items: stretch; }
+    .live-col { min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent; }
+    .live-col--classification { display: flex; flex-direction: column; overflow: hidden; }
+    .live-standings-panel, .live-bracket-panel { flex: 1; min-height: 0; overflow-y: auto !important; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent; }
+    .live-footer { padding-top: calc(var(--live-unit) * 0.5); padding-bottom: calc(var(--live-unit) * 0.5); }
 }
 
 @media (min-width: 1280px) {
