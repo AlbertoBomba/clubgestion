@@ -19,7 +19,7 @@
         .public-bracket-third .public-bracket-card { max-width: 300px; }
     </style>
     @foreach ($bracketData as $phaseId => $bracket)
-        <section class="public-bracket" wire:key="public-bracket-{{ $phaseId }}">
+        <section @class(['public-bracket', 'public-bracket--desktop-hidden' => isset($desktopVisiblePhaseIds) && !in_array($phaseId, $desktopVisiblePhaseIds, true)]) wire:key="public-bracket-{{ $phaseId }}">
             <h3>{{ $bracket['phase']->name }} · Cuadro de cruces</h3>
             @if (!$bracket['hasMatches'])
                 <p class="public-bracket-hint">Todavía no hay cruces generados para esta fase eliminatoria.</p>

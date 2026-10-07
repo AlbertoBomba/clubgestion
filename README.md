@@ -13,8 +13,13 @@
 
 When a tournament has a knockout phase, its public tournament page displays
 the bracket in the **Clasificación** tab, alongside any league standings,
-not in the match list. The Live page offers **Cuadro de cruces**
+not in the match list. On mobile, the Live page offers **Cuadro de cruces**
 beside **Clasificación**, defaulting to the bracket when standings are empty.
+On desktop (above 960 px), there are no panel buttons: standings remain visible
+until every match in a knockout phase's first round has both teams assigned.
+The ready brackets then replace standings automatically, using the existing
+five-second refresh. Later rounds may still have unassigned teams; empty or
+partially assigned phases stay hidden on desktop.
 Both pages share the same read-only bracket: rounds, connecting lines, team
 names, dates, scores including extra time, penalty winners and a separate
 third-place match. Unassigned teams display **Por definir** and empty phases

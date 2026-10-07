@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class TournamentTeam extends Model
 {
@@ -65,6 +66,13 @@ class TournamentTeam extends Model
             return $this->name_override;
         }
         return $this->team?->team ?? "Equipo #{$this->id}";
+    }
+
+    public function logoUrl(): ?string
+    {
+        $logo = $this->logo ?: $this->team?->team_image;
+
+        return $logo ? Storage::disk('public')->url($logo) : null;
     }
 
     // ──────────────────────────────────────── Relationships

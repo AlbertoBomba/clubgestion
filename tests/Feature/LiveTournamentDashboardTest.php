@@ -9,6 +9,7 @@ use App\Models\TournamentTeam;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class LiveTournamentDashboardTest extends TestCase
@@ -44,18 +45,26 @@ class LiveTournamentDashboardTest extends TestCase
             $table->timestamps();
             $table->softDeletes();
         });
+        Schema::create('teams', function (Blueprint $table) {
+            $table->id();
+            $table->string('team');
+            $table->string('team_image')->nullable();
+            $table->softDeletes();
+        });
         Schema::create('tournament_teams', function (Blueprint $table) {
             $table->id();
             $table->integer('tournament_id')->default(1);
             $table->integer('team_id')->nullable();
             $table->integer('seed')->default(1);
             $table->string('name_override');
+            $table->string('logo')->nullable();
         });
         Schema::create('tournament_players', function (Blueprint $table) {
             $table->id();
             $table->integer('tournament_team_id');
             $table->string('name');
             $table->string('surname')->nullable();
+            $table->string('photo')->nullable();
             $table->integer('dorsal')->nullable();
             $table->string('status')->default('approved');
         });
@@ -87,14 +96,89 @@ class LiveTournamentDashboardTest extends TestCase
         parent::tearDown();
     }
 
-    private function dashboard(): array
+    private function dashboard(?LiveDetail $component = null): array
     {
-        $component = new LiveDetail;
+        $component ??= new LiveDetail;
         $component->tournament = (new Tournament)->forceFill(['id' => 1, 'name' => 'Torneo de prueba']);
         $data = $component->render()->getData();
         $html = view('livewire.webclubs.live-detail', array_merge(get_object_vars($component), $data))->render();
 
         return [$data, $html];
+    }
+
+    public function test_desktop_bracket_waits_for_every_first_round_team_and_refreshes_automatically(): void
+    {
+        DB::table('tournament_phases')->insert([
+            'id' => 1, 'tournament_id' => 1, 'name' => 'Eliminatorias', 'type' => 'knockout',
+        ]);
+        DB::table('tournament_teams')->insert(['id' => 2, 'name_override' => 'Equipo visitante']);
+        DB::table('tournament_standings')->insert(['tournament_team_id' => 1]);
+        $component = new LiveDetail;
+
+        [$data, $html] = $this->dashboard($component);
+        $this->assertSame([], $data['desktopBracketPhaseIds']);
+        $this->assertStringContainsString('class="public-bracket public-bracket--desktop-hidden"', $html);
+        $this->assertStringNotContainsString('class="live-col live-col--classification live-col--bracket-ready"', $html);
+        $this->assertStringContainsString('class="live-panel-controls"', $html);
+        $this->assertStringContainsString("x-show=\"panel === 'standings'\"", $html);
+        $this->assertStringContainsString("x-show=\"panel === 'bracket'\"", $html);
+
+        DB::table('tournament_matches')->insert([
+            ['id' => 1, 'phase_id' => 1, 'round' => 2, 'status' => 'scheduled'],
+            ['id' => 2, 'phase_id' => 1, 'round' => 2, 'status' => 'scheduled'],
+            ['id' => 3, 'phase_id' => 1, 'round' => 3, 'status' => 'scheduled'],
+        ]);
+        [$data] = $this->dashboard($component);
+        $this->assertSame([], $data['desktopBracketPhaseIds']);
+
+        DB::table('tournament_matches')->where('id', 3)->update(['home_team_id' => 1, 'away_team_id' => 2]);
+        [$data] = $this->dashboard($component);
+        $this->assertSame([], $data['desktopBracketPhaseIds']);
+
+        DB::table('tournament_matches')->where('id', 1)->update(['home_team_id' => 1, 'away_team_id' => 2]);
+        DB::table('tournament_matches')->where('id', 2)->update(['home_team_id' => 1]);
+        [$data] = $this->dashboard($component);
+        $this->assertSame([], $data['desktopBracketPhaseIds']);
+
+        DB::table('tournament_matches')->where('id', 3)->update(['home_team_id' => null, 'away_team_id' => null]);
+        DB::table('tournament_matches')->where('id', 2)->update(['away_team_id' => 2]);
+        [$data, $html] = $this->dashboard($component);
+        $this->assertSame([1], $data['desktopBracketPhaseIds']);
+        $this->assertStringContainsString('class="live-col live-col--classification live-col--bracket-ready"', $html);
+        $this->assertStringContainsString('class="public-bracket"', $html);
+        $this->assertStringContainsString('wire:key="public-bracket-match-3"', $html);
+        $this->assertStringContainsString('Por definir', $html);
+        $this->assertStringContainsString('wire:poll.5s', $html);
+        $this->assertStringContainsString('class="live-panel-controls"', $html);
+
+        DB::table('tournament_matches')->where('id', 2)->update(['away_team_id' => null]);
+        [$data, $html] = $this->dashboard($component);
+        $this->assertSame([], $data['desktopBracketPhaseIds']);
+        $this->assertStringNotContainsString('class="live-col live-col--classification live-col--bracket-ready"', $html);
+    }
+
+    public function test_desktop_only_shows_ready_knockout_phases(): void
+    {
+        DB::table('tournament_phases')->insert([
+            ['id' => 1, 'tournament_id' => 1, 'name' => 'Fase lista', 'type' => 'double_elimination'],
+            ['id' => 2, 'tournament_id' => 1, 'name' => 'Fase pendiente', 'type' => 'knockout'],
+            ['id' => 3, 'tournament_id' => 1, 'name' => 'Liga', 'type' => 'league'],
+            ['id' => 4, 'tournament_id' => 2, 'name' => 'Otro torneo', 'type' => 'knockout'],
+        ]);
+        DB::table('tournament_teams')->insert(['id' => 2, 'name_override' => 'Equipo visitante']);
+        DB::table('tournament_matches')->insert([
+            ['id' => 1, 'phase_id' => 1, 'round' => 1, 'status' => 'scheduled', 'home_team_id' => 1, 'away_team_id' => 2],
+            ['id' => 2, 'phase_id' => 2, 'round' => 1, 'status' => 'scheduled', 'home_team_id' => 1, 'away_team_id' => null],
+            ['id' => 3, 'phase_id' => 3, 'round' => 1, 'status' => 'scheduled', 'home_team_id' => 1, 'away_team_id' => 2],
+            ['id' => 4, 'phase_id' => 4, 'round' => 1, 'status' => 'scheduled', 'home_team_id' => 1, 'away_team_id' => 2],
+        ]);
+        [$data, $html] = $this->dashboard();
+
+        $this->assertSame([1], $data['desktopBracketPhaseIds']);
+        $this->assertStringContainsString('class="public-bracket" wire:key="public-bracket-1"', $html);
+        $this->assertStringContainsString('class="public-bracket public-bracket--desktop-hidden" wire:key="public-bracket-2"', $html);
+        $this->assertStringNotContainsString('wire:key="public-bracket-3"', $html);
+        $this->assertStringNotContainsString('wire:key="public-bracket-4"', $html);
     }
 
     public function test_empty_dashboard_keeps_all_match_sections_but_hides_scorers(): void
@@ -106,6 +190,81 @@ class LiveTournamentDashboardTest extends TestCase
         $this->assertStringContainsString('No hay partidos en juego', $html);
         $this->assertStringContainsString('No hay partidos finalizados aún', $html);
         $this->assertStringContainsString('No hay próximos partidos programados', $html);
+    }
+
+    public function test_goal_notifications_include_team_data_without_a_player(): void
+    {
+        config(['filesystems.disks.public.url' => 'https://public.example.test/storage']);
+        DB::table('teams')->insert([
+            'id' => 1, 'team' => 'Equipo del club', 'team_image' => 'teams/club.png',
+        ]);
+        DB::table('tournament_teams')->where('id', 1)->update([
+            'logo' => 'teams/local.png', 'team_id' => 1,
+        ]);
+        DB::table('tournament_matches')->insert(['id' => 1, 'status' => 'in_progress']);
+        DB::table('tournament_match_goals')->insert([
+            'tournament_match_id' => 1, 'tournament_team_id' => 1, 'goal_type' => 'normal',
+        ]);
+
+        $component = new LiveDetail;
+        $component->tournament = (new Tournament)->forceFill(['id' => 1]);
+        $component->render();
+        $event = \Livewire\store($component)->get('dispatched')[0]->serialize();
+        $payload = $event['params'][0];
+
+        $this->assertSame('live-event-notification', $event['name']);
+        $this->assertNull($payload['player_name']);
+        $this->assertNull($payload['player_photo']);
+        $this->assertSame('Equipo local', $payload['team_name']);
+        $this->assertSame('https://public.example.test/storage/teams/local.png', $payload['team_logo']);
+
+        $component->render();
+        $this->assertCount(1, \Livewire\store($component)->get('dispatched'));
+    }
+
+    public function test_goal_without_players_uses_the_linked_club_team_image(): void
+    {
+        config(['filesystems.disks.public.url' => 'https://public.example.test/storage']);
+        DB::table('teams')->insert([
+            'id' => 1, 'team' => 'Equipo del club', 'team_image' => 'teams/club.png',
+        ]);
+        DB::table('tournament_teams')->where('id', 1)->update(['team_id' => 1]);
+        DB::table('tournament_matches')->insert(['id' => 1, 'status' => 'in_progress']);
+        DB::table('tournament_match_goals')->insert([
+            'tournament_match_id' => 1, 'tournament_team_id' => 1, 'goal_type' => 'normal',
+        ]);
+
+        $component = new LiveDetail;
+        $component->tournament = (new Tournament)->forceFill(['id' => 1]);
+        $component->render();
+        $payload = \Livewire\store($component)->get('dispatched')[0]->serialize()['params'][0];
+
+        $this->assertNull($payload['player_name']);
+        $this->assertSame('Equipo local', $payload['team_name']);
+        $this->assertSame('https://public.example.test/storage/teams/club.png', $payload['team_logo']);
+    }
+
+    public function test_goal_notifications_preserve_player_data_and_allow_teams_without_logos(): void
+    {
+        DB::table('tournament_matches')->insert(['id' => 1, 'status' => 'in_progress']);
+        DB::table('tournament_players')->insert([
+            'id' => 1, 'tournament_team_id' => 1, 'name' => 'Jugador',
+            'surname' => 'Local', 'photo' => 'players/local.png',
+        ]);
+        DB::table('tournament_match_goals')->insert([
+            'tournament_match_id' => 1, 'tournament_team_id' => 1,
+            'tournament_player_id' => 1, 'goal_type' => 'normal',
+        ]);
+
+        $component = new LiveDetail;
+        $component->tournament = (new Tournament)->forceFill(['id' => 1]);
+        $component->render();
+        $payload = \Livewire\store($component)->get('dispatched')[0]->serialize()['params'][0];
+
+        $this->assertSame('Jugador Local', $payload['player_name']);
+        $this->assertSame(Storage::url('players/local.png'), $payload['player_photo']);
+        $this->assertSame('Equipo local', $payload['team_name']);
+        $this->assertNull($payload['team_logo']);
     }
 
     public function test_only_three_scorers_are_shown_alongside_live_and_recent_matches(): void
@@ -152,6 +311,38 @@ class LiveTournamentDashboardTest extends TestCase
         $this->assertTrue($data['hasPlayers']);
         $this->assertStringContainsString('Máximos Goleadores', $html);
         $this->assertStringContainsString('Sin goleadores registrados aún', $html);
+    }
+
+    public function test_standings_show_team_logos_before_names_with_club_image_fallback(): void
+    {
+        config(['filesystems.disks.public.url' => 'https://public.example.test/storage']);
+        DB::table('teams')->insert([
+            'id' => 1, 'team' => 'Equipo del club', 'team_image' => 'teams/club.png',
+        ]);
+        DB::table('tournament_teams')->where('id', 1)->update([
+            'logo' => 'teams/local.png', 'team_id' => 1,
+        ]);
+        DB::table('tournament_teams')->insert([
+            ['id' => 2, 'name_override' => 'Equipo vinculado', 'team_id' => 1],
+            ['id' => 3, 'name_override' => 'Equipo sin escudo', 'team_id' => null],
+        ]);
+        foreach ([1, 2, 3] as $teamId) {
+            DB::table('tournament_standings')->insert([
+                'tournament_team_id' => $teamId, 'position' => $teamId,
+            ]);
+        }
+
+        [, $html] = $this->dashboard();
+        $this->assertSame(2, substr_count($html, 'class="standings-team-logo"'));
+        $this->assertMatchesRegularExpression(
+            '/src="https:\/\/public\.example\.test\/storage\/teams\/local\.png"[^>]*>\s*<span class="standings-team-name">Equipo local/',
+            $html,
+        );
+        $this->assertMatchesRegularExpression(
+            '/src="https:\/\/public\.example\.test\/storage\/teams\/club\.png"[^>]*>\s*<span class="standings-team-name">Equipo vinculado/',
+            $html,
+        );
+        $this->assertStringContainsString('class="standings-team-name">Equipo sin escudo', $html);
     }
 
     public function test_players_in_another_tournament_do_not_enable_scorers(): void

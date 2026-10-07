@@ -43,9 +43,9 @@
             <div class="live-main-grid">
 
                 {{-- ── LEFT: Classification ── --}}
-                <div class="live-col live-col--classification" x-data="{ panel: '{{ $standings->isEmpty() && $bracketData->isNotEmpty() ? 'bracket' : 'standings' }}' }">
+                <div class="live-col live-col--classification {{ count($desktopBracketPhaseIds) > 0 ? 'live-col--bracket-ready' : '' }}" x-data="{ panel: '{{ $standings->isEmpty() && $bracketData->isNotEmpty() ? 'bracket' : 'standings' }}' }">
                     @if ($bracketData->isNotEmpty())
-                        <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-shrink: 0;">
+                        <div class="live-panel-controls" style="display: flex; gap: 8px; margin-bottom: 14px; flex-shrink: 0;">
                             <button type="button" @click="panel = 'standings'" :aria-pressed="panel === 'standings'"
                                     :style="{ backgroundColor: panel === 'standings' ? '#176b51' : 'transparent', color: panel === 'standings' ? '#ffffff' : 'inherit' }"
                                     style="padding: 8px 12px; border: 1px solid #94a3b8; border-radius: 8px;">Clasificación</button>
@@ -53,11 +53,11 @@
                                     :style="{ backgroundColor: panel === 'bracket' ? '#176b51' : 'transparent', color: panel === 'bracket' ? '#ffffff' : 'inherit' }"
                                     style="padding: 8px 12px; border: 1px solid #94a3b8; border-radius: 8px;">Cuadro de cruces</button>
                         </div>
-                        <div x-show="panel === 'bracket'" x-cloak style="overflow: auto; min-height: 0;">
-                            @include('livewire.webclubs._tournament-bracket')
+                        <div class="live-bracket-panel" x-show="panel === 'bracket'" x-cloak style="overflow: auto; min-height: 0;">
+                            @include('livewire.webclubs._tournament-bracket', ['desktopVisiblePhaseIds' => $desktopBracketPhaseIds])
                         </div>
                     @endif
-                    <div x-show="panel === 'standings'" style="display: flex; flex-direction: column; overflow: auto; min-height: 0;">
+                    <div class="live-standings-panel" x-show="panel === 'standings'" style="display: flex; flex-direction: column; overflow: auto; min-height: 0;">
                     <h2 class="live-section__heading">
                         <svg class="live-section__heading-icon" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M3 4h18v3H3zM3 10.5h18v3H3zM3 17h18v3H3z"/>
@@ -111,7 +111,13 @@
                                                     @endif
                                                 </td>
                                                 <td class="standings-table__team-col">
-                                                    <span class="standings-team-name">{{ $standing->tournamentTeam?->displayName() ?? '—' }}</span>
+                                                    <span class="standings-team">
+                                                        {{-- @dump($standing) --}}
+                                                        {{-- @if($teamLogo = $standing->tournamentTeam?->logoUrl())
+                                                            <img src="{{ $teamLogo }}" alt="" class="standings-team-logo">
+                                                        @endif --}}
+                                                        <span class="standings-team-name">{{ $standing->tournamentTeam?->displayName() ?? '—' }}</span>
+                                                    </span>
                                                 </td>
                                                 <td class="standings-table__pts">
                                                     <span class="standings-pts">{{ $standing->points }}</span>
@@ -283,6 +289,8 @@
 
     {{-- ══════════════════════════════════════════════════════
          LIVE EVENT MODAL — Goal / Card notification
+         Goals without player data show the team name and logo instead,
+         using the club team's image when the tournament team has no logo.
          wire:ignore → preserves Alpine state (queue/timer) across
          every wire:poll re-render, otherwise the modal would be
          reset every 10s and the notification would be lost.
@@ -329,28 +337,28 @@
                     <span class="live-event-goal-shout__text">¡Goooll!!</span>
                 </p>
             </template>
-            <template x-if="current?.type !== 'goal'">
+            {{-- <template x-if="current?.type !== 'goal'">
                 <p class="live-event-type-label" x-text="current?.label ?? ''"></p>
-            </template>
+            </template> --}}
 
-            {{-- Player photo --}}
-            <div class="live-event-photo-wrap">
-                <template x-if="current?.player_photo">
-                    <img :src="current.player_photo" :alt="current.player_name" class="live-event-photo">
+            {{-- Player photo or scoring team logo --}}
+            {{-- <div class="live-event-photo-wrap">
+                <template x-if="participantPhoto">
+                    <img :src="participantPhoto" :alt="participantName" class="live-event-photo" :class="{ 'live-event-photo--team': isTeamGoal }">
                 </template>
-                <template x-if="!current?.player_photo">
-                    <div class="live-event-photo-placeholder" x-text="(current?.player_name ?? '?').charAt(0)"></div>
+                <template x-if="!participantPhoto">
+                    <div class="live-event-photo-placeholder" x-text="(participantName || '?').charAt(0)"></div>
                 </template>
-            </div>
+            </div> --}}
 
-            {{-- Player name --}}
-            <h2 class="live-event-player" x-text="current?.player_name ?? ''"></h2>
-
+            {{-- Player name or scoring team name --}}
+            {{-- <h2 class="live-event-player" x-text="participantName"></h2> --}}
+            <h2 class="live-event-player" x-text="current?.team_name ?? ''"></h2> 
             {{-- Team --}}
-            <p class="live-event-team">
+            {{-- <p class="live-event-team">
                 <svg viewBox="0 0 24 24" fill="currentColor" class="live-event-team-icon"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H7l5-8v4h4l-5 8z"/></svg>
                 <span x-text="current?.team_name ?? ''"></span>
-            </p>
+            </p> --}}
 
             {{-- Minute --}}
             <p class="live-event-minute" x-show="current?.minute">
@@ -715,7 +723,9 @@
 .pos-badge--2 { background: linear-gradient(135deg, #e8eef8, #b8c4d8); }
 .pos-badge--3 { background: linear-gradient(135deg, #e8a86a, #cd7f32); }
 .pos-num { font-size: 0.75rem; font-weight: 600; color: var(--live-text-dim); }
-.standings-team-name { font-size: clamp(0.82rem, 1.8vw, 1rem); font-weight: 700; color: var(--live-text); }
+.standings-team { display: flex; align-items: center; gap: 0.5rem; }
+.standings-team-logo { width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; }
+.standings-team-name { font-size: clamp(0.82rem, 1.8vw, 1rem); font-weight: 700; color: var(--live-text); min-width: 0; }
 .standings-pts { font-size: clamp(0.95rem, 2vw, 1.15rem); font-weight: 900; color: var(--live-text); }
 .standings-table__stat--g   { color: var(--live-green) !important; font-weight: 700 !important; }
 .standings-table__stat--p   { color: var(--live-red)   !important; font-weight: 700 !important; }
@@ -882,6 +892,12 @@
 .live-col--summary .scorer-goals-num { font-size: 1.6rem; }
 
 @media (min-width: 961px) {
+    .live-panel-controls,
+    .live-bracket-panel,
+    .live-bracket-panel .public-bracket--desktop-hidden { display: none !important; }
+    .live-standings-panel { display: flex !important; }
+    .live-col--bracket-ready .live-bracket-panel { display: block !important; }
+    .live-col--bracket-ready .live-standings-panel { display: none !important; }
     .live-screen {
         --live-unit: clamp(14px, 0.95vw, 36px);
         --live-text-muted: rgba(240,244,255,0.75);
@@ -910,6 +926,7 @@
     .standings-table thead th { padding: calc(var(--live-unit) * 0.6) calc(var(--live-unit) * 0.3); font-size: calc(var(--live-unit) * 0.75); }
     .standings-table tbody td { padding: calc(var(--live-unit) * 0.65) calc(var(--live-unit) * 0.3); font-size: var(--live-unit); }
     .standings-team-name { font-size: var(--live-unit); line-height: 1.3; overflow-wrap: anywhere; }
+    .standings-team-logo { width: calc(var(--live-unit) * 2); height: calc(var(--live-unit) * 2); }
     .standings-pts { font-size: calc(var(--live-unit) * 1.15); }
     .pos-badge { width: calc(var(--live-unit) * 1.75); height: calc(var(--live-unit) * 1.75); font-size: calc(var(--live-unit) * 0.8); border-radius: 7px; }
     .pos-num { font-size: calc(var(--live-unit) * 0.9); }
@@ -1086,8 +1103,8 @@
 }
 
 /* ── Player photo ── */
-.live-event-photo-wrap { margin: 0.5rem 0; }
-.live-event-photo {
+/* .live-event-photo-wrap { margin: 0.5rem 0; } */
+/* .live-event-photo {
     width: clamp(160px, 24vw, 260px);
     height: clamp(160px, 24vw, 260px);
     border-radius: 50%;
@@ -1095,21 +1112,12 @@
     border: 4px solid rgba(255,255,255,0.18);
     box-shadow: 0 12px 50px rgba(0,0,0,0.7);
     animation: photoAppear 0.5s 0.1s cubic-bezier(0.22,1,0.36,1) both;
-}
-.live-event-photo-placeholder {
-    width: clamp(160px, 24vw, 260px);
-    height: clamp(160px, 24vw, 260px);
-    border-radius: 50%;
-    background: rgba(255,255,255,0.07);
-    border: 4px solid rgba(255,255,255,0.15);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: clamp(4rem, 9vw, 6.5rem);
-    font-weight: 900;
-    color: rgba(240,244,255,0.4);
-    animation: photoAppear 0.5s 0.1s cubic-bezier(0.22,1,0.36,1) both;
-}
+} */
+/* .live-event-photo--team {
+    object-fit: contain;
+    padding: 12px;
+} */
+.live-Ç
 @keyframes photoAppear {
     0%   { opacity: 0; transform: scale(0.7); }
     100% { opacity: 1; transform: scale(1); }
@@ -1211,6 +1219,18 @@
             current: null,
             duration: 15000,
             timer: null,
+
+            get isTeamGoal() {
+                return this.current?.type === 'goal' && !this.current?.player_name;
+            },
+
+            get participantName() {
+                return (this.isTeamGoal ? this.current?.team_name : this.current?.player_name) ?? '';
+            },
+
+            get participantPhoto() {
+                return (this.isTeamGoal ? this.current?.team_logo : this.current?.player_photo) ?? null;
+            },
 
             enqueue(detail) {
                 // Livewire 3 may deliver the payload either as a plain object

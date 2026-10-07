@@ -55,7 +55,7 @@ class LiveDetail extends Component
         if ($liveMatchIds->isNotEmpty()) {
             $newGoals = TournamentMatchGoal::whereIn('tournament_match_id', $liveMatchIds)
                 ->where('id', '>', $this->lastGoalId)
-                ->with(['player', 'team'])
+                ->with(['player', 'team.team'])
                 ->orderBy('id')
                 ->get();
 
@@ -64,9 +64,10 @@ class LiveDetail extends Component
                     'type'         => 'goal',
                     'goal_type'    => $goal->goal_type,
                     'label'        => $goal->goalTypeLabel(),
-                    'player_name'  => $goal->player?->fullName() ?? '—',
+                    'player_name'  => $goal->player?->fullName() ?: null,
                     'player_photo' => $goal->player?->photoUrl(),
                     'team_name'    => $goal->team?->displayName() ?? '—',
+                    'team_logo'    => $goal->team?->logoUrl(),
                     'minute'       => $goal->minute,
                 ]);
             }
@@ -189,6 +190,12 @@ class LiveDetail extends Component
 
         // Bracket data for knockout phases
         $bracketData = app(TournamentBracket::class)->build($phases, $allMatchesFlat);
+        $desktopBracketPhaseIds = $bracketData->filter(function ($bracket) {
+            $firstRoundMatches = $bracket['rounds']->get($bracket['firstRound'], collect());
+
+            return $firstRoundMatches->isNotEmpty()
+                && $firstRoundMatches->every(fn ($match) => $match->homeTeam !== null && $match->awayTeam !== null);
+        })->keys()->all();
 
         // Standings indexed by phase_id (for per-phase display in rotating panel)
         $standingsByPhaseId = $standings->flatten(1)->groupBy('phase_id');
@@ -234,6 +241,8 @@ class LiveDetail extends Component
             ->sortByDesc(fn($card) => $card->red_cards * 1000 + $card->yellow_cards)
             ->values();
 
+      
+
         return view('livewire.webclubs.live-detail', [
             'liveMatches'           => $liveMatches,
             'teams'                 => $teams,
@@ -249,6 +258,7 @@ class LiveDetail extends Component
             'recentMatches'         => $recentMatches,
             'upcomingMatches'       => $upcomingMatches,
             'bracketData'           => $bracketData,
+            'desktopBracketPhaseIds'=> $desktopBracketPhaseIds,
             'standingsByPhaseId'    => $standingsByPhaseId,
         ])->layout('livewire.webclubs.layouts.app_live', [
             'title' => tenantName() . ' - ' . $this->tournament->name,
