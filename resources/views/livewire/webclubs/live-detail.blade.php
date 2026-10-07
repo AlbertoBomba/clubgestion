@@ -1,5 +1,5 @@
 @php $hasLive = $liveMatches->isNotEmpty(); @endphp
-<div wire:poll.5s class="live-screen {{ $hasLive ? 'live-screen--active' : '' }}">
+<div wire:poll.5s class="live-screen">
 
     {{-- ══════════════════════════════════════════════════════
          HEADER — Tournament name + live badge
@@ -34,13 +34,13 @@
     </header>
 
     {{-- ══════════════════════════════════════════════════════
-         MAIN GRID — always 2 columns:
+         MAIN GRID:
          Left  = Classification
-         Right = Live matches (when active) OR Top Scorers
+         Right = Top scorers and match summary
     ══════════════════════════════════════════════════════ --}}
-    <section class="live-section {{ $hasLive ? 'live-section--fill' : '' }}">
-        <div class="live-section__inner {{ $hasLive ? 'live-section__inner--fill' : '' }}">
-            <div class="live-main-grid {{ $hasLive ? 'live-main-grid--active' : '' }}">
+    <section class="live-section">
+        <div class="live-section__inner">
+            <div class="live-main-grid">
 
                 {{-- ── LEFT: Classification ── --}}
                 <div class="live-col live-col--classification" x-data="{ panel: '{{ $standings->isEmpty() && $bracketData->isNotEmpty() ? 'bracket' : 'standings' }}' }">
@@ -87,12 +87,12 @@
                                                 <th class="standings-table__pos">#</th>
                                                 <th class="standings-table__team-col">Equipo</th>
                                                 <th class="standings-table__pts">Pts</th>
-                                                <th class="standings-table__stat">PJ</th>
-                                                <th class="standings-table__stat standings-table__stat--g">G</th>
-                                                <th class="standings-table__stat">E</th>
-                                                <th class="standings-table__stat standings-table__stat--p">P</th>
-                                                <th class="standings-table__stat standings-table__stat--hide-sm">GF</th>
-                                                <th class="standings-table__stat standings-table__stat--hide-sm">GC</th>
+                                                <th class="standings-table__stat standings-table__desktop-hidden">PJ</th>
+                                                <th class="standings-table__stat standings-table__stat--g standings-table__desktop-hidden">G</th>
+                                                <th class="standings-table__stat standings-table__desktop-hidden">E</th>
+                                                <th class="standings-table__stat standings-table__stat--p standings-table__desktop-hidden">P</th>
+                                                <th class="standings-table__stat standings-table__stat--hide-sm standings-table__desktop-hidden">GF</th>
+                                                <th class="standings-table__stat standings-table__stat--hide-sm standings-table__desktop-hidden">GC</th>
                                                 <th class="standings-table__stat standings-table__stat--dg">DG</th>
                                             </tr>
                                         </thead>
@@ -116,18 +116,18 @@
                                                 <td class="standings-table__pts">
                                                     <span class="standings-pts">{{ $standing->points }}</span>
                                                 </td>
-                                                <td class="standings-table__stat">{{ $standing->played }}</td>
-                                                <td class="standings-table__stat standings-table__stat--g">{{ $standing->won }}</td>
-                                                <td class="standings-table__stat">{{ $standing->drawn }}</td>
-                                                <td class="standings-table__stat standings-table__stat--p">{{ $standing->lost }}</td>
-                                                <td class="standings-table__stat standings-table__stat--hide-sm">{{ $standing->goals_for }}</td>
-                                                <td class="standings-table__stat standings-table__stat--hide-sm">{{ $standing->goals_against }}</td>
+                                                <td class="standings-table__stat standings-table__desktop-hidden">{{ $standing->played }}</td>
+                                                <td class="standings-table__stat standings-table__stat--g standings-table__desktop-hidden">{{ $standing->won }}</td>
+                                                <td class="standings-table__stat standings-table__desktop-hidden">{{ $standing->drawn }}</td>
+                                                <td class="standings-table__stat standings-table__stat--p standings-table__desktop-hidden">{{ $standing->lost }}</td>
+                                                <td class="standings-table__stat standings-table__stat--hide-sm standings-table__desktop-hidden">{{ $standing->goals_for }}</td>
+                                                <td class="standings-table__stat standings-table__stat--hide-sm standings-table__desktop-hidden">{{ $standing->goals_against }}</td>
                                                 <td class="standings-table__stat standings-table__stat--dg {{ ($standing->goals_for - $standing->goals_against) >= 0 ? 'standings-table__stat--pos' : 'standings-table__stat--neg' }}">
                                                     {{ ($standing->goals_for - $standing->goals_against) >= 0 ? '+' : '' }}{{ $standing->goals_for - $standing->goals_against }}
                                                 </td>
                                             </tr>
                                             @endforeach
-                                            @include('livewire.webclubs._pending-standings', ['pendingCount' => $group['pending'], 'assignedCount' => $groupStandings->count()])
+                                            @include('livewire.webclubs._pending-standings', ['pendingCount' => $group['pending'], 'assignedCount' => $groupStandings->count(), 'compactDesktop' => true])
                                         </tbody>
                                     </table>
                                 </div>
@@ -138,14 +138,14 @@
                     </div>
                 </div>{{-- /live-col--classification --}}
 
-                {{-- ── RIGHT: Live matches OR Top Scorers ── --}}
-                @if($hasLive)
-                <div class="live-col live-col--matches">
+                <aside class="live-col live-col--summary">
+                <section class="live-summary-section">
                     <h2 class="live-section__heading live-section__heading--live">
                         <span class="live-section__heading-dot"></span>
                         Partidos en Juego
                     </h2>
 
+                    @if($hasLive)
                     <div class="live-matches-stack">
                         @foreach($liveMatches as $match)
                         <div wire:key="live-match-{{ $match->id }}" class="match-card match-card--live">
@@ -186,10 +186,15 @@
                         </div>
                         @endforeach
                     </div>
-                </div>{{-- /live-col--matches --}}
+                    @else
+                        <div class="live-empty live-empty--compact">
+                            <p>No hay partidos en juego</p>
+                        </div>
+                    @endif
+                </section>
 
-                @else
-                <div class="live-col live-col--scorers">
+                @if($hasPlayers)
+                <section class="live-summary-section live-summary-section--scorers">
                     <h2 class="live-section__heading">
                         <svg class="live-section__heading-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="9"/>
@@ -205,8 +210,8 @@
                         </div>
                     @else
                         <div class="scorers-list">
-                            @foreach($topScorers->take(10) as $i => $scorer)
-                            <div class="scorer-row {{ $i === 0 ? 'scorer-row--top' : '' }}">
+                            @foreach($topScorers as $i => $scorer)
+                            <div wire:key="scorer-{{ $scorer->player->id }}" class="scorer-row {{ $i === 0 ? 'scorer-row--top' : '' }}">
                                 <div class="scorer-row__rank">
                                     @if($i === 0)
                                         <span class="scorer-rank scorer-rank--gold">🥇</span>
@@ -240,8 +245,26 @@
                             @endforeach
                         </div>
                     @endif
-                </div>{{-- /live-col--scorers --}}
+                </section>
                 @endif
+                @foreach([
+                    ['key' => 'recent', 'title' => 'Últimos resultados', 'matches' => $recentMatches, 'empty' => 'No hay partidos finalizados aún'],
+                    ['key' => 'upcoming', 'title' => 'Próximos partidos', 'matches' => $upcomingMatches, 'empty' => 'No hay próximos partidos programados'],
+                ] as $matchSection)
+                    <section class="live-summary-section live-summary-section--{{ $matchSection['key'] }}">
+                        <h2 class="live-section__heading">{{ $matchSection['title'] }}</h2>
+                        <div class="live-matches-stack">
+                            @forelse($matchSection['matches'] as $match)
+                                @include('livewire.webclubs._live-summary-match', ['match' => $match])
+                            @empty
+                                <div class="live-empty live-empty--compact">
+                                    <p>{{ $matchSection['empty'] }}</p>
+                                </div>
+                            @endforelse
+                        </div>
+                    </section>
+                @endforeach
+                </aside>
 
             </div>{{-- /live-main-grid --}}
         </div>
@@ -384,7 +407,7 @@
     z-index: 50;
 }
 .live-header__inner {
-    max-width: 1920px;
+    width: 100%;
     margin: 0 auto;
     padding: 1.25rem 2.5rem;
     display: flex;
@@ -457,7 +480,7 @@
 /* ── Sections ── */
 .live-section { padding: 2rem 0; }
 .live-section__inner {
-    max-width: 1920px;
+    width: 100%;
     margin: 0 auto;
     padding: 0 2.5rem;
 }
@@ -608,9 +631,6 @@
     grid-template-columns: 1fr 1fr;
     gap: 2rem;
     align-items: start;
-}
-.live-main-grid--active {
-    align-items: stretch;
 }
 @media (max-width: 960px) {
     .live-main-grid { grid-template-columns: 1fr; }
@@ -774,7 +794,7 @@
 
 /* ── Footer ── */
 .live-footer {
-    max-width: 1920px;
+    width: 100%;
     margin: 0 auto;
     padding: 1.5rem 2.5rem 3rem;
     display: flex;
@@ -797,121 +817,6 @@
     flex-shrink: 0;
 }
 @keyframes spinSlow { to { transform: rotate(360deg); } }
-
-/* ── Live-active mode: fill 100vh, no overflow ── */
-.live-screen--active {
-    height: 100dvh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-.live-screen--active .live-header  { flex-shrink: 0; }
-.live-screen--active .live-footer  { display: none; }
-
-.live-section--fill {
-    flex: 1;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    padding-bottom: 0;
-    width: 100%;
-}
-.live-section__inner--fill {
-    flex: 1;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    padding-top: 1.25rem;
-    padding-bottom: 1rem;
-    width: 100%;
-    max-width: none;
-    margin: 0;
-}
-
-/* Active 2-column grid: both cols fill the remaining height */
-.live-main-grid--active {
-    flex: 1;
-    overflow: hidden;
-    width: 100%;
-}
-.live-main-grid--active .live-col {
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-/* Left col: classification fills and scrolls its table */
-.live-main-grid--active .live-col--classification .standings-list {
-    flex: 1;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-}
-.live-main-grid--active .live-col--classification .standings-group {
-    flex: 1;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-.live-main-grid--active .live-col--classification .standings-table-wrap {
-    flex: 1;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255,255,255,0.12) transparent;
-}
-.live-main-grid--active .live-col--classification .standings-table-wrap::-webkit-scrollbar { width: 5px; }
-.live-main-grid--active .live-col--classification .standings-table-wrap::-webkit-scrollbar-track { background: transparent; }
-.live-main-grid--active .live-col--classification .standings-table-wrap::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.12);
-    border-radius: 4px;
-}
-/* Sticky thead when table scrolls */
-.live-main-grid--active .standings-table thead {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    background: #0d1420;
-}
-/* Scale rows up for TV */
-.live-main-grid--active .standings-table tbody td {
-    padding: clamp(0.7rem, 1.6vh, 1.3rem) 0.75rem;
-    font-size: clamp(0.9rem, 1.8vw, 1.2rem);
-}
-.live-main-grid--active .standings-table thead th {
-    padding: clamp(0.55rem, 1.2vh, 0.9rem) 0.75rem;
-    font-size: clamp(0.56rem, 1.1vw, 0.75rem);
-}
-.live-main-grid--active .standings-team-name { font-size: clamp(1rem, 2vw, 1.35rem); }
-.live-main-grid--active .standings-pts       { font-size: clamp(1.1rem, 2.2vw, 1.5rem); }
-.live-main-grid--active .pos-badge {
-    width: clamp(28px, 2.8vw, 38px);
-    height: clamp(28px, 2.8vw, 38px);
-    font-size: clamp(0.7rem, 1.3vw, 0.9rem);
-    border-radius: 10px;
-}
-
-/* Right col: match cards stack vertically, evenly distributed */
-.live-col--matches .live-matches-stack {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255,255,255,0.12) transparent;
-}
-.live-col--matches .live-matches-stack::-webkit-scrollbar { width: 5px; }
-.live-col--matches .live-matches-stack::-webkit-scrollbar-track { background: transparent; }
-.live-col--matches .live-matches-stack::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.12);
-    border-radius: 4px;
-}
-/* When only a few matches: let each card grow to fill the column */
-.live-col--matches .live-matches-stack .match-card { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-/* Larger scores in the right-column context */
-.live-main-grid--active .match-card__score-num  { font-size: clamp(2.5rem, 5vw, 5rem); }
-.live-main-grid--active .match-card__team-name  { font-size: clamp(1.1rem, 2.5vw, 2rem); }
-.live-main-grid--active .match-card__score-sep  { font-size: clamp(1.8rem, 3.5vw, 3.5rem); }
 
 /* ═══════════════ RESPONSIVE ═══════════════ */
 @media (max-width: 1024px) {
@@ -949,6 +854,101 @@
     .scorer-row__avatar { width: 58px; height: 58px; }
     .live-section__heading { font-size: 1.8rem; margin-bottom: 1.5rem; }
     .pos-badge { width: 34px; height: 34px; font-size: 0.8rem; }
+}
+
+.live-col { min-width: 0; }
+.live-col--summary { display: flex; flex-direction: column; gap: 1.5rem; }
+.live-summary-section--scorers { order: -1; }
+.live-matches-stack { display: flex; flex-direction: column; gap: 0.75rem; }
+.live-empty--compact { padding: 1.25rem; border-radius: 12px; }
+.live-col--summary .live-empty { padding: 1.25rem; }
+.live-col--summary .live-empty__icon { font-size: 1.5rem; }
+.live-col--summary .live-section__heading { font-size: 0.95rem; margin-bottom: 0.75rem; }
+.live-col--summary .match-card { padding: 1rem; border-radius: 14px; }
+.live-col--summary .match-card__meta { font-size: 0.6rem; margin-bottom: 0.75rem; letter-spacing: 0.05em; }
+.live-col--summary .match-card__board { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 0.6rem; }
+.live-col--summary .match-card__team-name { font-size: 0.95rem; line-height: 1.3; overflow-wrap: anywhere; }
+.live-col--summary .match-card__score { padding: 0.4rem 0.65rem; border-radius: 10px; }
+.live-col--summary .match-card__score-num { font-size: 1.75rem; }
+.live-col--summary .match-card__score-sep { font-size: 1.25rem; }
+.match-card__versus { font-size: 0.8rem; font-weight: 800; color: var(--live-text-muted); }
+.match-card__penalties { font-size: 0.65rem; color: var(--live-text-muted); text-align: center; max-width: 100px; overflow-wrap: anywhere; }
+.match-card__status { margin-left: auto; color: var(--live-text); }
+.live-col--summary .scorer-row { padding: 0.75rem; gap: 0.65rem; }
+.live-col--summary .scorer-row__avatar { width: 36px; height: 36px; }
+.live-col--summary .scorer-row__rank { width: 28px; }
+.live-col--summary .scorer-row__name { font-size: 0.9rem; }
+.live-col--summary .scorer-row__team { font-size: 0.72rem; }
+.live-col--summary .scorer-goals-num { font-size: 1.6rem; }
+
+@media (min-width: 961px) {
+    .live-screen {
+        --live-unit: clamp(14px, 0.95vw, 36px);
+        --live-text-muted: rgba(240,244,255,0.75);
+        --live-text-dim: rgba(240,244,255,0.6);
+    }
+    .live-header__inner { padding: var(--live-unit) calc(var(--live-unit) * 1.25); gap: var(--live-unit); }
+    .live-header__logo-wrap { width: calc(var(--live-unit) * 3.5); height: calc(var(--live-unit) * 3.5); }
+    .live-header__title { font-size: calc(var(--live-unit) * 2.25); }
+    .live-header__suptitle, .live-badge__text { font-size: calc(var(--live-unit) * 0.7); }
+    .live-section { padding: calc(var(--live-unit) * 1.25) 0; }
+    .live-section__inner { padding: 0 calc(var(--live-unit) * 1.25); }
+    .live-main-grid { grid-template-columns: minmax(0, 1.65fr) minmax(340px, 1fr); gap: calc(var(--live-unit) * 1.5); }
+    .live-section__heading, .live-col--summary .live-section__heading {
+        font-size: calc(var(--live-unit) * 1.1);
+        margin-bottom: var(--live-unit);
+        letter-spacing: 0.04em;
+    }
+    .standings-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--live-unit); align-items: start; }
+    .standings-group { min-width: 0; }
+    .standings-group__name { font-size: calc(var(--live-unit) * 0.9); }
+    .standings-table { table-layout: fixed; }
+    .standings-table .standings-table__desktop-hidden { display: none !important; }
+    .standings-table__pos, .standings-table__pts { width: calc(var(--live-unit) * 2.5); }
+    .standings-table__stat--dg { width: calc(var(--live-unit) * 2.75); }
+    .standings-table__team-col { padding-left: 0.5rem !important; }
+    .standings-table thead th { padding: calc(var(--live-unit) * 0.6) calc(var(--live-unit) * 0.3); font-size: calc(var(--live-unit) * 0.75); }
+    .standings-table tbody td { padding: calc(var(--live-unit) * 0.65) calc(var(--live-unit) * 0.3); font-size: var(--live-unit); }
+    .standings-team-name { font-size: var(--live-unit); line-height: 1.3; overflow-wrap: anywhere; }
+    .standings-pts { font-size: calc(var(--live-unit) * 1.15); }
+    .pos-badge { width: calc(var(--live-unit) * 1.75); height: calc(var(--live-unit) * 1.75); font-size: calc(var(--live-unit) * 0.8); border-radius: 7px; }
+    .pos-num { font-size: calc(var(--live-unit) * 0.9); }
+    .standings-table-wrap { border-radius: 12px; }
+    .live-col--summary { gap: calc(var(--live-unit) * 1.25); }
+    .live-summary-section { min-width: 0; }
+    .live-matches-stack { gap: calc(var(--live-unit) * 0.65); }
+    .live-col--summary .match-card { padding: var(--live-unit); }
+    .live-col--summary .match-card__meta { font-size: calc(var(--live-unit) * 0.7); margin-bottom: calc(var(--live-unit) * 0.7); }
+    .live-col--summary .match-card__team-name { font-size: var(--live-unit); }
+    .live-col--summary .match-card__score-num { font-size: calc(var(--live-unit) * 2); }
+    .live-col--summary .match-card__score-sep { font-size: calc(var(--live-unit) * 1.4); }
+    .live-col--summary .match-card__live-pill { font-size: calc(var(--live-unit) * 0.65); }
+    .match-card__versus { font-size: var(--live-unit); }
+    .match-card__penalties { font-size: calc(var(--live-unit) * 0.75); max-width: calc(var(--live-unit) * 7); }
+    .live-col--summary .scorer-row { padding: calc(var(--live-unit) * 0.7); gap: calc(var(--live-unit) * 0.65); }
+    .live-col--summary .scorer-row__avatar { width: calc(var(--live-unit) * 2.5); height: calc(var(--live-unit) * 2.5); }
+    .live-col--summary .scorer-row__rank { width: calc(var(--live-unit) * 2); }
+    .scorer-rank--gold, .scorer-rank--silver, .scorer-rank--bronze { font-size: calc(var(--live-unit) * 1.4); }
+    .live-col--summary .scorer-row__name { font-size: var(--live-unit); }
+    .live-col--summary .scorer-row__team { font-size: calc(var(--live-unit) * 0.8); }
+    .live-col--summary .scorer-goals-num { font-size: calc(var(--live-unit) * 1.8); }
+    .scorer-goals-label { font-size: calc(var(--live-unit) * 0.65); }
+    .live-empty p, .live-col--summary .live-empty p { font-size: var(--live-unit); }
+    .live-footer { padding: var(--live-unit); }
+    .live-footer__refresh { font-size: calc(var(--live-unit) * 0.7); }
+}
+
+@media (min-width: 1280px) {
+    .live-main-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); }
+    .live-col--summary {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+    }
+}
+
+@media (min-width: 1600px) {
+    .live-main-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* ═══════════════════════════════════════════════

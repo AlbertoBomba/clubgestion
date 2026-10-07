@@ -30,6 +30,26 @@ any assigned teams. A phase without a participant count shows **Sin equipos
 asignados aún** until its standings exist. Pending places have no fabricated
 points or results. Phases with identical names remain separate.
 
+### Live tournament desktop dashboard
+
+On desktop (above 960 px), the Live page places compact classifications
+in a two-table-per-row grid on the left, showing position, team, points and
+goal difference. The right column shows the top three scorers only when
+tournament teams have registered players; own goals and goals without a
+player are excluded. Teams with players but no goals show an empty scorer state.
+The match summary always remains visible: all matches in progress, the last
+two completed matches and the next two scheduled/postponed matches.
+Recent results use the playing date when available. Upcoming matches are
+ordered by scheduled date, with undated fixtures filling remaining slots.
+Empty sections show an explicit message. The knockout bracket, event
+notifications and five-second refresh are preserved, and the page scrolls
+normally so no sections are clipped while matches are in progress.
+The dashboard uses the full screen width without a 1920 px container limit.
+Desktop text and spacing scale with viewport width for projection, with
+higher-contrast secondary labels. From 1280 px, the right-hand summary uses
+two columns to make better use of TV/ultrawide screens while standings
+remain two tables per row. Smaller desktops keep the summary stacked.
+
 ### Printable live tournament QR
 
 **Descargar QR**, beside the tournament PDF download on desktop and mobile,

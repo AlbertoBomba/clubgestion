@@ -121,6 +121,7 @@ class LiveDetail extends Component
     // Teams
         $teams = $this->tournament->tournamentTeams()
             ->with(['team', 'players' => fn ($q) => $q->where('status', 'approved')->orderBy('dorsal')->orderBy('surname')])
+            ->withExists('players')
             ->orderBy('seed')
             ->orderBy('id')
             ->get();
@@ -146,6 +147,7 @@ class LiveDetail extends Component
             ->get()
             ->groupBy(fn ($m) => ($m->phase ? $m->phase->name : 'General'));
 
+
         // Further group each phase by round
         $matchesByPhaseAndRound = $matches->map(fn ($phaseMatches) =>
             $phaseMatches->groupBy(fn ($m) => $m->round ? 'Jornada ' . $m->round : 'Sin jornada')
@@ -161,24 +163,24 @@ class LiveDetail extends Component
         $allMatchesFlat = $matches->flatten(1);
         $standingGroups = app(PublicTournamentStandings::class)->build($phases, $standings->flatten(1));
 
-        // Last 2 completed matches (most recent first)
+        // Prefer the actual playing date when a match was rescheduled.
         $recentMatches = $allMatchesFlat->where('status', 'completed')
-            ->sortByDesc('scheduled_at')
+            ->sortByDesc(fn ($match) => $match->played_at ?? $match->scheduled_at ?? $match->updated_at)
             ->take(2)
             ->values();
 
-        // Next 4 upcoming matches (earliest first)
+        // Next 2 upcoming matches (earliest first)
         $upcomingMatches = $allMatchesFlat->whereIn('status', ['scheduled', 'postponed'])
             ->filter(fn($m) => $m->scheduled_at !== null)
             ->sortBy('scheduled_at')
-            ->take(4)
+            ->take(2)
             ->values();
 
-        // If fewer than 4 with dates, append scheduled ones without a date
-        if ($upcomingMatches->count() < 4) {
-            $noDate = $allMatchesFlat->where('status', 'scheduled')
+        // Fill remaining slots with matches whose date is still to be defined.
+        if ($upcomingMatches->count() < 2) {
+            $noDate = $allMatchesFlat->whereIn('status', ['scheduled', 'postponed'])
                 ->filter(fn($m) => $m->scheduled_at === null)
-                ->take(4 - $upcomingMatches->count())
+                ->take(2 - $upcomingMatches->count())
                 ->values();
             $upcomingMatches = $upcomingMatches->concat($noDate);
         }
@@ -198,6 +200,7 @@ class LiveDetail extends Component
         // Top scorers (excluding own goals)
         $topScorers = TournamentMatchGoal::whereIn('tournament_match_id', $matchIds)
             ->where('goal_type', '!=', 'own_goal')
+            ->whereHas('player')
             ->with(['player', 'team'])
             ->get()
             ->groupBy('tournament_player_id')
@@ -210,7 +213,8 @@ class LiveDetail extends Component
                 ];
             })
             ->sortByDesc('goals')
-            ->values();
+            ->values()
+            ->take(3);
 
         // Player cards (grouped by player)
         $playerCards = TournamentMatchCard::whereIn('tournament_match_id', $matchIds)
@@ -233,6 +237,7 @@ class LiveDetail extends Component
         return view('livewire.webclubs.live-detail', [
             'liveMatches'           => $liveMatches,
             'teams'                 => $teams,
+            'hasPlayers'            => $teams->contains(fn ($team) => (bool) $team->players_exists),
             'standings'             => $standings,
             'standingGroups'        => $standingGroups,
             'matchesByPhaseAndRound'=> $matchesByPhaseAndRound,
@@ -241,6 +246,8 @@ class LiveDetail extends Component
             'goalsPlayers'          => $goalsPlayers,
             'phases'                => $phases,
             'recentAndUpcoming'     => $recentAndUpcoming,
+            'recentMatches'         => $recentMatches,
+            'upcomingMatches'       => $upcomingMatches,
             'bracketData'           => $bracketData,
             'standingsByPhaseId'    => $standingsByPhaseId,
         ])->layout('livewire.webclubs.layouts.app_live', [

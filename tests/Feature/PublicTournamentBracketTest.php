@@ -127,6 +127,10 @@ class PublicTournamentBracketTest extends TestCase
                 $table->integer('tournament_id');
                 $table->integer('seed');
             });
+            Schema::create('tournament_players', function (Blueprint $table) {
+                $table->id();
+                $table->integer('tournament_team_id');
+            });
             Schema::create('tournament_standings', function (Blueprint $table) {
                 $table->id();
                 $table->integer('tournament_id');
@@ -143,6 +147,7 @@ class PublicTournamentBracketTest extends TestCase
                 Schema::create($tableName, function (Blueprint $table) {
                     $table->id();
                     $table->integer('tournament_match_id');
+                    $table->integer('tournament_player_id')->nullable();
                     $table->string('goal_type')->nullable();
                 });
             }
@@ -197,7 +202,9 @@ class PublicTournamentBracketTest extends TestCase
             DB::table('tournament_matches')->where('id', 1)->update(['status' => 'in_progress']);
             $data = $component->render()->getData();
             $html = view('livewire.webclubs.live-detail', array_merge(get_object_vars($component), $data))->render();
-            $this->assertStringContainsString('live-screen--active', $html);
+            $this->assertStringContainsString('wire:key="live-match-1"', $html);
+            $this->assertStringContainsString('Últimos resultados', $html);
+            $this->assertStringContainsString('Próximos partidos', $html);
             $this->assertStringContainsString('wire:key="public-bracket-match-1"', $html);
             DB::table('tournament_phases')->where('id', 1)->update(['type' => 'league']);
             foreach ([new TournamentDetail, new LiveDetail] as $component) {
