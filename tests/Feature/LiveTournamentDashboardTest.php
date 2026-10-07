@@ -40,6 +40,7 @@ class LiveTournamentDashboardTest extends TestCase
                 $table->integer($column)->nullable();
             }
             $table->string('status');
+            $table->text('settings')->nullable();
             $table->dateTime('scheduled_at')->nullable();
             $table->dateTime('played_at')->nullable();
             $table->timestamps();
@@ -157,6 +158,60 @@ class LiveTournamentDashboardTest extends TestCase
         $this->assertStringNotContainsString('class="live-col live-col--classification live-col--bracket-ready"', $html);
     }
 
+    public function test_desktop_bracket_includes_third_place_when_it_exists_without_waiting_for_its_teams(): void
+    {
+        DB::table('tournament_phases')->insert([
+            'id' => 1, 'tournament_id' => 1, 'name' => 'Eliminatorias', 'type' => 'knockout',
+        ]);
+        DB::table('tournament_teams')->insert(['id' => 2, 'name_override' => 'Equipo visitante']);
+        foreach ([1, 2] as $id) {
+            DB::table('tournament_matches')->insert([
+                'id' => $id, 'phase_id' => 1, 'round' => 1, 'status' => 'scheduled',
+                'home_team_id' => 1, 'away_team_id' => 2,
+            ]);
+        }
+        DB::table('tournament_matches')->insert([
+            'id' => 3, 'phase_id' => 1, 'round' => 2, 'status' => 'scheduled',
+        ]);
+        $component = new LiveDetail;
+        [, $html] = $this->dashboard($component);
+        $this->assertStringNotContainsString('<h4>Tercer puesto</h4>', $html);
+
+        DB::table('tournament_matches')->insert([
+            'id' => 4, 'phase_id' => 1, 'round' => 1, 'status' => 'scheduled',
+            'settings' => json_encode(['is_third_place' => true]),
+        ]);
+        [$data, $html] = $this->dashboard($component);
+
+        $this->assertSame([1], $data['desktopBracketPhaseIds']);
+        $this->assertSame([1, 2], $data['bracketData'][1]['rounds'][1]->pluck('id')->all());
+        $this->assertSame(4, $data['bracketData'][1]['thirdPlace']->id);
+        $this->assertStringContainsString('class="live-col live-col--classification live-col--bracket-ready"', $html);
+        $this->assertMatchesRegularExpression(
+            '/class="public-bracket-third">\s*<h4>Tercer puesto<\/h4>\s*<div class="public-bracket-card" wire:key="public-bracket-match-4"/',
+            $html,
+        );
+        $this->assertSame(1, substr_count($html, 'wire:key="public-bracket-match-4"'));
+
+        DB::table('tournament_matches')->where('id', 4)->update([
+            'home_team_id' => 1, 'away_team_id' => 2,
+            'status' => 'completed', 'home_score' => 2, 'away_score' => 1,
+        ]);
+        [$data] = $this->dashboard($component);
+        $thirdPlaceHtml = view('livewire.webclubs._tournament-bracket-match', [
+            'match' => $data['bracketData'][1]['thirdPlace'],
+        ])->render();
+        $this->assertStringContainsString('Equipo local', $thirdPlaceHtml);
+        $this->assertStringContainsString('Equipo visitante', $thirdPlaceHtml);
+        $this->assertStringContainsString('public-bracket-winner', $thirdPlaceHtml);
+        $this->assertMatchesRegularExpression('/<strong[^>]*>\s*2\s*/', $thirdPlaceHtml);
+
+        DB::table('tournament_matches')->where('id', 4)->update(['deleted_at' => now()]);
+        [$data, $html] = $this->dashboard($component);
+        $this->assertNull($data['bracketData'][1]['thirdPlace']);
+        $this->assertStringNotContainsString('<h4>Tercer puesto</h4>', $html);
+    }
+
     public function test_desktop_only_shows_ready_knockout_phases(): void
     {
         DB::table('tournament_phases')->insert([
@@ -179,6 +234,40 @@ class LiveTournamentDashboardTest extends TestCase
         $this->assertStringContainsString('class="public-bracket public-bracket--desktop-hidden" wire:key="public-bracket-2"', $html);
         $this->assertStringNotContainsString('wire:key="public-bracket-3"', $html);
         $this->assertStringNotContainsString('wire:key="public-bracket-4"', $html);
+    }
+
+    public function test_live_bracket_cards_show_team_logos_with_club_fallback(): void
+    {
+        config(['filesystems.disks.public.url' => 'https://public.example.test/storage']);
+        DB::table('teams')->insert([
+            'id' => 1, 'team' => 'Club', 'team_image' => 'teams/club.png',
+        ]);
+        DB::table('tournament_teams')->where('id', 1)->update(['logo' => 'teams/local.png']);
+        DB::table('tournament_teams')->insert([
+            'id' => 2, 'name_override' => 'Visitante', 'team_id' => 1,
+        ]);
+        DB::table('tournament_phases')->insert([
+            'id' => 1, 'tournament_id' => 1, 'name' => 'Final', 'type' => 'knockout',
+        ]);
+        DB::table('tournament_matches')->insert([
+            'id' => 1, 'phase_id' => 1, 'round' => 1, 'status' => 'scheduled',
+            'home_team_id' => 1, 'away_team_id' => 2,
+        ]);
+        [$data, $html] = $this->dashboard();
+
+        $this->assertSame(2, substr_count($html, 'class="public-bracket-logo"'));
+        $this->assertStringContainsString('src="https://public.example.test/storage/teams/local.png"', $html);
+        $this->assertStringContainsString('src="https://public.example.test/storage/teams/club.png"', $html);
+        $publicHtml = view('livewire.webclubs._tournament-bracket', [
+            'bracketData' => $data['bracketData'],
+        ])->render();
+        $this->assertStringNotContainsString('class="public-bracket-logo"', $publicHtml);
+
+        DB::table('tournament_teams')->where('id', 1)->update(['logo' => null]);
+        DB::table('tournament_matches')->where('id', 1)->update(['away_team_id' => null]);
+        [, $html] = $this->dashboard();
+        $this->assertStringNotContainsString('class="public-bracket-logo"', $html);
+        $this->assertStringContainsString('Por definir', $html);
     }
 
     public function test_empty_dashboard_keeps_all_match_sections_but_hides_scorers(): void

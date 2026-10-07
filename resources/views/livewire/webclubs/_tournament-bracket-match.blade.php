@@ -15,7 +15,16 @@
             $isWinner = $winner && $team && $winner->id === $team->id;
         @endphp
         <div class="public-bracket-team {{ $isWinner ? 'public-bracket-winner' : '' }}">
+            @if ($showTeamLogos ?? false)
+            <span class="public-bracket-identity">
+                @if ($teamLogo = $team?->logoUrl())
+                    <img src="{{ $teamLogo }}" alt="" class="public-bracket-logo">
+                @endif
+            @endif
             <span class="public-bracket-name" title="{{ $team?->displayName() ?? 'Por definir' }}">{{ $team?->displayName() ?? 'Por definir' }}</span>
+            @if ($showTeamLogos ?? false)
+            </span>
+            @endif
             <strong style="flex-shrink: 0;">
                 @if ($showScore)
                     {{ ($score ?? 0) + ($extra ?? 0) }}

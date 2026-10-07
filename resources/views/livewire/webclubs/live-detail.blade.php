@@ -54,7 +54,7 @@
                                     style="padding: 8px 12px; border: 1px solid #94a3b8; border-radius: 8px;">Cuadro de cruces</button>
                         </div>
                         <div class="live-bracket-panel" x-show="panel === 'bracket'" x-cloak style="overflow: auto; min-height: 0;">
-                            @include('livewire.webclubs._tournament-bracket', ['desktopVisiblePhaseIds' => $desktopBracketPhaseIds])
+                            @include('livewire.webclubs._tournament-bracket', ['desktopVisiblePhaseIds' => $desktopBracketPhaseIds, 'showTeamLogos' => true])
                         </div>
                     @endif
                     <div class="live-standings-panel" x-show="panel === 'standings'" style="display: flex; flex-direction: column; overflow: auto; min-height: 0;">
@@ -891,7 +891,78 @@
 .live-col--summary .scorer-row__team { font-size: 0.72rem; }
 .live-col--summary .scorer-goals-num { font-size: 1.6rem; }
 
+.live-bracket-panel .public-brackets {
+    --bracket-line: rgba(240,244,255,0.3);
+    color: var(--live-text);
+}
+.live-bracket-panel .public-bracket {
+    background: var(--live-surface);
+    border-color: var(--live-border);
+    backdrop-filter: blur(20px);
+    padding: 1.25rem;
+}
+.live-bracket-panel .public-bracket h3 {
+    color: var(--live-text);
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.75rem;
+}
+.live-bracket-panel .public-bracket-hint { color: var(--live-text-muted); }
+.live-bracket-panel .public-bracket-round h4 { color: var(--live-text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.live-bracket-panel .public-bracket-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    border-color: rgba(255,255,255,0.14);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    display: grid;
+    grid-template-rows: 28px 1fr 1fr;
+}
+.live-bracket-panel .public-bracket-meta {
+    align-items: center;
+    background: rgba(0,0,0,0.2);
+    color: var(--live-text-muted);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.live-bracket-panel .public-bracket-team { align-items: center; color: var(--live-text); padding: 5px 10px; font-weight: 700; min-height: 0; }
+.live-bracket-panel .public-bracket-team + .public-bracket-team { border-top: 1px solid var(--live-border); }
+.live-bracket-panel .public-bracket-team strong {
+    background: rgba(0,0,0,0.3);
+    border-radius: 6px;
+    padding: 2px 6px;
+    min-width: 1.8em;
+    text-align: center;
+    font-size: 1.15em;
+    font-variant-numeric: tabular-nums;
+}
+.live-bracket-panel .public-bracket-winner { background: rgba(34,197,94,0.12); color: #86efac; box-shadow: inset 3px 0 var(--live-green); }
+.live-bracket-panel .public-bracket-live { color: #f87171; }
+.live-bracket-panel .public-bracket-third { border-color: var(--live-border); }
+.live-bracket-panel .public-bracket-third h4 { color: #fbbf24; text-transform: uppercase; letter-spacing: 0.06em; }
+.live-bracket-panel .public-bracket-scroll { scrollbar-color: var(--bracket-line) transparent; scrollbar-width: thin; }
+.live-bracket-panel .public-bracket-scroll:focus-visible { outline: 2px solid var(--live-green); outline-offset: 4px; }
+
 @media (min-width: 961px) {
+    .live-bracket-panel .public-brackets {
+        --bracket-unit: calc(var(--live-unit) * 8);
+        --bracket-card-height: calc(var(--live-unit) * 6);
+        --bracket-heading-height: calc(var(--live-unit) * 2.5);
+        --bracket-connector-width: calc(var(--live-unit) * 1.5);
+    }
+    .live-bracket-panel .public-bracket { padding: var(--live-unit); border-radius: calc(var(--live-unit) * 0.9); margin-bottom: var(--live-unit); }
+    .live-bracket-panel .public-bracket h3 { font-size: calc(var(--live-unit) * 1.1); margin-bottom: calc(var(--live-unit) * 0.75); }
+    .live-bracket-panel .public-bracket-hint { font-size: calc(var(--live-unit) * 0.7); margin-bottom: var(--live-unit); }
+    .live-bracket-panel .public-bracket-round { width: calc(var(--live-unit) * 14); }
+    .live-bracket-panel .public-bracket-round h4,
+    .live-bracket-panel .public-bracket-third h4 { font-size: calc(var(--live-unit) * 0.8); }
+    .live-bracket-panel .public-bracket-card { grid-template-rows: calc(var(--live-unit) * 1.5) 1fr 1fr; border-radius: calc(var(--live-unit) * 0.65); }
+    .live-bracket-panel .public-bracket-meta { font-size: calc(var(--live-unit) * 0.6); padding: 0 calc(var(--live-unit) * 0.6); }
+    .live-bracket-panel .public-bracket-team { font-size: calc(var(--live-unit) * 0.85); padding: calc(var(--live-unit) * 0.3) calc(var(--live-unit) * 0.6); }
+    .live-bracket-panel .public-bracket-identity { gap: calc(var(--live-unit) * 0.4); }
+    .live-bracket-panel .public-bracket-logo { width: calc(var(--live-unit) * 1.6); height: calc(var(--live-unit) * 1.6); }
+    .live-bracket-panel .public-bracket-third { margin-top: var(--live-unit); padding-top: var(--live-unit); }
+    .live-bracket-panel .public-bracket-third .public-bracket-card { max-width: calc(var(--live-unit) * 18); }
     .live-panel-controls,
     .live-bracket-panel,
     .live-bracket-panel .public-bracket--desktop-hidden { display: none !important; }

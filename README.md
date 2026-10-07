@@ -20,6 +20,13 @@ until every match in a knockout phase's first round has both teams assigned.
 The ready brackets then replace standings automatically, using the existing
 five-second refresh. Later rounds may still have unassigned teams; empty or
 partially assigned phases stay hidden on desktop.
+An existing third-place match appears in its own **Tercer puesto** section,
+even while its teams are still pending. It is not part of the first-round
+readiness check and its teams and scores update with the same polling.
+Live brackets use the page's dark translucent cards, high-contrast scores,
+green winner accents and team logos (with the linked club image as fallback).
+Round headings, cards and connectors scale together with desktop typography;
+the regular public tournament page retains its light bracket theme.
 Both pages share the same read-only bracket: rounds, connecting lines, team
 names, dates, scores including extra time, penalty winners and a separate
 third-place match. Unassigned teams display **Por definir** and empty phases
