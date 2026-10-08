@@ -9,6 +9,16 @@
 
 ## About Laravel
 
+### Mobile authentication API
+
+Registration and login for Android are available under `/api/v1/auth`.
+New accounts have the `web` role, no associated school and a revocable
+30-day Sanctum token. See [API_MOBILE_AUTH.md](API_MOBILE_AUTH.md) for
+deployment, request/response contracts, security controls and tests.
+Give [GEMINI_ANDROID_AUTH.md](GEMINI_ANDROID_AUTH.md) to Gemini in Android
+Studio to implement the client. Google sign-in and favourite schools are
+not included in this version.
+
 ### Public knockout brackets
 
 When a tournament has a knockout phase, its public tournament page displays

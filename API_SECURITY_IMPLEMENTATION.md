@@ -21,6 +21,18 @@ Los endpoints `/api/v1/public/*` están diseñados para:
 
 ### Componentes de Seguridad Disponibles
 
+### API móvil de usuarios (v1/auth/*)
+
+La API de Android dispone de registro, login, usuario actual y logout con tokens
+personales de Laravel Sanctum, revocables y con caducidad de 30 días.
+El registro crea usuarios con rol `web`, sin escuela y sin permisos
+administrativos. No usa claves de escuela ni la validación de dominio de la API
+pública. Las API keys compartidas no deben incluirse dentro de una app móvil.
+
+Consultar [API_MOBILE_AUTH.md](API_MOBILE_AUTH.md) para el contrato, despliegue,
+límites y controles, y [GEMINI_ANDROID_AUTH.md](GEMINI_ANDROID_AUTH.md) para la
+integración en Android Studio.
+
 Aunque la API pública actual no usa API Keys, se han creado componentes reutilizables para **futuras APIs** que sí necesiten autenticación por escuela:
 
 ---

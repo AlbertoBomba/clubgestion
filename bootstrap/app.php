@@ -3,6 +3,8 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -33,11 +35,23 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->shouldRenderJsonWhen(function (Request $request): bool {
+            return $request->is('api/v1/auth/*') || $request->expectsJson();
+        });
+
+        $exceptions->respond(function (Response $response): Response {
+            if (request()->is('api/v1/auth/*')) {
+                $response->headers->set('Cache-Control', 'no-store');
+            }
+
+            return $response;
+        });
+
         // Personalizar página 404
         $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e, $request) {
             if ($request->is('api/*')) {
                 return response()->json([
-                    'message' => 'Recurso no encontrado.'
+                    'message' => 'Recurso no encontrado.',
                 ], 404);
             }
 
