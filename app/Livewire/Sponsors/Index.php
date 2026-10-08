@@ -92,7 +92,7 @@ class Index extends Component
     {
         $this->resetForm();
         $sponsor = Sponsor::findOrFail($sponsorId);
-        
+
         if ($sponsor->sports_school_id !== auth()->user()->sports_school_id) {
             session()->flash('error', 'No tienes permiso para editar este patrocinador.');
             return;
@@ -176,7 +176,7 @@ class Index extends Component
     public function deleteSponsor()
     {
         $sponsor = Sponsor::find($this->sponsorToDelete);
-        
+
         if ($sponsor && $sponsor->sports_school_id === auth()->user()->sports_school_id) {
             // Verificar que el patrocinador pertenece a la temporada en curso
             $currentSeason = Season::forSchool(auth()->user()->sports_school_id)->current()->first();
@@ -194,7 +194,7 @@ class Index extends Component
             $sponsor->delete();
             session()->flash('message', 'Patrocinador eliminado correctamente.');
         }
-        
+
         $this->confirmingDeletion = false;
         $this->sponsorToDelete = null;
     }
@@ -202,7 +202,7 @@ class Index extends Component
     public function togglePublished($sponsorId)
     {
         $sponsor = Sponsor::find($sponsorId);
-        
+
         if ($sponsor && $sponsor->sports_school_id === auth()->user()->sports_school_id) {
             // Verificar que el patrocinador pertenece a la temporada en curso
             $currentSeason = Season::forSchool(auth()->user()->sports_school_id)->current()->first();
@@ -221,7 +221,7 @@ class Index extends Component
     public function updateOrder($sponsorId, $newPosition)
     {
         $sponsor = Sponsor::find($sponsorId);
-        
+
         if (!$sponsor || $sponsor->sports_school_id !== auth()->user()->sports_school_id) {
             return;
         }
