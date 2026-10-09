@@ -108,6 +108,7 @@ class Show extends Component
     public string $schedule_duration = '20';
     public string $schedule_parts = '1';
     public string $schedule_break = '5';
+    public string $schedule_fields = '1';
 
     // ------------------------------------------------------------------
     // Goals modal (enter results via goal scorers)
@@ -550,7 +551,7 @@ class Show extends Component
     {
         abort_unless(auth()->user()?->sports_school_id === $this->tournament->sports_school_id, 403);
         $this->resetValidation();
-        $this->reset(['schedule_time', 'schedule_duration', 'schedule_parts', 'schedule_break']);
+        $this->reset(['schedule_time', 'schedule_duration', 'schedule_parts', 'schedule_break', 'schedule_fields']);
         $this->schedule_date = $this->tournament->start_date?->format('Y-m-d') ?? '';
         $this->showScheduleModal = true;
     }
@@ -568,12 +569,14 @@ class Show extends Component
             'schedule_duration' => 'required|integer|min:1|max:1440',
             'schedule_parts' => 'required|integer|in:1,2',
             'schedule_break' => 'required|integer|min:0|max:1440',
+            'schedule_fields' => 'required|integer|min:1|max:50',
         ], [], [
             'schedule_date' => 'fecha del primer partido',
             'schedule_time' => 'hora del primer partido',
             'schedule_duration' => 'duración de cada parte',
             'schedule_parts' => 'número de partes',
             'schedule_break' => 'descanso entre partes y partidos',
+            'schedule_fields' => 'número de campos de juego',
         ]);
 
         $count = DB::transaction(function () {
@@ -584,9 +587,11 @@ class Show extends Component
 
             $start = Carbon::createFromFormat('!Y-m-d H:i', $this->schedule_date . ' ' . $this->schedule_time);
             $interval = ((int) $this->schedule_duration + (int) $this->schedule_break) * (int) $this->schedule_parts;
-            foreach ($matches as $index => $match) {
+            $fields = (int) $this->schedule_fields;
+            foreach ($matches->values() as $index => $match) {
                 $match->update([
-                    'scheduled_at' => $start->copy()->addMinutes($index * $interval),
+                    'scheduled_at' => $start->copy()->addMinutes(intdiv($index, $fields) * $interval),
+                    ...($fields > 1 ? ['location' => 'Campo ' . ($index % $fields + 1)] : []),
                     'updated_user' => auth()->id(),
                 ]);
             }

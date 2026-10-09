@@ -58,6 +58,7 @@ class TournamentMatchScheduleTest extends TestCase
             $table->unsignedBigInteger('home_team_id')->nullable();
             $table->unsignedBigInteger('away_team_id')->nullable();
             $table->dateTime('scheduled_at')->nullable();
+            $table->string('location')->nullable();
             $table->string('status')->default('scheduled');
             $table->integer('home_score')->nullable();
             $table->string('notes')->nullable();
@@ -183,6 +184,10 @@ class TournamentMatchScheduleTest extends TestCase
             ['schedule_parts', '1.5'],
             ['schedule_break', '-1'],
             ['schedule_break', 'abc'],
+            ['schedule_fields', ''],
+            ['schedule_fields', '0'],
+            ['schedule_fields', '1.5'],
+            ['schedule_fields', '51'],
         ] as [$field, $value]) {
             $previous = $component->{$field};
             $component->{$field} = $value;
@@ -253,17 +258,18 @@ class TournamentMatchScheduleTest extends TestCase
         $html = view('livewire.tournaments._schedule-modal', $data)->render();
 
         $this->assertStringContainsString('wire:submit="assignMatchSchedule"', $html);
-        foreach (['schedule_date', 'schedule_time', 'schedule_duration', 'schedule_parts', 'schedule_break'] as $field) {
+        foreach (['schedule_date', 'schedule_time', 'schedule_duration', 'schedule_parts', 'schedule_break', 'schedule_fields'] as $field) {
             $this->assertStringContainsString('wire:model="'.$field.'"', $html);
         }
         $this->assertStringContainsString('Se sustituirán las fechas y horas existentes.', $html);
         $this->assertStringContainsString('Dos partes', $html);
         $this->assertStringContainsString('Duración de cada parte', $html);
         $this->assertStringContainsString('09:00, 09:50, 10:40', $html);
-        foreach (['date', 'time', 'parts', 'duration', 'break'] as $field) {
+        foreach (['date', 'time', 'parts', 'duration', 'break', 'fields'] as $field) {
             $this->assertStringContainsString('aria-describedby="schedule-'.$field.'-help"', $html);
             $this->assertStringContainsString('id="schedule-'.$field.'-help"', $html);
         }
+        $this->assertStringContainsString('Número de partidos que pueden jugarse a la vez.', $html);
         $this->assertStringContainsString('Dos partes de 20 minutos suman 40 minutos de juego.', $html);
         $this->assertStringContainsString('Usa 0 si no hay descanso.', $html);
     }
@@ -304,9 +310,67 @@ class TournamentMatchScheduleTest extends TestCase
     {
         $component = $this->scheduleComponent();
         $component->schedule_parts = '2';
+        $component->schedule_fields = '3';
         $component->openScheduleModal();
 
         $this->assertSame('1', $component->schedule_parts);
+        $this->assertSame('1', $component->schedule_fields);
+    }
+
+    public function test_multiple_fields_share_start_time_in_list_order(): void
+    {
+        $component = $this->scheduleComponent();
+        $component->schedule_fields = '2';
+        $component->schedule_time = '09:20';
+        $component->schedule_duration = '15';
+        $component->schedule_parts = '2';
+        $matches = [];
+        foreach (range(1, 5) as $number) {
+            $matches[] = $this->match($component, ['match_number' => $number]);
+        }
+
+        $component->assignMatchSchedule();
+
+        foreach ($matches as $index => $match) {
+            $this->assertSame(['09:20', '09:20', '10:00', '10:00', '10:40'][$index], $match->refresh()->scheduled_at->format('H:i'));
+            $this->assertSame(['Campo 1', 'Campo 2', 'Campo 1', 'Campo 2', 'Campo 1'][$index], $match->location);
+        }
+    }
+
+    public function test_single_field_keeps_existing_location(): void
+    {
+        $component = $this->scheduleComponent();
+        $match = $this->match($component, ['location' => 'Polideportivo']);
+
+        $component->assignMatchSchedule();
+
+        $this->assertSame('Polideportivo', $match->refresh()->location);
+    }
+
+    public function test_match_location_is_visible_in_both_match_lists(): void
+    {
+        $component = $this->scheduleComponent();
+        $component->tournament->status = 'draft';
+        $data = get_object_vars($component);
+        foreach ([
+            'categories', 'phases', 'teams', 'standings', 'schoolTeams',
+            'schoolCategories', 'goalsForModal', 'gmCardsForModal', 'gmTeamPlayers',
+            'gmMatchTeams', 'gmAllPlayers', 'availableReferees', 'assignedReferees',
+            'bracketData', 'bracketModalTeams', 'bracketModalStandings', 'recentTeams',
+        ] as $name) {
+            $data[$name] = collect();
+        }
+        $data['matches'] = collect([$this->match($component, ['location' => 'Campo 2'])]);
+        $data += [
+            'activeCategory' => null,
+            'goalsModalMatch' => null,
+            'hasLeaguePhase' => false,
+            'hasKnockoutPhase' => false,
+            'leagueSubsetSettings' => [],
+            'errors' => new \Illuminate\Support\ViewErrorBag,
+        ];
+        $this->assertStringContainsString('<span class="truncate">Campo 2</span>', view('livewire.tournaments.show', $data)->render());
+        $this->assertStringContainsString('📍 Campo 2', view('livewire.tournaments.show_mobile', $data)->render());
     }
 
     public function test_schedule_button_and_modal_are_available_in_both_views(): void

@@ -197,13 +197,18 @@
                                                             
                                                             {{-- Meta info (Hora/Estado) --}}
                                                             <div class="flex justify-between items-center mb-2">
-                                                                @if ($match->status === 'in_progress')
-                                                                    <span class="text-[9px] font-black bg-red-500 text-white px-2 py-0.5 rounded-full animate-pulse">EN VIVO</span>
-                                                                @elseif ($match->scheduled_at)
-                                                                    <span class="text-[10px] font-bold text-gray-400">{{ $match->scheduled_at->format('d/m H:i') }}</span>
-                                                                @else
-                                                                    <span class="text-[10px] font-bold text-gray-300">Sin hora</span>
-                                                                @endif
+                                                                <div class="flex items-center gap-1.5 min-w-0">
+                                                                    @if ($match->status === 'in_progress')
+                                                                        <span class="text-[9px] font-black bg-red-500 text-white px-2 py-0.5 rounded-full animate-pulse">EN VIVO</span>
+                                                                    @elseif ($match->scheduled_at)
+                                                                        <span class="text-[10px] font-bold text-gray-400">{{ $match->scheduled_at->format('d/m H:i') }}</span>
+                                                                    @else
+                                                                        <span class="text-[10px] font-bold text-gray-300">Sin hora</span>
+                                                                    @endif
+                                                                    @if ($match->location)
+                                                                        <span class="text-[10px] font-bold text-titanium bg-gray-100 px-1.5 py-0.5 rounded truncate max-w-[120px]">📍 {{ $match->location }}</span>
+                                                                    @endif
+                                                                </div>
 
                                                                 <button wire:click="openEditMatchModal({{ $match->id }})" class="p-1 text-gray-400 active:text-primary">
                                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>

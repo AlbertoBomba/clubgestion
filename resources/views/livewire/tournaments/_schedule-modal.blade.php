@@ -52,6 +52,14 @@
                     <p id="schedule-break-help" class="text-xs text-titanium mt-1">Minutos de pausa antes del siguiente partido. Con dos partes, esta misma pausa se añade también entre ambas partes. Usa 0 si no hay descanso.</p>
                     @error('schedule_break') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                 </div>
+                <div>
+                    <label for="schedule-fields" class="block text-sm font-semibold text-titanium mb-1">Campos de juego</label>
+                    <input id="schedule-fields" wire:model="schedule_fields" type="number" min="1" max="50" step="1" required
+                           aria-describedby="schedule-fields-help"
+                           class="w-full border border-silver rounded-xl px-3 py-2 text-sm"/>
+                    <p id="schedule-fields-help" class="text-xs text-titanium mt-1">Número de partidos que pueden jugarse a la vez. Con 2 campos, los partidos 1 y 2 empiezan a la misma hora, los partidos 3 y 4 en el siguiente turno, y así sucesivamente. Con más de un campo, la ubicación de cada partido se rellena como «Campo 1», «Campo 2»… sustituyendo la existente. Con 1 campo se conserva la ubicación actual.</p>
+                    @error('schedule_fields') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                </div>
             </div>
             <p class="text-sm text-titanium">
                 Con dos partes se aplica el mismo descanso entre las partes y antes del siguiente partido.

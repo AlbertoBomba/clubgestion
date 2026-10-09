@@ -100,6 +100,11 @@ The Matches tab offers **Asignar hora automática** on desktop and mobile.
 Choose the first match's date and time, one or two parts, duration of each part
 and rest in minutes. The same rest applies between parts and between matches:
 the interval between starts is `(part duration + rest) * number of parts`.
+**Campos de juego** sets how many matches start simultaneously: with 2 fields,
+matches 1–2 share the first time, matches 3–4 the next slot, and so on.
+With more than one field, each match location is set to `Campo 1`, `Campo 2`…
+by its position in the slot; with one field the existing location is kept.
+Locations are shown in the Matches list on desktop and mobile.
 All listed matches are scheduled sequentially across every phase and round,
 using exactly the displayed order. Category-based tournaments affect the
 selected category; open tournaments affect all their listed matches.
