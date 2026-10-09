@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 
@@ -19,6 +18,7 @@ class RolesSeeder extends Seeder
             ['name' => 'school_admin', 'guard_name' => 'web'],
             ['name' => 'coach', 'guard_name' => 'web'],
             ['name' => 'student', 'guard_name' => 'web'],
+            ['name' => 'web', 'guard_name' => 'web'],
         ];
 
         foreach ($roles as $roleData) {
