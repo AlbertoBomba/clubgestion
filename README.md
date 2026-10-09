@@ -9,6 +9,41 @@
 
 ## About Laravel
 
+### Historias de aficionados
+
+La web de cada club ofrece **Cuéntanos tu historia** en `/historias`: listado
+paginado, filtro por categoría, tarjetas y visor vertical de fotos/vídeos con
+avance manual, gestos, teclado y reproducción automática opcional. Las historias
+son permanentes, no caducan a las 24 horas. Se permite participar sin registro:
+nombre y correo para historias/comentarios (el correo nunca se publica) y un
+Me gusta por navegador mediante una cookie cifrada HttpOnly de un año. Borrar
+cookies o cambiar de navegador permite otro voto; no representa una identidad
+verificada. No se envían correos de confirmación ni notificaciones automáticas.
+
+Todo empieza pendiente: historias, comentarios y Me gusta. Los administradores
+activos del club acceden desde **Gestión Web → Historias de aficionados**
+(`/gestion-historias`) para aprobar, rechazar o retirar contenido y registrar una
+nota interna. Un master necesita un club asignado o suplantar a su administrador.
+Las categorías se reutilizan por club, normalizando mayúsculas, acentos y espacios;
+una categoría nueva solo se muestra públicamente cuando contiene una historia
+aprobada. Retirar una historia oculta también sus archivos e interacciones.
+
+Despliegue: ejecutar `php artisan migrate` y `npm run build`. Los archivos se
+guardan en el disco privado `story-media`, bajo `storage/app/private/story-media`,
+y se sirven con comprobación de publicación o permiso de moderación. No requieren
+`storage:link`. Incluir ese directorio en las copias de seguridad; no exponerlo
+desde el servidor web. Los límites son 10 archivos por historia, 10 MB por imagen
+(JPG, PNG, WebP) y 50 MB por vídeo (MP4, WebM). Configurar `upload_max_filesize`
+al menos a `50M`, `post_max_size` por encima de `500M` (por ejemplo `520M`),
+`max_file_uploads` al menos a `10` y el límite del servidor/proxy acorde. Los
+envíos usan formularios multipart normales, no los uploads temporales de Livewire.
+La validación de tipos/tamaños se hace también en el servidor; los errores de
+almacenamiento no producen mensajes de éxito. Las pruebas aisladas se ejecutan
+con `php artisan test --filter=ClubStoriesTest`.
+El visor se comprueba sin dependencias adicionales con
+`node --test tests/Frontend/club-stories.test.cjs`: navegación manual, avance a
+los siete segundos, pausa en segundo plano, vídeos y bloqueo de autoplay.
+
 ### Mobile authentication API
 
 Registration and login for Android are available under `/api/v1/auth`.

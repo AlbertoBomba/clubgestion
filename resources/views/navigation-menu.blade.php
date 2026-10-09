@@ -1037,6 +1037,13 @@
                             </svg>
                             Gestión de Portada Web
                         </a>
+                        @can('moderate-club-stories')
+                            <a href="{{ route('stories.index') }}"
+                               @click="sidebarOpen = false"
+                               class="flex items-center px-4 py-2 text-sm text-titanium hover:bg-primary/5 rounded-lg transition-colors duration-200 {{ request()->routeIs('stories.*') ? 'bg-primary/10 text-primary font-semibold' : '' }}">
+                                Historias de aficionados
+                            </a>
+                        @endcan
                     </div>
                 </div>
                 @endif

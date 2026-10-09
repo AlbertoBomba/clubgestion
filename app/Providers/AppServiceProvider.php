@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Models\SportsSchool;
+use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -25,6 +27,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::define('moderate-club-stories', fn (User $user) => $user->is_active
+            && $user->sports_school_id !== null && $user->hasAnyRole(['master', 'school_admin']));
+
+        RateLimiter::for('story-submissions', fn (Request $request) => [
+            Limit::perMinute(3)->by('story-minute:'.$request->ip()),
+            Limit::perHour(10)->by('story-hour:'.$request->ip()),
+        ]);
+        RateLimiter::for('story-interactions', fn (Request $request) => [
+            Limit::perMinute(10)->by('story-interaction-minute:'.$request->ip()),
+            Limit::perHour(60)->by('story-interaction-hour:'.$request->ip()),
+        ]);
+
         RateLimiter::for('mobile-login', function (Request $request) {
             $email = $request->input('email');
             $email = is_string($email) ? Str::lower(trim($email)) : '';

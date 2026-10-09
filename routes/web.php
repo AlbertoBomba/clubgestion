@@ -37,6 +37,8 @@ use App\Livewire\Tournaments\TeamPlayers as TournamentTeamPlayers;
 use App\Livewire\Tournaments\TeamPlayerForm as TournamentTeamPlayerForm;
 use App\Mail\NotificacionPrueba;
 use Illuminate\Support\Facades\Mail;
+use App\Http\Controllers\WebClubs\StoryController;
+use App\Http\Controllers\StoryModerationController;
 
 
 Route::get('/test-masivo', function () {
@@ -90,6 +92,16 @@ Route::get('/live/{tournament}', App\Livewire\WebClubs\LiveDetail::class)->name(
 Route::get('/sobre-nosotros', WebClubsAbout::class)->name('webclubs.about');
 Route::get('/contacto', WebClubsContact::class)->name('webclubs.contact');
 
+Route::get('/historias', [StoryController::class, 'index'])->name('webclubs.stories.index');
+Route::get('/historias/compartir', [StoryController::class, 'create'])->name('webclubs.stories.create');
+Route::post('/historias', [StoryController::class, 'store'])->middleware('throttle:story-submissions')->name('webclubs.stories.store');
+Route::get('/historias/archivos/{media}', [StoryController::class, 'media'])->whereNumber('media')->name('webclubs.stories.media');
+Route::get('/historias/{story}', [StoryController::class, 'show'])->whereNumber('story')->name('webclubs.stories.show');
+Route::post('/historias/{story}/comentarios', [StoryController::class, 'comment'])->whereNumber('story')
+    ->middleware('throttle:story-interactions')->name('webclubs.stories.comment');
+Route::post('/historias/{story}/me-gusta', [StoryController::class, 'like'])->whereNumber('story')
+    ->middleware('throttle:story-interactions')->name('webclubs.stories.like');
+
 Route::get('/torneos', WebClubsTournaments::class)->name('webclubs.tournaments');
 Route::get('/torneos/{tournament}', WebClubsTournamentDetail::class)->name('webclubs.tournament.detail');
 Route::get('/torneos/{tournament}/equipo/login', WebClubsTeamLogin::class)->name('webclubs.team.login');
@@ -132,6 +144,13 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
+    Route::middleware('can:moderate-club-stories')->prefix('gestion-historias')->name('stories.')->group(function () {
+        Route::get('/', [StoryModerationController::class, 'index'])->name('index');
+        Route::get('/{story}', [StoryModerationController::class, 'show'])->whereNumber('story')->name('show');
+        Route::post('/{kind}/{item}/moderar', [StoryModerationController::class, 'review'])
+            ->whereIn('kind', ['stories', 'comments', 'likes'])->whereNumber('item')->name('review');
+    });
+
     Route::get('/dashboard', function () {
         // Redirigir a árbitros a su dashboard
         if (auth()->user()->hasRole('judge')) {

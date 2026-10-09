@@ -15,7 +15,7 @@
                 <a href="{{ route('home') }}" class="text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider transition">Inicio</a>
                 {{-- <a href="{{ route('webclubs.about') }}" class="text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider transition">El Club</a> --}}
                 <a href="{{ route('webclubs.tournaments') }}" class="text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider transition">Torneos</a>
-                <a href="" class="text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider transition">Cuentanos tu historia</a>
+                <a href="{{ route('webclubs.stories.index') }}" class="text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider transition">Cuéntanos tu historia</a>
                 {{-- <a href="{{ route('webclubs.contact') }}" class="text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider transition">Contacto</a> --}}
                 
                 @auth
@@ -46,7 +46,7 @@
             <a href="{{ route('home') }}" class="block py-2 text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider">Inicio</a>
             {{-- <a href="{{ route('webclubs.about') }}" class="block py-2 text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider">El Club</a> --}}
             <a href="{{ route('webclubs.tournaments') }}" class="block py-2 text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider">Torneos</a>
-            <a href="" class="block py-2 text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider">Cuentanos tu historia</a>
+            <a href="{{ route('webclubs.stories.index') }}" class="block py-2 text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider">Cuéntanos tu historia</a>
             {{-- <a href="{{ route('webclubs.contact') }}" class="block py-2 text-gray-600 hover:text-gray-900 font-medium text-sm uppercase tracking-wider">Contacto</a> --}}
             
             @auth

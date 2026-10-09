@@ -30,6 +30,12 @@ return [
 
     'disks' => [
 
+        'story-media' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/story-media'),
+            'throw' => true,
+        ],
+
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
