@@ -207,6 +207,7 @@ class Edit extends Component
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+            $this->match->notCalledPlayers()->detach($playerId);
             
             // Refrescar partido para obtener datos actualizados
             $this->match = $this->match->fresh(['players', 'notCalledPlayers']);
@@ -429,16 +430,8 @@ class Edit extends Component
         }
         
         if (!in_array($playerId, $this->calledPlayers)) {
-            $this->calledPlayers[] = $playerId;
-            
-            // Remove from notCalledPlayers if it was there
-            $this->notCalledPlayers = array_diff($this->notCalledPlayers, [$playerId]);
-            
-            // Clear reason when adding player
-            if (isset($this->playerReasons[$playerId])) {
-                unset($this->playerReasons[$playerId]);
-            }
-            
+            $this->addPlayer($playerId);
+
             $this->closeAddExternalPlayerModal();
             session()->flash('message', 'Jugador añadido correctamente a la convocatoria.');
         }
@@ -635,6 +628,12 @@ class Edit extends Component
             ->orderBy('from_year', 'desc')
             ->get();
 
+        $activeSeason = Season::where('sports_school_id', auth()->user()->sports_school_id)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->orderBy('created_at', 'desc')
+            ->first();
+
         $teams = Team::whereHas('season', function ($query) {
                 $query->where('sports_school_id', auth()->user()->sports_school_id);
             })
@@ -649,6 +648,7 @@ class Edit extends Component
         $allTeams = Team::whereHas('season', function ($query) {
                 $query->where('sports_school_id', auth()->user()->sports_school_id);
             })
+            ->whereIn('season_id', $activeSeason ? [$activeSeason->id] : [])
             ->where('id', '!=', $this->team_id)
             ->with('category', 'season')
             ->orderBy('team')
