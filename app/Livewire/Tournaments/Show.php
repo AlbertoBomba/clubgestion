@@ -638,7 +638,7 @@ class Show extends Component
     public function saveMatch(): void
     {
 
-   
+
         $this->validate([
             'match_phase_id'   => 'nullable|exists:tournament_phases,id',
             'match_home_id'    => 'nullable|exists:tournament_teams,id',
@@ -781,7 +781,7 @@ class Show extends Component
 
     public function generateMatches(): void
     {
-        
+
         $this->validate([
             'generate_phase_id'   => 'required|exists:tournament_phases,id',
             'generate_legs'       => 'required|in:1,2',
@@ -794,7 +794,7 @@ class Show extends Component
         if ($this->generate_clear) {
             TournamentMatch::where('phase_id', $phase->id)->delete();
         }
-        
+
         $teamsQuery = TournamentTeam::where('tournament_id', $this->tournament->id);
 
         $isOpen     = $this->tournament->team_type === 'open';
@@ -1025,7 +1025,7 @@ class Show extends Component
         $phasesQuery = $this->activeCategoryId
             ? TournamentPhase::where('tournament_category_id', $this->activeCategoryId)
             : $this->tournament->phases();
-            
+
 
         $phases = $phaseId
             ? $phasesQuery->where('id', $phaseId)->get()
@@ -1035,7 +1035,7 @@ class Show extends Component
         $ptWin    = $settings['points_per_win']  ?? 3;
         $ptDraw   = $settings['points_per_draw'] ?? 1;
         $ptLoss   = $settings['points_per_loss'] ?? 0;
-        
+
         foreach ($phases as $phase) {
 
             if($this->tournament->team_type === 'open'){
@@ -1638,7 +1638,9 @@ class Show extends Component
                     'tournament_category_id' => $categoryId,
                     'phase_id'               => $phase->id,
                     'round'                  => $round,
-                    'match_number'           => $matchNum,
+                    'match_number'           => $matchNum + (
+                        $this->bracketThirdPlace && $totalRounds >= 2 && $round === $totalRounds ? 1 : 0
+                    ),
                     'home_team_id'           => $homeId,
                     'away_team_id'           => $awayId,
                     'status'                 => 'scheduled',
@@ -1648,14 +1650,14 @@ class Show extends Component
             }
         }
 
-        // 3rd-place match (same round as semis = totalRounds - 1)
+        // 3rd-place match is played in the final round alongside the final.
         if ($this->bracketThirdPlace && $totalRounds >= 2) {
             TournamentMatch::create([
                 'tournament_id'          => $this->tournament->id,
                 'tournament_category_id' => $categoryId,
                 'phase_id'               => $phase->id,
-                'round'                  => $totalRounds - 1,
-                'match_number'           => 999,
+                'round'                  => $totalRounds,
+                'match_number'           => 1,
                 'home_team_id'           => null,
                 'away_team_id'           => null,
                 'status'                 => 'scheduled',
