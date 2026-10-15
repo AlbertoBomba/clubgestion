@@ -15,7 +15,7 @@ function element() {
     };
 }
 
-function viewerHarness(video = null) {
+function viewerHarness(video = null, lightbox = null, links = []) {
     const slides = Array.from({ length: 3 }, (_, index) => ({
         ...element(), querySelector: () => index === 1 ? video : null,
     }));
@@ -28,8 +28,9 @@ function viewerHarness(video = null) {
     };
     const viewer = {
         ...element(),
-        querySelector: (selector) => buttons[selector],
-        querySelectorAll: (selector) => selector === '[data-story-slide]' ? slides : progress,
+        querySelector: (selector) => selector === '[data-story-lightbox]' ? lightbox : buttons[selector],
+        querySelectorAll: (selector) => selector === '[data-story-slide]' ? slides :
+            selector === '[data-story-enlarge]' ? links : progress,
     };
     const document = {
         ...element(), readyState: 'complete',
@@ -113,4 +114,163 @@ test('blocked autoplay reports a visible error and turns automatic mode off', as
     await Promise.resolve();
     assert.equal(buttons['[data-story-play]'].attributes['aria-pressed'], 'false');
     assert.match(buttons['[data-story-counter]'].textContent, /no permite/);
+});
+
+test('clicking a photo opens its full image, pauses autoplay and allows closing', () => {
+    const image = element();
+    const close = element();
+    const lightbox = {
+        ...element(), open: false,
+        querySelector: (selector) => selector === '[data-story-lightbox-image]' ? image : close,
+        showModal() { this.open = true; },
+        close() { this.open = false; },
+    };
+    const link = { ...element(), href: '/historias/archivos/42', querySelector: () => ({ alt: 'Foto del torneo' }) };
+    const { buttons, tick } = viewerHarness(null, lightbox, [link]);
+    buttons['[data-story-play]'].emit('click');
+    let prevented = false;
+    link.emit('click', { preventDefault() { prevented = true; } });
+    assert.equal(prevented, true);
+    assert.equal(lightbox.open, true);
+    assert.equal(image.src, link.href);
+    assert.equal(image.alt, 'Foto del torneo');
+    assert.equal(buttons['[data-story-play]'].attributes['aria-pressed'], 'false');
+    tick(0);
+    tick(10000);
+    assert.equal(buttons['[data-story-counter]'].textContent, '1 / 3');
+    close.emit('click');
+    assert.equal(lightbox.open, false);
+});
+
+test('swiping a photo changes slides without accidentally opening the enlarged image', () => {
+    const lightbox = { ...element(), querySelector: () => element(), showModal() { throw new Error('Should not open'); } };
+    const link = element();
+    const { viewer, buttons } = viewerHarness(null, lightbox, [link]);
+    viewer.emit('touchstart', { changedTouches: [{ clientX: 150, clientY: 50 }] });
+    viewer.emit('touchend', { changedTouches: [{ clientX: 50, clientY: 52 }], target: { closest: () => null } });
+    let prevented = false;
+    link.emit('click', { preventDefault() { prevented = true; } });
+    assert.equal(prevented, true);
+    assert.equal(buttons['[data-story-counter]'].textContent, '2 / 3');
+});
+
+function uploadHarness() {
+    const revoked = [];
+    const inputs = {
+        'input[type="file"]': { ...element(), files: [], value: '', removeAttribute(name) { delete this.attributes[name]; }, focus() {} },
+        '[data-video-capture]': { ...element(), files: [], value: '', click() { this.clicked = true; } },
+        '[data-upload-error]': element(),
+        '[data-upload-list]': { ...element(), children: [], replaceChildren() { this.children = []; }, append(item) { this.children.push(item); } },
+        '[data-upload-count]': element(),
+        '[data-capture-control]': element(),
+        '[data-record-video]': element(),
+        'button[type="submit"]': element(),
+        '[data-upload-status]': element(),
+    };
+    const form = { ...element(), querySelector: (selector) => inputs[selector] };
+    const window = element();
+    const document = {
+        ...element(), readyState: 'complete',
+        querySelectorAll: (selector) => selector === '[data-story-upload]' ? [form] : [],
+        createElement: () => ({
+            ...element(), children: [],
+            append(...items) { this.children.push(...items); },
+        }),
+    };
+    vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../../resources/js/club-stories.js'), 'utf8'), {
+        document, window,
+        URL: { createObjectURL: (file) => `blob:${file.name}`, revokeObjectURL: (url) => revoked.push(url) },
+    });
+    function choose(files, selector = 'input[type="file"]') {
+        inputs[selector].files = files;
+        inputs[selector].emit('change');
+    }
+    function submittedFiles() {
+        const submitted = [];
+        form.emit('formdata', { formData: { append: (key, file) => submitted.push({ key, file }) } });
+        return submitted;
+    }
+    return { form, window, inputs, choose, submittedFiles, revoked };
+}
+
+function file(name, type = 'image/jpeg', size = 1024) {
+    return { name, type, size, lastModified: 1 };
+}
+
+test('successive selections and mobile capture accumulate files in multipart order', () => {
+    const { inputs, choose, submittedFiles } = uploadHarness();
+    choose([file('one.jpg'), file('two.jpg')]);
+    choose([file('three.png', 'image/png')]);
+    inputs['[data-record-video]'].emit('click');
+    assert.equal(inputs['[data-video-capture]'].clicked, true);
+    choose([file('mobile.mov', 'video/quicktime')], '[data-video-capture]');
+    assert.deepEqual(submittedFiles().map(({ key, file }) => [key, file.name]), [
+        ['media[]', 'one.jpg'], ['media[]', 'two.jpg'], ['media[]', 'three.png'], ['media[]', 'mobile.mov'],
+    ]);
+    assert.equal(inputs['[data-upload-count]'].textContent, '4 / 10 archivos');
+    assert.equal(inputs['input[type="file"]'].value, '');
+    assert.equal(inputs['[data-upload-list]'].children[3].children[0].controls, true);
+});
+
+test('removal updates submission and revokes preview URLs; removed files can be added again', () => {
+    const { inputs, choose, submittedFiles, revoked } = uploadHarness();
+    choose([file('one.jpg'), file('two.jpg')]);
+    inputs['[data-upload-list]'].children[0].children[2].emit('click');
+    assert.deepEqual(submittedFiles().map(({ file }) => file.name), ['two.jpg']);
+    assert.ok(revoked.includes('blob:one.jpg'));
+    choose([file('one.jpg')]);
+    assert.deepEqual(submittedFiles().map(({ file }) => file.name), ['two.jpg', 'one.jpg']);
+});
+
+test('duplicates and invalid formats are reported without dropping valid selected files', () => {
+    const { inputs, choose, submittedFiles } = uploadHarness();
+    choose([file('one.jpg')]);
+    choose([file('one.jpg'), file('bad.svg', 'image/svg+xml'), file('two.jpg')]);
+    assert.match(inputs['[data-upload-error]'].textContent, /ya está añadido/);
+    assert.match(inputs['[data-upload-error]'].textContent, /formato no compatible/);
+    assert.deepEqual(submittedFiles().map(({ file }) => file.name), ['one.jpg', 'two.jpg']);
+    choose([]);
+    assert.equal(submittedFiles().length, 2);
+});
+
+test('exact image/video size limits pass and oversized files are excluded with explicit errors', () => {
+    const { inputs, choose, submittedFiles } = uploadHarness();
+    choose([
+        file('exact.jpg', 'image/jpeg', 10 * 1024 * 1024),
+        file('large.jpg', 'image/jpeg', 10 * 1024 * 1024 + 1),
+        file('exact.mov', 'video/quicktime', 50 * 1024 * 1024),
+        file('large.mov', 'video/quicktime', 50 * 1024 * 1024 + 1),
+    ]);
+    assert.equal(submittedFiles().length, 2);
+    assert.match(inputs['[data-upload-error]'].textContent, /10 MB/);
+    assert.match(inputs['[data-upload-error]'].textContent, /50 MB/);
+});
+
+test('ten-file limit applies across batches and rejected files are not sent', () => {
+    const { inputs, choose, submittedFiles } = uploadHarness();
+    choose(Array.from({ length: 9 }, (_, index) => file(`${index}.jpg`)));
+    choose([file('last.jpg'), file('extra.jpg')]);
+    assert.equal(submittedFiles().length, 10);
+    assert.match(inputs['[data-upload-error]'].textContent, /máximo 10 archivos/);
+    assert.equal(inputs['[data-upload-list]'].children.length, 10);
+});
+
+test('returning from navigation restores the submit button and final page exit releases previews', () => {
+    const { inputs, choose, form, window, revoked } = uploadHarness();
+    choose([file('one.jpg')]);
+    form.emit('submit');
+    assert.equal(inputs['button[type="submit"]'].disabled, true);
+    window.emit('pageshow');
+    assert.equal(inputs['button[type="submit"]'].disabled, false);
+    window.emit('pagehide', { persisted: false });
+    assert.ok(revoked.includes('blob:one.jpg'));
+});
+
+test('unsupported preview codecs show an explanation without removing the selected video', () => {
+    const { inputs, choose, submittedFiles } = uploadHarness();
+    choose([file('iphone.mov', 'video/quicktime')]);
+    const preview = inputs['[data-upload-list]'].children[0];
+    preview.children[0].emit('error');
+    assert.match(preview.children[1].textContent, /No se puede mostrar la vista previa/);
+    assert.equal(submittedFiles()[0].file.name, 'iphone.mov');
 });

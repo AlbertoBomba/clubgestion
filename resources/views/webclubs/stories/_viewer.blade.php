@@ -16,7 +16,9 @@
                 @if($media->isVideo())
                     <video controls playsinline preload="metadata" class="w-full h-full object-contain" src="{{ route('webclubs.stories.media', $media) }}" aria-label="Vídeo {{ $loop->iteration }} de {{ $story->title }}"></video>
                 @else
-                    <img src="{{ route('webclubs.stories.media', $media) }}" alt="Foto {{ $loop->iteration }} de {{ $story->title }}" class="w-full h-full object-contain" @if(!$loop->first) loading="lazy" @endif>
+                    <a data-story-enlarge href="{{ route('webclubs.stories.media', $media) }}" target="_blank" rel="noopener" class="block w-full h-full cursor-zoom-in" aria-label="Ampliar foto {{ $loop->iteration }} de {{ $story->title }}">
+                        <img src="{{ route('webclubs.stories.media', $media) }}" alt="Foto {{ $loop->iteration }} de {{ $story->title }}" class="w-full h-full object-contain" @if(!$loop->first) loading="lazy" @endif>
+                    </a>
                 @endif
             </div>
         @endforeach
@@ -24,8 +26,12 @@
             <button type="button" data-story-prev class="pointer-events-auto bg-black rounded-full w-10 h-10 border border-gray-600" aria-label="Archivo anterior">←</button>
             <button type="button" data-story-next class="pointer-events-auto bg-black rounded-full w-10 h-10 border border-gray-600" aria-label="Archivo siguiente">→</button>
         </div>
+        <dialog data-story-lightbox class="story-lightbox" aria-label="Imagen ampliada">
+            <button type="button" data-story-lightbox-close class="story-lightbox-close" aria-label="Cerrar imagen ampliada" autofocus>×</button>
+            <img data-story-lightbox-image alt="" class="story-lightbox-image">
+        </dialog>
     </section>
-    <p class="text-sm text-gray-500 text-center mt-3">Usa las flechas, desliza a los lados o activa la reproducción automática.</p>
+    <p class="text-sm text-gray-500 text-center mt-3">Pulsa una foto para ampliarla. Usa las flechas, desliza a los lados o activa la reproducción automática.</p>
     <noscript>
         <div class="space-y-4 mt-4">
             @foreach($story->media->skip(1) as $media)
@@ -42,6 +48,10 @@
             .story-viewer { width: 100%; max-width: 430px; }
             .story-slide { height: min(75vh, 740px); min-height: 320px; }
             .story-slide[hidden] { display: none; }
+            .story-lightbox { position: fixed; inset: 0; margin: auto; padding: 0; border: 0; width: 96vw; max-width: none; height: 94vh; height: 94dvh; max-height: none; background: #090c12; color: white; border-radius: 1rem; }
+            .story-lightbox::backdrop { background: #000e; }
+            .story-lightbox-image { width: 100%; height: 100%; object-fit: contain; }
+            .story-lightbox-close { position: absolute; top: .75rem; right: .75rem; z-index: 1; width: 2.75rem; height: 2.75rem; border-radius: 999px; background: #000c; color: white; border: 1px solid #fff8; font-size: 1.75rem; }
         </style>
     @endpush
 @endif

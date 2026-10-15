@@ -14,13 +14,20 @@
 La web de cada club ofrece **Cuéntanos tu historia** en `/historias`: listado
 paginado, filtro por categoría, tarjetas y visor vertical de fotos/vídeos con
 avance manual, gestos, teclado y reproducción automática opcional. Las historias
+permiten pulsar las fotos para abrirlas en un visor ampliado adaptable a la
+pantalla, con cierre por botón o Escape y pausa de la reproducción automática.
+Sin soporte de diálogo nativo, la foto se abre en otra pestaña. Las historias
 son permanentes, no caducan a las 24 horas. Se permite participar sin registro:
 nombre y correo para historias/comentarios (el correo nunca se publica) y un
 Me gusta por navegador mediante una cookie cifrada HttpOnly de un año. Borrar
 cookies o cambiar de navegador permite otro voto; no representa una identidad
 verificada. No se envían correos de confirmación ni notificaciones automáticas.
 
-Todo empieza pendiente: historias, comentarios y Me gusta. Los administradores
+Los Me gusta se contabilizan inmediatamente desde el listado y el detalle, sin
+moderación. El listado conserva categoría y página tras votar y marca las historias
+que ya gustan al visitante. Los votos antiguos también cuentan, independientemente
+de su anterior estado de moderación; no es necesaria una migración de datos.
+Las historias y los comentarios empiezan pendientes. Los administradores
 activos del club acceden desde **Gestión Web → Historias de aficionados**
 (`/gestion-historias`) para aprobar, rechazar o retirar contenido y registrar una
 nota interna. Un master necesita un club asignado o suplantar a su administrador.
@@ -33,16 +40,40 @@ guardan en el disco privado `story-media`, bajo `storage/app/private/story-media
 y se sirven con comprobación de publicación o permiso de moderación. No requieren
 `storage:link`. Incluir ese directorio en las copias de seguridad; no exponerlo
 desde el servidor web. Los límites son 10 archivos por historia, 10 MB por imagen
-(JPG, PNG, WebP) y 50 MB por vídeo (MP4, WebM). Configurar `upload_max_filesize`
+(JPG, PNG, WebP) y 50 MB por vídeo (MP4, WebM, MOV). El formulario acumula
+selecciones sucesivas sin sustituir las anteriores, muestra miniaturas y permite
+quitar archivos antes del envío. Con JavaScript, el botón **Grabar vídeo con el
+móvil** solicita la cámara trasera en dispositivos compatibles; también se pueden
+elegir vídeos de la galería. Sin JavaScript se mantiene la selección múltiple nativa.
+Los vídeos no se transcodifican: la reproducción de MOV/HEVC depende del navegador
+y sus códecs; para mayor compatibilidad se recomienda MP4/H.264.
+Configurar `upload_max_filesize`
 al menos a `50M`, `post_max_size` por encima de `500M` (por ejemplo `520M`),
 `max_file_uploads` al menos a `10` y el límite del servidor/proxy acorde. Los
+límites de tamaño se incluyen en `public/.user.ini` para PHP-FPM/CGI: subir también este
+archivo oculto al directorio público que contiene `index.php`. PHP puede tardar
+hasta cinco minutos en releerlo. `max_file_uploads` se configura en `php.ini` o
+en el panel del hosting, no mediante `.user.ini`. Si el hosting ignora `.user.ini` o impone límites
+superiores de administración, aplicar los mismos valores en el panel de PHP del
+dominio (no en el PHP de consola). Con Apache/mod_php se configuran en `php.ini`
+o en el panel; no añadir directivas `php_value` a ciegas a `.htaccess`, pues bajo
+PHP-FPM pueden provocar errores 500. Revisar también `client_max_body_size 520m`
+si hay Nginx, o el límite equivalente del proxy/hosting.
+El error `PostTooLargeException` ocurre antes de la sesión y de la detección del
+club: se muestra una página 413 independiente con un enlace al formulario, y se
+registra el límite efectivo sin datos personales. PHP descarta el cuerpo del
+envío, por lo que no se pueden recuperar sus textos ni archivos desde Laravel.
+Este manejo no aumenta el límite: hay que desplegar y comprobar la configuración
+del servidor subiendo un vídeo real de más de 12 MB y menos de 50 MB.
+Los
 envíos usan formularios multipart normales, no los uploads temporales de Livewire.
 La validación de tipos/tamaños se hace también en el servidor; los errores de
 almacenamiento no producen mensajes de éxito. Las pruebas aisladas se ejecutan
 con `php artisan test --filter=ClubStoriesTest`.
 El visor se comprueba sin dependencias adicionales con
 `node --test tests/Frontend/club-stories.test.cjs`: navegación manual, avance a
-los siete segundos, pausa en segundo plano, vídeos y bloqueo de autoplay.
+los siete segundos, pausa en segundo plano, vídeos, bloqueo de autoplay,
+selecciones acumuladas, captura móvil, eliminación de archivos y límites de subida.
 
 ### Mobile authentication API
 

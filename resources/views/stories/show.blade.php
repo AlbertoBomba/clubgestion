@@ -42,16 +42,7 @@
         </section>
         <section>
             <h2 class="text-2xl font-bold mb-4">Me gusta</h2>
-            @forelse($likes as $like)
-                <article class="bg-white border rounded-xl p-5 mb-4">
-                    <p class="font-semibold">Me gusta #{{ $like->id }} · {{ $like->created_at->format('d/m/Y H:i') }}</p>
-                    <p class="text-sm text-gray-500">{{ ['pending' => 'Pendiente', 'approved' => 'Aprobado', 'rejected' => 'Rechazado'][$like->status] }} · visitante anónimo</p>
-                    @include('stories._review', ['kind' => 'likes', 'item' => $like])
-                </article>
-            @empty
-                <p class="text-gray-500">Sin Me gusta recibidos.</p>
-            @endforelse
-            {{ $likes->links() }}
+            <p class="text-gray-600">{{ $story->likes_count }} Me gusta. Se contabilizan automáticamente y no necesitan moderación.</p>
         </section>
     </div>
 </x-app-layout>

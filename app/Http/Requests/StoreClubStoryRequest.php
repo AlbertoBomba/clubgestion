@@ -24,7 +24,7 @@ class StoreClubStoryRequest extends FormRequest
             'consent' => ['accepted'],
             'website' => ['nullable', 'max:0'],
             'media' => ['nullable', 'array', 'max:10'],
-            'media.*' => ['required', 'file', 'mimetypes:image/jpeg,image/png,image/webp,video/mp4,video/webm', 'max:51200'],
+            'media.*' => ['required', 'file', 'mimetypes:image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime', 'max:51200'],
         ];
     }
 
@@ -44,7 +44,7 @@ class StoreClubStoryRequest extends FormRequest
         return [
             'media.max' => 'Puedes adjuntar como máximo 10 archivos.',
             'media.*.max' => 'Cada vídeo debe ocupar como máximo 50 MB.',
-            'media.*.mimetypes' => 'Solo se permiten imágenes JPG, PNG, WebP y vídeos MP4 o WebM.',
+            'media.*.mimetypes' => 'Solo se permiten imágenes JPG, PNG, WebP y vídeos MP4, WebM o MOV.',
             'consent.accepted' => 'Debes aceptar la publicación y confirmar que tienes permiso para compartir el contenido.',
             'website.max' => 'No se ha podido validar el envío.',
         ];

@@ -3,7 +3,9 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -35,6 +37,24 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->render(function (PostTooLargeException $exception, Request $request) {
+            if (! $request->is('historias')) {
+                return null;
+            }
+
+            Log::warning('Story upload exceeded the PHP POST limit.', [
+                'content_length' => $request->server('CONTENT_LENGTH'),
+                'post_max_size' => ini_get('post_max_size'),
+            ]);
+            $message = 'El envío supera el tamaño total permitido por el servidor. No se ha guardado la historia. Vuelve al formulario y selecciona de nuevo los archivos, o contacta con el club si tu vídeo ocupa menos de 50 MB.';
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 413);
+            }
+
+            return response()->view('errors.story-upload-too-large', compact('message'), 413);
+        });
+
         $exceptions->shouldRenderJsonWhen(function (Request $request): bool {
             return $request->is('api/v1/auth/*') || $request->expectsJson();
         });

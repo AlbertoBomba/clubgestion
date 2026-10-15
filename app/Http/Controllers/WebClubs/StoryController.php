@@ -18,11 +18,14 @@ class StoryController extends Controller
     public function index(Request $request)
     {
         $schoolId = $this->schoolId();
+        $visitor = $request->cookie('story_visitor', '');
         $filters = $request->validate(['category' => ['nullable', 'integer', 'min:1']]);
         $stories = ClubStory::where('sports_school_id', $schoolId)->published()
             ->when($filters['category'] ?? null, fn ($query, $category) => $query->where('story_category_id', $category))
             ->with(['category', 'media'])
-            ->withCount(['likes as approved_likes_count' => fn ($query) => $query->where('status', 'approved'),
+            ->withExists(['likes as liked_by_visitor' => fn ($query) => $query->where('visitor_hash',
+                Str::isUuid($visitor) ? $this->visitorHash($visitor) : '')])
+            ->withCount(['likes',
                 'comments as approved_comments_count' => fn ($query) => $query->where('status', 'approved')])
             ->orderByDesc('published_at')->orderByDesc('id')->paginate(12)->withQueryString();
         $response = response()->view('webclubs.stories.index', [
@@ -52,13 +55,12 @@ class StoryController extends Controller
     public function show(Request $request, int $story)
     {
         $story = $this->publishedStory($story)->load(['category', 'media'])
-            ->loadCount(['likes as approved_likes_count' => fn ($query) => $query->where('status', 'approved')]);
+            ->loadCount('likes');
         $comments = $story->comments()->where('status', 'approved')->latest()->paginate(15);
         $visitor = $request->cookie('story_visitor', '');
-        $likeStatus = Str::isUuid($visitor)
-            ? $story->likes()->where('visitor_hash', $this->visitorHash($visitor))->value('status')
-            : null;
-        $response = response()->view('webclubs.stories.show', compact('story', 'comments', 'likeStatus'));
+        $story->setAttribute('liked_by_visitor', Str::isUuid($visitor)
+            && $story->likes()->where('visitor_hash', $this->visitorHash($visitor))->exists());
+        $response = response()->view('webclubs.stories.show', compact('story', 'comments'));
         if (! Str::isUuid($visitor)) {
             $response->cookie('story_visitor', (string) Str::uuid(), 60 * 24 * 365, '/', null, $request->isSecure(), true, false, 'lax');
         }
@@ -87,10 +89,21 @@ class StoryController extends Controller
     public function like(Request $request, int $story)
     {
         $story = $this->publishedStory($story);
+        $data = $request->validate([
+            'from' => ['nullable', 'in:index,show'],
+            'category' => ['nullable', 'integer', 'min:1'],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ]);
         $visitor = $request->cookie('story_visitor', '');
         abort_unless(Str::isUuid($visitor), 422, 'Activa las cookies y vuelve a abrir la historia para marcar Me gusta.');
-        $like = $story->likes()->firstOrCreate(['visitor_hash' => $this->visitorHash($visitor)], ['status' => 'pending']);
-        $message = $like->wasRecentlyCreated ? 'Tu Me gusta está pendiente de aprobación.' : 'Ya has enviado un Me gusta para esta historia.';
+        $like = $story->likes()->firstOrCreate(['visitor_hash' => $this->visitorHash($visitor)], ['status' => 'approved']);
+        $message = $like->wasRecentlyCreated ? '¡Gracias! Tu Me gusta ya se ha contabilizado.' : 'Ya has dado Me gusta a esta historia.';
+
+        if (($data['from'] ?? 'show') === 'index') {
+            return redirect()->route('webclubs.stories.index', array_filter([
+                'category' => $data['category'] ?? null, 'page' => $data['page'] ?? null,
+            ]))->with('message', $message);
+        }
 
         return redirect()->route('webclubs.stories.show', $story)->with('message', $message);
     }

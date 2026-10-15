@@ -131,7 +131,7 @@ class ClubStoriesTest extends TestCase
         $this->get('/historias')->assertOk()->assertSee($story->title)->assertSee('Torneo alevín')->assertDontSee('private@example.test');
     }
 
-    public function test_public_detail_displays_only_approved_comments_and_likes_and_escapes_content(): void
+    public function test_public_detail_displays_only_approved_comments_and_all_likes_and_escapes_content(): void
     {
         $story = $this->story(true);
         $story->update(['body' => '<script>alert(1)</script>']);
@@ -144,7 +144,7 @@ class ClubStoriesTest extends TestCase
         }
         $this->get("/historias/$story->id")->assertOk()
             ->assertSee('Comentario approved')->assertDontSee('Comentario pending')->assertDontSee('Comentario rejected')
-            ->assertSee('1 Me gusta')->assertDontSee('approved@example.test')
+            ->assertSee('3 Me gusta')->assertDontSee('approved@example.test')
             ->assertSee('&lt;script&gt;alert(1)&lt;/script&gt;', false)->assertDontSee('<script>alert(1)</script>', false);
     }
 
@@ -162,7 +162,7 @@ class ClubStoriesTest extends TestCase
         $this->get("/historias/$approved->id")->assertSee('Recuerdo nuevo')->assertDontSee('fan@example.test');
     }
 
-    public function test_likes_are_unique_per_browser_pending_and_moderated(): void
+    public function test_likes_are_immediate_unique_per_browser_and_cannot_be_moderated(): void
     {
         $story = $this->story(true);
         $visitor = (string) Str::uuid();
@@ -170,14 +170,40 @@ class ClubStoriesTest extends TestCase
         $this->post("/historias/$story->id/me-gusta")->assertRedirect();
         $this->assertSame(1, $story->likes()->count());
         $like = $story->likes()->firstOrFail();
-        $this->assertSame('pending', $like->status);
+        $this->assertSame('approved', $like->status);
         $this->assertSame(64, strlen($like->visitor_hash));
         $this->assertNotSame($visitor, $like->visitor_hash);
-        $this->get("/historias/$story->id")->assertSee('0 Me gusta');
-        $this->actingAs($this->moderator())->post("/gestion-historias/likes/$like->id/moderar", ['status' => 'approved'])->assertRedirect();
         $this->get("/historias/$story->id")->assertSee('1 Me gusta');
-        $this->post("/gestion-historias/likes/$like->id/moderar", ['status' => 'rejected'])->assertRedirect();
-        $this->get("/historias/$story->id")->assertSee('0 Me gusta');
+        $this->actingAs($this->moderator())->post("/gestion-historias/likes/$like->id/moderar", ['status' => 'rejected'])->assertNotFound();
+        $this->get("/historias/$story->id")->assertSee('1 Me gusta')->assertSee('♥ Te gusta');
+        $this->get('/gestion-historias')->assertOk()->assertDontSee('kind=likes', false);
+        $this->get("/gestion-historias/$story->id")->assertOk()->assertSee('1 Me gusta. Se contabilizan automáticamente');
+    }
+
+    public function test_liking_from_the_feed_preserves_filters_and_page_and_marks_only_the_visitors_likes(): void
+    {
+        $story = $this->story(true);
+        $other = $this->story(true);
+        $this->withCookie('story_visitor', (string) Str::uuid());
+        $this->get('/historias')->assertOk()->assertSee('Me gusta: '.$story->title);
+        $this->post("/historias/$story->id/me-gusta", [
+            'from' => 'index', 'category' => $story->story_category_id, 'page' => 2,
+        ])->assertRedirect(route('webclubs.stories.index', ['category' => $story->story_category_id, 'page' => 2]))
+            ->assertSessionHas('message', '¡Gracias! Tu Me gusta ya se ha contabilizado.');
+        $response = $this->get('/historias')->assertOk()->assertSee('1 Me gusta')->assertSee('♥ Te gusta');
+        $this->assertTrue((bool) $response['stories']->firstWhere('id', $story->id)->liked_by_visitor);
+        $this->assertFalse((bool) $response['stories']->firstWhere('id', $other->id)->liked_by_visitor);
+        $this->withCookie('story_visitor', (string) Str::uuid())->get('/historias')->assertOk()->assertDontSee('♥ Te gusta');
+    }
+
+    public function test_likes_cannot_target_pending_stories_or_redirect_to_external_urls(): void
+    {
+        $pending = $this->story();
+        $published = $this->story(true);
+        $this->withCookie('story_visitor', (string) Str::uuid());
+        $this->post("/historias/$pending->id/me-gusta", ['from' => 'index'])->assertNotFound();
+        $this->post("/historias/$published->id/me-gusta", ['from' => 'https://example.test'])->assertSessionHasErrors('from');
+        $this->assertSame(0, $published->likes()->count());
     }
 
     public function test_missing_browser_cookie_is_rejected_and_public_pages_set_it(): void
@@ -254,6 +280,28 @@ class ClubStoriesTest extends TestCase
         }
         $this->post('/historias', $this->submission(['media' => $files]))->assertRedirect()->assertSessionHasNoErrors();
         $this->assertSame(10, StoryMedia::count());
+    }
+
+    public function test_mobile_quicktime_video_can_be_uploaded_with_multiple_images(): void
+    {
+        $this->post('/historias', $this->submission(['media' => [
+            UploadedFile::fake()->image('first.jpg'),
+            UploadedFile::fake()->image('second.png'),
+            UploadedFile::fake()->create('iphone.mov', 51200, 'video/quicktime'),
+        ]]))->assertRedirect()->assertSessionHasNoErrors();
+        $story = ClubStory::firstOrFail();
+        $this->assertCount(3, $story->media);
+        $this->assertSame('video/quicktime', $story->media[2]->mime_type);
+        $this->assertTrue($story->media[2]->isVideo());
+        $this->assertSame('pending', $story->status);
+        Storage::disk('story-media')->assertExists($story->media[2]->path);
+    }
+
+    public function test_create_page_offers_multiple_selection_and_mobile_video_capture(): void
+    {
+        $this->get('/historias/compartir')->assertOk()
+            ->assertSee('multiple', false)->assertSee('capture="environment"', false)
+            ->assertSee('video/quicktime', false)->assertSee('Grabar vídeo con el móvil');
     }
 
     public function test_limits_reject_oversized_images_videos_and_more_than_ten_files(): void

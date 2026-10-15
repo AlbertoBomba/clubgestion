@@ -13,21 +13,9 @@
                 <p class="text-gray-500 text-sm mt-3">{{ $story->author_name }} · {{ $story->published_at->format('d/m/Y') }}</p>
                 <p class="whitespace-pre-wrap break-words mt-6 text-gray-700">{{ $story->body }}</p>
                 <div class="border-t mt-6 pt-6">
-                    <p class="font-semibold mb-3">{{ $story->approved_likes_count }} Me gusta</p>
-                    @if($likeStatus)
-                        <p class="text-sm text-gray-600">
-                            @if($likeStatus === 'approved') Tu Me gusta ha sido aprobado.
-                            @elseif($likeStatus === 'pending') Tu Me gusta está pendiente de revisión.
-                            @else Tu Me gusta no ha sido aprobado por el club.
-                            @endif
-                        </p>
-                    @else
-                        <form method="post" action="{{ route('webclubs.stories.like', $story) }}">
-                            @csrf
-                            <button class="bg-primary text-white rounded-full px-5 py-2 font-semibold">♡ Me gusta</button>
-                        </form>
-                        <p class="text-xs text-gray-500 mt-2">Un Me gusta por navegador. Se contabiliza después de su aprobación.</p>
-                    @endif
+                    <p class="font-semibold mb-3">{{ $story->likes_count }} Me gusta</p>
+                    @include('webclubs.stories._like', ['from' => 'show'])
+                    <p class="text-xs text-gray-500 mt-2">Un Me gusta por navegador. Se contabiliza al instante.</p>
                 </div>
             </article>
         </div>

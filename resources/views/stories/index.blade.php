@@ -2,9 +2,9 @@
     <x-slot name="header"><h1 class="font-bold text-2xl">Historias de aficionados</h1></x-slot>
     <div class="max-w-6xl mx-auto py-8 px-4">
         @include('webclubs.stories._notice')
-        <p class="text-gray-600 mb-6">Revisa las historias, comentarios y Me gusta de tu club antes de hacerlos públicos.</p>
+        <p class="text-gray-600 mb-6">Revisa las historias y comentarios de tu club antes de hacerlos públicos. Los Me gusta no necesitan aprobación.</p>
         <div class="flex flex-wrap gap-3 mb-6">
-            @foreach(['stories' => 'Historias', 'comments' => 'Comentarios', 'likes' => 'Me gusta'] as $type => $label)
+            @foreach(['stories' => 'Historias', 'comments' => 'Comentarios'] as $type => $label)
                 <a href="{{ route('stories.index', ['kind' => $type, 'status' => $status]) }}" class="px-4 py-3 rounded-lg border {{ $kind === $type ? 'bg-primary text-white' : 'bg-white' }}">{{ $label }} · {{ $pending[$type] }} pendientes</a>
             @endforeach
         </div>
@@ -28,12 +28,8 @@
                         </h2>
                         <span class="text-sm font-semibold">{{ ['pending' => 'Pendiente', 'approved' => 'Aprobado', 'rejected' => 'Rechazado'][$item->status] }}</span>
                     </div>
-                    @if($kind !== 'likes')
                         <p class="text-sm text-gray-500 mt-2">{{ $item->author_name }} · {{ $item->author_email }}</p>
                         <p class="whitespace-pre-wrap break-words mt-3">{{ \Illuminate\Support\Str::limit($item->body, 500) }}</p>
-                    @else
-                        <p class="text-sm text-gray-500 mt-2">Me gusta #{{ $item->id }} · {{ $item->created_at->format('d/m/Y H:i') }} · visitante anónimo</p>
-                    @endif
                     @if($kind === 'stories')
                         <p class="text-sm mt-3">{{ $item->category?->name }} · {{ $item->comments_count }} comentarios · {{ $item->likes_count }} Me gusta</p>
                         <a href="{{ route('stories.show', $item) }}" class="inline-block mt-4 font-semibold text-primary">Revisar texto y archivos →</a>

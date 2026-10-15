@@ -148,7 +148,7 @@ Route::middleware([
         Route::get('/', [StoryModerationController::class, 'index'])->name('index');
         Route::get('/{story}', [StoryModerationController::class, 'show'])->whereNumber('story')->name('show');
         Route::post('/{kind}/{item}/moderar', [StoryModerationController::class, 'review'])
-            ->whereIn('kind', ['stories', 'comments', 'likes'])->whereNumber('item')->name('review');
+            ->whereIn('kind', ['stories', 'comments'])->whereNumber('item')->name('review');
     });
 
     Route::get('/dashboard', function () {

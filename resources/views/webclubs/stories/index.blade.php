@@ -61,8 +61,9 @@
                         <h2 class="font-bold text-xl mt-2"><a href="{{ route('webclubs.stories.show', $story) }}">{{ $story->title }}</a></h2>
                         <p class="text-sm text-gray-500 mt-2">{{ $story->author_name }} · {{ $story->published_at->format('d/m/Y') }}</p>
                         <p class="text-gray-600 mt-3">{{ \Illuminate\Support\Str::limit($story->body, 160) }}</p>
-                        <div class="flex items-center justify-between border-t mt-5 pt-4 text-sm">
-                            <span>{{ $story->approved_likes_count }} Me gusta · {{ $story->approved_comments_count }} comentarios</span>
+                        <p class="text-sm text-gray-500 mt-4">{{ $story->likes_count }} Me gusta · {{ $story->approved_comments_count }} comentarios</p>
+                        <div class="flex items-center justify-between gap-3 border-t mt-4 pt-4 text-sm">
+                            @include('webclubs.stories._like', ['from' => 'index'])
                             <a class="text-primary font-semibold" href="{{ route('webclubs.stories.show', $story) }}">Ver historia</a>
                         </div>
                     </div>
@@ -75,7 +76,7 @@
             @endforelse
         </div>
         <div class="mt-8">{{ $stories->links() }}</div>
-        <p class="text-center text-sm text-gray-500 mt-8">Todas las historias, comentarios y Me gusta se revisan antes de hacerse públicos.</p>
+        <p class="text-center text-sm text-gray-500 mt-8">Las historias y los comentarios se revisan antes de publicarse. Los Me gusta se contabilizan al instante.</p>
     </div>
 </main>
 @endsection

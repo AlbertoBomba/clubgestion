@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\ClubStory;
 use App\Models\StoryComment;
-use App\Models\StoryLike;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
@@ -14,7 +13,7 @@ class StoryModerationController extends Controller
     {
         Gate::authorize('moderate-club-stories');
         $filters = $request->validate([
-            'kind' => ['nullable', 'in:stories,comments,likes'],
+            'kind' => ['nullable', 'in:stories,comments'],
             'status' => ['nullable', 'in:pending,approved,rejected,all'],
         ]);
         $kind = $filters['kind'] ?? 'stories';
@@ -28,7 +27,7 @@ class StoryModerationController extends Controller
         $items = $query->when($status !== 'all', fn ($query) => $query->where('status', $status))
             ->latest()->paginate(20)->withQueryString();
         $pending = [];
-        foreach (['stories', 'comments', 'likes'] as $type) {
+        foreach (['stories', 'comments'] as $type) {
             $pending[$type] = $this->query($type)->where('status', 'pending')->count();
         }
 
@@ -40,17 +39,16 @@ class StoryModerationController extends Controller
         Gate::authorize('moderate-club-stories');
         $story = $this->query('stories')->with([
             'category' => fn ($query) => $query->withoutGlobalScopes(), 'media',
-        ])->findOrFail($story);
+        ])->withCount('likes')->findOrFail($story);
         $comments = $story->comments()->latest()->paginate(15, ['*'], 'comments_page');
-        $likes = $story->likes()->latest()->paginate(20, ['*'], 'likes_page');
 
-        return view('stories.show', compact('story', 'comments', 'likes'));
+        return view('stories.show', compact('story', 'comments'));
     }
 
     public function review(Request $request, string $kind, int $item)
     {
         Gate::authorize('moderate-club-stories');
-        abort_unless(in_array($kind, ['stories', 'comments', 'likes'], true), 404);
+        abort_unless(in_array($kind, ['stories', 'comments'], true), 404);
         $data = $request->validate([
             'status' => ['required', 'in:approved,rejected'],
             'review_note' => ['nullable', 'string', 'max:1000'],
@@ -76,8 +74,7 @@ class StoryModerationController extends Controller
         if ($kind === 'stories') {
             return ClubStory::withoutGlobalScopes()->where('sports_school_id', $schoolId);
         }
-        $model = $kind === 'comments' ? StoryComment::class : StoryLike::class;
 
-        return $model::query()->whereHas('story', fn ($query) => $query->withoutGlobalScopes()->where('sports_school_id', $schoolId));
+        return StoryComment::query()->whereHas('story', fn ($query) => $query->withoutGlobalScopes()->where('sports_school_id', $schoolId));
     }
 }
