@@ -15,7 +15,7 @@ function element() {
     };
 }
 
-function viewerHarness(video = null, lightbox = null, links = []) {
+function viewerHarness(video = null, lightbox = null, links = [], observerClass = undefined) {
     const slides = Array.from({ length: 3 }, (_, index) => ({
         ...element(), querySelector: () => index === 1 ? video : null,
     }));
@@ -38,7 +38,7 @@ function viewerHarness(video = null, lightbox = null, links = []) {
     };
     let frame;
     const context = vm.createContext({
-        document, requestAnimationFrame: (callback) => { frame = callback; },
+        document, IntersectionObserver: observerClass, requestAnimationFrame: (callback) => { frame = callback; },
     });
     vm.runInContext(fs.readFileSync(path.join(__dirname, '../../resources/js/club-stories.js'), 'utf8'), context);
     return { slides, progress, buttons, viewer, document, tick: (time) => frame(time) };
@@ -101,6 +101,95 @@ test('automatic videos advance on ended, not the image timer', () => {
     assert.equal(progress[1].style.width, '50%');
     video.emit('ended');
     assert.equal(buttons['[data-story-counter]'].textContent, '3 / 3');
+});
+
+test('selecting a video starts muted playback without enabling automatic slide advancement', () => {
+    let plays = 0;
+    let pauses = 0;
+    const video = {
+        ...element(), currentTime: 5, muted: false,
+        play() { plays++; return Promise.resolve(); },
+        pause() { pauses++; },
+    };
+    const { buttons } = viewerHarness(video);
+    buttons['[data-story-next]'].emit('click');
+    assert.equal(plays, 1);
+    assert.equal(video.muted, true);
+    assert.equal(video.currentTime, 0);
+    assert.equal(buttons['[data-story-play]'].attributes['aria-pressed'], undefined);
+    buttons['[data-story-next]'].emit('click');
+    assert.ok(pauses > 0);
+});
+
+test('detail videos wait until visible, pause on scrolling away and resume when visible again', async () => {
+    let plays = 0;
+    let pauses = 0;
+    let intersection;
+    const video = {
+        ...element(), currentTime: 0,
+        play() { plays++; return Promise.resolve(); },
+        pause() { pauses++; },
+    };
+    class IntersectionObserver {
+        constructor(callback) { intersection = callback; }
+        observe() {}
+    }
+    const { buttons } = viewerHarness(video, null, [], IntersectionObserver);
+    buttons['[data-story-next]'].emit('click');
+    assert.equal(plays, 0);
+    intersection([{ isIntersecting: true, intersectionRatio: 0.75 }]);
+    await Promise.resolve();
+    assert.equal(plays, 1);
+    assert.equal(video.muted, true);
+    intersection([{ isIntersecting: true, intersectionRatio: 0.25 }]);
+    assert.ok(pauses > 0);
+    assert.equal(plays, 1);
+    intersection([{ isIntersecting: true, intersectionRatio: 0.75 }]);
+    assert.equal(plays, 2);
+});
+
+test('category changes submit directly from the template without requiring the compiled bundle', () => {
+    let submissions = 0;
+    const template = fs.readFileSync(path.join(__dirname, '../../resources/views/webclubs/stories/index.blade.php'), 'utf8');
+    const handler = template.match(/<select[^>]*id="category"[^>]*onchange="([^"]+)"/);
+    assert.ok(handler, 'The category select must submit without a bundle initialization listener.');
+    vm.runInNewContext(`(function () { ${handler[1]} }).call(select)`, {
+        select: { form: { requestSubmit() { submissions++; } } },
+    });
+    assert.equal(submissions, 1);
+});
+
+test('feed videos play only while visible and pause on background or leaving the viewport', async () => {
+    let plays = 0;
+    let pauses = 0;
+    let intersection;
+    const status = element();
+    const video = {
+        ...element(), parentElement: { querySelector: () => status },
+        play() { plays++; return Promise.resolve(); },
+        pause() { pauses++; },
+    };
+    const document = {
+        ...element(), readyState: 'complete', hidden: false,
+        querySelectorAll: (selector) => selector === '[data-story-feed-video]' ? [video] : [],
+    };
+    class IntersectionObserver {
+        constructor(callback) { intersection = callback; }
+        observe(target) { assert.equal(target, video); }
+    }
+    vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../../resources/js/club-stories.js'), 'utf8'), { document, IntersectionObserver });
+    intersection([{ isIntersecting: true, intersectionRatio: 0.5 }]);
+    await Promise.resolve();
+    assert.equal(plays, 1);
+    assert.equal(video.muted, true);
+    intersection([{ isIntersecting: false, intersectionRatio: 0 }]);
+    assert.equal(pauses, 1);
+    document.hidden = true;
+    document.emit('visibilitychange');
+    assert.equal(pauses, 2);
+    assert.equal(plays, 1);
+    video.emit('error');
+    assert.match(status.textContent, /No se puede reproducir/);
 });
 
 test('blocked autoplay reports a visible error and turns automatic mode off', async () => {

@@ -13,6 +13,17 @@
 
 La web de cada club ofrece **Cuéntanos tu historia** en `/historias`: listado
 paginado, filtro por categoría, tarjetas y visor vertical de fotos/vídeos con
+filtrado automático al seleccionar una categoría directamente desde el desplegable,
+sin depender de la inicialización del bundle (sin JavaScript se ofrece un
+botón). Todos los accesos al detalle conservan categoría y página del listado en
+la URL; el enlace de vuelta, los comentarios y los Me gusta mantienen ese contexto.
+Los vídeos del listado se reproducen silenciados cuando al menos la mitad de la
+tarjeta está visible y se pausan al salir de pantalla o cambiar de pestaña.
+En el detalle, cada vídeo comienza silenciado al seleccionarlo y estar visible,
+pausándose también al salir de pantalla, sin necesidad de
+activar el avance automático entre archivos. Los controles permiten activar el
+sonido o iniciar manualmente la reproducción si el navegador bloquea autoplay.
+El visor ofrece
 avance manual, gestos, teclado y reproducción automática opcional. Las historias
 permiten pulsar las fotos para abrirlas en un visor ampliado adaptable a la
 pantalla, con cierre por botón o Escape y pausa de la reproducción automática.
@@ -35,7 +46,10 @@ Las categorías se reutilizan por club, normalizando mayúsculas, acentos y espa
 una categoría nueva solo se muestra públicamente cuando contiene una historia
 aprobada. Retirar una historia oculta también sus archivos e interacciones.
 
-Despliegue: ejecutar `php artisan migrate` y `npm run build`. Los archivos se
+Despliegue: ejecutar `php artisan migrate` y `npm run build`. Los archivos
+compilados de `public/build` (incluido `manifest.json`) deben desplegarse juntos;
+subir solo las vistas no actualiza los comportamientos JavaScript de la web.
+Los archivos se
 guardan en el disco privado `story-media`, bajo `storage/app/private/story-media`,
 y se sirven con comprobación de publicación o permiso de moderación. No requieren
 `storage:link`. Incluir ese directorio en las copias de seguridad; no exponerlo

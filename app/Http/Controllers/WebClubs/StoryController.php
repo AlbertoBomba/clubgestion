@@ -31,6 +31,10 @@ class StoryController extends Controller
         $response = response()->view('webclubs.stories.index', [
             'stories' => $stories,
             'categories' => $this->categories($schoolId),
+            'storyContext' => array_filter([
+                'category' => $filters['category'] ?? null,
+                'feed_page' => $stories->currentPage(),
+            ]),
         ]);
 
         if (! Str::isUuid($request->cookie('story_visitor', ''))) {
@@ -54,13 +58,14 @@ class StoryController extends Controller
 
     public function show(Request $request, int $story)
     {
+        $storyContext = $this->storyContext($request);
         $story = $this->publishedStory($story)->load(['category', 'media'])
             ->loadCount('likes');
-        $comments = $story->comments()->where('status', 'approved')->latest()->paginate(15);
+        $comments = $story->comments()->where('status', 'approved')->latest()->paginate(15)->appends($storyContext);
         $visitor = $request->cookie('story_visitor', '');
         $story->setAttribute('liked_by_visitor', Str::isUuid($visitor)
             && $story->likes()->where('visitor_hash', $this->visitorHash($visitor))->exists());
-        $response = response()->view('webclubs.stories.show', compact('story', 'comments'));
+        $response = response()->view('webclubs.stories.show', compact('story', 'comments', 'storyContext'));
         if (! Str::isUuid($visitor)) {
             $response->cookie('story_visitor', (string) Str::uuid(), 60 * 24 * 365, '/', null, $request->isSecure(), true, false, 'lax');
         }
@@ -70,6 +75,7 @@ class StoryController extends Controller
 
     public function comment(Request $request, int $story)
     {
+        $storyContext = $this->storyContext($request);
         $story = $this->publishedStory($story);
         $data = $request->validate([
             'author_name' => ['required', 'string', 'max:100'],
@@ -83,11 +89,12 @@ class StoryController extends Controller
             'body' => $data['body'], 'consented_at' => now(), 'status' => 'pending',
         ]);
 
-        return redirect()->route('webclubs.stories.show', $story)->with('message', 'Tu comentario está pendiente de aprobación.');
+        return redirect()->route('webclubs.stories.show', ['story' => $story->id] + $storyContext)->with('message', 'Tu comentario está pendiente de aprobación.');
     }
 
     public function like(Request $request, int $story)
     {
+        $storyContext = $this->storyContext($request);
         $story = $this->publishedStory($story);
         $data = $request->validate([
             'from' => ['nullable', 'in:index,show'],
@@ -105,7 +112,7 @@ class StoryController extends Controller
             ]))->with('message', $message);
         }
 
-        return redirect()->route('webclubs.stories.show', $story)->with('message', $message);
+        return redirect()->route('webclubs.stories.show', ['story' => $story->id] + $storyContext)->with('message', $message);
     }
 
     public function media(int $media)
@@ -133,6 +140,14 @@ class StoryController extends Controller
         abort_unless(currentSchool(), 404);
 
         return currentSchool()->id;
+    }
+
+    private function storyContext(Request $request): array
+    {
+        return array_filter($request->validate([
+            'category' => ['nullable', 'integer', 'min:1'],
+            'feed_page' => ['nullable', 'integer', 'min:1'],
+        ]));
     }
 
     private function publishedStory(int $id): ClubStory

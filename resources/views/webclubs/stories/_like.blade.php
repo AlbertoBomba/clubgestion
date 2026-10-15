@@ -1,4 +1,4 @@
-<form method="post" action="{{ route('webclubs.stories.like', $story) }}">
+<form method="post" action="{{ route('webclubs.stories.like', ['story' => $story->id] + ($from === 'show' ? $storyContext : [])) }}">
     @csrf
     <input type="hidden" name="from" value="{{ $from }}">
     @if($from === 'index')

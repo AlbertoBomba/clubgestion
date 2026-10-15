@@ -272,6 +272,42 @@ class ClubStoriesTest extends TestCase
         $this->get('/historias?page=2')->assertOk();
     }
 
+    public function test_feed_links_and_detail_return_preserve_category_and_feed_page(): void
+    {
+        $story = $this->story(true);
+        $context = ['category' => $story->story_category_id, 'feed_page' => 1];
+        $detailUrl = route('webclubs.stories.show', ['story' => $story->id] + $context);
+        $this->get('/historias?category='.$story->story_category_id)->assertOk()
+            ->assertSee('onchange="this.form.requestSubmit()"', false)->assertSee($detailUrl);
+        $this->get($detailUrl)->assertOk()->assertSee(route('webclubs.stories.index', [
+            'category' => $story->story_category_id, 'page' => 1,
+        ]));
+        $context['feed_page'] = 2;
+        $detailUrl = route('webclubs.stories.show', ['story' => $story->id] + $context);
+        $this->withCookie('story_visitor', (string) Str::uuid())
+            ->post(route('webclubs.stories.like', ['story' => $story->id] + $context), ['from' => 'show'])
+            ->assertRedirect($detailUrl);
+        $this->post(route('webclubs.stories.comment', ['story' => $story->id] + $context), [
+            'author_name' => 'Fan', 'author_email' => 'fan@example.test', 'body' => 'Un recuerdo',
+            'consent' => 1,
+        ])->assertRedirect($detailUrl);
+        $this->get($detailUrl)->assertOk()->assertSee(route('webclubs.stories.index', [
+            'category' => $story->story_category_id, 'page' => 2,
+        ]));
+        $this->get("/historias/$story->id?category=invalid")->assertSessionHasErrors('category');
+    }
+
+    public function test_video_templates_use_muted_inline_playback_in_feed_and_detail(): void
+    {
+        $story = app(ClubStorySubmission::class)->store($this->school->id, $this->submission(), [
+            UploadedFile::fake()->create('video.mp4', 200, 'video/mp4'),
+        ]);
+        $story->update(['status' => 'approved', 'published_at' => now()]);
+        $this->get('/historias')->assertOk()->assertSee('data-story-feed-video', false)
+            ->assertSee('muted playsinline', false);
+        $this->get("/historias/$story->id")->assertOk()->assertSee('controls muted playsinline', false);
+    }
+
     public function test_limits_accept_exact_image_and_video_thresholds_and_ten_files(): void
     {
         $files = [UploadedFile::fake()->create('image.jpg', 10240, 'image/jpeg'), UploadedFile::fake()->create('video.mp4', 51200, 'video/mp4')];

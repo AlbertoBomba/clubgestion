@@ -1,4 +1,32 @@
 function initializeStories() {
+    document.querySelectorAll('[data-story-feed-video]').forEach((video) => {
+        if (video.dataset.initialized) return;
+        video.dataset.initialized = 'true';
+        const status = video.parentElement.querySelector('[data-story-video-status]');
+        let visible = false;
+        function updatePlayback() {
+            if (!visible || document.hidden) {
+                video.pause();
+                return;
+            }
+            video.muted = true;
+            video.play().then(() => { status.textContent = ''; }).catch(() => {
+                if (visible && !document.hidden) status.textContent = 'Pulsa reproducir para ver el vídeo.';
+            });
+        }
+        if (typeof IntersectionObserver === 'function') {
+            const observer = new IntersectionObserver(([entry]) => {
+                visible = entry.isIntersecting && entry.intersectionRatio >= 0.5;
+                updatePlayback();
+            }, { threshold: [0, 0.5] });
+            observer.observe(video);
+            document.addEventListener('visibilitychange', updatePlayback);
+        }
+        video.addEventListener('error', () => {
+            status.textContent = 'No se puede reproducir este vídeo en tu navegador.';
+        });
+    });
+
     document.querySelectorAll('[data-story-viewer]').forEach((viewer) => {
         if (viewer.dataset.initialized) return;
         viewer.dataset.initialized = 'true';
@@ -11,6 +39,7 @@ function initializeStories() {
         let lastFrame = null;
         let touchStart = null;
         let swiped = false;
+        let viewerVisible = typeof IntersectionObserver !== 'function';
         const lightbox = viewer.querySelector('[data-story-lightbox]');
         if (lightbox) {
             const enlargedImage = lightbox.querySelector('[data-story-lightbox-image]');
@@ -69,8 +98,18 @@ function initializeStories() {
             viewer.querySelector('[data-story-prev]').disabled = index === 0;
             viewer.querySelector('[data-story-next]').disabled = index === slides.length - 1;
             const video = currentVideo();
-            if (video) video.currentTime = 0;
+            if (video) {
+                video.currentTime = 0;
+                video.muted = true;
+            }
             if (automatic) setAutomatic(true);
+            else if (video && viewerVisible && !document.hidden) {
+                video.play().catch(() => {
+                    if (currentVideo() === video) {
+                        viewer.querySelector('[data-story-counter]').textContent = 'Pulsa reproducir para ver el vídeo.';
+                    }
+                });
+            }
         }
 
         viewer.querySelector('[data-story-prev]').addEventListener('click', () => show(index - 1));
@@ -115,7 +154,10 @@ function initializeStories() {
             });
         });
         document.addEventListener('visibilitychange', () => {
-            if (document.hidden) setAutomatic(false);
+            if (document.hidden) {
+                setAutomatic(false);
+                currentVideo()?.pause();
+            }
         });
         function frame(time) {
             if (!viewer.isConnected) return;
@@ -133,6 +175,24 @@ function initializeStories() {
             requestAnimationFrame(frame);
         }
         show(0);
+        if (typeof IntersectionObserver === 'function') {
+            const observer = new IntersectionObserver(([entry]) => {
+                viewerVisible = entry.isIntersecting && entry.intersectionRatio >= 0.5;
+                const video = currentVideo();
+                if (!viewerVisible || document.hidden) {
+                    setAutomatic(false);
+                    video?.pause();
+                } else if (video && !video.ended) {
+                    video.muted = true;
+                    video.play().catch(() => {
+                        if (viewerVisible && currentVideo() === video && !document.hidden) {
+                            viewer.querySelector('[data-story-counter]').textContent = 'Pulsa reproducir para ver el vídeo.';
+                        }
+                    });
+                }
+            }, { threshold: [0, 0.5] });
+            observer.observe(viewer);
+        }
         requestAnimationFrame(frame);
     });
 

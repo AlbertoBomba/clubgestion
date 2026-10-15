@@ -14,7 +14,7 @@
         @foreach($story->media as $media)
             <div data-story-slide @if(!$loop->first) hidden @endif class="story-slide">
                 @if($media->isVideo())
-                    <video controls playsinline preload="metadata" class="w-full h-full object-contain" src="{{ route('webclubs.stories.media', $media) }}" aria-label="Vídeo {{ $loop->iteration }} de {{ $story->title }}"></video>
+                    <video controls muted playsinline preload="metadata" class="w-full h-full object-contain" src="{{ route('webclubs.stories.media', $media) }}" aria-label="Vídeo {{ $loop->iteration }} de {{ $story->title }}"></video>
                 @else
                     <a data-story-enlarge href="{{ route('webclubs.stories.media', $media) }}" target="_blank" rel="noopener" class="block w-full h-full cursor-zoom-in" aria-label="Ampliar foto {{ $loop->iteration }} de {{ $story->title }}">
                         <img src="{{ route('webclubs.stories.media', $media) }}" alt="Foto {{ $loop->iteration }} de {{ $story->title }}" class="w-full h-full object-contain" @if(!$loop->first) loading="lazy" @endif>

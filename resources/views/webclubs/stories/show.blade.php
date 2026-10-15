@@ -3,7 +3,7 @@
 @section('content')
 <main class="bg-gray-50 py-10">
     <div class="max-w-5xl mx-auto px-4 sm:px-6">
-        <a href="{{ route('webclubs.stories.index') }}" class="text-primary font-semibold">← Todas las historias</a>
+        <a href="{{ route('webclubs.stories.index', array_filter(['category' => $storyContext['category'] ?? null, 'page' => $storyContext['feed_page'] ?? null])) }}" class="text-primary font-semibold">← Todas las historias</a>
         <div class="mt-6">@include('webclubs.stories._notice')</div>
         <div class="grid md:grid-cols-2 gap-8 items-start">
             <div>@include('webclubs.stories._viewer')</div>
@@ -32,7 +32,7 @@
                 @endforelse
             </div>
             <div class="mt-6">{{ $comments->links() }}</div>
-            <form method="post" action="{{ route('webclubs.stories.comment', $story) }}" class="bg-white border rounded-2xl p-6 space-y-5 mt-8">
+            <form method="post" action="{{ route('webclubs.stories.comment', ['story' => $story->id] + $storyContext) }}" class="bg-white border rounded-2xl p-6 space-y-5 mt-8">
                 @csrf
                 <h3 class="text-xl font-bold">Añadir un comentario</h3>
                 <p class="text-sm text-gray-500">El club revisará tu comentario antes de publicarlo. Tu correo no se mostrará.</p>
