@@ -46,5 +46,7 @@
             </form>
         </section>
     </div>
+     <!-- Nuestros Patrocinadores -->
+    <x-webclubs.sponsors />
 </main>
 @endsection

@@ -77,6 +77,14 @@
         </div>
         <div class="mt-8">{{ $stories->links() }}</div>
         <p class="text-center text-sm text-gray-500 mt-8">Las historias y los comentarios se revisan antes de publicarse. Los Me gusta se contabilizan al instante.</p>
+       
     </div>
+    <!-- Nuestros Patrocinadores -->
+    <x-webclubs.sponsors />
+        
+    
 </main>
+    
 @endsection
+
+  
