@@ -121,6 +121,8 @@ class PublicConvocatoria extends Component
             'match' => $match,
             'team' => $team,
             'calledPlayers' => $calledPlayers
-        ])->layout('layouts.guest');
+        ])->layout('livewire.webclubs.layouts.app', [
+            'title' => 'Convocatoria - ' .$team->team. ' vs ' . $match->opponent,
+        ]);
     }
 }

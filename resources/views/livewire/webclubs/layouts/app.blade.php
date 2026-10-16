@@ -6,7 +6,7 @@
     
     <!-- SEO Meta Tags -->
     <title>{{ $title ?? tenantName() }}</title>
-    <meta name="description" content="{{ $description ?? 'Club deportivo ' . tenantName() . '. Formando campeones, excelencia en cada entrenamiento.' }}">
+    <meta name="description" content="{{ $description ?? '' . tenantName() . '. Formando campeones, excelencia en cada entrenamiento.' }}">
     <meta name="keywords" content="{{ $keywords ?? tenantName() . ', club deportivo, fútbol, entrenamiento, equipos, jugadores' }}">
     <meta name="author" content="{{ tenantName() }}">
     <meta name="robots" content="{{ $robots ?? 'index, follow' }}">
@@ -16,7 +16,7 @@
     <meta property="og:type" content="{{ $ogType ?? 'website' }}">
     <meta property="og:url" content="{{ $ogUrl ?? url()->current() }}">
     <meta property="og:title" content="{{ $ogTitle ?? $title ?? tenantName() }}">
-    <meta property="og:description" content="{{ $ogDescription ?? $description ?? 'Club deportivo ' . tenantName() }}">
+    <meta property="og:description" content="{{ $ogDescription ?? $description ?? ' ' . tenantName() }}">
     <meta property="og:image" content="{{ $ogImage ?? tenantLogo() }}">
     <meta property="og:site_name" content="{{ tenantName() }}">
     <meta property="og:locale" content="es_ES">
@@ -25,7 +25,7 @@
     <meta name="twitter:card" content="{{ $twitterCard ?? 'summary_large_image' }}">
     <meta name="twitter:url" content="{{ $twitterUrl ?? url()->current() }}">
     <meta name="twitter:title" content="{{ $twitterTitle ?? $title ?? tenantName() }}">
-    <meta name="twitter:description" content="{{ $twitterDescription ?? $description ?? 'Club deportivo ' . tenantName() }}">
+    <meta name="twitter:description" content="{{ $twitterDescription ?? $description ?? ' ' . tenantName() }}">
     <meta name="twitter:image" content="{{ $twitterImage ?? tenantLogo() }}">
     
     <!-- Additional Meta Tags -->
