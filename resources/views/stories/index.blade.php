@@ -31,7 +31,7 @@
                         <p class="text-sm text-gray-500 mt-2">{{ $item->author_name }} · {{ $item->author_email }}</p>
                         <p class="whitespace-pre-wrap break-words mt-3">{{ \Illuminate\Support\Str::limit($item->body, 500) }}</p>
                     @if($kind === 'stories')
-                        <p class="text-sm mt-3">{{ $item->category?->name }} · {{ $item->comments_count }} comentarios · {{ $item->likes_count }} Me gusta</p>
+                        <p class="text-sm mt-3">{{ $item->category?->name }} · {{ $item->comments_count }} comentarios · {{ $item->likes_count }} Me gusta · {{ number_format($item->video_views_count, 0, ',', '.') }} reproducciones de vídeo</p>
                         <a href="{{ route('stories.show', $item) }}" class="inline-block mt-4 font-semibold text-primary">Revisar texto y archivos →</a>
                     @else
                         @include('stories._review', ['kind' => $kind, 'item' => $item])

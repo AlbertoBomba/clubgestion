@@ -6,6 +6,7 @@ use App\Models\ClubStory;
 use App\Models\SportsSchool;
 use App\Models\StoryCategory;
 use App\Models\StoryMedia;
+use App\Models\StoryMediaView;
 use App\Models\User;
 use App\Services\ClubStorySubmission;
 use Illuminate\Http\UploadedFile;
@@ -45,6 +46,7 @@ class ClubStoriesTest extends TestCase
             '2025_11_28_184436_create_seasons_table.php',
             '2026_10_09_110000_create_club_stories_tables.php',
             '2026_10_15_193000_make_story_author_emails_optional.php',
+            '2026_10_16_100000_create_story_media_views_table.php',
         ] as $migration) {
             (require database_path('migrations/'.$migration))->up();
         }
@@ -534,5 +536,71 @@ class ClubStoriesTest extends TestCase
         $this->get('/gestion-historias')->assertRedirect('/login');
         $this->post("/gestion-historias/stories/$story->id/moderar", ['status' => 'approved'])->assertRedirect('/login');
         $this->assertSame('pending', $story->fresh()->status);
+    }
+
+    private function videoStory(bool $approved = true, ?SportsSchool $school = null): ClubStory
+    {
+        $story = app(ClubStorySubmission::class)->store(($school ?? $this->school)->id, $this->submission(), [
+            UploadedFile::fake()->create('video.mp4', 200, 'video/mp4'),
+            UploadedFile::fake()->image('photo.jpg'),
+        ]);
+        if ($approved) {
+            $story->update(['status' => 'approved', 'published_at' => now()]);
+        }
+
+        return $story->load('media');
+    }
+
+    public function test_video_views_count_once_per_visitor_and_day(): void
+    {
+        $video = $this->videoStory()->media[0];
+        $url = "/historias/archivos/$video->id/reproducciones";
+        $first = (string) Str::uuid();
+        $this->withCredentials()->withCookie('story_visitor', $first)->postJson($url)->assertOk()->assertExactJson(['counted' => true, 'views' => 1]);
+        $this->postJson($url)->assertOk()->assertExactJson(['counted' => false, 'views' => 1]);
+        $this->withCookie('story_visitor', (string) Str::uuid())->postJson($url)->assertExactJson(['counted' => true, 'views' => 2]);
+        $this->travel(1)->days();
+        $this->withCookie('story_visitor', $first)->postJson($url)->assertExactJson(['counted' => true, 'views' => 3]);
+        $this->assertSame(3, $video->views()->count());
+        $this->assertNotContains($first, $video->views()->pluck('visitor_hash')->all());
+    }
+
+    public function test_video_views_reject_images_unpublished_or_foreign_stories_and_missing_cookie(): void
+    {
+        $story = $this->videoStory();
+        $this->withCredentials()->postJson("/historias/archivos/{$story->media[0]->id}/reproducciones")->assertStatus(422);
+        $this->withCookie('story_visitor', (string) Str::uuid());
+        $this->postJson("/historias/archivos/{$story->media[1]->id}/reproducciones")->assertNotFound();
+        $pending = $this->videoStory(false);
+        $this->postJson("/historias/archivos/{$pending->media[0]->id}/reproducciones")->assertNotFound();
+        $other = SportsSchool::create(['name' => 'Otro club', 'domain' => 'otro.test', 'is_active' => true]);
+        $foreign = $this->videoStory(true, $other);
+        $this->postJson("/historias/archivos/{$foreign->media[0]->id}/reproducciones")->assertNotFound();
+        $this->postJson('/historias/archivos/999999/reproducciones')->assertNotFound();
+        $this->assertSame(0, StoryMediaView::count());
+    }
+
+    public function test_video_views_are_displayed_in_feed_detail_and_moderation(): void
+    {
+        $story = $this->videoStory();
+        $video = $story->media[0];
+        $this->get('/historias')->assertOk()->assertSee('0 reproducciones')
+            ->assertSee('data-story-view-url="'.route('webclubs.stories.view', $video).'"', false);
+        foreach (range(1, 3) as $i) {
+            $video->views()->create(['visitor_hash' => str_repeat((string) $i, 64), 'viewed_on' => now()->toDateString()]);
+        }
+        $this->get('/historias')->assertOk()->assertSee('3 reproducciones');
+        $this->get("/historias/$story->id")->assertOk()->assertSee('3 reproducciones')
+            ->assertSee('data-story-view-count="'.$video->id.'"', false);
+        $this->actingAs($this->moderator())->get('/gestion-historias?status=all')->assertOk()->assertSee('3 reproducciones de vídeo');
+        $this->get("/gestion-historias/$story->id")->assertOk()->assertSee('3 reproducciones');
+    }
+
+    public function test_deleting_a_video_removes_its_views(): void
+    {
+        $video = $this->videoStory()->media[0];
+        $video->views()->create(['visitor_hash' => str_repeat('a', 64), 'viewed_on' => now()->toDateString()]);
+        $video->delete();
+        $this->assertSame(0, StoryMediaView::count());
     }
 }

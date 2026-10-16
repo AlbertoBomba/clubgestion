@@ -19,7 +19,7 @@
                                 <img src="{{ route('webclubs.stories.media', $media) }}" alt="Foto {{ $loop->iteration }} de la historia" loading="lazy" class="w-full h-80 object-contain">
                             </a>
                         @endif
-                        <p class="text-white text-sm p-3">Archivo {{ $loop->iteration }} · {{ number_format($media->size / 1024 / 1024, 1) }} MB</p>
+                        <p class="text-white text-sm p-3">Archivo {{ $loop->iteration }} · {{ number_format($media->size / 1024 / 1024, 1) }} MB @if($media->isVideo()) · {{ number_format($media->views_count, 0, ',', '.') }} {{ $media->views_count === 1 ? 'reproducción' : 'reproducciones' }} @endif</p>
                     </div>
                 @endforeach
             </div>

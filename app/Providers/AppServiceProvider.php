@@ -38,6 +38,7 @@ class AppServiceProvider extends ServiceProvider
             Limit::perMinute(10)->by('story-interaction-minute:'.$request->ip()),
             Limit::perHour(60)->by('story-interaction-hour:'.$request->ip()),
         ]);
+        RateLimiter::for('story-views', fn (Request $request) => Limit::perMinute(60)->by('story-views:'.$request->ip()));
 
         RateLimiter::for('mobile-login', function (Request $request) {
             $email = $request->input('email');

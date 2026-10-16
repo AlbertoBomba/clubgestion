@@ -46,12 +46,17 @@
                     <a href="{{ route('webclubs.stories.show', ['story' => $story->id] + $storyContext) }}" class="block relative bg-gray-900">
                         @if($story->media->first())
                             @if($story->media->first()->isVideo())
-                                <video data-story-feed-video src="{{ route('webclubs.stories.media', $story->media->first()) }}" preload="metadata" muted playsinline loop controls class="w-full h-72 object-cover" aria-label="Vídeo de {{ $story->title }}"></video>
+                                <video data-story-feed-video data-story-view-url="{{ route('webclubs.stories.view', $story->media->first()) }}" data-story-view-token="{{ csrf_token() }}" src="{{ route('webclubs.stories.media', $story->media->first()) }}" preload="metadata" muted playsinline loop controls class="w-full h-72 object-cover" aria-label="Vídeo de {{ $story->title }}"></video>
                                 <span data-story-video-status class="absolute top-4 left-4 bg-black text-white rounded-full px-3 py-1 text-xs" role="status"></span>
                             @else
                                 <img src="{{ route('webclubs.stories.media', $story->media->first()) }}" alt="{{ $story->title }}" loading="lazy" class="w-full h-72 object-cover">
                             @endif
-                            <span class="absolute top-4 right-4 rounded-full bg-black text-white px-3 py-1 text-sm">{{ $story->media->count() }} archivos</span>
+                            <span class="absolute top-4 right-4 flex flex-col items-end gap-2 text-sm">
+                                <span class="rounded-full bg-black text-white px-3 py-1">{{ $story->media->count() }} archivos</span>
+                                @if($story->media->first()->isVideo())
+                                    @include('webclubs.stories._views', ['media' => $story->media->first(), 'class' => 'rounded-full bg-black text-white px-3 py-1'])
+                                @endif
+                            </span>
                         @else
                             <div class="h-72 flex items-center justify-center bg-primary text-white text-7xl font-bold">{{ mb_substr($story->author_name, 0, 1) }}</div>
                         @endif
@@ -61,7 +66,8 @@
                         <h2 class="font-bold text-xl mt-2"><a href="{{ route('webclubs.stories.show', ['story' => $story->id] + $storyContext) }}">{{ $story->title }}</a></h2>
                         <p class="text-sm text-gray-500 mt-2">{{ $story->author_name }} · {{ $story->published_at->format('d/m/Y') }}</p>
                         <p class="text-gray-600 mt-3">{{ \Illuminate\Support\Str::limit($story->body, 160) }}</p>
-                        <p class="text-sm text-gray-500 mt-4">{{ $story->likes_count }} Me gusta · {{ $story->approved_comments_count }} comentarios</p>
+                        @php($storyVideoViews = $story->media->filter->isVideo()->sum('views_count'))
+                        <p class="text-sm text-gray-500 mt-4">{{ $story->likes_count }} Me gusta · {{ $story->approved_comments_count }} comentarios @if($story->media->contains->isVideo()) · {{ number_format($storyVideoViews, 0, ',', '.') }} {{ $storyVideoViews === 1 ? 'reproducción' : 'reproducciones' }} @endif</p>
                         <div class="flex items-center justify-between gap-3 border-t mt-4 pt-4 text-sm">
                             @include('webclubs.stories._like', ['from' => 'index'])
                             <a class="text-primary font-semibold" href="{{ route('webclubs.stories.show', ['story' => $story->id] + $storyContext) }}">Ver historia</a>

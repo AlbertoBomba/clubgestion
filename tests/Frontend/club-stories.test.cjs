@@ -363,3 +363,76 @@ test('unsupported preview codecs show an explanation without removing the select
     assert.match(preview.children[1].textContent, /No se puede mostrar la vista previa/);
     assert.equal(submittedFiles()[0].file.name, 'iphone.mov');
 });
+
+function trackerHarness(fetchImpl) {
+    const label = element();
+    const video = {
+        ...element(), paused: false, currentTime: 0,
+        dataset: { storyViewUrl: '/historias/archivos/7/reproducciones', storyViewToken: 'token-123' },
+        parentElement: { querySelectorAll: (selector) => selector === '[data-story-view-count]' ? [label] : [] },
+    };
+    const requests = [];
+    const document = {
+        ...element(), readyState: 'complete',
+        querySelectorAll: (selector) => selector === 'video[data-story-view-url]' ? [video] : [],
+    };
+    vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../../resources/js/club-stories.js'), 'utf8'), {
+        document, fetch: (url, options) => { requests.push({ url, options }); return fetchImpl(); },
+    });
+    const playTo = (...times) => times.forEach((time) => { video.currentTime = time; video.emit('timeupdate'); });
+    return { video, label, requests, playTo };
+}
+
+const flush = () => new Promise((resolve) => setImmediate(resolve));
+
+test('video views are sent once after three seconds of continuous playback and update the label', async () => {
+    const { video, label, requests, playTo } = trackerHarness(() => Promise.resolve({ ok: true, json: () => ({ counted: true, views: 1234 }) }));
+    video.emit('play');
+    playTo(1, 2, 2.9);
+    assert.equal(requests.length, 0);
+    playTo(3.2, 4, 5);
+    assert.equal(requests.length, 1);
+    assert.equal(requests[0].url, '/historias/archivos/7/reproducciones');
+    assert.equal(requests[0].options.method, 'POST');
+    assert.equal(requests[0].options.credentials, 'same-origin');
+    assert.equal(requests[0].options.headers['X-CSRF-TOKEN'], 'token-123');
+    await flush();
+    assert.equal(label.textContent, '1.234 reproducciones');
+    video.currentTime = 0;
+    playTo(1, 2, 3, 4);
+    assert.equal(requests.length, 1);
+});
+
+test('seeking, loop restarts and paused time do not count as watched playback', () => {
+    const { video, requests, playTo } = trackerHarness(() => Promise.resolve({ ok: true, json: () => ({ views: 1 }) }));
+    video.emit('play');
+    playTo(1);
+    video.emit('seeking');
+    playTo(20, 21);
+    playTo(0.5);
+    video.paused = true;
+    playTo(1.5, 2.5, 3.5);
+    assert.equal(requests.length, 0);
+    video.paused = false;
+    video.emit('play');
+    playTo(1.5, 2);
+    assert.equal(requests.length, 0);
+    playTo(2.5);
+    assert.equal(requests.length, 1);
+});
+
+test('a single view uses singular wording and network failures allow a later retry', async () => {
+    let fail = true;
+    const { video, label, requests, playTo } = trackerHarness(() => fail
+        ? Promise.reject(new Error('offline'))
+        : Promise.resolve({ ok: true, json: () => ({ views: 1 }) }));
+    video.emit('play');
+    playTo(1, 2, 3);
+    assert.equal(requests.length, 1);
+    await flush();
+    fail = false;
+    playTo(4, 5, 6);
+    assert.equal(requests.length, 2);
+    await flush();
+    assert.equal(label.textContent, '1 reproducción');
+});

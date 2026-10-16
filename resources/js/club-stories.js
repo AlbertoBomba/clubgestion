@@ -1,4 +1,45 @@
+function formatStoryViews(views) {
+    const count = String(views).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return `${count} ${views === 1 ? 'reproducción' : 'reproducciones'}`;
+}
+
 function initializeStories() {
+    document.querySelectorAll('video[data-story-view-url]').forEach((video) => {
+        if (video.dataset.viewTracked) return;
+        video.dataset.viewTracked = 'true';
+        let watched = 0;
+        let last = null;
+        let sent = false;
+        video.addEventListener('play', () => { last = video.currentTime; });
+        video.addEventListener('seeking', () => { last = null; });
+        video.addEventListener('timeupdate', () => {
+            if (sent || video.paused) return;
+            const now = video.currentTime;
+            // Only count continuous playback; seeks and loop restarts produce large or negative jumps.
+            if (last !== null && now > last && now - last < 1.5) watched += now - last;
+            last = now;
+            if (watched < 3) return;
+            sent = true;
+            fetch(video.dataset.storyViewUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': video.dataset.storyViewToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            }).then((response) => response.ok ? response.json() : null).then((data) => {
+                if (!data || typeof data.views !== 'number') return;
+                video.parentElement.querySelectorAll('[data-story-view-count]').forEach((label) => {
+                    label.textContent = formatStoryViews(data.views);
+                });
+            }).catch(() => {
+                sent = false;
+                watched = 0;
+            });
+        });
+    });
+
     document.querySelectorAll('[data-story-feed-video]').forEach((video) => {
         if (video.dataset.initialized) return;
         video.dataset.initialized = 'true';

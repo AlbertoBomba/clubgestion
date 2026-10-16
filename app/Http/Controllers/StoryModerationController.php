@@ -20,7 +20,7 @@ class StoryModerationController extends Controller
         $status = $filters['status'] ?? 'pending';
         $query = $this->query($kind);
         if ($kind === 'stories') {
-            $query->with(['category' => fn ($query) => $query->withoutGlobalScopes()])->withCount(['comments', 'likes']);
+            $query->with(['category' => fn ($query) => $query->withoutGlobalScopes()])->withCount(['comments', 'likes', 'videoViews']);
         } else {
             $query->with(['story' => fn ($query) => $query->withoutGlobalScopes()]);
         }
@@ -38,7 +38,7 @@ class StoryModerationController extends Controller
     {
         Gate::authorize('moderate-club-stories');
         $story = $this->query('stories')->with([
-            'category' => fn ($query) => $query->withoutGlobalScopes(), 'media',
+            'category' => fn ($query) => $query->withoutGlobalScopes(), 'media' => fn ($query) => $query->withCount('views'),
         ])->withCount('likes')->findOrFail($story);
         $comments = $story->comments()->latest()->paginate(15, ['*'], 'comments_page');
 

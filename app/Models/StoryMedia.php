@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class StoryMedia extends Model
 {
@@ -16,6 +17,11 @@ class StoryMedia extends Model
     public function story(): BelongsTo
     {
         return $this->belongsTo(ClubStory::class, 'club_story_id');
+    }
+
+    public function views(): HasMany
+    {
+        return $this->hasMany(StoryMediaView::class);
     }
 
     public function isVideo(): bool

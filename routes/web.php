@@ -96,6 +96,8 @@ Route::get('/historias', [StoryController::class, 'index'])->name('webclubs.stor
 Route::get('/historias/compartir', [StoryController::class, 'create'])->name('webclubs.stories.create');
 Route::post('/historias', [StoryController::class, 'store'])->middleware('throttle:story-submissions')->name('webclubs.stories.store');
 Route::get('/historias/archivos/{media}', [StoryController::class, 'media'])->whereNumber('media')->name('webclubs.stories.media');
+Route::post('/historias/archivos/{media}/reproducciones', [StoryController::class, 'view'])->whereNumber('media')
+    ->middleware('throttle:story-views')->name('webclubs.stories.view');
 Route::get('/historias/{story}', [StoryController::class, 'show'])->whereNumber('story')->name('webclubs.stories.show');
 Route::post('/historias/{story}/comentarios', [StoryController::class, 'comment'])->whereNumber('story')
     ->middleware('throttle:story-interactions')->name('webclubs.stories.comment');

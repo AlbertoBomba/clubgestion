@@ -12,9 +12,10 @@
             </div>
         </div>
         @foreach($story->media as $media)
-            <div data-story-slide @if(!$loop->first) hidden @endif class="story-slide">
+            <div data-story-slide @if(!$loop->first) hidden @endif class="story-slide relative">
                 @if($media->isVideo())
-                    <video controls muted playsinline preload="metadata" class="w-full h-full object-contain" src="{{ route('webclubs.stories.media', $media) }}" aria-label="Vídeo {{ $loop->iteration }} de {{ $story->title }}"></video>
+                    <video controls muted playsinline preload="metadata" class="w-full h-full object-contain" src="{{ route('webclubs.stories.media', $media) }}" data-story-view-url="{{ route('webclubs.stories.view', $media) }}" data-story-view-token="{{ csrf_token() }}" aria-label="Vídeo {{ $loop->iteration }} de {{ $story->title }}"></video>
+                    @include('webclubs.stories._views', ['media' => $media, 'class' => 'absolute top-16 left-3 z-10 rounded-full bg-black text-white text-sm px-3 py-1'])
                 @else
                     <a data-story-enlarge href="{{ route('webclubs.stories.media', $media) }}" target="_blank" rel="noopener" class="block w-full h-full cursor-zoom-in" aria-label="Ampliar foto {{ $loop->iteration }} de {{ $story->title }}">
                         <img src="{{ route('webclubs.stories.media', $media) }}" alt="Foto {{ $loop->iteration }} de {{ $story->title }}" class="w-full h-full object-contain" @if(!$loop->first) loading="lazy" @endif>

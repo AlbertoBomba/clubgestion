@@ -22,7 +22,7 @@ class StoryController extends Controller
         $filters = $request->validate(['category' => ['nullable', 'integer', 'min:1']]);
         $stories = ClubStory::where('sports_school_id', $schoolId)->published()
             ->when($filters['category'] ?? null, fn ($query, $category) => $query->where('story_category_id', $category))
-            ->with(['category', 'media'])
+            ->with(['category', 'media' => fn ($query) => $query->withCount('views')])
             ->withExists(['likes as liked_by_visitor' => fn ($query) => $query->where('visitor_hash',
                 Str::isUuid($visitor) ? $this->visitorHash($visitor) : '')])
             ->withCount(['likes',
@@ -59,7 +59,7 @@ class StoryController extends Controller
     public function show(Request $request, int $story)
     {
         $storyContext = $this->storyContext($request);
-        $story = $this->publishedStory($story)->load(['category', 'media'])
+        $story = $this->publishedStory($story)->load(['category', 'media' => fn ($query) => $query->withCount('views')])
             ->loadCount('likes');
         $comments = $story->comments()->where('status', 'approved')->latest()->paginate(15)->appends($storyContext);
         $visitor = $request->cookie('story_visitor', '');
@@ -119,6 +119,24 @@ class StoryController extends Controller
         }
 
         return redirect()->route('webclubs.stories.show', ['story' => $story->id] + $storyContext)->with('message', $message);
+    }
+
+    public function view(Request $request, int $media)
+    {
+        $media = StoryMedia::findOrFail($media);
+        $this->publishedStory($media->club_story_id);
+        abort_unless($media->isVideo(), 404);
+        $visitor = $request->cookie('story_visitor', '');
+        abort_unless(Str::isUuid($visitor), 422, 'Activa las cookies para contabilizar la reproducción.');
+        $view = $media->views()->createOrFirst([
+            'visitor_hash' => $this->visitorHash($visitor),
+            'viewed_on' => now()->toDateString(),
+        ]);
+
+        return response()->json([
+            'counted' => $view->wasRecentlyCreated,
+            'views' => $media->views()->count(),
+        ]);
     }
 
     public function media(int $media)

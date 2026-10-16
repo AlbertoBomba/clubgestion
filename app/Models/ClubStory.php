@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class ClubStory extends Model
 {
@@ -48,5 +49,10 @@ class ClubStory extends Model
     public function likes(): HasMany
     {
         return $this->hasMany(StoryLike::class);
+    }
+
+    public function videoViews(): HasManyThrough
+    {
+        return $this->hasManyThrough(StoryMediaView::class, StoryMedia::class);
     }
 }

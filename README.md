@@ -42,6 +42,12 @@ Los Me gusta se contabilizan inmediatamente desde el listado y el detalle, sin
 moderación. El listado conserva categoría y página tras votar y marca las historias
 que ya gustan al visitante. Los votos antiguos también cuentan, independientemente
 de su anterior estado de moderación; no es necesaria una migración de datos.
+
+Cada vídeo muestra sus reproducciones en el listado, en el detalle y en la
+moderación. Cuenta una reproducción cuando el visitante acumula 3 segundos de
+reproducción continua (los saltos y reinicios del bucle no suman), como máximo una
+vez al día por vídeo y navegador, usando la misma cookie anónima de los Me gusta.
+Requiere la migración `2026_10_16_100000_create_story_media_views_table`.
 Las historias y los comentarios empiezan pendientes. Los administradores
 activos del club acceden desde **Gestión Web → Historias de aficionados**
 (`/gestion-historias`) para aprobar, rechazar o retirar contenido y registrar una
