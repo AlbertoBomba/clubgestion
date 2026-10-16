@@ -1,11 +1,12 @@
 <div class="grid sm:grid-cols-2 gap-4">
     <div>
-        <label for="author_name" class="block font-semibold mb-2">Tu nombre público</label>
-        <input id="author_name" name="author_name" value="{{ old('author_name') }}" required maxlength="100" autocomplete="name" class="w-full rounded-lg border-gray-300">
+        <label for="author_name" class="block font-semibold mb-2">Tu nombre público (opcional)</label>
+        <input id="author_name" name="author_name" value="{{ old('author_name') }}" maxlength="100" autocomplete="name" placeholder="Anónimo" aria-describedby="author-name-help" class="w-full rounded-lg border-gray-300">
+        <p id="author-name-help" class="text-xs text-gray-500 mt-2">Si lo dejas vacío, aparecerás como Anónimo.</p>
     </div>
     <div>
-        <label for="author_email" class="block font-semibold mb-2">Correo electrónico (no se publicará)</label>
-        <input id="author_email" name="author_email" type="email" value="{{ old('author_email') }}" required maxlength="255" autocomplete="email" class="w-full rounded-lg border-gray-300">
+        <label for="author_email" class="block font-semibold mb-2">Correo electrónico (opcional, no se publicará)</label>
+        <input id="author_email" name="author_email" type="email" value="{{ old('author_email') }}" maxlength="255" autocomplete="email" class="w-full rounded-lg border-gray-300">
     </div>
 </div>
 <div hidden aria-hidden="true">

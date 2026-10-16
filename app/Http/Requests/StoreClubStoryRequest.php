@@ -8,6 +8,16 @@ use Illuminate\Validation\Validator;
 
 class StoreClubStoryRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $name = is_string($this->input('author_name')) ? trim($this->input('author_name')) : null;
+        $email = is_string($this->input('author_email')) ? trim($this->input('author_email')) : null;
+        $this->merge([
+            'author_name' => $name === '' ? null : $name,
+            'author_email' => $email === '' ? null : $email,
+        ]);
+    }
+
     public function authorize(): bool
     {
         return currentSchool() !== null;
@@ -16,8 +26,8 @@ class StoreClubStoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'author_name' => ['required', 'string', 'max:100'],
-            'author_email' => ['required', 'email', 'max:255'],
+            'author_name' => ['nullable', 'string', 'max:100'],
+            'author_email' => ['nullable', 'email', 'max:255'],
             'title' => ['required', 'string', 'max:150'],
             'body' => ['required', 'string', 'max:10000'],
             'category' => ['required', 'string', 'max:100'],

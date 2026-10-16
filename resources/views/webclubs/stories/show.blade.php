@@ -35,7 +35,7 @@
             <form method="post" action="{{ route('webclubs.stories.comment', ['story' => $story->id] + $storyContext) }}" class="bg-white border rounded-2xl p-6 space-y-5 mt-8">
                 @csrf
                 <h3 class="text-xl font-bold">Añadir un comentario</h3>
-                <p class="text-sm text-gray-500">El club revisará tu comentario antes de publicarlo. Tu correo no se mostrará.</p>
+                <p class="text-sm text-gray-500">El club revisará tu comentario antes de publicarlo. Nombre y correo son opcionales; si no indicas un nombre aparecerás como Anónimo. Tu correo no se mostrará.</p>
                 @include('webclubs.stories._identity')
                 <div>
                     <label for="body" class="block font-semibold mb-2">Tu comentario</label>

@@ -77,15 +77,21 @@ class StoryController extends Controller
     {
         $storyContext = $this->storyContext($request);
         $story = $this->publishedStory($story);
-        $data = $request->validate([
-            'author_name' => ['required', 'string', 'max:100'],
-            'author_email' => ['required', 'email', 'max:255'],
+        $name = is_string($request->input('author_name')) ? trim($request->input('author_name')) : null;
+        $email = is_string($request->input('author_email')) ? trim($request->input('author_email')) : null;
+        $payload = $request->all();
+        $payload['author_name'] = $name === '' ? null : $name;
+        $payload['author_email'] = $email === '' ? null : $email;
+        $data = validator($payload, [
+            'author_name' => ['nullable', 'string', 'max:100'],
+            'author_email' => ['nullable', 'email', 'max:255'],
             'body' => ['required', 'string', 'max:2000'],
             'consent' => ['accepted'],
             'website' => ['nullable', 'max:0'],
-        ]);
+        ])->validate();
         $story->comments()->create([
-            'author_name' => $data['author_name'], 'author_email' => $data['author_email'],
+            'author_name' => filled($data['author_name'] ?? null) ? trim($data['author_name']) : 'Anónimo',
+            'author_email' => $data['author_email'] ?? null,
             'body' => $data['body'], 'consented_at' => now(), 'status' => 'pending',
         ]);
 

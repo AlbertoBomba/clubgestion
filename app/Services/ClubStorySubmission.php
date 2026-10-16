@@ -27,8 +27,8 @@ class ClubStorySubmission
                 $story = ClubStory::create([
                     'sports_school_id' => $schoolId,
                     'story_category_id' => $category->id,
-                    'author_name' => $data['author_name'],
-                    'author_email' => $data['author_email'],
+                    'author_name' => filled($data['author_name'] ?? null) ? $data['author_name'] : 'Anónimo',
+                    'author_email' => $data['author_email'] ?? null,
                     'title' => $data['title'],
                     'body' => $data['body'],
                     'consented_at' => now(),

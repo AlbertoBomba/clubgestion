@@ -42,7 +42,9 @@ class ClubStoriesTest extends TestCase
             '2025_11_25_112501_add_sports_school_fields_to_users_table.php',
             '2025_11_25_114450_create_permission_tables.php',
             '2026_02_11_000001_add_domain_to_sports_schools_table.php',
+            '2025_11_28_184436_create_seasons_table.php',
             '2026_10_09_110000_create_club_stories_tables.php',
+            '2026_10_15_193000_make_story_author_emails_optional.php',
         ] as $migration) {
             (require database_path('migrations/'.$migration))->up();
         }
@@ -87,6 +89,85 @@ class ClubStoriesTest extends TestCase
         $user->assignRole($role);
 
         return $user;
+    }
+
+    public function test_stories_allow_missing_empty_or_whitespace_identity_and_display_anonymous(): void
+    {
+        foreach ([[], ['author_name' => '', 'author_email' => ''], ['author_name' => '   ', 'author_email' => '   ']] as $identity) {
+            $data = array_diff_key($this->submission(), array_flip(['author_name', 'author_email']));
+            $this->post('/historias', $data + $identity)->assertRedirect()->assertSessionHasNoErrors();
+        }
+        $this->assertSame(3, ClubStory::count());
+        foreach (ClubStory::all() as $story) {
+            $this->assertSame('Anónimo', $story->author_name);
+            $this->assertNull($story->author_email);
+            $this->assertSame('pending', $story->status);
+        }
+        $story = ClubStory::firstOrFail();
+        $story->update(['status' => 'approved', 'published_at' => now()]);
+        $this->get('/historias')->assertOk()->assertSee('Anónimo');
+        $this->get("/historias/$story->id")->assertOk()->assertSee('Anónimo');
+    }
+
+    public function test_comments_allow_missing_empty_or_whitespace_identity_and_display_anonymous_after_approval(): void
+    {
+        $story = $this->story(true);
+        foreach ([[], ['author_name' => '', 'author_email' => ''], ['author_name' => '   ', 'author_email' => '   ']] as $identity) {
+            $this->post("/historias/$story->id/comentarios", [
+                'body' => 'Comentario anónimo', 'consent' => 1,
+            ] + $identity)->assertRedirect()->assertSessionHasNoErrors();
+        }
+        $this->assertSame(3, $story->comments()->count());
+        foreach ($story->comments as $comment) {
+            $this->assertSame('Anónimo', $comment->author_name);
+            $this->assertNull($comment->author_email);
+            $this->assertSame('pending', $comment->status);
+        }
+        $comment = $story->comments->first();
+        $this->actingAs($this->moderator())->post("/gestion-historias/comments/$comment->id/moderar", ['status' => 'approved'])
+            ->assertRedirect();
+        $this->get("/historias/$story->id")->assertOk()->assertSee('Anónimo')->assertSee('Comentario anónimo');
+    }
+
+    public function test_optional_identity_still_validates_provided_email_and_name_length(): void
+    {
+        $this->post('/historias', $this->submission([
+            'author_name' => str_repeat('a', 101), 'author_email' => 'invalid',
+        ]))->assertSessionHasErrors(['author_name', 'author_email']);
+        $story = $this->story(true);
+        $this->post("/historias/$story->id/comentarios", [
+            'author_name' => str_repeat('a', 101), 'author_email' => 'invalid',
+            'body' => 'Comentario', 'consent' => 1,
+        ])->assertSessionHasErrors(['author_name', 'author_email']);
+        $this->assertSame(0, $story->comments()->count());
+    }
+
+    public function test_identity_fields_are_optional_in_both_forms(): void
+    {
+        $story = $this->story(true);
+        foreach (['/historias/compartir', "/historias/$story->id"] as $url) {
+            $response = $this->get($url)->assertOk()->assertSee('Tu nombre público (opcional)');
+            foreach (['author_name', 'author_email'] as $name) {
+                preg_match('/<input[^>]*id="'.$name.'"[^>]*>/', $response->getContent(), $matches);
+                $this->assertNotEmpty($matches);
+                $this->assertStringNotContainsString('required', $matches[0]);
+            }
+        }
+    }
+
+    public function test_email_migration_preserves_existing_identity_and_blocks_unsafe_rollback(): void
+    {
+        $story = $this->story();
+        $migration = require database_path('migrations/2026_10_15_193000_make_story_author_emails_optional.php');
+        $migration->down();
+        $migration->up();
+        $this->assertSame('Aficionado', $story->fresh()->author_name);
+        $this->assertSame('private@example.test', $story->fresh()->author_email);
+        app(ClubStorySubmission::class)->store($this->school->id, array_diff_key(
+            $this->submission(), array_flip(['author_name', 'author_email']),
+        ), []);
+        $this->expectException(RuntimeException::class);
+        $migration->down();
     }
 
     public function test_submission_is_pending_and_media_and_category_are_not_public(): void

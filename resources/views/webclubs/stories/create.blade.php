@@ -17,7 +17,7 @@
                     <li><strong class="text-primary">03.</strong> El club lo revisa antes de publicarlo.</li>
                 </ol>
             </div>
-            <p class="text-sm text-gray-500 mt-6">Sin registro. Tu correo es privado. Tú decides qué compartir.</p>
+            <p class="text-sm text-gray-500 mt-6">Sin registro. Nombre y correo opcionales. Puedes compartir tu historia como Anónimo.</p>
         </aside>
         <div class="lg:col-span-2 min-w-0">
         @include('webclubs.stories._notice')

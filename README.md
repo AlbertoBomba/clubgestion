@@ -29,7 +29,11 @@ permiten pulsar las fotos para abrirlas en un visor ampliado adaptable a la
 pantalla, con cierre por botón o Escape y pausa de la reproducción automática.
 Sin soporte de diálogo nativo, la foto se abre en otra pestaña. Las historias
 son permanentes, no caducan a las 24 horas. Se permite participar sin registro:
-nombre y correo para historias/comentarios (el correo nunca se publica) y un
+nombre y correo opcionales para historias/comentarios (el correo nunca se publica).
+Si no se indica nombre, se guarda y muestra **Anónimo**; el correo ausente se
+guarda como `NULL`. Si se facilita un correo, debe tener formato válido. Aplicar
+la migración `2026_10_15_193000_make_story_author_emails_optional.php` antes de
+desplegar este cambio; no modifica los nombres ni correos ya guardados. Se admite un
 Me gusta por navegador mediante una cookie cifrada HttpOnly de un año. Borrar
 cookies o cambiar de navegador permite otro voto; no representa una identidad
 verificada. No se envían correos de confirmación ni notificaciones automáticas.
