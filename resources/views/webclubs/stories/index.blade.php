@@ -3,13 +3,12 @@
 @section('content')
 <main class="bg-gray-50 min-h-screen py-12">
     <div class="max-w-6xl mx-auto px-4 sm:px-6">
-        <div class="flex flex-wrap items-end justify-between gap-6 mb-8">
+        <div class="mb-8">
             <div>
                 <p class="text-primary font-semibold uppercase tracking-wider text-sm">La memoria de nuestra afición</p>
                 <h1 class="text-3xl sm:text-5xl font-bold mt-3">Cuéntanos tu historia</h1>
                 <p class="text-gray-600 mt-4 max-w-2xl">Ese torneo inolvidable, tu primer partido, los amigos de siempre. Comparte los momentos que nos unen a {{ tenantName() }}.</p>
             </div>
-            <a href="{{ route('webclubs.stories.create') }}" class="bg-primary text-white font-semibold px-6 py-3 rounded-full">+ Compartir mi historia</a>
         </div>
         @include('webclubs.stories._notice')
         <form method="get" action="{{ route('webclubs.stories.index') }}" class="flex flex-wrap items-end gap-3 mb-8">
@@ -90,7 +89,10 @@
         
     
 </main>
-    
+<a href="{{ route('webclubs.stories.create') }}" class="fixed bottom-5 right-4 sm:bottom-8 sm:right-8 z-50 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-4 text-base font-bold text-white shadow-xl ring-4 ring-white transition duration-200 hover:scale-105 hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-primary/40 sm:px-7 sm:py-5 sm:text-lg" aria-label="Compartir mi historia">
+    <span aria-hidden="true" class="text-2xl leading-none">+</span>
+    <span>Crear mi historia</span>
+</a>
 @endsection
 
   
