@@ -501,21 +501,6 @@ class Edit extends Component
             $this->selectedPaymentsToDelete[] = $paymentId;
         }
 
-        // Obtener cuotas YA PAGADAS para no generarlas de nuevo
-        $paidCuotas = \App\Models\PaymentPlayer::where('player_id', $this->playerToMove)
-            ->where('sports_school_id', auth()->user()->sports_school_id)
-            ->where('state', 1)
-            ->whereHas('paymentTeam', function($query) use ($activeSeason, $sectionId) {
-                $query->where('season_id', $activeSeason->id)
-                    ->whereHas('team', function ($q) use ($sectionId) {
-                        $q->where('section_id', $sectionId);
-                    });
-            })
-            ->with('paymentTeam')
-            ->get()
-            ->pluck('cuota')
-            ->toArray();
-
         // Mostrar pagos pagados que se mantendrán
         $paidPayments = \App\Models\PaymentPlayer::with('paymentTeam')
             ->where('player_id', $this->playerToMove)
@@ -528,6 +513,11 @@ class Edit extends Component
                     });
             })
             ->get();
+
+        $paidCuotas = $paidPayments->pluck('cuota')->toArray();
+        $importePagadoCentimos = $paidPayments->sum(
+            fn ($payment) => (int) round((float) $payment->amount * 100)
+        );
 
         foreach ($paidPayments as $payment) {
             $this->paymentsPaid[] = [
@@ -542,7 +532,7 @@ class Edit extends Component
 
         // Preparar nuevos pagos a crear (excluyendo cuotas ya pagadas)
         if ($newTeam->payments->isNotEmpty()) {
-            $newPayments = $this->preparePlayerPaymentsForTeam($player, $newTeam, $paidCuotas);
+            $newPayments = $this->preparePlayerPaymentsForTeam($player, $newTeam, $paidCuotas, $importePagadoCentimos);
             foreach ($newPayments as $index => $newPayment) {
                 $uniqueId = $player->id . '_' . $index;
                 $newPayment['unique_id'] = $uniqueId;
@@ -555,7 +545,7 @@ class Edit extends Component
         $this->showPreviewModal = true;
     }
     
-    private function preparePlayerPaymentsForTeam($player, $team, $excludedCuotas = [])
+    private function preparePlayerPaymentsForTeam($player, $team, $excludedCuotas = [], int $importePagadoCentimos = 0)
     {
         $paymentsData = [];
         $sportsSchoolId = auth()->user()->sports_school_id;
@@ -592,18 +582,23 @@ class Edit extends Component
         // Asegurar que no sea negativo
         $precioTotalConDescuento = max(0, $precioTotalConDescuento);
         
-        // Número total de cuotas del equipo
-        $totalCuotas = $team->payments->count();
-        
-        // Calcular importe por cuota (dividiendo el total entre TODAS las cuotas)
-        $importePorCuota = $totalCuotas > 0 ? $precioTotalConDescuento / $totalCuotas : 0;
+        $pendingPayments = $team->payments
+            ->reject(fn ($payment) => in_array($payment->cuota, $excludedCuotas))
+            ->values();
+        $totalCuotas = $pendingPayments->count();
+        $importePendienteCentimos = max(0, (int) round($precioTotalConDescuento * 100) - $importePagadoCentimos);
+
+        if ($totalCuotas === 0 || $importePendienteCentimos === 0) {
+            return [];
+        }
+
+        // Repartir el saldo pendiente en céntimos sin perder importe por redondeos.
+        $importePorCuotaCentimos = intdiv($importePendienteCentimos, $totalCuotas);
+        $centimosRestantes = $importePendienteCentimos % $totalCuotas;
 
         // Procesar cada pago del equipo
-        foreach ($team->payments as $payment) {
-            // Saltar si esta cuota ya está pagada
-            if (in_array($payment->cuota, $excludedCuotas)) {
-                continue;
-            }
+        foreach ($pendingPayments as $index => $payment) {
+            $importePorCuota = (float) (($importePorCuotaCentimos + ($index < $centimosRestantes ? 1 : 0)) / 100);
 
             // Verificar que no exista ya esta combinación player_id + payment_id ACTIVA
             $existsActive = \App\Models\PaymentPlayer::where('player_id', $player->id)

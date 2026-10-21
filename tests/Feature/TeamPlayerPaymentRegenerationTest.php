@@ -60,6 +60,8 @@ class TeamPlayerPaymentRegenerationTest extends TestCase
             $table->unsignedBigInteger('sports_school_id');
             $table->string('name');
             $table->string('surname');
+            $table->decimal('descEnt', 10, 2)->nullable();
+            $table->decimal('descPerc', 10, 2)->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
@@ -95,6 +97,9 @@ class TeamPlayerPaymentRegenerationTest extends TestCase
                 $table->decimal($column, 10, 2)->nullable();
             }
             $table->timestamp('payment_date')->nullable();
+            $table->string('payment_order')->nullable();
+            $table->string('payment_auth')->nullable();
+            $table->string('payment_type')->nullable();
             $table->unsignedBigInteger('created_user')->nullable();
             $table->unsignedBigInteger('updated_user')->nullable();
             $table->timestamps();
@@ -220,6 +225,109 @@ class TeamPlayerPaymentRegenerationTest extends TestCase
             [$this->otherTeam->id, $target->id],
             $this->player->teams()->pluck('teams.id')->all()
         );
+    }
+
+    public function test_paid_amount_is_deducted_from_target_total_in_preview_and_after_confirmation(): void
+    {
+        $target = $this->createTeam(1);
+        $target->update(['price' => 140]);
+        $paid = $this->createPlayerPayment($this->sourceTeam, 1, 1);
+        $paid->update(['amount' => 90]);
+        $pending = $this->createPlayerPayment($this->sourceTeam, 2, 0);
+        $pending->update(['amount' => 50]);
+        $this->createPlayerPayment($this->otherTeam, 2, 1);
+        $this->createTeamPayment($target, 1)->update(['amount' => 90]);
+        $newPayment = $this->createTeamPayment($target, 2);
+        $newPayment->update(['amount' => 50]);
+
+        $component = $this->previewMove($target);
+
+        $this->assertSame([50.0], array_column($component->paymentsToCreate, 'amount'));
+        $this->assertSame([50.0], array_column($component->paymentsToCreate, 'amount_original'));
+        $component->confirmPaymentsAction();
+
+        $this->assertFalse(session()->has('error'), (string) session('error'));
+        $this->assertSoftDeleted('payments_players', ['id' => $pending->id]);
+        $this->assertDatabaseHas('payments_players', [
+            'player_id' => $this->player->id,
+            'payment_id' => $newPayment->id,
+            'state' => 0,
+            'amount' => 50,
+        ]);
+        $this->assertSame('90.00', $paid->fresh()->amount);
+    }
+
+    public function test_remaining_balance_uses_discounts_and_all_paid_amounts_with_exact_cent_rounding(): void
+    {
+        $target = $this->createTeam(1);
+        $target->update(['price' => 200]);
+        $this->player->update(['descEnt' => 20, 'descPerc' => 10]);
+        $this->createPlayerPayment($this->sourceTeam, 1, 1)->update(['amount' => 30]);
+        $this->createPlayerPayment($this->sourceTeam, 2, 1)->update(['amount' => 29.99]);
+        foreach ([1, 2, 3, 4, 5] as $cuota) {
+            $this->createTeamPayment($target, $cuota);
+        }
+
+        $component = $this->previewMove($target);
+
+        $this->assertSame([3, 4, 5], array_column($component->paymentsToCreate, 'cuota'));
+        $this->assertSame([33.34, 33.34, 33.33], array_column($component->paymentsToCreate, 'amount'));
+        $this->assertEqualsWithDelta(
+            100.01,
+            array_sum(array_column($component->paymentsToCreate, 'amount')),
+            0.00001
+        );
+    }
+
+    public function test_no_paid_payments_still_distributes_the_full_total(): void
+    {
+        $target = $this->createTeam(1);
+        $target->update(['price' => 140]);
+        $this->createTeamPayment($target, 1);
+        $this->createTeamPayment($target, 2);
+
+        $component = $this->previewMove($target);
+
+        $this->assertSame([70.0, 70.0], array_column($component->paymentsToCreate, 'amount'));
+    }
+
+    public function test_restored_payment_uses_remaining_balance_instead_of_its_old_amount(): void
+    {
+        $target = $this->createTeam(1);
+        $target->update(['price' => 140]);
+        $this->createPlayerPayment($this->sourceTeam, 1, 1)->update(['amount' => 90]);
+        $this->createTeamPayment($target, 1);
+        $deleted = $this->createPlayerPayment($target, 2, 0);
+        $deleted->delete();
+
+        $component = $this->previewMove($target);
+
+        $this->assertSame([50.0], array_column($component->paymentsToCreate, 'amount'));
+        $this->assertTrue($component->paymentsToCreate[0]['is_restore']);
+        $component->confirmPaymentsAction();
+
+        $this->assertFalse(session()->has('error'), (string) session('error'));
+        $this->assertDatabaseHas('payments_players', [
+            'id' => $deleted->id,
+            'state' => 0,
+            'amount' => 50,
+            'deleted_at' => null,
+        ]);
+    }
+
+    public function test_no_new_debt_is_generated_when_paid_amount_covers_the_total(): void
+    {
+        $target = $this->createTeam(1);
+        $target->update(['price' => 90]);
+        $paid = $this->createPlayerPayment($this->sourceTeam, 1, 1);
+        $paid->update(['amount' => 90]);
+        $this->createTeamPayment($target, 1);
+        $this->createTeamPayment($target, 2);
+
+        $this->assertSame([], $this->previewMove($target)->paymentsToCreate);
+
+        $target->update(['price' => 80]);
+        $this->assertSame([], $this->previewMove($target)->paymentsToCreate);
     }
 
     private function createTeam(int $sectionId): Team

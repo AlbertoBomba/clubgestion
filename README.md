@@ -16,6 +16,12 @@ incluye pendientes y abonadas de la temporada activa y de la sección del equipo
 de origen. Los pagos de otras secciones no se eliminan ni se usan para excluir
 cuotas de las cartas nuevas del equipo de destino. Se mantiene la exclusión de
 cuotas ya abonadas en la sección de origen, también en traslados entre secciones.
+El importe pendiente se calcula restando al precio del equipo de destino, con
+los descuentos del jugador, los importes realmente abonados en la sección de
+origen. Ese saldo se reparte entre las cuotas no abonadas, ajustando los céntimos
+para conservar el total. Por ejemplo, para un total de 140 € y 90 € ya pagados,
+la única cuota restante será de 50 €. Si lo abonado cubre el total, no se generan
+cartas nuevas ni importes negativos; no se tramitan devoluciones automáticas.
 
 ### Historias de aficionados
 
