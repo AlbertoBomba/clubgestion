@@ -472,13 +472,18 @@ class Edit extends Component
         $player = \App\Models\Player::find($this->playerToMove);
         if (!$player) return;
 
-        // Obtener pagos pendientes a eliminar
+        $sectionId = $this->team->section_id;
+
+        // Obtener pagos pendientes a eliminar solo de la sección de origen
         $pendingPayments = \App\Models\PaymentPlayer::with('paymentTeam')
             ->where('player_id', $this->playerToMove)
             ->where('sports_school_id', auth()->user()->sports_school_id)
             ->where('state', 0)
-            ->whereHas('paymentTeam', function($query) use ($activeSeason) {
-                $query->where('season_id', $activeSeason->id);
+            ->whereHas('paymentTeam', function($query) use ($activeSeason, $sectionId) {
+                $query->where('season_id', $activeSeason->id)
+                    ->whereHas('team', function ($q) use ($sectionId) {
+                        $q->where('section_id', $sectionId);
+                    });
             })
             ->get();
 
@@ -500,8 +505,11 @@ class Edit extends Component
         $paidCuotas = \App\Models\PaymentPlayer::where('player_id', $this->playerToMove)
             ->where('sports_school_id', auth()->user()->sports_school_id)
             ->where('state', 1)
-            ->whereHas('paymentTeam', function($query) use ($activeSeason) {
-                $query->where('season_id', $activeSeason->id);
+            ->whereHas('paymentTeam', function($query) use ($activeSeason, $sectionId) {
+                $query->where('season_id', $activeSeason->id)
+                    ->whereHas('team', function ($q) use ($sectionId) {
+                        $q->where('section_id', $sectionId);
+                    });
             })
             ->with('paymentTeam')
             ->get()
@@ -513,8 +521,11 @@ class Edit extends Component
             ->where('player_id', $this->playerToMove)
             ->where('sports_school_id', auth()->user()->sports_school_id)
             ->where('state', 1)
-            ->whereHas('paymentTeam', function($query) use ($activeSeason) {
-                $query->where('season_id', $activeSeason->id);
+            ->whereHas('paymentTeam', function($query) use ($activeSeason, $sectionId) {
+                $query->where('season_id', $activeSeason->id)
+                    ->whereHas('team', function ($q) use ($sectionId) {
+                        $q->where('section_id', $sectionId);
+                    });
             })
             ->get();
 

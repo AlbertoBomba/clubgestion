@@ -9,6 +9,14 @@
 
 ## About Laravel
 
+### Traslado de jugadores desde equipos
+
+La previsualización de cartas de pago al mover un jugador desde un equipo solo
+incluye pendientes y abonadas de la temporada activa y de la sección del equipo
+de origen. Los pagos de otras secciones no se eliminan ni se usan para excluir
+cuotas de las cartas nuevas del equipo de destino. Se mantiene la exclusión de
+cuotas ya abonadas en la sección de origen, también en traslados entre secciones.
+
 ### Historias de aficionados
 
 La web de cada club ofrece **Cuéntanos tu historia** en `/historias`: listado
