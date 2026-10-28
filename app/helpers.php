@@ -308,14 +308,16 @@ if (!function_exists('generatePlayerPayments')) {
 
 		$seasonId = $team->season_id;
 
-		// Cuotas de la temporada ya pagadas por el jugador (para no regenerarlas)
+		// Cuotas ya pagadas por el jugador en la misma sección y temporada que este equipo
+		$sectionId = $team->section_id;
 		$paidCuotas = \App\Models\PaymentPlayer::where('player_id', $player->id)
 			->where('sports_school_id', $sportsSchoolId)
 			->where('state', 1)
-			->whereHas('paymentTeam', function ($query) use ($seasonId) {
-				$query->whereHas('team', function ($q) use ($seasonId) {
-					$q->where('season_id', $seasonId);
-				});
+			->whereHas('paymentTeam', function ($query) use ($seasonId, $sectionId) {
+				$query->where('season_id', $seasonId)
+					->whereHas('team', function ($q) use ($sectionId) {
+						$q->where('section_id', $sectionId);
+					});
 			})
 			->pluck('cuota')
 			->unique()

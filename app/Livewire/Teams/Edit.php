@@ -64,6 +64,7 @@ class Edit extends Component
     
     // Previsualización de pagos al mover jugador
     public $showPreviewModal = false;
+    public $addingPlayers = false;
     public $paymentsToDelete = [];
     public $paymentsToCreate = [];
     public $paymentsPaid = [];
@@ -324,7 +325,7 @@ class Edit extends Component
             ->where('sports_school_id', auth()->user()->sports_school_id)
             ->where('state', 0)
             ->whereHas('paymentTeam', function($query) use ($activeSeason) {
-                $query->where('season_id', $activeSeason->id);
+                $query->where('season_id', $activeSeason->id)->where('team_id', $this->team->id);
             })
             ->get();
 
@@ -346,7 +347,7 @@ class Edit extends Component
             ->where('sports_school_id', auth()->user()->sports_school_id)
             ->where('state', 1)
             ->whereHas('paymentTeam', function($query) use ($activeSeason) {
-                $query->where('season_id', $activeSeason->id);
+                $query->where('season_id', $activeSeason->id)->where('team_id', $this->team->id);
             })
             ->get();
 
@@ -664,6 +665,16 @@ class Edit extends Component
     
     public function confirmPaymentsAction()
     {
+        if ($this->addingPlayers) {
+            $this->executeAddPlayers();
+            $this->addingPlayers = false;
+            $this->showPreviewModal = false;
+            $this->paymentsToCreate = [];
+            $this->paymentsPaid = [];
+            $this->dispatch('modal-closed');
+            return;
+        }
+
         $this->regeneratePayments();
     }
     
@@ -902,7 +913,96 @@ class Edit extends Component
             session()->flash('error', 'Debe seleccionar al menos un jugador.');
             return;
         }
-        
+
+        $this->prepareAddPlayersPreview();
+    }
+
+    private function prepareAddPlayersPreview()
+    {
+        $this->paymentsToDelete = [];
+        $this->paymentsToCreate = [];
+        $this->paymentsPaid = [];
+        $this->selectedPaymentsToDelete = [];
+        $this->selectedPaymentsToCreate = [];
+
+        $team = $this->team->load('payments');
+        $sportsSchoolId = auth()->user()->sports_school_id;
+
+        foreach ($this->selectedPlayersToAdd as $playerId) {
+            $player = \App\Models\Player::find($playerId);
+            if (!$player || $team->payments->isEmpty()) {
+                continue;
+            }
+
+            $paidPayments = \App\Models\PaymentPlayer::with('paymentTeam')
+                ->where('player_id', $player->id)
+                ->where('sports_school_id', $sportsSchoolId)
+                ->where('state', 1)
+                ->whereHas('paymentTeam', function ($query) use ($team) {
+                    $query->where('season_id', $team->season_id)
+                        ->whereHas('team', function ($q) use ($team) {
+                            $q->where('section_id', $team->section_id);
+                        });
+                })
+                ->get();
+
+            foreach ($paidPayments as $payment) {
+                $this->paymentsPaid[] = [
+                    'player_name' => $player->name . ' ' . $player->surname,
+                    'code' => $payment->code,
+                    'cuota' => $payment->cuota,
+                    'amount' => $payment->amount,
+                    'description' => $payment->paymentTeam->description ?? 'N/A',
+                    'payment_date' => $payment->payment_date ? $payment->payment_date->format('d/m/Y') : 'N/A',
+                ];
+            }
+
+            $paidCuotas = $paidPayments->pluck('cuota')->unique()->toArray();
+            $toGenerate = $team->payments->reject(fn ($p) => in_array($p->cuota, $paidCuotas));
+            $totalAmount = $toGenerate->sum(fn ($p) => floatval($p->amount ?? 0));
+            $discountEnt = $player->descEnt ? floatval($player->descEnt) : 0;
+            $discountPerc = $player->descPerc ? floatval($player->descPerc) : 0;
+
+            foreach ($toGenerate as $payment) {
+                $exists = \App\Models\PaymentPlayer::where('player_id', $player->id)
+                    ->where('payment_id', $payment->id)
+                    ->whereNull('deleted_at')
+                    ->exists();
+                if ($exists) {
+                    continue;
+                }
+
+                $original = floatval($payment->amount ?? 0);
+                $entShare = $totalAmount > 0 ? $discountEnt * ($original / $totalAmount) : 0;
+                $final = max(0, $original - $entShare - ($original * $discountPerc / 100));
+                $isRestore = \App\Models\PaymentPlayer::where('player_id', $player->id)
+                    ->where('payment_id', $payment->id)
+                    ->whereNotNull('deleted_at')
+                    ->exists();
+
+                $uniqueId = $player->id . '_' . $payment->id;
+                $this->paymentsToCreate[] = [
+                    'unique_id' => $uniqueId,
+                    'player_id' => $player->id,
+                    'player_name' => $player->name . ' ' . $player->surname,
+                    'cuota' => $payment->cuota,
+                    'amount_original' => round($original, 2),
+                    'amount' => round($final, 2),
+                    'description' => $payment->description ?? 'N/A',
+                    'team_name' => $team->team,
+                    'is_restore' => $isRestore,
+                ];
+                $this->selectedPaymentsToCreate[] = $uniqueId;
+            }
+        }
+
+        $this->addingPlayers = true;
+        $this->showAddPlayerModal = false;
+        $this->showPreviewModal = true;
+    }
+
+    private function executeAddPlayers()
+    {
         $totalGenerated = 0;
         $totalRestored = 0;
         
@@ -964,6 +1064,16 @@ class Edit extends Component
         $this->showAddPlayerModal = false;
         $this->searchAvailablePlayer = '';
         $this->selectedPlayersToAdd = [];
+    }
+
+    public function cancelPreview()
+    {
+        $this->showPreviewModal = false;
+        $this->addingPlayers = false;
+        $this->selectedPlayersToAdd = [];
+        $this->paymentsToCreate = [];
+        $this->paymentsToDelete = [];
+        $this->paymentsPaid = [];
     }
     
     public function cancelAddPlayer()

@@ -1582,7 +1582,7 @@
         </x-slot>
         <x-slot name="footer">
             <div class="flex items-center justify-between w-full gap-3">
-                <x-secondary-button wire:click="$set('showPreviewModal', false)">
+                <x-secondary-button wire:click="cancelPreview">
                     Cancelar
                 </x-secondary-button>
                 <button wire:click="confirmPaymentsAction" wire:loading.attr="disabled" wire:target="confirmPaymentsAction"
